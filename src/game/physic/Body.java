@@ -23,7 +23,6 @@ public abstract class Body extends ProMaster {
 	public final PVector location;
 	public PVector rotationVel = zero.get();
 	public PVector rotation = zero.get();
-	protected PVector baseRot = zero.get();
 	
 	public Body parent = null;			
 	public boolean transformChanged = true;	//indique si la transformation du body a été modifiée cette frame.
@@ -67,12 +66,6 @@ public abstract class Body extends ProMaster {
 		
 		//2. rotation, vitesse angulaire, on prend rotation axis comme L
 		if (!torques.equals(zero)) {
-			//on modifie la rotation de base avec front
-			PVector newBR = front.cross(absFront());
-			newBR.setMag( PApplet.asin( newBR.mag() ) );
-			baseRot = newBR;
-			rotation.set(zero);
-			
 			rotationVel.add( multMatrix( inverseInertiaMom, torques ) );
 		}
 		if (!rotationVel.equals(zero)) {
@@ -205,7 +198,7 @@ public abstract class Body extends ProMaster {
 
 	//retourne la position de rel, un point relatif au body en absolu 
 	public PVector absolute(PVector rel) {
-		PVector relAbs = absolute(rel, location, rotation, baseRot);
+		PVector relAbs = absolute(rel, location, rotation);
 		if (parent != null)
 			return parent.absolute(relAbs);
 		else
@@ -220,13 +213,13 @@ public abstract class Body extends ProMaster {
 	}
 	protected PVector local(PVector abs) {
 		if (parent != null)
-			return local(parent.local(abs), location, rotation, baseRot);
+			return local(parent.local(abs), location, rotation);
 		else
-			return local(abs, location, rotation, baseRot);
+			return local(abs, location, rotation);
 	}
 	
 	public PVector absFront() {
-		return absolute(front, zero, rotation, baseRot);
+		return absolute(front, zero, rotation);
 	}
 	
 	/*protected static PVector orientation(PVector front) {

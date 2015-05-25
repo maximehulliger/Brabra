@@ -79,7 +79,7 @@ public abstract class ProMaster {
 	public static PVector[] absolute(PVector[] v, PVector trans, PVector rotation, PVector baseRot) {
 		PVector[] ret = new PVector[v.length];
 	  	for (int i=0; i<v.length; i++)
-	  		ret[i] = absolute(v[i], trans, rotation, baseRot);
+	  		ret[i] = absolute(v[i], trans, rotation);
 	    return ret;
 	}
 	
@@ -132,11 +132,10 @@ public abstract class ProMaster {
 	
 	//------ Transformations (location, rotation)
 	  
-	  public static PVector absolute(PVector rel, PVector trans, PVector rotation, PVector baseRot) {
+	  public static PVector absolute(PVector rel, PVector trans, PVector rotation) {
 			app.pushMatrix();
 			translate(trans);
 				app.pushMatrix();
-				rotate(baseRot);
 				rotate(rotation);
 			  	PVector ret = new PVector( app.modelX(rel.x, rel.y, rel.z), app.modelY(rel.x, rel.y, rel.z), app.modelZ(rel.x, rel.y, rel.z) );
 				app.popMatrix();
@@ -144,8 +143,8 @@ public abstract class ProMaster {
 			return ret;
 	  }
 	  
-	  public static PVector local(PVector abs, PVector trans, PVector rotation, PVector baseRot) {
-		  return absolute( PVector.sub(abs, trans), zero, PVector.mult(baseRot, -1), PVector.mult(rotation, -1));
+	  public static PVector local(PVector abs, PVector trans, PVector rotation) {
+		  return absolute( PVector.sub(abs, trans), zero, PVector.mult(rotation, -1));
 	  }
 
 	  protected static void translate(PVector t) {

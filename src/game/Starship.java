@@ -92,7 +92,7 @@ public class Starship extends Cube
 	
 	protected void addForces() {
 		if (!forceRot.equals(zero)) {
-			addForce(absolute(vec(0, 30, 0)), absolute(forceRot, zero, rotation, baseRot));
+			addForce(absolute(vec(0, 30, 0)), absolute(forceRot, zero, rotation));
 			//angularVelocity.add(controlForce);
 			forceRot = zero.get();
 		}
