@@ -9,8 +9,8 @@ import processing.core.PVector;
 public class Starship extends Cube
 {
 	public static final PVector size = new PVector(60, 30, 120);
+	public static final boolean displaySkybox = true;
 	private static final boolean displayViseur = true;
-	private static final boolean displaySkybox = true;
 	public float forceRatio = 3; //puissance du vaisseau
 	public boolean hasCamera = true;
 	
@@ -92,7 +92,7 @@ public class Starship extends Cube
 	
 	protected void addForces() {
 		if (!forceRot.equals(zero)) {
-			addForce(absolute(vec(0, 30, 0)), absolute(forceRot, zero, rotation, orientation));
+			addForce(absolute(vec(0, 30, 0)), absolute(forceRot, zero, rotation, baseRot));
 			//angularVelocity.add(controlForce);
 			forceRot = zero.get();
 		}

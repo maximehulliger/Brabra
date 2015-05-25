@@ -1,5 +1,10 @@
 package game.geo;
 
+import game.ProMaster;
+
+import java.util.LinkedList;
+import java.util.List;
+
 import processing.core.PApplet;
 import processing.core.PVector;
 /***************************************************************************
@@ -202,6 +207,75 @@ public class Quaternion {
 		Z *= Length;
 
 		return this;
+	}
+	
+	public PVector toTBryanAngle() {
+		float heading, attitude, bank;
+	    float sqw = W*W;
+	    float sqx = X*X;
+	    float sqy = Y*Y;
+	    float sqz = Z*Z;
+	    float unit = sqx + sqy + sqz + sqw; // if normalised is one, otherwise is correction factor
+	    float test = X*Y + Z*W;
+		if (test > 0.499*unit) { // singularity at north pole
+			heading = 2 * PApplet.atan2(X,W);
+			attitude = PApplet.HALF_PI;
+			bank = 0;
+		} else if (test < -0.499*unit) { // singularity at south pole
+			heading = -2 * PApplet.atan2(X,W);
+			attitude = -PApplet.HALF_PI;
+			bank = 0;
+		} else {
+		    heading = PApplet.atan2(2*Y*W-2*X*Z , sqx - sqy - sqz + sqw);
+			attitude = PApplet.asin(2*test/unit);
+			bank = PApplet.atan2(2*X*W-2*Y*Z , -sqx + sqy - sqz + sqw);
+		}
+		return new PVector(heading, attitude, bank);
+	}
+	
+	public static void test() {
+		List<PVector> samplePoints = new LinkedList<>();
+		for (float i = -1; i<=1; i+=0.5f) {
+			for (float j = -1; j<=1; j+=0.5f) {
+				for (float k = -1; k<=1; k+=0.5f) {
+					samplePoints.add( new PVector(i, j, k));
+				}
+			}
+		}
+		
+		List<PVector> sampleRot = new LinkedList<>();
+		for (float i = -1; i<=1; i+=0.5f) {
+			for (float j = -1; j<=1; j+=0.5f) {
+				for (float k = -1; k<=1; k+=0.5f) {
+					if (i==0 && j==0 && k==0)
+						continue;
+					sampleRot.add( new PVector(i, j, k));
+				}
+			}
+		}
+
+		List<PVector> actual = new LinkedList<>();
+		List<PVector> futur = new LinkedList<>();
+		List<String> info = new LinkedList<>();
+		
+		for (PVector rot : sampleRot) {
+			float angle = rot.mag();
+			PVector nrot = rot.get();
+			nrot.normalize();
+			
+			Quaternion q = new Quaternion();
+			//q.fromAxis(angle, nrot);
+			
+			for (PVector point : samplePoints) {
+				info.add("rotation de "+point+" autour de "+nrot+" à "+angle+"° :");
+				//actual.add( ProMaster.absolute(point, ProMaster.zero, nrot) );
+				futur.add( q.rotate(point, nrot, angle) );
+			}
+		}
+		
+		for (int i=0; i<info.size(); i++) {
+			System.out.println(info.get(i) + actual.get(i) + " / " + futur.get(i));
+		}
 	}
 
 	//Example of rotating PVector about a directional PVector

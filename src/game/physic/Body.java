@@ -23,15 +23,14 @@ public abstract class Body extends ProMaster {
 	public final PVector location;
 	public PVector rotationVel = zero.get();
 	public PVector rotation = zero.get();
-	public PVector orientationVel = zero.get();
-	public PVector orientation;
+	protected PVector baseRot = zero.get();
 	
 	public Body parent = null;			
 	public boolean transformChanged = true;	//indique si la transformation du body a été modifiée cette frame.
 
-	public Body(PVector location, PVector orientation) {
+	public Body(PVector location, PVector rotation) {
 		this.location = location.get();
-		this.orientation = orientation;
+		this.rotation = rotation.get();
 		//this.rotationAxis = rotation.get();
 		//angle = rotation.mag();
 	}
@@ -68,6 +67,12 @@ public abstract class Body extends ProMaster {
 		
 		//2. rotation, vitesse angulaire, on prend rotation axis comme L
 		if (!torques.equals(zero)) {
+			//on modifie la rotation de base avec front
+			PVector newBR = front.cross(absFront());
+			newBR.setMag( PApplet.asin( newBR.mag() ) );
+			baseRot = newBR;
+			rotation.set(zero);
+			
 			rotationVel.add( multMatrix( inverseInertiaMom, torques ) );
 		}
 		if (!rotationVel.equals(zero)) {
@@ -172,7 +177,7 @@ public abstract class Body extends ProMaster {
 	}
 	
 	protected void avance(float force) {
-		addForce( PVector.mult(front(), force) );
+		addForce( PVector.mult(absFront(), force) );
 	}
 	
 	protected void freine(float perte) {
@@ -200,7 +205,7 @@ public abstract class Body extends ProMaster {
 
 	//retourne la position de rel, un point relatif au body en absolu 
 	public PVector absolute(PVector rel) {
-		PVector relAbs = absolute(rel, location, rotation, orientation);
+		PVector relAbs = absolute(rel, location, rotation, baseRot);
 		if (parent != null)
 			return parent.absolute(relAbs);
 		else
@@ -215,18 +220,18 @@ public abstract class Body extends ProMaster {
 	}
 	protected PVector local(PVector abs) {
 		if (parent != null)
-			return local(parent.local(abs), location, rotation, orientation);
+			return local(parent.local(abs), location, rotation, baseRot);
 		else
-			return local(abs, location, rotation, orientation);
+			return local(abs, location, rotation, baseRot);
 	}
 	
-	public PVector front() {
-		return absolute(front, zero, rotation, orientation);
+	public PVector absFront() {
+		return absolute(front, zero, rotation, baseRot);
 	}
 	
-	protected static PVector orientation(PVector front) {
+	/*protected static PVector orientation(PVector front) {
 		return ProMaster.front.cross(front);
-	}
+	}*/
 	
 	protected PVector velocityAt(PVector loc) {
 		PVector relVel = PVector.add(

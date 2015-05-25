@@ -32,6 +32,7 @@ public class Game extends PApplet {
 		Cylinder.initCylinder();
 		loadRessources();
 		initGame();
+		//Quaternion.test();
 	}
 
 	public void draw() {
@@ -77,6 +78,11 @@ public class Game extends PApplet {
 		Starship.skybox.scale(100);
 		Starship.starship = loadShape("starship.obj");
 		Starship.starship.scale(15);
+		Missile.missile = loadShape("rocket.obj");
+		/*Missile.missile.scale(2);
+		Missile.missile5 = loadShape("rocket.obj");
+		Missile.missile5.scale(5);*/
+		
 	}
 
 	private void initGame() {
@@ -118,7 +124,8 @@ public class Game extends PApplet {
 		//ambientLight(255, 255, 255);
 		//directionalLight(50, 100, 125, 0, -1, 0);
 		//le bg
-		//background(0);
+		if (!Starship.displaySkybox)
+			background(200);
 	}
 
 	//-------- Gestion Evenements

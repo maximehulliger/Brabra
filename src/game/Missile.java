@@ -1,24 +1,33 @@
 package game;
 
 import processing.core.PImage;
+import processing.core.PShape;
 import processing.core.PVector;
 import game.geo.Cube;
 import game.geo.Sphere;
 import game.physic.Collider;
 
 public class Missile extends Cube {
-	private final float classe;
+	private final int classe;
 	private final Collider launcher;
+	public static PShape missile;
+	public static PShape missile5;
 	
-	public Missile(PVector location, PVector orientation, Collider launcher, float classe) {
+	public Missile(PVector location, PVector orientation, Collider launcher, int classe) {
 		super(location, orientation, classe, vec(2*classe, 2*classe, 10*classe) );
 		this.launcher = launcher;
 		this.classe = classe;
 	}
 	
 	public void display() {
-		app.fill(255, 0, 0);
-		super.display();
+		//app.fill(255, 0, 0);
+		//super.display();
+		pushLocal();
+		app.scale( classe*2 );
+		app.shape(missile);
+		/*else
+			app.shape(missile5);*/
+		popLocal();
 	}
 	
 	public boolean doCollideFast(Collider col) {
@@ -97,8 +106,7 @@ public class Missile extends Cube {
 				System.out.println("encore "+tempsRestant+" frame(s) !");
 			} else {
 				tempsRestant = tRecharge;
-				Missile m = new Missile(parent.absolute(loc), parent.orientation, parent, classe);
-				m.rotation = parent.rotation.get();
+				Missile m = new Missile(parent.absolute(loc), parent.rotation, parent, classe);
 				ProMaster.app.physic.toAdd.add( m );
 			}
 		}
@@ -133,8 +141,8 @@ public class Missile extends Cube {
 			//this.parent = parent;
 			lmissiles = new LanceMissile[] {
 					new LanceMissile(parent, vec(parent.radiusEnveloppe*0.65f, 0, -20), 3, 30),
-					new LanceMissile(parent, vec(parent.radiusEnveloppe*0.15f, 0, 0), 5, 90),
-					new LanceMissile(parent, vec(parent.radiusEnveloppe*-0.15f, 0, 0), 5, 90),
+					new LanceMissile(parent, vec(parent.radiusEnveloppe*0.15f, 0, -20), 5, 90),
+					new LanceMissile(parent, vec(parent.radiusEnveloppe*-0.15f, 0, -20), 5, 90),
 					new LanceMissile(parent, vec(parent.radiusEnveloppe*-0.65f, 0, -20), 3, 30),
 			};
 		}
