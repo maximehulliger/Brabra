@@ -12,7 +12,6 @@ public class Mover extends Sphere {
 
 	public void addForces() {
 		pese();
-		freineAbs(0.05f);
-		freineRot(0.05f);
+		freine(0.05f);
 	}
 }

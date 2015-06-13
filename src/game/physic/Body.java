@@ -86,24 +86,8 @@ public abstract class Body extends ProMaster {
 			System.out.println("rotation: \nmag: "+rotation.mag()+"\n vec: "+rotation);
 			System.out.println("vitesse Ang.: \nmag: "+angularVelocity.mag()+"\n vec: "+angularVelocity);*/
 		}
-		
 	}
 	
-	//garde les angles entre -pi et pi
-	/*public void checkAngles() {
-		float rotMag = rotation.mag();
-		if (!isConstrained(rotMag, 0, PApplet.TWO_PI)) {
-			while (rotMag > Game.TWO_PI) rotMag -= Game.TWO_PI;
-			while (rotMag < 0) rotMag += Game.TWO_PI;
-			rotation.setMag(rotMag);
-			
-		}
-		while (rotation.x < 0) rotation.x += Game.TWO_PI;
-		while (rotation.y < 0) rotation.y += Game.TWO_PI;
-		while (rotation.z < 0) rotation.z += Game.TWO_PI;
-		while (rotation.z > Game.TWO_PI) rotation.z -= Game.TWO_PI;
-	}*/
-
 	// ajoute de la quantité de mouvement au body à point (absolu).
 	public void applyImpulse(PVector absPos, PVector impulse) {
 		if (drawInteraction) {

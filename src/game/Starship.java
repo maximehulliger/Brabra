@@ -2,6 +2,7 @@ package game;
 
 import game.Missile.Armement;
 import game.geo.Cube;
+import processing.core.PApplet;
 import processing.core.PShape;
 import processing.core.PVector;
 
@@ -11,7 +12,7 @@ public class Starship extends Cube
 	public static final PVector size = new PVector(60, 30, 120);
 	public static final boolean displaySkybox = true;
 	private static final boolean displayViseur = true;
-	public float forceRatio = 3; //puissance du vaisseau
+	public float forceRatio = 15; //puissance du vaisseau
 	public boolean hasCamera = true;
 	
 	private PVector forceRot = zero.get();
@@ -42,6 +43,16 @@ public class Starship extends Cube
 	
 	public void update() {
 		super.update();
+		
+		if (transformChanged) {
+			PVector pRot = new PVector(rotation.x, 0, rotation.z);
+			if (pRot.mag() > PApplet.HALF_PI)
+				pRot.setMag( PApplet.HALF_PI );
+			rotation.x = pRot.x;
+			rotation.z = pRot.z;
+
+		}
+		
 		champ.update();
 		armement.update();
 	}
@@ -77,17 +88,6 @@ public class Starship extends Cube
 		//app.sphere(dim[0]/2);
 		popLocal();
 		
-		//4. les indicateurs de rotation
-		/*PVector L = PVector.mult(rotationAxis, angularSpeed);
-		PVector LRep = PVector.add(location, PVector.mult(L, 10000));
-		app.stroke(0);
-		app.line(location.x, location.y, location.z, LRep.x, LRep.y, LRep.z);
-		
-		PVector lastL = PVector.mult(lastRotAxis, lastAngle - angle);
-		
-		PVector dLRep = PVector.add(LRep, PVector.mult(PVector.sub(lastL, L), 10000));
-		app.stroke(250);
-		app.line(LRep.x, LRep.y, LRep.z, dLRep.x, dLRep.y, dLRep.z);*/
 	}
 	
 	protected void addForces() {
@@ -97,11 +97,14 @@ public class Starship extends Cube
 			forceRot = zero.get();
 		}
 		if (!forceDepl.equals(zero)) {
-			avance(forceDepl.z*forceRatio);
-			//addForce(absolute(vec(0, 0, -50)), absolute( PVector.mult(forceDepl, forceRatio), zero, rotationAxis, angle));
+			avance(forceDepl.z*forceRatio*4);
+			rotation.y -= forceDepl.x/50;
+			//addForce(absolute(vec(0, 0, -50)), absolute( PVector.mult(forceDepl, forceRatio), zero, rotation));
 		}
 		if (freine) {
-			freine(0.1f);
+			freine(0.15f);
+		} else {
+			freine(0.05f);
 		}
 	}
 	

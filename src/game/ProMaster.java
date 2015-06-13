@@ -152,9 +152,9 @@ public abstract class ProMaster {
 	  }
 
 	  protected static void rotate(PVector rotation) {
-		  /*app.rotateY(rot.y);
-		  app.rotateX(rot.x);
-		  app.rotateZ(rot.z);*/
+		  /*app.rotateY(rotation.y);
+		  app.rotateX(rotation.x);
+		  app.rotateZ(rotation.z);*/
 		  app.rotate(rotation.mag(), rotation.x, rotation.y, rotation.z);
 	  }
 	  
