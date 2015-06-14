@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Random;
 
 import processing.core.PApplet;
 import processing.core.PGraphics;
@@ -94,7 +93,7 @@ public class HoughLine {
 			}
 		}
 		Collections.sort(lines, new HoughComparator());
-		System.out.println("["+lines.size()+"] lignes.");
+		//System.out.println("["+lines.size()+"] lignes.");
 		lines = lines.subList(0, PApplet.min(lines.size(), maxKeptLines));
 		
 		//4. get quad
@@ -106,7 +105,6 @@ public class HoughLine {
 		ret.add(quad[0]); ret.add(quad[1]); ret.add(quad[2]); ret.add(quad[3]);
 		return ret;
 	}
-	
 	
 	public PImage accumulatorImg() {
 		PImage houghImg = app.createImage(rDim + 2, phiDim + 2, PApplet.ALPHA);
@@ -127,15 +125,6 @@ public class HoughLine {
 			int y2 = (int) (-line.cosPhi / line.sinPhi * x2 + line.r / line.sinPhi);
 			int y3 = edgeImg.width;
 			int x3 = (int) (-(y3 - line.r / line.sinPhi) * (line.sinPhi / line.cosPhi));
-			
-			//get it relative to our resized image
-			float rdf = 1;
-			y0 = (int) (y0*rdf);
-			x1 = (int) (x1*rdf);
-			x2 = (int) (x2*rdf);
-			y2 = (int) (y2*rdf);
-			y3 = (int) (y3*rdf);
-			x3 = (int) (x3*rdf);
 			
 			// Finally, plot the lines
 			pg.stroke(204,102,0);
@@ -162,15 +151,11 @@ public class HoughLine {
 	public void drawQuad(PGraphics pg) {
 		if (quad != null) {
 			// Choose a random, semi-transparent colour
-			Random random = new Random();
-			pg.fill(app.color(PApplet.min(255, random.nextInt(300)),
-					PApplet.min(255, random.nextInt(300)),
-					PApplet.min(255, random.nextInt(300)), 50));
-			float rdf = 1;
-			pg.quad(quad[0].x * rdf, quad[0].y * rdf,
-					quad[1].x * rdf, quad[1].y * rdf,
-					quad[2].x * rdf, quad[2].y * rdf,
-					quad[3].x * rdf, quad[3].y * rdf);
+			pg.fill(app.color(200, 100, 0, 120));
+			pg.quad(quad[0].x, quad[0].y,
+					quad[1].x, quad[1].y,
+					quad[2].x, quad[2].y,
+					quad[3].x, quad[3].y);
 		}
 	}
 	

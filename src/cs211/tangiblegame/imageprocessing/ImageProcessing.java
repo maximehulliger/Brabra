@@ -9,7 +9,7 @@ import processing.video.*;
 
 public class ImageProcessing extends ProMaster {
 	private final static float rapportDisplayFile = 1/6f; //rapport entre la taille de l'image affichée et l'image originale.
-	private final Movie cam;
+	public final Movie cam;
 	private final int ipwidth;
 	private final int ipheight;
 	
@@ -18,7 +18,6 @@ public class ImageProcessing extends ProMaster {
 	private HoughLine hough;
 	//private PImage threshold2r;
 	private final PGraphics rendu;
-	//private PImage ipImg;
 	
 	public PVector rotation = zero.get();
 	
@@ -45,7 +44,7 @@ public class ImageProcessing extends ProMaster {
 			
 			//-- print imput
 			rendu.beginDraw();
-			rendu.image(threshold2g, 0, 0);
+			rendu.image(sobel, 0, 0);
 			hough.drawQuad(rendu);
 			hough.drawLines(rendu);
 			
@@ -56,8 +55,9 @@ public class ImageProcessing extends ProMaster {
 				//get rotation from quad
 				TwoDThreeD deathMasterLongSword = new TwoDThreeD(cam.width, cam.height);
 				if (hough.quad != null) {
-					rotation = PVector.mult(deathMasterLongSword.get3DRotations(hough.quad()), 360/PApplet.TWO_PI);
-					System.out.printf("rot: x: %.1f y: %.1f z: %.1f \n", rotation.x, rotation.y, rotation.z);
+					rotation = deathMasterLongSword.get3DRotations(hough.quad());
+					float r = 360/PApplet.TWO_PI;
+					System.out.printf("rot: x: %.1f y: %.1f z: %.1f (°)\n", rotation.x*r, rotation.y*r, rotation.z*r);
 				}
 			}
 			rendu.endDraw();
@@ -68,6 +68,7 @@ public class ImageProcessing extends ProMaster {
 		//-- display
 		//app.image(sobel, 0, 0, dWidth, dHeight);
 		//image(blobDet.coco, dWidth, 0, dWidth, dHeight);
+		app.fill(255, 255, 255);
 		app.image(rendu, 20, 20, ipwidth, ipheight);
 	}
 	

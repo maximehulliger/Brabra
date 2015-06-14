@@ -4,6 +4,7 @@ import cs211.tangiblegame.Missile.LanceMissile;
 import cs211.tangiblegame.geo.*;
 import cs211.tangiblegame.imageprocessing.ImageProcessing;
 import cs211.tangiblegame.physic.*;
+import cs211.tangiblegame.trivial.TrivialGame;
 import processing.core.*;
 import processing.event.MouseEvent;
 
@@ -13,19 +14,19 @@ public class TangibleGame extends PApplet {
 
 	//--parametres
 	private static final int ratioSize = 4; //généralement de 2 (640x360) à 5 (1920x1080)
-	//private static final float pasRotY = PI/8; //le pas de rotation du plateau sur y, en radian
-	private static final float tempsTransition = 0.5f;
 	private static final boolean drawAxis = false;
 	
 	//--interne
-	private enum Mode {Jeu, TransUp, TransDown, Placement}; //mode: up->vers contrôle
-	private Mode mode;
-	public float etat; //entre 0 (jeu) et 1 (Placement)
-	private boolean run;
+	public ImageProcessing imgProcessing;
+	TrivialGame trivialGame = null;
+	private enum Mode {Menu, Game, TrivialGame}; //mode: up->vers contrôle
+	
+	private Mode mode = Mode.TrivialGame;
+	public boolean run = false;
+	public boolean paused = false; //pour la vidéo
 	public Physic physic;
 	private Starship starship;
-	private ImageProcessing imgProcessing;
-
+	
 	//----- setup et boucle d'update (draw)
 
 	public void setup() {
@@ -38,27 +39,41 @@ public class TangibleGame extends PApplet {
 	}
 
 	public void draw() {
-		updateMode();
-		imgProcessing.update();
-
-		placeCamEtLum();
-		
-		//update display everything
-		physic.displayAll();
-		Cylinder.displayCylinders();
-		if (drawAxis)
-			drawAxis();
-		
-
-		
-		if (run)
-			physic.doMagic();
-		
-		camera();
-		hint(DISABLE_DEPTH_TEST);
-		starship.armement.displayGui();
-		imgProcessing.display();
-		hint(ENABLE_DEPTH_TEST);
+		switch (mode) {
+		case Menu: {
+			return;
+		}
+		case Game: {
+			imgProcessing.update();
+			placeCamEtLum();
+			
+			//update & display everything
+			physic.displayAll();
+			Cylinder.displayCylinders();
+			if (drawAxis)
+				drawAxis();
+			
+			if (run)
+				physic.doMagic();
+			
+			camera();
+			hint(DISABLE_DEPTH_TEST);
+			starship.armement.displayGui();
+			imgProcessing.display();
+			hint(ENABLE_DEPTH_TEST);
+			return;
+		}
+		case TrivialGame: {
+			imgProcessing.update();
+			trivialGame.draw();
+			
+			camera();
+			hint(DISABLE_DEPTH_TEST);
+			imgProcessing.display();
+			hint(ENABLE_DEPTH_TEST);
+			return;
+		}
+		}
 	}
 	
 	private void drawAxis() {
@@ -83,36 +98,33 @@ public class TangibleGame extends PApplet {
 		Starship.starship = loadShape("starship.obj");
 		Starship.starship.scale(15);
 		Missile.missile = loadShape("rocket.obj");
-		/*Missile.missile.scale(2);
-		Missile.missile5 = loadShape("rocket.obj");
-		Missile.missile5.scale(5);*/
 		
+		Cylinder.initCylinder();
 	}
 
 	private void initGame() {
-		
-		setMode(Mode.Jeu);
-		
 		imgProcessing = new ImageProcessing();
-		
-		physic = new Physic();
-		starship = new Starship( vec(0, 100, 0), imgProcessing );
-		//Mover mover = new Mover( vec(0, 120, -5) );
-		//Plane sol = new Plane(ProMaster.zero, ProMaster.zero);
-		//physic.colliders.add(mover);
-		physic.colliders.add(starship);
-		//physic.colliders.add( sol );
-		
-		physic.colliders.add( new Missile.Objectif(vec(0,100,-500), 20));
-		
-		//Cube cube1 = new Cube( base, ProMaster.zero.get(), 5, vec(300, 30,300) );
-		//Cube cube2 = new Cube( dessus , vec(0, 0, QUARTER_PI), 1, vec(30, 30, 30) );
-		
-		//physic.colliders.add( cube1 );
-		//physic.colliders.add( cube2 );
-		//cube2.applyImpulse(cube2.location, new PVector(0, -1, 0));
-		
-		
+		run = true;
+		if (mode == Mode.Game) {
+			physic = new Physic();
+			starship = new Starship( vec(0, 100, 0), imgProcessing );
+			//Mover mover = new Mover( vec(0, 120, -5) );
+			//Plane sol = new Plane(ProMaster.zero, ProMaster.zero);
+			//physic.colliders.add(mover);
+			physic.colliders.add(starship);
+			//physic.colliders.add( sol );
+			
+			physic.colliders.add( new Missile.Objectif(vec(0,100,-500), 20));
+			
+			//Cube cube1 = new Cube( base, ProMaster.zero.get(), 5, vec(300, 30,300) );
+			//Cube cube2 = new Cube( dessus , vec(0, 0, QUARTER_PI), 1, vec(30, 30, 30) );
+			
+			//physic.colliders.add( cube1 );
+			//physic.colliders.add( cube2 );
+			//cube2.applyImpulse(cube2.location, new PVector(0, -1, 0));
+		} else if (mode == Mode.TrivialGame) {
+			trivialGame = new TrivialGame(imgProcessing);
+		}
 	}
 	
 	private PVector vec(float x, float y, float z) {
@@ -148,110 +160,62 @@ public class TangibleGame extends PApplet {
 	}
 
 	public void keyReleased() {
-		starship.keyReleased();
-		if (key != CODED) return;
-
-		//shift: mode contrôle
-		if (keyCode == SHIFT || keyCode == CONTROL) {
-			switch (mode) {
-			case Placement:
-			case TransUp:
-				setMode(Mode.TransDown);
-			default:
-				break;
-			}
+		switch (mode) {
+		case Menu:
+		case TrivialGame:
+			return;
+		case Game: {
+			starship.keyReleased();
+			if (key != CODED) return;
+			return;
+		}
+		
 		}
 	}
 
 	public void keyPressed() {
-		starship.keyPressed();
 		
-		//q: recommence la partie
-		if (key == 'q') {
-			initGame();
-		}
 		
-		//tab: switch camera
-		if (keyCode == TAB) {
-			starship.hasCamera = !starship.hasCamera;
-		}
-		
-		if (key != CODED)
-			return; 
-
-		//gauche droite: tourne la plaque  
-		/*if (keyCode == LEFT) {
-			starship.rotation.y = ProMaster.entrePiEtMoinsPi(starship.rotation.y - pasRotY);
-		} else if (keyCode == RIGHT) {
-			starship.rotation.y = ProMaster.entrePiEtMoinsPi(starship.rotation.y + pasRotY);
-		}*/
-
-		//shift: mode contrôle
-		if (keyCode == SHIFT || keyCode == CONTROL) {
-			switch (mode) {
-			case Jeu:
-			case TransDown:
-				setMode(Mode.TransUp);
-			default:
-				break;
+		switch (mode) {
+		case Game: {
+			starship.keyPressed();
+			
+			
+			//tab: switch camera
+			if (keyCode == TAB) {
+				starship.hasCamera = !starship.hasCamera;
 			}
+		}
+		case TrivialGame: {
+			trivialGame.keyPressed();
+		}
+		//pour tous les jeux:
+		{
+			//q: recommence la partie
+			if (key == 'q') {
+				initGame();
+			}
+			//p: met en pause la vidéo
+			if (key == 'p') {
+				if (paused) 
+					imgProcessing.cam.play();
+				else 
+					imgProcessing.cam.pause();
+				paused = !paused;
+			}
+		}
+		default:
+			return;
 		}
 	}  
 
 	public void mouseReleased() {
-		if (mode == Mode.Placement) {
-			//nouveau cylindre ! :D
-			//on trouve la position sur l'ecran (en pixel) de l'extrêmité du terrain
-			PVector pos3D = new PVector(-Starship.size.x, 0, Starship.size.z);
-			PVector pos2D = new PVector( screenX(pos3D.x, pos3D.y, pos3D.z), screenY(pos3D.x, pos3D.y, pos3D.z) );
-			PVector pos2DCentre = new PVector( pos2D.x - width/2, pos2D.y - height/2 );
-			//on trouve l'échelle du terrain sur l'écran (par rapport au centre de l'écran)
-			PVector echelle = new PVector( Starship.size.x/pos2DCentre.x, Starship.size.z/pos2DCentre.y );
-			PVector newCylinderPos = new PVector( -(mouseX - width/2)*echelle.x , 0, (mouseY - height/2)*echelle.y );
-
-			//on l'ajoute uniquement s'il est sur le terrain
-			if (standInScene(newCylinderPos))
-				Cylinder.cylindersPos.add(newCylinderPos);
-		}
-	}
-
-	private boolean standInScene(PVector pos) {
-		return ProMaster.isConstrained(pos.x, -Starship.size.x/2, Starship.size.x/2) &&
-				ProMaster.isConstrained(pos.z, -Starship.size.z/2, Starship.size.z/2); //over x and z coordonate
-	}
-
-	//------ update et changement de mode
-
-	private void updateMode() {
 		switch (mode) {
-		case Jeu:
-		case Placement:
-			break;
-		case TransUp:
-			etat = PApplet.constrain(etat + 1.0f/tempsTransition/frameRate, 0, 1);
-			if (etat == 1)
-				setMode(Mode.Placement);
-			break;
-		case TransDown:
-			etat = PApplet.constrain(etat - 1.0f/tempsTransition/frameRate, 0, 1);
-			if (etat == 0)
-				setMode(Mode.Jeu);
-			break;
+		case TrivialGame:
+			trivialGame.mouseReleased();
+			return;
+		default:
+			return;
 		}
-	}
-
-	private void setMode(Mode m) {
-		switch (m) {
-		case Jeu:
-			run = true;
-			etat = 0;
-			break;
-		case Placement:
-		case TransUp:
-		case TransDown:
-			run = false;
-			break;
-		}
-		mode = m;
 	}
 }

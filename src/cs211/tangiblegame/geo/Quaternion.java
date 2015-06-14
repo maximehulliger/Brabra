@@ -3,7 +3,6 @@ package cs211.tangiblegame.geo;
 import java.util.LinkedList;
 import java.util.List;
 
-import cs211.tangiblegame.ProMaster;
 import processing.core.PApplet;
 import processing.core.PVector;
 /***************************************************************************
