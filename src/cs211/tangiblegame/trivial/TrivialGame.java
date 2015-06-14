@@ -1,48 +1,52 @@
 package cs211.tangiblegame.trivial;
 
-import cs211.tangiblegame.ProMaster;
+import cs211.tangiblegame.Interface;
 import cs211.tangiblegame.geo.Cylinder;
-import cs211.tangiblegame.imageprocessing.ImageProcessing;
 import processing.core.PApplet;
 import processing.core.PVector;
 import processing.event.MouseEvent;
 
-public class TrivialGame extends ProMaster {
+public class TrivialGame extends Interface {
 	//-- parametres
 	final static PVector tailleTerrain = new PVector(400, 20, 300);
 	private final static float tempsTransition = 0.5f;
 	private final static float pasRotY = PApplet.PI/8; //le pas de rotation de l'angle y, en radian
+	private static final float plateMaxAngle = PApplet.PI/6;
 	
 	//-- interne
 	private enum Mode { 
 		Jeu,       
 		TransUp,  	//vers contrôle
 		TransDown,	//revient à jeu
-		Placement   
+		Placement  
 	};
-	private final ImageProcessing imgProcessing;
-	final Cylinders cylinders = new Cylinders();
 	private final Mover mover;
+	private Mode mode;
+	private float etat; //entre 0 (jeu) et 1 (controle)
+	private float tiltSpeed;
+	Cylinders cylinders;
+	PVector platRot;
 	
-	private Mode mode = Mode.Jeu;
-	private float etat = 0; //entre 0 (jeu) et 1 (controle)
-	private boolean run = true;
-	private float tiltSpeed = 1;
-	PVector platRot = zero.get();
-	
-	public TrivialGame(ImageProcessing imgProcessing) {
-		this.imgProcessing = imgProcessing;
+	public TrivialGame() {
 		Cylinders.trivialGame = this;
 		this.mover = new Mover(15, 1, this);
+		Cylinder.initCylinder();
+	}
+	
+	public void init() {
+		cylinders = new Cylinders();
+		mode = Mode.Jeu;
+		etat = 0; //entre 0 (jeu) et 1 (controle)
+		tiltSpeed = 1;
+		platRot = zero.get();
 	}
 	
 	public void draw() {
 		updateMode();
+		app.imgProcessing.update();
 		placeCamEtLum();
 		rotateScene();
-		app.noStroke();
-
-
+		
 		//le terrain
 		app.fill(200);
 		app.pushMatrix();
@@ -52,20 +56,26 @@ public class TrivialGame extends ProMaster {
 		app.popMatrix();
 
 		//une boule
-		if (run && app.run)
+		if (mode == Mode.Jeu)
 			mover.update();
 		mover.display();
 
 		//un cylindre
 		Cylinder.displayCylinders();
+		
+		app.camera();
+		app.hint(PApplet.DISABLE_DEPTH_TEST);
+		app.imgProcessing.displayCtrImg();
+		app.hint(PApplet.ENABLE_DEPTH_TEST);
+
 	}
-	private static final float plateMaxAngle = PApplet.PI/6;
+	
 	void rotateScene() {
 		//roation du plateau
 		float ratioEtat = 1-etat; //pour forcer une rotation nulle en mode contrôle.
-		platRot.x = PApplet.constrain(-imgProcessing.rotation.x, -plateMaxAngle, plateMaxAngle);
+		platRot.x = PApplet.constrain(-app.imgProcessing.rotation.x, -plateMaxAngle, plateMaxAngle);
 		platRot.y = 0;//PApplet.constrain(imgProcessing.rotation.y, -plateMaxAngle, plateMaxAngle);
-		platRot.z = PApplet.constrain(-imgProcessing.rotation.z, -plateMaxAngle, plateMaxAngle);
+		platRot.z = PApplet.constrain(-app.imgProcessing.rotation.y, -plateMaxAngle, plateMaxAngle);
 		app.rotateX(platRot.x * ratioEtat);
 		app.rotateY(platRot.y * ratioEtat);
 		app.rotateZ(platRot.z * ratioEtat);
@@ -150,7 +160,7 @@ public class TrivialGame extends ProMaster {
 		}
 	}
 
-	void mouseWheel(MouseEvent event) {
+	public void mouseWheel(MouseEvent event) {
 		float delta = - event.getCount(); //negatif si vers l'utilisateur
 		tiltSpeed = PApplet.constrain( tiltSpeed + 0.05f*delta , 0.2f, 2 );
 	}
@@ -176,13 +186,11 @@ public class TrivialGame extends ProMaster {
 	private void setMode(Mode m) {
 		switch (m) {
 		case Jeu:
-			run = true;
 			etat = 0;
 			break;
 		case Placement:
 		case TransUp:
 		case TransDown:
-			run = false;
 			break;
 		}
 		mode = m;

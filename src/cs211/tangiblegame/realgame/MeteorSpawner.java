@@ -1,4 +1,4 @@
-package cs211.tangiblegame;
+package cs211.tangiblegame.realgame;
 
 import cs211.tangiblegame.geo.Cube;
 import cs211.tangiblegame.geo.Sphere;
@@ -42,7 +42,7 @@ public final class MeteorSpawner extends Cube {
 		PVector startPos = faces[idxStartFace].randomPoint();
 		PVector goal = faces[idxStartFace + toOtherSideIdx].randomPoint();
 		
-		app.physic.toAdd.add( new Meteor(startPos, goal) );
+		app.intRealGame.physic.toAdd.add( new Meteor(startPos, goal) );
 	}
 	
 	private class Meteor extends Sphere {
@@ -67,7 +67,7 @@ public final class MeteorSpawner extends Cube {
 			super.update();
 			
 			if ( !isIn(this.location))
-				app.physic.toRemove.add(this);
+				app.intRealGame.physic.toRemove.add(this);
 		}
 		
 		public void display() {

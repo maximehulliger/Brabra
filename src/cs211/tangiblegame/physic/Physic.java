@@ -4,8 +4,8 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
-import cs211.tangiblegame.Effect;
 import cs211.tangiblegame.geo.Sphere;
+import cs211.tangiblegame.realgame.Effect;
 
 public class Physic
 {

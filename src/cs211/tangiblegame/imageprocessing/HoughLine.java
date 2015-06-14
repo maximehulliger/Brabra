@@ -13,9 +13,9 @@ import processing.core.PVector;
 public class HoughLine {
 	private static final float discretizationStepsPhi = 0.06f;
 	private static final float discretizationStepsR = 2.5f;
-	private static final int minVotes = 50;
-	private static final int neighbourhood = 38; // size of the region we search for a local maximum
-	private static final int maxKeptLines = 6;
+	public static int minVotes = 50;
+	public static int neighbourhood = 38; // size of the region we search for a local maximum
+	public static int maxKeptLines = 6;
 
 	private PApplet app;
 	private PImage edgeImg;
@@ -24,7 +24,7 @@ public class HoughLine {
 	private static float[] sinTab = null;
 	private static float[] cosTab = null;
 	private int[] accumulator;
-	private List<Line> lines;
+	public List<Line> lines;
 	public PVector[] quad;
 	
 	public HoughLine(PImage edgeImg, PApplet app) {

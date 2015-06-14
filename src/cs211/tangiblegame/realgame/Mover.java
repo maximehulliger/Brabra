@@ -1,4 +1,4 @@
-package cs211.tangiblegame;
+package cs211.tangiblegame.realgame;
 
 import cs211.tangiblegame.geo.*;
 import processing.core.*;

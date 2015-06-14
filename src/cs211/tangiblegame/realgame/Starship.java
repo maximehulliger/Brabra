@@ -1,8 +1,7 @@
-package cs211.tangiblegame;
+package cs211.tangiblegame.realgame;
 
-import cs211.tangiblegame.Missile.Armement;
 import cs211.tangiblegame.geo.Cube;
-import cs211.tangiblegame.imageprocessing.ImageProcessing;
+import cs211.tangiblegame.realgame.Missile.Armement;
 import processing.core.PApplet;
 import processing.core.PShape;
 import processing.core.PVector;
@@ -15,7 +14,6 @@ public class Starship extends Cube
 	private static final boolean displayViseur = true;
 	public float forceRatio = 15; //puissance du vaisseau
 	public boolean hasCamera = true;
-	private final ImageProcessing imgProcessing;
 	
 	private PVector forceRot = zero.get();
 	private PVector forceDepl = zero.get();
@@ -25,9 +23,8 @@ public class Starship extends Cube
 	public static PShape skybox;
 	public static PShape starship;
 	
-	public Starship(PVector location, ImageProcessing imgProcessing) {
+	public Starship(PVector location) {
 		super(location, zero, 200, size);
-		this.imgProcessing = imgProcessing;
 		PVector champSize = vec(10_000, 10_000, 15_000);
 		this.champ = new MeteorSpawner(vec(0, 0, -champSize.z/6), champSize);
 		this.armement = new Armement(this);

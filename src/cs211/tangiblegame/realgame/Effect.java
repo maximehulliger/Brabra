@@ -1,8 +1,9 @@
-package cs211.tangiblegame;
+package cs211.tangiblegame.realgame;
 
 //import java.util.LinkedList;
 //import java.util.List;
 
+import cs211.tangiblegame.ProMaster;
 import processing.core.PVector;
 
 
@@ -31,7 +32,7 @@ public abstract class Effect extends ProMaster {
 	
 	public void update() {
 		if (--timeLeft <= 0)
-			app.physic.effectsToRemove.add(this);
+			app.intRealGame.physic.effectsToRemove.add(this);
 	}
 	
 	public abstract void display();
@@ -53,7 +54,7 @@ public abstract class Effect extends ProMaster {
 		public void update() {
 			super.update();
 			for (int i=0; i<5; i++)
-				app.physic.effectsToAdd.add( new Bulbe(randomPos()) );
+				app.intRealGame.physic.effectsToAdd.add( new Bulbe(randomPos()) );
 		}
 		
 		//affiche l'onde de choc

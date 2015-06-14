@@ -1,5 +1,6 @@
-package cs211.tangiblegame;
+package cs211.tangiblegame.realgame;
 
+import cs211.tangiblegame.ProMaster;
 import cs211.tangiblegame.geo.Cube;
 import cs211.tangiblegame.geo.Sphere;
 import cs211.tangiblegame.physic.Collider;
@@ -39,8 +40,8 @@ public class Missile extends Cube {
 	}
 	
 	public void onCollision(Collider col, PVector impact) {
-		app.physic.toRemove.add( this );
-		app.physic.effectsToAdd.add( new Effect.Explosion( impact, 30 ) );
+		app.intRealGame.physic.toRemove.add( this );
+		app.intRealGame.physic.effectsToAdd.add( new Effect.Explosion( impact, 30 ) );
 		
 		//réaction objectif
 		if (col instanceof Objectif) {
@@ -69,7 +70,7 @@ public class Missile extends Cube {
 		public void damage(float damage) {
 			life -= damage;
 			if (life < 0) {
-				app.physic.toRemove.add(this);
+				app.intRealGame.physic.toRemove.add(this);
 				System.out.println("détruit !");
 			}
 		}
@@ -107,7 +108,7 @@ public class Missile extends Cube {
 			} else {
 				tempsRestant = tRecharge;
 				Missile m = new Missile(parent.absolute(loc), parent.rotation, parent, classe);
-				ProMaster.app.physic.toAdd.add( m );
+				ProMaster.app.intRealGame.physic.toAdd.add( m );
 			}
 		}
 		

@@ -64,26 +64,21 @@ public class Mover extends ProMaster {
 	}
 
 	void checkEdges() {
-		boolean collision = false;
 		if (location.x > tTer.x/2) {
 			location.x = tTer.x/2;
 			velocity.x *= -1;
-			collision = true;
 		}
 		else if (location.x < -tTer.x/2) {
 			location.x = -tTer.x/2;
 			velocity.x *= -1;
-			collision = true;
 		}
 		if (location.z > tTer.z/2) {
 			location.z = tTer.z/2;
 			velocity.z *= -1;
-			collision = true;
 		}
 		else if (location.z < -tTer.z/2) {
 			location.z = -tTer.z/2;
 			velocity.z *= -1;
-			collision = true;
 		}
 	}
 
