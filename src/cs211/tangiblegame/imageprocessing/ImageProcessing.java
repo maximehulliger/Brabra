@@ -36,9 +36,13 @@ public class ImageProcessing extends ProMaster {
 			PImage camImg = cam.get();
 	
 			//-- img computation
-			PImage threshold1 = colorThreshold(camImg, 0.37f, 0.55f, 0, 0.65f, 0.2f, 1);//0.7, 0.3
+			PImage threshold1 = colorThreshold(camImg, 	0.37f, 0.5f, 	//hue
+														0, 0.65f, 		//bright
+														0.31f, 1);		//satur
 			PImage blured = blur(threshold1);
-			threshold2g = intensityThreshold(blured, 0, 0.4f, 0.1f, 0.6f, 0, 1);
+			threshold2g = intensityThreshold(blured, 	0, 0.4f, 		//r
+														0.1f, 0.6f, 	//g
+														0, 1);			//b
 			sobel = sobel(threshold2g, 0.2f);
 			hough = new HoughLine(sobel, app);
 			

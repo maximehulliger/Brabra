@@ -20,19 +20,20 @@ public class TrivialGame extends ProMaster {
 		TransDown,	//revient à jeu
 		Placement   
 	};
-	
 	private final ImageProcessing imgProcessing;
-	private final Cylinders cylinders = new Cylinders();
-	private final Mover mover = new Mover(15, 1, cylinders);
+	final Cylinders cylinders = new Cylinders();
+	private final Mover mover;
+	
 	private Mode mode = Mode.Jeu;
 	private float etat = 0; //entre 0 (jeu) et 1 (controle)
 	private boolean run = true;
-	float tiltSpeed = 1;
-	float rotationY = 0;
+	private float tiltSpeed = 1;
+	PVector platRot = zero.get();
 	
 	public TrivialGame(ImageProcessing imgProcessing) {
 		this.imgProcessing = imgProcessing;
 		Cylinders.trivialGame = this;
+		this.mover = new Mover(15, 1, this);
 	}
 	
 	public void draw() {
@@ -58,13 +59,16 @@ public class TrivialGame extends ProMaster {
 		//un cylindre
 		Cylinder.displayCylinders();
 	}
-
+	private static final float plateMaxAngle = PApplet.PI/6;
 	void rotateScene() {
 		//roation du plateau
 		float ratioEtat = 1-etat; //pour forcer une rotation nulle en mode contrôle.
-		app.rotateX(imgProcessing.rotation.x * ratioEtat);
-		app.rotateY(/*imgProcessing.rotation.y*/rotationY * ratioEtat);
-		app.rotateZ(imgProcessing.rotation.z * ratioEtat);
+		platRot.x = PApplet.constrain(-imgProcessing.rotation.x, -plateMaxAngle, plateMaxAngle);
+		platRot.y = 0;//PApplet.constrain(imgProcessing.rotation.y, -plateMaxAngle, plateMaxAngle);
+		platRot.z = PApplet.constrain(-imgProcessing.rotation.z, -plateMaxAngle, plateMaxAngle);
+		app.rotateX(platRot.x * ratioEtat);
+		app.rotateY(platRot.y * ratioEtat);
+		app.rotateZ(platRot.z * ratioEtat);
 	}
 
 	void placeCamEtLum()
@@ -122,10 +126,10 @@ public class TrivialGame extends ProMaster {
 
 		//gauche droite: tourne la plaque  
 		if (app.keyCode == PApplet.LEFT) {
-			rotationY = entrePiEtMoinsPi(rotationY - pasRotY);
+			platRot.y = entrePiEtMoinsPi(platRot.y - pasRotY);
 		}
 		else if (app.keyCode == PApplet.RIGHT) {
-			rotationY = entrePiEtMoinsPi(rotationY + pasRotY);
+			platRot.y = entrePiEtMoinsPi(platRot.y + pasRotY);
 		}
 
 		//shift: mode contrôle

@@ -163,6 +163,7 @@ public class TangibleGame extends PApplet {
 		switch (mode) {
 		case Menu:
 		case TrivialGame:
+			trivialGame.keyReleased();
 			return;
 		case Game: {
 			starship.keyReleased();

@@ -19,14 +19,14 @@ public class Mover extends ProMaster {
 	private PVector location;
 	private PVector velocity;
 	private PVector acceleration;
-	private final Cylinders cylinders;
+	private final TrivialGame trivialGame;
 
-	public Mover(float radius, float mass, Cylinders cylinders) {
+	public Mover(float radius, float mass, TrivialGame trivialGame) {
 		location = new PVector(0,0,0);
 		velocity = new PVector(0,0,0);
 		acceleration = new PVector(0,0,0);
 		this.radius = radius;
-		this.cylinders = cylinders;
+		this.trivialGame = trivialGame;
 	}
 
 	void update() {
@@ -37,12 +37,11 @@ public class Mover extends ProMaster {
 		frein.mult(-frictionMagnitude*gravityConstant);
 
 		// accélération :
-		PVector rot = app.imgProcessing.rotation;
 		acceleration.z = 
-				PApplet.sin( rot.x ) * gravityConstant +
+				PApplet.sin( trivialGame.platRot.x ) * gravityConstant +
 				frein.z;
 		acceleration.x = 
-				- PApplet.sin( rot.z ) * gravityConstant +
+				- PApplet.sin( trivialGame.platRot.z ) * gravityConstant +
 				frein.x;
 		acceleration.y =
 				frein.y;
@@ -89,7 +88,7 @@ public class Mover extends ProMaster {
 	}
 
 	void checkCylinderCollision() {
-		for (PVector v : cylinders.cylindersPos) {
+		for (PVector v : trivialGame.cylinders.cylindersPos) {
 			if (collide2D(v, Cylinders.cylinderRadius, location, radius)) {
 				//il y a une collision; on modifie la vitesse du mover.
 				//V' = V − 2(V · n)n

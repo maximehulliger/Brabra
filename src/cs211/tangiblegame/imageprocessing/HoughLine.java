@@ -11,9 +11,11 @@ import processing.core.PImage;
 import processing.core.PVector;
  
 public class HoughLine {
-	private float discretizationStepsPhi = 0.06f;
-	private float discretizationStepsR = 2.5f;
-	private int maxKeptLines = 6;
+	private static final float discretizationStepsPhi = 0.06f;
+	private static final float discretizationStepsR = 2.5f;
+	private static final int minVotes = 50;
+	private static final int neighbourhood = 38; // size of the region we search for a local maximum
+	private static final int maxKeptLines = 6;
 
 	private PApplet app;
 	private PImage edgeImg;
@@ -65,8 +67,6 @@ public class HoughLine {
 		}
 		
 		//3. get reduced lines
-		int minVotes = 50;
-		int neighbourhood = 60; // size of the region we search for a local maximum
 		lines = new ArrayList<Line>();
 		// only search around lines with more that this amount of votes
 		for (int accR = 0; accR < rDim; accR++) {
