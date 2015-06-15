@@ -18,5 +18,7 @@ public abstract class Interface extends ProMaster {
 
 	public void keyPressed() {}  
 
+	public void mousePressed() {}
+	
 	public void mouseReleased() {}
 }

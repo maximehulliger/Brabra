@@ -1,17 +1,19 @@
 package cs211.tangiblegame.imageprocessing;
 
+import java.util.concurrent.locks.ReentrantLock;
 import cs211.tangiblegame.imageprocessing.HoughLine;
 import cs211.tangiblegame.imageprocessing.TwoDThreeD;
 import cs211.tangiblegame.ProMaster;
+import cs211.tangiblegame.TangibleGame;
 import processing.core.PGraphics;
 import processing.core.PImage;
 import processing.core.PApplet;
 import processing.core.PVector;
 import processing.video.*;
 
-public class ImageProcessing extends ProMaster {
-	public Movie mov;
-	public Capture cam;
+public class ImageProcessing extends Thread {
+	public Movie mov = null;
+	public Capture cam = null;
 
 	public PImage inputImg;
 	public PImage threshold2g;
@@ -19,8 +21,8 @@ public class ImageProcessing extends ProMaster {
 	public HoughLine hough;
 	public PGraphics quadDetection;
 
-	public PVector rotation = zero.get();
-	public float[] paraMovie = { 
+	public PVector rotation = new PVector(0,0,0);
+	public static final float[] paraMovieBase = { 
 			0.37f, 0.5f, 	//hue
 			0, 0.65f, 		//bright
 			0.31f, 1,		//satur
@@ -29,8 +31,8 @@ public class ImageProcessing extends ProMaster {
 			0.2f, 1,		//b
 			0.5f, 0.38f,	//min vote, neighbour
 			0.6f, 0.2f };	//nb line kept, sobel threshold
-	public float[] paraCamera = { 
-			0.16f, 0.4f, 	//hue
+	public static final float[] paraCameraBase = { 
+			0.25f, 0.47f, 	//hue
 			0.0f, 1f, 		//bright
 			0.15f, 1f,		//satur
 			0f, 1f, 		//r
@@ -38,26 +40,55 @@ public class ImageProcessing extends ProMaster {
 			0f, 0.88f,		//b
 			0.5f, 0.38f,	//min vote, neighbour
 			0.6f, 0.2f };	//nb line kept, sobel threshold
-
 	public boolean takeMovie = true; //prend la camera si false.
-	public float[] parametres = paraMovie;
+	public float[] parametres, paraMovie, paraCamera;
 	
-	public ImageProcessing() {
+	private final TangibleGame app;
+	public final ReentrantLock imagesLock;
+	public final ReentrantLock quadDetectionLock;
+	public final ReentrantLock rotationLock;
+	public final ReentrantLock parametersLock;
+	
+	public ImageProcessing(TangibleGame app) {
+		this.app = app;
+		imagesLock = new ReentrantLock();
+		quadDetectionLock = new ReentrantLock();
+		rotationLock = new ReentrantLock();
+		parametersLock = new ReentrantLock();
+		
+		paraMovie = ProMaster.copy(paraMovieBase);
+		paraCamera = ProMaster.copy(paraCameraBase);
 		setTakeMovie(takeMovie);
+	}
+	
+	public void resetParametres() {
+		parametersLock.lock();
+		if (takeMovie) {
+			paraMovie = ProMaster.copy(paraMovieBase);
+			parametres = paraMovie;
+		} else {
+			paraCamera = ProMaster.copy(paraCameraBase);
+			parametres = paraCamera;
+		}
+		parametersLock.unlock();
 	}
 	
 	private void setTakeMovie(boolean takeMovie) {
 		if (takeMovie) {
 			parametres = paraMovie;
-			mov = new Movie(app, "testvideo.mp4");
-			mov.loop();
+			if (mov == null) {
+				mov = new Movie(app, "testvideo.mp4");
+				mov.loop();
+			}
 		} else {
 			parametres = paraCamera;
-			String[] cameras = Capture.list();
-			/*for (int i = 0; i < cameras.length; i++)
-				println(cameras[i]);*/
-			cam = new Capture(app, cameras[3]);
-			cam.start();
+			if (cam == null) {
+				String[] cameras = Capture.list();
+				/*for (int i = 0; i < cameras.length; i++)
+					println(cameras[i]);*/
+				cam = new Capture(app, cameras[3]);
+				cam.start();
+			}
 		}
 		this.takeMovie = takeMovie;
 	}
@@ -66,17 +97,21 @@ public class ImageProcessing extends ProMaster {
 		setTakeMovie(!takeMovie);
 	}
 
-	public void update() {
-		if (takeMovie && mov.available()) {
+	
+	public void update(boolean forced) {
+		boolean newImage = false;
+		if (takeMovie && !app.pausedMov && mov.available()) {
+			newImage = true;
 			mov.read();
 			inputImg = mov.get();
 			
-		} else if (!takeMovie && cam.available()) {
+		} else if (!takeMovie && !app.pausedCam && cam.available()) {
+			newImage = true;
 			cam.read();
 			inputImg = cam.get();
 		}
 		
-		if (inputImg != null) {
+		if (inputImg != null && (newImage || forced)) {
 			app.background(0);
 			this.quadDetection = app.createGraphics(inputImg.width, inputImg.height);
 
@@ -94,6 +129,12 @@ public class ImageProcessing extends ProMaster {
 			quadDetection.image(sobel, 0, 0);
 			hough.drawLines(quadDetection);
 			hough.drawQuad(quadDetection);
+			if (app.pausedMov && takeMovie || app.pausedCam && !takeMovie) {
+				quadDetection.textFont( app.createFont("Arial", inputImg.height/16) );
+				quadDetection.textAlign(PApplet.RIGHT, PApplet.BOTTOM);
+				quadDetection.fill(200, 100, 0, 255);
+				quadDetection.text("paused", quadDetection.width, quadDetection.height);
+			}
 			
 			//-- if valid quad, update rotation & control img (rendu)
 			if (hough.quad != null) {

@@ -22,20 +22,20 @@ public class TangibleGame extends PApplet {
 	public Calibration intCalibration;
 	public Menu intMenu;
 	
-	public boolean paused = false; 	//pour la vidéo
+	public boolean pausedCam = false, pausedMov = false;
 	
 	//----- setup et boucle d'update (draw)
 
 	public void setup() {
 		ProMaster.init(this);
 		size(16*20*ratioSize, 9*20*ratioSize, P3D);
-		imgProcessing = new ImageProcessing();
+		imgProcessing = new ImageProcessing(this);
 		intRealGame = new RealGame();
 		intTrivialGame = new TrivialGame();
 		intCalibration = new Calibration();
 		intMenu = new Menu();
 		
-		setInterface(intTrivialGame);
+		setInterface(intMenu);
 		
 		//Quaternion.test();
 	}
@@ -62,6 +62,8 @@ public class TangibleGame extends PApplet {
 	public void keyReleased() {
 		currentInterface.keyReleased();
 	}
+	
+	
 
 	public void keyPressed() {
 		if (key == 27 && currentInterface != intMenu) {
@@ -75,21 +77,32 @@ public class TangibleGame extends PApplet {
 			//q: recommence la partie
 			if (key == 'q')
 				currentInterface.init();
+			if (key == 'Q')
+				imgProcessing.resetParametres();
 			//p: met en pause la vidéo
-			if (imgProcessing.takeMovie && key == 'p') {
-				if (paused)
-					imgProcessing.mov.play();
-				else 
-					imgProcessing.mov.pause();
-				paused = !paused;
+			if (key == 'p') {
+				if (imgProcessing.takeMovie) {
+					if (pausedMov) imgProcessing.mov.play();
+					else		imgProcessing.mov.pause();
+					pausedMov = !pausedMov;
+				} else {
+					if (pausedCam) imgProcessing.cam.start();
+					else		imgProcessing.cam.stop();
+					pausedCam = !pausedCam;
+				}
 			}
 			if (key=='i')
 				imgProcessing.changeInput();
+			
 		}
 
 		currentInterface.keyPressed();
 	}  
 
+	public void mousePressed() {
+		currentInterface.mousePressed();
+	}
+	
 	public void mouseReleased() {
 		currentInterface.mouseReleased();
 	}

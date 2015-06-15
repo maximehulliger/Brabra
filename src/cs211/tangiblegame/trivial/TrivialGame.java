@@ -43,7 +43,7 @@ public class TrivialGame extends Interface {
 	
 	public void draw() {
 		updateMode();
-		app.imgProcessing.update();
+		app.imgProcessing.update(false);
 		placeCamEtLum();
 		rotateScene();
 		
@@ -67,7 +67,6 @@ public class TrivialGame extends Interface {
 		app.hint(PApplet.DISABLE_DEPTH_TEST);
 		app.imgProcessing.displayCtrImg();
 		app.hint(PApplet.ENABLE_DEPTH_TEST);
-
 	}
 	
 	void rotateScene() {

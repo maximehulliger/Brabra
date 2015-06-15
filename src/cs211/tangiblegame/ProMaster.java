@@ -63,6 +63,14 @@ public abstract class ProMaster {
 			return -1;
 	}
 	
+	public static float[] copy(float[] tab) {
+		float[] ret = new float[tab.length];
+	  	for (int i=0; i<tab.length; i++)
+	  		ret[i] = tab[i];
+	  	return ret;
+	}
+
+	
 	//---- processing mastery
 
 	protected static PVector vec(float x, float y, float z) {

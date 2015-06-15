@@ -15,11 +15,24 @@ public class RealGame extends Interface {
 	private Starship starship;
 	
 	public RealGame() {
-		setup();
+		LanceMissile.missileImg = app.loadImage("missile.png");
+		int[] pixels = LanceMissile.missileImg.pixels;
+		for (int i=0; i<pixels.length; i++)
+			if (pixels[i] == app.color(0))
+				pixels[i] = app.color(0, 0);
+		
+		MeteorSpawner.meteor = app.loadShape("asteroid.obj");
+		Starship.skybox = app.loadShape("skybox.obj");
+		Starship.skybox.scale(100);
+		Starship.starship = app.loadShape("starship.obj");
+		Starship.starship.scale(15);
+		Missile.missile = app.loadShape("rocket.obj");
+		
+		Cylinder.initCylinder();
 	}
 	
 	public void draw() {
-		app.imgProcessing.update();
+		app.imgProcessing.update(false);
 		placeCamEtLum();
 
 		//update & display everything
@@ -63,23 +76,6 @@ public class RealGame extends Interface {
 		app.stroke(0, 0, 255);
 		app.line(0, 0, 0, far, 0, 0);
 		app.line(0, 0, 0, 0, 0, far);
-	}
-	
-	private void setup() {
-		LanceMissile.missileImg = app.loadImage("missile.png");
-		int[] pixels = LanceMissile.missileImg.pixels;
-		for (int i=0; i<pixels.length; i++)
-			if (pixels[i] == app.color(0))
-				pixels[i] = app.color(0, 0);
-		
-		MeteorSpawner.meteor = app.loadShape("asteroid.obj");
-		Starship.skybox = app.loadShape("skybox.obj");
-		Starship.skybox.scale(100);
-		Starship.starship = app.loadShape("starship.obj");
-		Starship.starship.scale(15);
-		Missile.missile = app.loadShape("rocket.obj");
-		
-		Cylinder.initCylinder();
 	}
 
 	public void init() {

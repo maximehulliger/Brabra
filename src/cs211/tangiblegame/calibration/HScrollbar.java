@@ -47,7 +47,7 @@ public class HScrollbar {
 	void update() {
 		mouseOver = isMouseOver();
 		
-		if (parent.mousePressed && mouseOver && oneLocked != true) {
+		if (parent.mousePressed && mouseOver && !oneLocked) {
 			locked = true;
 			oneLocked = true;
 		}
