@@ -9,25 +9,25 @@ import processing.core.PVector;
 
 public class Cylinders extends ProMaster {
 	//-- parametres
-	public static final float cylinderRadius = 25;  //radius
-	public static final float cylinderHeight = 60;   
+	public static final float cylinderRadius = 20;  //radius
+	public static final float cylinderHeight = 20;   
 	public static final int cylinderResolution = 42;  //# point
 	private static final PVector tTer = TrivialGame.tailleTerrain;
 	
 	//-- interne
 	public static TrivialGame trivialGame;
-	private PShape cylinder;
-	ArrayList<PVector> cylindersPos = new ArrayList<>();
+	private static PShape cylinder = null;
+	/*pkg*/ ArrayList<PVector> cylindersPos = new ArrayList<>();
 
 	public void placeCylinder() {
 		//nouveau cylindre ! :D
 		//on trouve la position sur l'ecran (en pixel) de l'extrêmité du terrain
-		PVector pos3D = new PVector(-tTer.x, 0, tTer.z);
-		PVector pos2D = new PVector( app.screenX(pos3D.x, pos3D.y, pos3D.z), app.screenY(pos3D.x, pos3D.y, pos3D.z) );
-		PVector pos2DCentre = new PVector( pos2D.x - app.width/2, pos2D.y - app.height/2 );
+		PVector pos3DCoin = new PVector(tTer.x/2, 0, tTer.z/2);
+		PVector pos2DCoin = new PVector( app.screenX(pos3DCoin.x, pos3DCoin.y, pos3DCoin.z), app.screenY(pos3DCoin.x, pos3DCoin.y, pos3DCoin.z) );
+		PVector CentreToCoin2D = new PVector( pos2DCoin.x - app.width/2, pos2DCoin.y - app.height/2 );
 		//on trouve l'échelle du terrain sur l'écran (par rapport au centre de l'écran)
-		PVector echelle = new PVector( tTer.x/pos2DCentre.x, tTer.z/pos2DCentre.y );
-		PVector newCylinderPos = new PVector( -(app.mouseX - app.width/2)*echelle.x , 0, (app.mouseY - app.height/2)*echelle.y );
+		PVector echelle = new PVector( tTer.x*1.05f/CentreToCoin2D.x, -tTer.z*1.065f/CentreToCoin2D.y );
+		PVector newCylinderPos = new PVector( (app.mouseX - app.width/2)*echelle.x , 0, (app.mouseY - app.height/2)*echelle.y );
 
 		//on l'ajoute uniquement s'il est sur le terrain
 		if (standInTerrain2D(newCylinderPos))
@@ -52,13 +52,13 @@ public class Cylinders extends ProMaster {
 	void printCylinder(PVector cylinderPos) {
 		app.pushMatrix();
 		app.translate(cylinderPos.x, cylinderPos.y, cylinderPos.z);
-		app.noStroke();
-		app.fill(255, 255, 0);
 		app.shape(cylinder);
 		app.popMatrix();
 	}
 
-	void initCylinder() {
+	static void initCylinder() {
+		app.noStroke();
+		app.fill(102, 102, 102);
 		//les points du cerlce du cylindre
 		float angle;
 		float[] x = new float[cylinderResolution + 1];

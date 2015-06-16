@@ -1,7 +1,5 @@
 package cs211.tangiblegame;
 
-import java.util.concurrent.locks.ReentrantLock;
-
 import cs211.tangiblegame.calibration.Calibration;
 import cs211.tangiblegame.imageprocessing.ImageProcessing;
 import cs211.tangiblegame.realgame.RealGame;
@@ -15,6 +13,7 @@ public class TangibleGame extends PApplet {
 
 	//--parametres
 	private static final int ratioSize = 4; //généralement de 2 (640x360) à 5 (1920x1080)
+	public static final float inclinaisonMax = PApplet.PI/5; 
 	
 	//--interne
 	public ImageProcessing imgProcessing;
@@ -23,19 +22,16 @@ public class TangibleGame extends PApplet {
 	public TrivialGame intTrivialGame;
 	public Calibration intCalibration;
 	public Menu intMenu;
-	public ReentrantLock applock;
 	public boolean over = false;
 	
 	//----- setup et boucle d'update (draw)
 	
 	public void setup() {
-		applock = new ReentrantLock();
 		ProMaster.init(this);
 		size(16*20*ratioSize, 9*20*ratioSize, P3D);
 		imgProcessing = new ImageProcessing(this);
 		//imgProcessing.start();
 		thread("imageProcessing");
-		applock.lock();
 		intRealGame = new RealGame();
 		intTrivialGame = new TrivialGame();
 		intCalibration = new Calibration();
@@ -43,8 +39,6 @@ public class TangibleGame extends PApplet {
 		
 		setInterface(intMenu);
 		//Quaternion.test();
-		applock.unlock();
-		
 	}
 	
 	public void imageProcessing() {
@@ -57,9 +51,7 @@ public class TangibleGame extends PApplet {
 	}
 	
 	public void draw() {
-		applock.lock();
 		currentInterface.draw();
-		applock.unlock();
 	}
 
 	//-------- Gestion Evenements

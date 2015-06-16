@@ -4,7 +4,6 @@ import processing.core.PApplet;
 import processing.core.PVector;
 import processing.event.MouseEvent;
 import cs211.tangiblegame.Interface;
-import cs211.tangiblegame.geo.Cylinder;
 import cs211.tangiblegame.physic.Physic;
 import cs211.tangiblegame.realgame.Missile.LanceMissile;
 
@@ -27,8 +26,6 @@ public class RealGame extends Interface {
 		Starship.starship = app.loadShape("starship.obj");
 		Starship.starship.scale(15);
 		Missile.missile = app.loadShape("rocket.obj");
-		
-		Cylinder.initCylinder();
 	}
 	
 	public void draw() {
@@ -36,7 +33,6 @@ public class RealGame extends Interface {
 
 		//update & display everything
 		physic.displayAll();
-		Cylinder.displayCylinders();
 		if (drawAxis)
 			drawAxis();
 

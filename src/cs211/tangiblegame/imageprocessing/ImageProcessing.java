@@ -72,6 +72,8 @@ public class ImageProcessing {
 	private final ReentrantLock rotationLock;
 	public boolean lostRotation = true;
 	private PVector rotation = new PVector(0,0,0);
+	private PVector lastRotation = new PVector(0,0,0);
+	private PVector gameRotation = new PVector(0,0,0);
 	
 	/*pkg*/ final TangibleGame app;
 	/*pkg*/ int inWidth = 0, inHeight = 0;
@@ -276,8 +278,12 @@ public class ImageProcessing {
 								ProMaster.isConstrained(newRot.x, -maxAcceptedAngle, maxAcceptedAngle) &&
 								ProMaster.isConstrained(newRot.x, -maxAcceptedAngle, maxAcceptedAngle)) {
 							rotationLock.lock();
-							if (!rotation.equals(newRot)) {
+							if (!lastRotation.equals(newRot) ) {
+								lastRotation = rotation;
 								rotation = newRot;
+								PVector rotMoyenne = PVector.div( PVector.add(lastRotation, rotation), 2); //moyenne des 2 dernières entrées
+								float ratioXZ = TangibleGame.inclinaisonMax / maxAcceptedAngle;
+								gameRotation = new PVector(-rotMoyenne.x * ratioXZ, rotMoyenne.z, -rotMoyenne.y* ratioXZ);
 								float r = 360/PApplet.TWO_PI;
 								System.out.printf("rot: x: %.1f y: %.1f z: %.1f (°)\n", rotation.x*r, rotation.y*r, rotation.z*r);
 							}
@@ -347,7 +353,7 @@ public class ImageProcessing {
 	public PVector rotation() {
 		try {
 			rotationLock.lock();
-			return rotation.get();
+			return gameRotation.get();
 		} finally {
 			rotationLock.unlock();
 		}

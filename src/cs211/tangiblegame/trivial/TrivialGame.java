@@ -1,19 +1,17 @@
 package cs211.tangiblegame.trivial;
 
 import cs211.tangiblegame.Interface;
-import cs211.tangiblegame.geo.Cylinder;
-import cs211.tangiblegame.imageprocessing.ImageProcessing;
+import cs211.tangiblegame.TangibleGame;
 import processing.core.PApplet;
 import processing.core.PVector;
 import processing.event.MouseEvent;
 
 public class TrivialGame extends Interface {
 	//-- parametres
-	final static PVector tailleTerrain = new PVector(400, 20, 400);
+	final static PVector tailleTerrain = new PVector(600, 20, 600);
 	private final static float tempsTransition = 0.5f;
 	private final static float pasRotY = PApplet.PI/8; //le pas de rotation de l'angle y, en radian
-	private static final float plateMaxAngle = PApplet.PI/5;
-	private static final float ratioUpdate = 0.2f; // rapprochement de la rot. de la plaque vers la rot. de l'image chaque frame
+	private static final float ratioUpdate = 0.05f; // rapprochement de la rot. de la plaque vers la rot. de l'image chaque frame
 	
 	//-- interne
 	private enum Mode { 
@@ -31,8 +29,8 @@ public class TrivialGame extends Interface {
 	
 	public TrivialGame() {
 		Cylinders.trivialGame = this;
-		this.mover = new Mover(15, 1, this);
-		Cylinder.initCylinder();
+		this.mover = new Mover(this);
+		Cylinders.initCylinder();
 	}
 	
 	public void init() {
@@ -53,17 +51,16 @@ public class TrivialGame extends Interface {
 		app.fill(200);
 		app.pushMatrix();
 		app.translate(0, -tailleTerrain.y/2, 0);
+		app.noStroke();
 		app.fill(100, 100, 100);
 		app.box(tailleTerrain.x, tailleTerrain.y, tailleTerrain.z);
 		app.popMatrix();
 
 		//une boule
-		if (mode == Mode.Jeu)
+		if (mode == Mode.Jeu || mode == Mode.TransDown)
 			mover.update();
 		mover.display();
-
-		//un cylindre
-		Cylinder.displayCylinders();
+		cylinders.displayCylinders();
 		
 		app.camera();
 		app.hint(PApplet.DISABLE_DEPTH_TEST);
@@ -74,11 +71,11 @@ public class TrivialGame extends Interface {
 	void rotateScene() {
 		//roation du plateau
 		float ratioEtat = 1-etat; //pour forcer une rotation nulle en mode contrôle.
-		PVector butRotation = app.imgProcessing.rotation();
-		//float rotationSmoothing = 0.3f;
-		platRot.x = PApplet.constrain((platRot.x - ratioUpdate * (butRotation.x + platRot.x)) / ImageProcessing.maxAcceptedAngle * plateMaxAngle , -plateMaxAngle, plateMaxAngle);
+		PVector gameRotation = app.imgProcessing.rotation();
+		
+		platRot.x = PApplet.constrain((platRot.x + ratioUpdate * (gameRotation.x - platRot.x)), -TangibleGame.inclinaisonMax, TangibleGame.inclinaisonMax);
 		platRot.y = 0;//PApplet.constrain(imgProcessing.rotation.y, -plateMaxAngle, plateMaxAngle);
-		platRot.z = PApplet.constrain((platRot.y - ratioUpdate * (butRotation.y + platRot.y)) / ImageProcessing.maxAcceptedAngle * plateMaxAngle, -plateMaxAngle, plateMaxAngle);
+		platRot.z = PApplet.constrain((platRot.z + ratioUpdate * (gameRotation.z - platRot.z)), -TangibleGame.inclinaisonMax, TangibleGame.inclinaisonMax);
 		app.rotateX(platRot.x * ratioEtat);
 		app.rotateY(platRot.y * ratioEtat);
 		app.rotateZ(platRot.z * ratioEtat);
@@ -87,8 +84,8 @@ public class TrivialGame extends Interface {
 	void placeCamEtLum()
 	{ 
 		//les 2 points; initial et final, de jeu et de controle.
-		float jeuZ = 600, jeuY = 150;
-		float contrZ = 1, contrY = 300;
+		float jeuZ = 600, jeuY = 250;
+		float contrZ = 1, contrY = 600;
 
 		float decalageMil = 0; // le rapport entre
 		// la distance entre le point de jeu et celui de controle et
@@ -123,6 +120,8 @@ public class TrivialGame extends Interface {
 	public void keyReleased() {
 		//shift: mode contrôle
 		if (app.keyCode == PApplet.SHIFT || app.keyCode == PApplet.CONTROL) {
+			app.imgProcessing.play(true);
+			
 			switch (mode) {
 			case Placement:
 			case TransUp:
@@ -150,6 +149,7 @@ public class TrivialGame extends Interface {
 			switch (mode) {
 			case Jeu:
 			case TransDown:
+				app.imgProcessing.play(false);
 				setMode(Mode.TransUp);
 			default:
 				break;

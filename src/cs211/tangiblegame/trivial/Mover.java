@@ -7,6 +7,7 @@ import processing.core.PVector;
 public class Mover extends ProMaster {
 	//-- parametres
 	boolean perteEnergieApresChocActivee = true;
+	private float radius = 10;
 	float ratioEnergieApresChoc = 0.8f; //ratio de restitution de l'énergie après un choc statique
 	float gravityConstant = 0.7f;
 	float frictionMagnitude = 0.1f;
@@ -15,17 +16,15 @@ public class Mover extends ProMaster {
 
 	//-- interne
 	private static final PVector tTer = TrivialGame.tailleTerrain;
-	private float radius;
 	private PVector location;
 	private PVector velocity;
 	private PVector acceleration;
 	private final TrivialGame trivialGame;
 
-	public Mover(float radius, float mass, TrivialGame trivialGame) {
+	public Mover(TrivialGame trivialGame) {
 		location = new PVector(0,0,0);
 		velocity = new PVector(0,0,0);
 		acceleration = new PVector(0,0,0);
-		this.radius = radius;
 		this.trivialGame = trivialGame;
 	}
 
