@@ -24,7 +24,9 @@ public class Calibration extends Interface {
 	}
 
 	public void init() {
+		ip.restartMovie();
 		ip.inputLock.lock();
+		ImageProcessing.displayQuadRejectionCause = true;
 		app.textFont(fontLabel) ;
 		app.textAlign(PApplet.BASELINE);
 		ip.play(true);
@@ -33,6 +35,7 @@ public class Calibration extends Interface {
 			bar[i] = new HScrollbar(app, 0, app.height-caraBarsHeight+20*i, app.width, 20, app.imgProcessing.parametres[i]);
 		}
 		ip.inputLock.unlock();
+		
 	}
 
 	public void draw() {
@@ -40,12 +43,13 @@ public class Calibration extends Interface {
 		app.fill(255, 255);
 		ip.imagesLock.lock();
 		if (ip.inputImg != null) {
-			int displayWid = app.width/3;
+			int displayWid = app.width/3 + 1;
 			int displayHei = app.height - caraBarsHeight - 75;
-			//if (ip.quadDetection != null)
+			
 			ip.quadDetectionLock.lock();
 			app.image(ip.quadDetection, 0, 0, displayWid, displayHei);
 			ip.quadDetectionLock.unlock();
+				
 			app.image(ip.threshold2g, displayWid, 0, displayWid, displayHei);
 			app.image(ip.inputImg, 2*displayWid, 0, displayWid, displayHei);
 		}

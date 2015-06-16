@@ -2,16 +2,18 @@ package cs211.tangiblegame.trivial;
 
 import cs211.tangiblegame.Interface;
 import cs211.tangiblegame.geo.Cylinder;
+import cs211.tangiblegame.imageprocessing.ImageProcessing;
 import processing.core.PApplet;
 import processing.core.PVector;
 import processing.event.MouseEvent;
 
 public class TrivialGame extends Interface {
 	//-- parametres
-	final static PVector tailleTerrain = new PVector(400, 20, 300);
+	final static PVector tailleTerrain = new PVector(400, 20, 400);
 	private final static float tempsTransition = 0.5f;
 	private final static float pasRotY = PApplet.PI/8; //le pas de rotation de l'angle y, en radian
-	private static final float plateMaxAngle = PApplet.PI/6;
+	private static final float plateMaxAngle = PApplet.PI/5;
+	private static final float ratioUpdate = 0.2f; // rapprochement de la rot. de la plaque vers la rot. de l'image chaque frame
 	
 	//-- interne
 	private enum Mode { 
@@ -72,10 +74,11 @@ public class TrivialGame extends Interface {
 	void rotateScene() {
 		//roation du plateau
 		float ratioEtat = 1-etat; //pour forcer une rotation nulle en mode contrôle.
-		PVector rotation = app.imgProcessing.rotation();
-		platRot.x = PApplet.constrain(-rotation.x, -plateMaxAngle, plateMaxAngle);
+		PVector butRotation = app.imgProcessing.rotation();
+		//float rotationSmoothing = 0.3f;
+		platRot.x = PApplet.constrain((platRot.x - ratioUpdate * (butRotation.x + platRot.x)) / ImageProcessing.maxAcceptedAngle * plateMaxAngle , -plateMaxAngle, plateMaxAngle);
 		platRot.y = 0;//PApplet.constrain(imgProcessing.rotation.y, -plateMaxAngle, plateMaxAngle);
-		platRot.z = PApplet.constrain(-rotation.y, -plateMaxAngle, plateMaxAngle);
+		platRot.z = PApplet.constrain((platRot.y - ratioUpdate * (butRotation.y + platRot.y)) / ImageProcessing.maxAcceptedAngle * plateMaxAngle, -plateMaxAngle, plateMaxAngle);
 		app.rotateX(platRot.x * ratioEtat);
 		app.rotateY(platRot.y * ratioEtat);
 		app.rotateZ(platRot.z * ratioEtat);

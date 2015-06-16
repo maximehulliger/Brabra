@@ -24,6 +24,7 @@ public class TangibleGame extends PApplet {
 	public Calibration intCalibration;
 	public Menu intMenu;
 	public ReentrantLock applock;
+	public boolean over = false;
 	
 	//----- setup et boucle d'update (draw)
 	
@@ -32,7 +33,8 @@ public class TangibleGame extends PApplet {
 		ProMaster.init(this);
 		size(16*20*ratioSize, 9*20*ratioSize, P3D);
 		imgProcessing = new ImageProcessing(this);
-		imgProcessing.start();
+		//imgProcessing.start();
+		thread("imageProcessing");
 		applock.lock();
 		intRealGame = new RealGame();
 		intTrivialGame = new TrivialGame();
@@ -43,6 +45,10 @@ public class TangibleGame extends PApplet {
 		//Quaternion.test();
 		applock.unlock();
 		
+	}
+	
+	public void imageProcessing() {
+		imgProcessing.run();
 	}
 	
 	public void setInterface(Interface i) {
@@ -60,16 +66,12 @@ public class TangibleGame extends PApplet {
 
 	public void keyPressed() {
 		//intercepte escape
-		if (key == 27) {
-			if (currentInterface != intMenu) {
-				imgProcessing.play(false);
-				imgProcessing.forced = false;
-				setInterface(intMenu);
-				key = 0;
-			} else if (imgProcessing.takeMovie && imgProcessing.pausedMov) {
-				imgProcessing.continueThread = false;
-				imgProcessing.play(true);
-			}
+		if (key == 27 && currentInterface != intMenu) {
+			imgProcessing.play(false);
+			imgProcessing.forced = false;
+			ImageProcessing.displayQuadRejectionCause = false; 
+			setInterface(intMenu);
+			key = 0;
 		} 
 			
 		//pour tous les jeux:
@@ -86,6 +88,14 @@ public class TangibleGame extends PApplet {
 		
 		currentInterface.keyPressed();
 	}  
+	
+	public void dispose() {
+		if (imgProcessing.takeMovie && imgProcessing.pausedMov) {
+			imgProcessing.play(true);
+		}
+		over = true;
+		System.out.println("\n\nbye bye !");
+	} 
 
 	public void mouseDragged() {
 		currentInterface.mouseDragged();

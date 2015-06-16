@@ -109,7 +109,7 @@ public class HoughLine {
 	public PImage accumulatorImg() {
 		PImage houghImg = app.createImage(rDim + 2, phiDim + 2, PApplet.ALPHA);
 		for (int i = 0; i < accumulator.length; i++) {
-			houghImg.pixels[i] = app.color(PApplet.min(255, accumulator[i]));
+			houghImg.pixels[i] = ImageProcessing.rgbColor( PApplet.min(255, accumulator[i]) );
 		}
 		return houghImg;
 	}
@@ -151,7 +151,7 @@ public class HoughLine {
 	public void drawQuad(PGraphics pg) {
 		if (quad != null) {
 			// Choose a random, semi-transparent colour
-			pg.fill(app.color(200, 100, 0, 120));
+			pg.fill(ImageProcessing.colorQuad);
 			pg.quad(quad[0].x, quad[0].y,
 					quad[1].x, quad[1].y,
 					quad[2].x, quad[2].y,

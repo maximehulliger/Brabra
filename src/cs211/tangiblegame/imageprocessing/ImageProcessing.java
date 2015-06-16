@@ -14,9 +14,9 @@ import processing.core.PApplet;
 import processing.core.PVector;
 import processing.video.*;
 
-public class ImageProcessing extends Thread {
-	private Movie mov = null;
-	private Capture cam = null;
+public class ImageProcessing {
+	public static final float maxAcceptedAngle = 65f/360*PApplet.TWO_PI; //65°
+	public static boolean displayQuadRejectionCause = false;
 	private int idxCamera = 3;
 	
 	public final ReentrantLock imagesLock;
@@ -26,12 +26,28 @@ public class ImageProcessing extends Thread {
 	public HoughLine hough;
 	
 	public final ReentrantLock quadDetectionLock;
+	public boolean hasFoundQuad = false;
 	public PGraphics quadDetection;
+	
+	public final ReentrantLock buttonStateLock;
+	public boolean leftButtonVisible = false;
+	public boolean rightButtonVisible = false;
+	private final ButtonDetection buttonDetection;
+	private class ButtonDetectionJob extends Thread {
+		public ButtonDetectionJob(PImage input, PVector[] corners) {
+			buttonDetection.setInput(input, corners);
+		}
+		public void run() {
+			buttonDetection.detect();
+		}
+	}
 	
 	//--- input
 	public final ReentrantLock inputLock;
 	public boolean forced = false;	//force l'analyse de l'image même si l'input n'a pas changé.
-	public boolean takeMovie = true; //prend la camera si false.
+	public boolean takeMovie = false; //prend la camera si false.
+	public boolean pausedCam = false, pausedMov = false;
+	
 	public float[] parametres, paraMovie, paraCamera;
 	public static final float[] paraMovieBase = { 
 			0.37f, 0.5f, 	//hue
@@ -52,24 +68,37 @@ public class ImageProcessing extends Thread {
 			0.5f, 0.38f,	//min vote, neighbour
 			0.6f, 0.2f };	//nb line kept, sobel threshold
 	
-	private final int color0, color255;
-	
-	private final TangibleGame app;
+	//rotation
 	private final ReentrantLock rotationLock;
-	public boolean pausedCam = false, pausedMov = false;
+	public boolean lostRotation = true;
 	private PVector rotation = new PVector(0,0,0);
-	public boolean continueThread = true;
+	
+	/*pkg*/ final TangibleGame app;
+	/*pkg*/ int inWidth = 0, inHeight = 0;
+	/*pkg*/ final int color0, color255;
+	/*pkg*/ static int colorQuad, colorLines;
+	/*pkg*/ final int colorButtonOk, colorButtonRejected;
+	private boolean mustDrawPauseFrame = false;
 	private PFont fontPaused = null;
+	private boolean readyForInput = false;
+	private Movie mov = null;
+	private Capture cam = null;
+	private float strockWeight;
 	
 	public ImageProcessing(TangibleGame app) {
 		this.app = app;
 		color0 = app.color(0);
 		color255 = app.color(255);
+		colorButtonOk = app.color(0, 255, 0, 150);
+		colorButtonRejected = app.color(255, 0, 0, 150);
+		colorQuad = app.color(200, 100, 0, 120);
 		
+		buttonDetection = new ButtonDetection(this);
 		imagesLock = new ReentrantLock();
 		quadDetectionLock = new ReentrantLock();
 		rotationLock = new ReentrantLock();
 		inputLock = new ReentrantLock();
+		buttonStateLock = new ReentrantLock();
 		
 		paraMovie = ProMaster.copy(paraMovieBase);
 		paraCamera = ProMaster.copy(paraCameraBase);
@@ -78,6 +107,25 @@ public class ImageProcessing extends Thread {
 		else
 			takeCameraInput(idxCamera);
 		play(false); //pause
+	}
+	
+	public void updateForInput() {
+		if (!readyForInput && (inWidth != inputImg.width || inHeight != inputImg.height)) {
+			inWidth = inputImg.width;
+			inHeight = inputImg.height;
+			quadDetection = app.createGraphics(inWidth, inHeight);
+			fontPaused = app.createFont("Arial", inHeight/16);
+			strockWeight = PApplet.max(inWidth * 3f / app.width, 1f);
+			quadDetection.strokeWeight(strockWeight);
+			readyForInput = true;
+		}
+	}
+	
+	public void restartMovie() {
+		inputLock.lock();
+		if (mov != null)
+			mov.jump(0);
+		inputLock.unlock();
 	}
 	
 	public void resetParametres() {
@@ -96,43 +144,37 @@ public class ImageProcessing extends Thread {
 		inputLock.lock();
 		if (takeMovie) {
 			if (pausedMov == play) {
+				pausedMov = !play;
 				if (play) {
-					fontPaused = null;
+					readyForInput = false;
 					mov.play();
 				} else {
 					mov.pause();
+					mustDrawPauseFrame = true;
 				}
 			}
-			pausedMov = !play;
 		} else {
 			if (pausedCam == play) {
+				pausedCam = !play;
 				if (play) {
-					fontPaused = null;
+					readyForInput = false;
 					cam.start();
 				} else {
 					cam.stop();
+					mustDrawPauseFrame = true;
 				}
 			}
-			pausedCam = !play;
 		}
-		
-		if (((pausedMov && takeMovie) || (pausedCam && !takeMovie)) && quadDetection != null) {
-			inputLock.unlock();
-			/*quadDetection.textFont( fontPaused );
-			quadDetection.textAlign(PApplet.RIGHT, PApplet.BOTTOM);
-			quadDetection.fill(200, 100, 0, 255);
-			quadDetection.text("paused", quadDetection.width, quadDetection.height);*/
-		} else
-			inputLock.unlock();
+		inputLock.unlock();
 	}
-	
+
 	public void playOrPause() {
 		if (takeMovie)
 			play(pausedMov);
 		else
 			play(pausedCam);
 	}
-	
+
 	public void takeVideoInput() {
 		inputLock.lock();
 		if (!takeMovie || mov == null) {
@@ -145,7 +187,7 @@ public class ImageProcessing extends Thread {
 		this.takeMovie = true;
 		inputLock.unlock();
 	}
-	
+
 	public void takeCameraInput(int idxCam) {
 		inputLock.lock();
 		if (takeMovie || idxCam != this.idxCamera || cam == null) {
@@ -180,96 +222,126 @@ public class ImageProcessing extends Thread {
 		else
 			takeCameraInput(idxCamera);
 		play(true);
-		fontPaused = null;
+		readyForInput = false;
 		inputLock.unlock();
 	}
-	
+
 	public void run() {
-		while (continueThread) {
-			boolean newImage = false;
-			inputLock.lock();
-			imagesLock.lock();
-			if (takeMovie && !pausedMov && mov.available()) {
-				newImage = true;
-				mov.read();
-				inputImg = mov.get();
-				
-			} else if (!takeMovie && !pausedCam && cam.available()) {
-				newImage = true;
-				cam.read();
-				inputImg = cam.get();
-			}
-			
-			if (inputImg != null && (newImage || forced)) {
-				PImage threshold1g = colorThreshold(inputImg, parametres[0], parametres[1], parametres[2], parametres[3], parametres[4], parametres[5]);
-				PImage bluredg = blur(threshold1g);
-				threshold2g = intensityThreshold(bluredg, parametres[6], parametres[7], parametres[8], parametres[9], parametres[10], parametres[11]);
-				sobel = sobel(threshold2g, parametres[15]);
-				HoughLine.minVotes = PApplet.round(parametres[12] * 100);
-				HoughLine.neighbourhood = PApplet.round(parametres[13] * 100);
-				HoughLine.maxKeptLines = PApplet.round(parametres[14] * 10);
-				hough = new HoughLine(sobel, app);
-				
-				//-- print control img (with image lock release)
-				quadDetectionLock.lock();
-				quadDetection = app.createGraphics(inputImg.width, inputImg.height);
-				quadDetection.beginDraw();
-				//app.applock.lock();
-				quadDetection.fill(255, 255);
-				quadDetection.image(sobel, 0, 0);
-				hough.drawLines(quadDetection);
-				hough.drawQuad(quadDetection);
-				//app.applock.unlock();
-				int w = inputImg.width, h = inputImg.height;
-				imagesLock.unlock();
-				if ((pausedMov && takeMovie) || (pausedCam && !takeMovie)) {
-					inputLock.unlock();
-					if (fontPaused == null)
-						fontPaused = app.createFont("Arial", h/16);
-					quadDetection.textFont( fontPaused );
-					quadDetection.textAlign(PApplet.RIGHT, PApplet.BOTTOM);
-					quadDetection.fill(200, 100, 0, 255);
-					quadDetection.text("paused", quadDetection.width, quadDetection.height);
-				} else {
-					inputLock.unlock();
-				}
-				quadDetection.endDraw();
-				quadDetectionLock.unlock();
+		while (!app.over) {
+			try {
+				boolean newImage = false;
+				inputLock.lock();
 				imagesLock.lock();
-				//-- if valid quad, update rotation & control img (rendu)
-				if (hough.quad != null) {
-					ArrayList<PVector> detectedQuad = hough.quad();
-					imagesLock.unlock();
-					//ButtonDetection blobDet = new ButtonDetection(this, hough.quad, threshold2);
-	
-					//get rotation from quad
-					TwoDThreeD deathMasterLongSword = new TwoDThreeD(w, h);
-					rotationLock.lock();
-					rotation = deathMasterLongSword.get3DRotations(detectedQuad);
-					float r = 360/PApplet.TWO_PI;
-					System.out.printf("rot: x: %.1f y: %.1f z: %.1f (°)\n", rotation.x*r, rotation.y*r, rotation.z*r);
-					rotationLock.unlock();
+				if (takeMovie && !pausedMov && mov.available()) {
+					newImage = true;
+					mov.read();
+					inputImg = mov.get();
+
+				} else if (!takeMovie && !pausedCam && cam.available()) {
+					newImage = true;
+					cam.read();
+					inputImg = cam.get();
+				}
+
+				if (inputImg != null && (newImage || forced || mustDrawPauseFrame)) {
+					mustDrawPauseFrame = false;
+					updateForInput();
+					
+					// analyse input to find a green quad
+					PImage threshold1g = colorThreshold(inputImg, parametres[0], parametres[1], parametres[2], parametres[3], parametres[4], parametres[5]);
+					PImage bluredg = blur(threshold1g);
+					threshold2g = intensityThreshold(bluredg, parametres[6], parametres[7], parametres[8], parametres[9], parametres[10], parametres[11]);
+					sobel = sobel(threshold2g, parametres[15]);
+					HoughLine.minVotes = PApplet.round(parametres[12] * 100);
+					HoughLine.neighbourhood = PApplet.round(parametres[13] * 100);
+					HoughLine.maxKeptLines = PApplet.round(parametres[14] * 10);
+					inputLock.unlock();
+					hough = new HoughLine(sobel, app);
+					hasFoundQuad = hough.quad != null;
+					
+					// if quad is found, analyse buttons & rotation (with image lock release)
+					ButtonDetectionJob butDetJob = null;
+					ArrayList<PVector> detectedQuad = null;
+					if (hasFoundQuad) {
+						//-- finish with images & start button det.
+						butDetJob = new ButtonDetectionJob(inputImg, hough.quad);
+						detectedQuad = hough.quad();
+						imagesLock.unlock();
+						butDetJob.start();
+
+						//-- compute & set rotation
+						TwoDThreeD deathMasterLongSword = new TwoDThreeD(inWidth, inHeight);
+						PVector newRot = deathMasterLongSword.get3DRotations(detectedQuad);
+						if (ProMaster.isConstrained(newRot.x, -maxAcceptedAngle, maxAcceptedAngle) &&
+								ProMaster.isConstrained(newRot.x, -maxAcceptedAngle, maxAcceptedAngle) &&
+								ProMaster.isConstrained(newRot.x, -maxAcceptedAngle, maxAcceptedAngle)) {
+							rotationLock.lock();
+							if (!rotation.equals(newRot)) {
+								rotation = newRot;
+								float r = 360/PApplet.TWO_PI;
+								System.out.printf("rot: x: %.1f y: %.1f z: %.1f (°)\n", rotation.x*r, rotation.y*r, rotation.z*r);
+							}
+							rotationLock.unlock();
+						} else {
+							if (ImageProcessing.displayQuadRejectionCause)
+								System.out.println("angle pas accepté !");
+						}
+						
+						//-- get & set button state
+						butDetJob.join();
+						butDetJob = null;
+						buttonStateLock.lock();
+						leftButtonVisible = buttonDetection.leftVisible;
+						rightButtonVisible = buttonDetection.rightVisible;
+						buttonStateLock.unlock();
+						imagesLock.lock();
+					}
+
+					//-- print control img
+					quadDetectionLock.lock();
+					quadDetection.beginDraw();
+					quadDetection.fill(255, 255);
+					quadDetection.image(sobel, 0, 0);
+					hough.drawLines(quadDetection);
+					if (hasFoundQuad) {
+						hough.drawQuad(quadDetection);
+						imagesLock.unlock();
+						buttonDetection.drawButtons(quadDetection);
+					} else
+						imagesLock.unlock();
+					// paused
+					inputLock.lock();
+					if ((pausedMov && takeMovie) || (pausedCam && !takeMovie)) {
+						quadDetection.textFont( fontPaused );
+						inputLock.unlock();
+						quadDetection.textAlign(PApplet.RIGHT, PApplet.BOTTOM);
+						quadDetection.fill(200, 100, 0, 255);
+						quadDetection.text("paused", quadDetection.width, quadDetection.height);
+					} else {
+						inputLock.unlock();
+					}
+					quadDetection.endDraw();
+					quadDetectionLock.unlock();
 				} else {
+					inputLock.unlock();
 					imagesLock.unlock();
+					app.delay(50); //dors 50 ms
 				}
-			} else {
-				inputLock.unlock();
-				imagesLock.unlock();
-				
-				try {
-					sleep(50); //dors 50 ms
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
+			} catch (InterruptedException e) {
+				e.printStackTrace();
 			}
 		}
 	}
 	
-	private int rgbColor(int r, int g, int b) {
+	static public int rgbColor(int r, int g, int b, int a) {
 		if (r > 255) r = 255;
 		if (g > 255) g = 255;
 		if (b > 255) b = 255;
-		return (0xFFFF_FFFF << 24) + (r << 16) + (g << 8) + b;
+		return /*(0xFFFF_FFFF << 32) +*/ (a << 24) + (r << 16) + (g << 8) + b;
+	}
+	
+	static public int rgbColor(int rgb) {
+		return rgbColor(rgb, rgb, rgb, 255);
 	}
 	
 	public PVector rotation() {
@@ -419,7 +491,7 @@ public class ImageProcessing extends Thread {
 				}
 				for (int i=0; i<3; i++)
 					acc[i] /= weight;
-				int p = rgbColor((int)acc[0], (int)acc[1], (int)acc[2]);
+				int p = rgbColor((int)acc[0], (int)acc[1], (int)acc[2], 255);
 				result.pixels[x+result.width*y] = p;
 			}
 		}

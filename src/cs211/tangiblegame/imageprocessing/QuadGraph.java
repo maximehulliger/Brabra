@@ -215,9 +215,11 @@ public class QuadGraph {
         if(   (i1>0 && i2>0 && i3>0 && i4>0) 
            || (i1<0 && i2<0 && i3<0 && i4<0))
             return true;
-        else 
-            System.out.println("Eliminating non-convex quad");
+        else {
+        	if (ImageProcessing.displayQuadRejectionCause)
+        		System.out.println("Eliminating non-convex quad");
             return false;
+        }
    }
 
     /** Compute the area of a quad, and check it lays within a specific range
@@ -238,7 +240,9 @@ public class QuadGraph {
         
         boolean valid = (area < max_area && area > min_area);
    
-        if (!valid) System.out.println("Area out of range");
+        if (!valid)
+        	if (ImageProcessing.displayQuadRejectionCause)
+        		System.out.println("Area out of range");
         
         return valid;
    }
@@ -263,7 +267,8 @@ public class QuadGraph {
         if (cos1 < min_cos && cos2 < min_cos && cos3 < min_cos && cos4 < min_cos)
             return true;
         else {
-            System.out.println("Flat quad");
+        	if (ImageProcessing.displayQuadRejectionCause)
+        		System.out.println("Flat quad");
             return false;
         }
    }
