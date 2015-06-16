@@ -32,7 +32,6 @@ public class RealGame extends Interface {
 	}
 	
 	public void draw() {
-		app.imgProcessing.update(false);
 		placeCamEtLum();
 
 		//update & display everything

@@ -159,44 +159,19 @@ public class HoughLine {
 		}
 	}
 	
-	/*private List<PVector> getIntersections() {
-		ArrayList<PVector> intersections = new ArrayList<PVector>();
-		for (int i = 0; i < lines.size() - 1; i++) {
-			Line line1 = lines.get(i);
-			for (int j = i + 1; j < lines.size(); j++) {
-				Line line2 = lines.get(j);
-				// compute the intersection and add it to 'intersections'
-				float d = line2.cosPhi*line1.sinPhi - line1.cosPhi*line2.sinPhi;
-				if (d != 0) {
-					int x = Math.round((line2.r*line1.sinPhi - line1.r*line2.sinPhi)/d);
-					int y = Math.round(-(line2.r*line1.cosPhi - line1.r*line2.cosPhi)/d);
-					intersections.add(new PVector(x, y));
-				}
-			}
-		}
-		for (PVector i : intersections) {
-			app.fill(255, 128, 0);
-			app.ellipse((int) (i.x*ImageProcessing.rapportDisplayFile), 
-					(int) (i.y*ImageProcessing.rapportDisplayFile), 10, 10);
-		}
-		return intersections;
-	}*/
-	
 	//retourne les 4 coins d'un quad valide à partir des lignes, ou null si pas de quad valide détecté.
 	private PVector[] getQuad() {
 		if (lines.size() < 4)
-			return null;
-			
+			return null;	
 		
 		QuadGraph qgraph = new QuadGraph();
-		qgraph.build(lines, app.width, app.height);
+		qgraph.build(lines, edgeImg.width, edgeImg.height);
 		
 		for (int[] quad : qgraph.findCycles()) {
 			Line l1 = lines.get(quad[0]);
 			Line l2 = lines.get(quad[1]);
 			Line l3 = lines.get(quad[2]);
 			Line l4 = lines.get(quad[3]);
-
 			PVector c12 = l1.intersection(l2);
 			PVector c23 = l2.intersection(l3);
 			PVector c34 = l3.intersection(l4);
@@ -205,11 +180,8 @@ public class HoughLine {
 			//filter quads
 			if (QuadGraph.validArea(c12, c23, c34, c41, 170_000, 6_000) &&
 					QuadGraph.isConvex(c12, c23, c34, c41)){ //&&
-				
-				//QuadGraph.nonFlatQuad(c12, c23, c34, c41)) {
-					return new PVector[] {c12, c23, c34, c41};
-				
-					
+					//QuadGraph.nonFlatQuad(c12, c23, c34, c41)) {
+						return new PVector[] {c12, c23, c34, c41};
 			}
 		}
 		return null;

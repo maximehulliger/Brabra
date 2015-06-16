@@ -39,11 +39,11 @@ public class TrivialGame extends Interface {
 		etat = 0; //entre 0 (jeu) et 1 (controle)
 		tiltSpeed = 1;
 		platRot = zero.get();
+		app.imgProcessing.play(true);
 	}
 	
 	public void draw() {
 		updateMode();
-		app.imgProcessing.update(false);
 		placeCamEtLum();
 		rotateScene();
 		
@@ -72,9 +72,10 @@ public class TrivialGame extends Interface {
 	void rotateScene() {
 		//roation du plateau
 		float ratioEtat = 1-etat; //pour forcer une rotation nulle en mode contrôle.
-		platRot.x = PApplet.constrain(-app.imgProcessing.rotation.x, -plateMaxAngle, plateMaxAngle);
+		PVector rotation = app.imgProcessing.rotation();
+		platRot.x = PApplet.constrain(-rotation.x, -plateMaxAngle, plateMaxAngle);
 		platRot.y = 0;//PApplet.constrain(imgProcessing.rotation.y, -plateMaxAngle, plateMaxAngle);
-		platRot.z = PApplet.constrain(-app.imgProcessing.rotation.y, -plateMaxAngle, plateMaxAngle);
+		platRot.z = PApplet.constrain(-rotation.y, -plateMaxAngle, plateMaxAngle);
 		app.rotateX(platRot.x * ratioEtat);
 		app.rotateY(platRot.y * ratioEtat);
 		app.rotateZ(platRot.z * ratioEtat);

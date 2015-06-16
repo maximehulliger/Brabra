@@ -1,5 +1,7 @@
 package cs211.tangiblegame;
 
+import java.util.concurrent.locks.ReentrantLock;
+
 import cs211.tangiblegame.calibration.Calibration;
 import cs211.tangiblegame.imageprocessing.ImageProcessing;
 import cs211.tangiblegame.realgame.RealGame;
@@ -21,23 +23,26 @@ public class TangibleGame extends PApplet {
 	public TrivialGame intTrivialGame;
 	public Calibration intCalibration;
 	public Menu intMenu;
-	
-	public boolean pausedCam = false, pausedMov = false;
+	public ReentrantLock applock;
 	
 	//----- setup et boucle d'update (draw)
-
+	
 	public void setup() {
+		applock = new ReentrantLock();
 		ProMaster.init(this);
 		size(16*20*ratioSize, 9*20*ratioSize, P3D);
 		imgProcessing = new ImageProcessing(this);
+		imgProcessing.start();
+		applock.lock();
 		intRealGame = new RealGame();
 		intTrivialGame = new TrivialGame();
 		intCalibration = new Calibration();
 		intMenu = new Menu();
 		
 		setInterface(intMenu);
-		
 		//Quaternion.test();
+		applock.unlock();
+		
 	}
 	
 	public void setInterface(Interface i) {
@@ -46,10 +51,41 @@ public class TangibleGame extends PApplet {
 	}
 	
 	public void draw() {
+		applock.lock();
 		currentInterface.draw();
+		applock.unlock();
 	}
 
 	//-------- Gestion Evenements
+
+	public void keyPressed() {
+		//intercepte escape
+		if (key == 27) {
+			if (currentInterface != intMenu) {
+				imgProcessing.play(false);
+				imgProcessing.forced = false;
+				setInterface(intMenu);
+				key = 0;
+			} else if (imgProcessing.takeMovie && imgProcessing.pausedMov) {
+				imgProcessing.continueThread = false;
+				imgProcessing.play(true);
+			}
+		} 
+			
+		//pour tous les jeux:
+		if (currentInterface != intMenu) {
+			if (key == 'q')
+				currentInterface.init();
+			if (key == 'Q')
+				imgProcessing.resetParametres();
+			if (key == 'p')
+				imgProcessing.playOrPause();
+			if (key=='i')
+				imgProcessing.changeInput();
+		}
+		
+		currentInterface.keyPressed();
+	}  
 
 	public void mouseDragged() {
 		currentInterface.mouseDragged();
@@ -62,42 +98,6 @@ public class TangibleGame extends PApplet {
 	public void keyReleased() {
 		currentInterface.keyReleased();
 	}
-	
-	
-
-	public void keyPressed() {
-		if (key == 27 && currentInterface != intMenu) {
-			setInterface(intMenu);
-			key = 0;
-		}
-			
-		//pour tous les jeux:
-		if (currentInterface != null) //TODO pas menu !
-		{
-			//q: recommence la partie
-			if (key == 'q')
-				currentInterface.init();
-			if (key == 'Q')
-				imgProcessing.resetParametres();
-			//p: met en pause la vidéo
-			if (key == 'p') {
-				if (imgProcessing.takeMovie) {
-					if (pausedMov) imgProcessing.mov.play();
-					else		imgProcessing.mov.pause();
-					pausedMov = !pausedMov;
-				} else {
-					if (pausedCam) imgProcessing.cam.start();
-					else		imgProcessing.cam.stop();
-					pausedCam = !pausedCam;
-				}
-			}
-			if (key=='i')
-				imgProcessing.changeInput();
-			
-		}
-
-		currentInterface.keyPressed();
-	}  
 
 	public void mousePressed() {
 		currentInterface.mousePressed();
