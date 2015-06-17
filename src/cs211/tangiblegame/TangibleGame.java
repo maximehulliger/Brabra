@@ -1,7 +1,7 @@
 package cs211.tangiblegame;
 
 import cs211.tangiblegame.calibration.Calibration;
-import cs211.tangiblegame.imageprocessing.ImageProcessing;
+import cs211.tangiblegame.imageprocessing.ImageAnalyser;
 import cs211.tangiblegame.realgame.RealGame;
 import cs211.tangiblegame.trivial.TrivialGame;
 import processing.core.*;
@@ -16,7 +16,7 @@ public class TangibleGame extends PApplet {
 	public static final float inclinaisonMax = PApplet.PI/5; 
 	
 	//--interne
-	public ImageProcessing imgProcessing;
+	public ImageAnalyser imgAnalyser;
 	private Interface currentInterface;
 	public RealGame intRealGame;
 	public TrivialGame intTrivialGame;
@@ -29,7 +29,7 @@ public class TangibleGame extends PApplet {
 	public void setup() {
 		ProMaster.init(this);
 		size(16*20*ratioSize, 9*20*ratioSize, P3D);
-		imgProcessing = new ImageProcessing(this);
+		imgAnalyser = new ImageAnalyser(this);
 		//imgProcessing.start();
 		thread("imageProcessing");
 		intRealGame = new RealGame();
@@ -42,7 +42,7 @@ public class TangibleGame extends PApplet {
 	}
 	
 	public void imageProcessing() {
-		imgProcessing.run();
+		imgAnalyser.run();
 	}
 	
 	public void setInterface(Interface i) {
@@ -59,9 +59,11 @@ public class TangibleGame extends PApplet {
 	public void keyPressed() {
 		//intercepte escape
 		if (key == 27 && currentInterface != intMenu) {
-			imgProcessing.play(false);
-			imgProcessing.forced = false;
-			ImageProcessing.displayQuadRejectionCause = false; 
+			imgAnalyser.play(false);
+			imgAnalyser.forced = false;
+			imgAnalyser.detectButtons = false;
+			
+			ImageAnalyser.displayQuadRejectionCause = false; 
 			setInterface(intMenu);
 			key = 0;
 		} 
@@ -70,20 +72,24 @@ public class TangibleGame extends PApplet {
 		if (currentInterface != intMenu) {
 			if (key == 'q')
 				currentInterface.init();
-			if (key == 'Q')
-				imgProcessing.resetParametres();
+			if (key == 'Q') {
+				if (intCalibration.buttonCalibrationMode)
+					imgAnalyser.buttonDetection.resetParameters();
+				else
+					imgAnalyser.resetParameters();
+			}
 			if (key == 'p')
-				imgProcessing.playOrPause();
+				imgAnalyser.playOrPause();
 			if (key=='i')
-				imgProcessing.changeInput();
+				imgAnalyser.changeInput();
 		}
 		
 		currentInterface.keyPressed();
 	}  
 	
 	public void dispose() {
-		if (imgProcessing.takeMovie && imgProcessing.pausedMov) {
-			imgProcessing.play(true);
+		if (imgAnalyser.takeMovie && imgAnalyser.pausedMov) {
+			imgAnalyser.play(true);
 		}
 		over = true;
 		System.out.println("\n\nbye bye !");

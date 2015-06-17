@@ -39,7 +39,7 @@ public class TrivialGame extends Interface {
 		etat = 0; //entre 0 (jeu) et 1 (controle)
 		tiltSpeed = 1;
 		platRot = zero.get();
-		app.imgProcessing.play(true);
+		app.imgAnalyser.play(true);
 	}
 	
 	public void draw() {
@@ -64,17 +64,17 @@ public class TrivialGame extends Interface {
 		
 		app.camera();
 		app.hint(PApplet.DISABLE_DEPTH_TEST);
-		app.imgProcessing.displayCtrImg();
+		app.imgAnalyser.displayCtrImg();
 		app.hint(PApplet.ENABLE_DEPTH_TEST);
 	}
 	
 	void rotateScene() {
 		//roation du plateau
 		float ratioEtat = 1-etat; //pour forcer une rotation nulle en mode contrôle.
-		PVector gameRotation = app.imgProcessing.rotation();
+		PVector gameRotation = app.imgAnalyser.rotation();
 		
 		platRot.x = PApplet.constrain((platRot.x + ratioUpdate * (gameRotation.x - platRot.x)), -TangibleGame.inclinaisonMax, TangibleGame.inclinaisonMax);
-		platRot.y = 0;//PApplet.constrain(imgProcessing.rotation.y, -plateMaxAngle, plateMaxAngle);
+		platRot.y = 0;//PApplet.constrain(imgAnalyser.rotation.y, -plateMaxAngle, plateMaxAngle);
 		platRot.z = PApplet.constrain((platRot.z + ratioUpdate * (gameRotation.z - platRot.z)), -TangibleGame.inclinaisonMax, TangibleGame.inclinaisonMax);
 		app.rotateX(platRot.x * ratioEtat);
 		app.rotateY(platRot.y * ratioEtat);
@@ -120,7 +120,7 @@ public class TrivialGame extends Interface {
 	public void keyReleased() {
 		//shift: mode contrôle
 		if (app.keyCode == PApplet.SHIFT || app.keyCode == PApplet.CONTROL) {
-			app.imgProcessing.play(true);
+			app.imgAnalyser.play(true);
 			
 			switch (mode) {
 			case Placement:
@@ -149,7 +149,7 @@ public class TrivialGame extends Interface {
 			switch (mode) {
 			case Jeu:
 			case TransDown:
-				app.imgProcessing.play(false);
+				app.imgAnalyser.play(false);
 				setMode(Mode.TransUp);
 			default:
 				break;

@@ -41,7 +41,7 @@ public class RealGame extends Interface {
 		app.camera();
 		app.hint(PApplet.DISABLE_DEPTH_TEST);
 		starship.armement.displayGui();
-		app.imgProcessing.displayCtrImg();
+		app.imgAnalyser.displayCtrImg();
 		app.hint(PApplet.ENABLE_DEPTH_TEST);
 	}
 	

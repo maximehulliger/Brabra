@@ -2,46 +2,64 @@ package cs211.tangiblegame.imageprocessing;
 
 import java.awt.Polygon;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeSet;
+import java.util.concurrent.locks.ReentrantLock;
 
+import cs211.tangiblegame.ProMaster;
+import processing.core.PApplet;
 import processing.core.PGraphics;
 import processing.core.PImage;
 import processing.core.PVector;
 
-public class ButtonDetection {
-	private final ImageProcessing imgPro;
-	private PImage input;
+@SuppressWarnings("serial")
+public class ButtonDetection extends ReentrantLock {
+	public float[] paraBoutons;
+	public PImage threshold2Button = null;
+	private final ImageAnalyser imgAnal;
+	private PImage inputImg;
 	private PVector[] corners;
-	public int minVote = 30;
-	public boolean leftVisible = false;
-	public boolean rightVisible = false;
-	private Collection<Integer[]> blobs;
 	
-	public ButtonDetection(ImageProcessing imgPro) {
-		this.imgPro = imgPro;
+	private static final int minVote = 30, maxVote = 100, overHeadVote = 30*40;
+	public boolean leftVisible = false, rightVisible = false;
+	public float leftScore = 0, rightScore = 0; //[0, 1]
+	
+	private List<Integer[]> blobs;
+	
+	public ButtonDetection(ImageAnalyser imageAnalyser) {
+		this.imgAnal = imageAnalyser;
+		paraBoutons = ProMaster.copy(ImageProcessing.paraBoutonsBase);
+		resetParameters();
 	}
 	
 	public void setInput(PImage input, PVector[] corners) {
-		this.input = input;
+		this.inputImg = input;
 		this.corners = corners;
 	}
 	
 	public void drawButtons(PGraphics input) {
-		for (Integer[] b : this.blobs) {
-			int bx = b[0];
-			int by = b[1];
-			float rayon = b[2];
-			if (b[2] >= minVote)
-				input.fill(imgPro.colorButtonOk);
-			else {
-				input.fill(imgPro.colorButtonRejected);
+		if (blobs != null) {
+			input.noStroke();
+			for (Integer[] b : blobs) {
+				int bx = b[0];
+				int by = b[1];
+				float rayon = PApplet.min(b[2], maxVote);
+				if (b[2] >= overHeadVote)
+					input.fill(ProMaster.colorButtonRejected);
+				else if (b[2] >= minVote)
+					input.fill(ProMaster.colorButtonOk);
+				else {
+					input.fill(ProMaster.colorButtonRejected);
+				}
+				input.ellipse(bx, by, rayon, rayon);
 			}
-			input.ellipse(bx - rayon/2, by - rayon/2, rayon, rayon);
 		}
+	}
+	
+	public void resetParameters() {
+		this.paraBoutons = ProMaster.copy(ImageProcessing.paraBoutonsBase);
 	}
 	
 	/** detect blobs instance within the four corners of the Lego board from a thresholded image of the buttons. */
@@ -50,15 +68,23 @@ public class ButtonDetection {
 		for (int i=0; i<corners.length; i++)
 			quad.addPoint((int) corners[i].x, (int) corners[i].y);
 		
+		//1. threshold the image
+		PImage quadFiltered = ImageProcessing.quadFilter(inputImg, quad);
+		lock();
+		PImage threshold1r = ImageProcessing.colorThreshold(quadFiltered, paraBoutons[0], paraBoutons[1], paraBoutons[2], paraBoutons[3], paraBoutons[4], paraBoutons[5]);
+		PImage bluredr = ImageProcessing.blur(threshold1r);
+		threshold2Button = ImageProcessing.intensityThreshold(bluredr, paraBoutons[6], paraBoutons[7], paraBoutons[8], paraBoutons[9], paraBoutons[10], paraBoutons[11]);
+		unlock();
+		
 		//2. First pass: label the pixels and store labels' equivalences
-		int [][] labels= new int [input.width][input.height];
+		int [][] labels= new int [inputImg.width][inputImg.height];
 		List<TreeSet<Integer>> labelsEquivalences= new ArrayList<TreeSet<Integer>>();
 		int currentLabel=1;
 		
-		for(int x = 0; x < input.width; x++) {
-			for(int y = 0; y < input.height; y++) {
-				int pixel = ImageProcessing.pixel(input, x, y);
-				if (!quad.contains(x, y) || pixel == imgPro.color0)
+		for(int x = 0; x < inputImg.width; x++) {
+			for(int y = 0; y < inputImg.height; y++) {
+				int pixel = ImageProcessing.pixel(threshold2Button, x, y);
+				if (!quad.contains(x, y) || pixel == ProMaster.color0)
 					continue;
 				
 				// on cherche le label minimum autour.
@@ -66,10 +92,10 @@ public class ButtonDetection {
 											{x+1, y+1}, {x-1, y+1}, {x-1, y-1}, {x+1, y-1}};
 				int minLab = Integer.MAX_VALUE;
 				for (int[] v : vois) {
-					if(!ImageProcessing.isIn(v[0], 0, input.width-1) || !ImageProcessing.isIn(v[1], 0, input.height-1))
+					if(!ImageProcessing.isIn(v[0], 0, inputImg.width-1) || !ImageProcessing.isIn(v[1], 0, inputImg.height-1))
 						continue;
-					int pVois = ImageProcessing.pixel(input, v[0], v[1]);
-					if ( pVois != imgPro.color0 ) {
+					int pVois = ImageProcessing.pixel(threshold2Button, v[0], v[1]);
+					if ( pVois != ProMaster.color0 ) {
 						int labVois = labels[v[0]][v[1]];
 						if ( labVois>0 && labVois<minLab )
 							minLab = labVois;
@@ -88,7 +114,7 @@ public class ButtonDetection {
 					labels[x][y] = minLab;
 					//on lie autre -> min
 					for (int[] v : vois) {
-						if(!ImageProcessing.isIn(v[0], 0, input.width-1) || !ImageProcessing.isIn(v[1], 0, input.height-1))
+						if(!ImageProcessing.isIn(v[0], 0, inputImg.width-1) || !ImageProcessing.isIn(v[1], 0, inputImg.height-1))
 							continue;
 						int labVois = labels[v[0]][v[1]];
 						if ( labVois!= 0 && labVois > minLab) {
@@ -107,22 +133,21 @@ public class ButtonDetection {
 		}
 		
 		// 3. on regarde les blobs qui vont sortir
-		Map<Integer, Integer[]> blobs = new HashMap<>(); //[tot x, tot y, nbPixel]
+		Map<Integer, Integer[]> blobsAcc = new HashMap<>(); //[tot x, tot y, nbPixel]
 		for (int finalLab : allFinalLabel) {
-			Integer[] blob = { 0, 0, 0 };
-			blobs.put(finalLab, blob);
+			blobsAcc.put(finalLab, new Integer[] { 0, 0, 0 });
 		}
 
 		// 4. Second pass: re-label the pixels by their equivalent class & update blob score
-		for(int x = 0; x < input.width; x++) {
-			for(int y = 0; y < input.height; y++) {
+		for(int x = 0; x < inputImg.width; x++) {
+			for(int y = 0; y < inputImg.height; y++) {
 				if (!quad.contains(x, y))
 					continue;
 				int lab = labels[x][y];
 				if (lab > 0) {
 					int finLab = labelsEquivalences.get(lab-1).first();
 					labels[x][y] = finLab;
-					Integer[] blob = blobs.get(finLab);
+					Integer[] blob = blobsAcc.get(finLab);
 					blob[0] += x;
 					blob[1] += y;
 					blob[2] ++;
@@ -130,26 +155,36 @@ public class ButtonDetection {
 			}
 		}
 		
-		//5. compute blob & state
-		this.blobs = blobs.values();
-		for (Integer[] b : this.blobs) {
-			b[0] /= b[2];
-			b[1] /= b[2];
-		}
-		
-		//6. set button state
+		//5. compute blobs & button score/state
+		blobs = new ArrayList<>( blobsAcc.size() );
 		int middleX = 0;
 		for (PVector v : corners)
 			middleX += v.x;
 		middleX /= 4;
+		int rightScoreApp = 0, leftScoreApp = 0;
 		
-		for (Integer[] b : this.blobs) {
-			if (b[2] >= minVote) {
-				if (b[0] < middleX)
-					leftVisible = true;
-				else
-					rightVisible = true;
+		lock();
+		for (Integer[] b : blobsAcc.values()) {
+			int x = b[0] / b[2];
+			if (b[2] < overHeadVote) {
+				if (x > middleX) {
+					if (b[2] > rightScoreApp)
+						rightScoreApp = b[2];
+				} else if (b[2] > leftScoreApp) {
+					leftScoreApp = b[2];
+				}
 			}
+			if (b[2] > 2) //bruit <= 2
+				blobs.add( new Integer[] { x, b[1] / b[2], b[2] } );
 		}
+		leftScore = PApplet.constrain(1f * (leftScoreApp - minVote) / maxVote, 0, 1);
+		rightScore = PApplet.constrain(1f * (rightScoreApp - minVote) / maxVote, 0, 1);
+		leftVisible = leftScore > 0;
+		rightVisible = rightScore > 0;
+		unlock();
+		
+		imgAnal.imagesLock.lock();
+		imgAnal.threshold2Button = threshold2Button;
+		imgAnal.imagesLock.unlock();
 	}
 }

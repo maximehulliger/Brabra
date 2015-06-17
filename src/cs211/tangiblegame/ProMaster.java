@@ -14,10 +14,20 @@ public abstract class ProMaster {
 	public static final PVector left = new PVector(1, 0, 0);
 	public static final PVector up = new PVector(0, 1, 0);
 	public static final PVector front = new PVector(0, 0, -1);
-
+	
+	public static int color0, color255;
+	public static int colorButtonOk, colorButtonRejected, colorQuad;
+	
+	
 	public static void init(TangibleGame app) {
 		ProMaster.app = app;
 		random = new Random();
+		
+		color0 = app.color(0);
+		color255 = app.color(255);
+		colorButtonOk = app.color(0, 255, 0, 150);
+		colorButtonRejected = app.color(255, 0, 0, 150);
+		colorQuad = app.color(200, 100, 0, 120);
 	}
 	
 	//---- general mastery
