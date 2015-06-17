@@ -50,4 +50,8 @@ public abstract class Collision extends ProMaster {
 		collider.onCollision(obstacle, impact);
 		obstacle.onCollision(collider, impact);
 	}
+	
+	protected boolean areCollidingFast(Collider c1, Collider c2) {
+		return c1.doCollideFast(c2) && c2.doCollideFast(c1);
+	}
 }

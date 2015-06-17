@@ -13,6 +13,9 @@ public class CollisionPPolyedre extends Collision {
 	}
 
 	public void resolve() {
+		if (!areCollidingFast(collider, obstacle))
+			return;
+		
 		//vecteurs relatifs normalisé
 		PVector p1Top2 = PVector.sub( p2.location, p1.location );
 		p1Top2.normalize();

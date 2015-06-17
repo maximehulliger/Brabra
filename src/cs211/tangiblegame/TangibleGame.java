@@ -22,6 +22,7 @@ public class TangibleGame extends PApplet {
 	public TrivialGame intTrivialGame;
 	public Calibration intCalibration;
 	public Menu intMenu;
+	public boolean ready = false;
 	public boolean over = false;
 	
 	//----- setup et boucle d'update (draw)
@@ -30,11 +31,8 @@ public class TangibleGame extends PApplet {
 		ProMaster.init(this);
 		size(16*20*ratioSize, 9*20*ratioSize, P3D);
 		imgAnalyser = new ImageAnalyser(this);
-		//imgProcessing.start();
+		thread("loadInterfaces");
 		thread("imageProcessing");
-		intRealGame = new RealGame();
-		intTrivialGame = new TrivialGame();
-		intCalibration = new Calibration();
 		intMenu = new Menu();
 		
 		setInterface(intMenu);
@@ -43,6 +41,14 @@ public class TangibleGame extends PApplet {
 	
 	public void imageProcessing() {
 		imgAnalyser.run();
+	}
+	
+	public void loadInterfaces() {
+		intRealGame = new RealGame();
+		intTrivialGame = new TrivialGame();
+		intCalibration = new Calibration();
+		ready = true;
+		System.out.println("ready !");
 	}
 	
 	public void setInterface(Interface i) {
@@ -59,9 +65,9 @@ public class TangibleGame extends PApplet {
 	public void keyPressed() {
 		//intercepte escape
 		if (key == 27 && currentInterface != intMenu) {
+			
 			imgAnalyser.play(false);
 			imgAnalyser.forced = false;
-			imgAnalyser.detectButtons = false;
 			
 			ImageAnalyser.displayQuadRejectionCause = false; 
 			setInterface(intMenu);

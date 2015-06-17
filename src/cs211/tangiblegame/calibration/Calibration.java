@@ -31,11 +31,10 @@ public class Calibration extends Interface {
 		ia.restartMovie();
 		ia.inputLock.lock();
 		ImageAnalyser.displayQuadRejectionCause = true;
-		app.textFont(fontLabel) ;
-		app.textAlign(PApplet.BASELINE);
 		ia.play(true);
 		ia.forced = true;
-		ia.detectButtons = true;
+		app.textFont(fontLabel) ;
+		app.textAlign(PApplet.BASELINE);
 		for (int i=0; i<nbCara; i++) {
 			bar[i] = new HScrollbar(app, 0, app.height-caraBarsHeight+20*i, app.width, 20, app.imgAnalyser.parametres[i]);
 		}
@@ -146,8 +145,15 @@ public class Calibration extends Interface {
 
 			if (displayParameters) {
 				System.out.println("----------------");
-				for (int i=0; i<nbCara/2; i++)
-					System.out.printf(" %d: [%.2f, %.2f]\n", i, ia.parametres[2*i], ia.parametres[2*i+1]);
+				if (buttonCalibrationMode) {
+					for (int i=0; i<nbCaraThreshold/2; i++)
+						System.out.printf(" %d: [%.2f, %.2f]\n", i, ia.buttonDetection.paraBoutons[2*i], ia.buttonDetection.paraBoutons[2*i+1]);
+					for (int i=nbCaraThreshold/2; i<nbCara/2; i++)
+						System.out.printf(" %d: [%.2f, %.2f]\n", i, ia.parametres[2*i], ia.parametres[2*i+1]);
+				} else {
+					for (int i=0; i<nbCara/2; i++)
+						System.out.printf(" %d: [%.2f, %.2f]\n", i, ia.parametres[2*i], ia.parametres[2*i+1]);
+				}
 				System.out.println("=> "+ia.hough.lines.size()+" lignes");
 			}
 			ia.inputLock.unlock();

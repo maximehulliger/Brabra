@@ -1,7 +1,7 @@
 package cs211.tangiblegame.realgame;
 
 import cs211.tangiblegame.geo.Cube;
-import cs211.tangiblegame.realgame.Missile.Armement;
+import cs211.tangiblegame.realgame.Armement;
 import processing.core.PApplet;
 import processing.core.PShape;
 import processing.core.PVector;
@@ -9,8 +9,9 @@ import processing.core.PVector;
 //une classe pouvant intervenir dans une collision. ne réagit pas.
 public class Starship extends Cube
 {
-	public static final PVector size = new PVector(60, 30, 120);
-	public static final boolean displaySkybox = true;
+	public static final float sizeFactor = 15f;
+	private static final PVector size = PVector.mult( vec(4, 2, 8), sizeFactor); //for the collider
+	public static final boolean displaySkybox = false;
 	private static final boolean displayViseur = true;
 	public float forceRatio = 15; //puissance du vaisseau
 	public boolean hasCamera = true;
@@ -26,9 +27,8 @@ public class Starship extends Cube
 	public Starship(PVector location) {
 		super(location, zero, 200, size);
 		PVector champSize = vec(10_000, 10_000, 15_000);
-		this.champ = new MeteorSpawner(vec(0, 0, -champSize.z/6), champSize);
-		this.armement = new Armement(this);
-		this.champ.parent = this;
+		this.champ = new MeteorSpawner(this, vec(0, 0, -champSize.z/6), champSize);
+		this.armement = new Armement(this, 0, 1, 1);
 	}
 	
 	protected void setMass(float mass) {
@@ -55,6 +55,13 @@ public class Starship extends Cube
 		
 		champ.update();
 		armement.update();
+		
+		app.imgAnalyser.buttonDetection.lock();
+		if (app.imgAnalyser.buttonDetection.leftVisible) {
+			armement.fire(app.imgAnalyser.buttonDetection.leftScore);
+		}
+		app.imgAnalyser.buttonDetection.unlock();
+		
 	}
 
 	public void display() {
@@ -124,9 +131,9 @@ public class Starship extends Cube
 		if (app.key == 'a')			forceDepl.x = 1;
 		else if (app.key == 'd')	forceDepl.x = -1;
 		
-		if (app.key == 'e')	armement.tire();
-		if (app.key >= '1' && app.key <= '4')
-			armement.tire(app.key-'1');
+		if (app.key == 'e')	armement.fire(1);
+		if (app.key >= '1' && app.key <= '5')
+			armement.fireFromSlot(app.key-'1');
 	}
 	
 	public void keyReleased() {

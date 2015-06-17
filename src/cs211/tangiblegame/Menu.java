@@ -75,7 +75,7 @@ public class Menu extends Interface {
 		PImage toDraw;
 		for (int i=0; i<nbButton; i++, y+=buttonDiffY) {
 			int diffx = app.mouseX - buttonOffsetX, diffy = app.mouseY - y;
-			if (diffx > 0 && diffx < buttonSizeX && diffy > 0 && diffy < buttonSizeY) {
+			if (diffx > 0 && diffx < buttonSizeX && diffy > 0 && diffy < buttonSizeY && app.ready) { //dedans
 				app.fill(100, 0, 200);
 				toDraw = imgBoutonDown;
 			} else {
@@ -163,7 +163,7 @@ public class Menu extends Interface {
 		int y = buttonOffsetY;
 		for (int i=0; i<nbButton; i++, y+=buttonDiffY) {
 			int diffx = app.mouseX - buttonOffsetX, diffy = app.mouseY - y;
-			if (diffx > 0 && diffx < buttonSizeX && diffy > 0 && diffy < buttonSizeY) {
+			if (diffx > 0 && diffx < buttonSizeX && diffy > 0 && diffy < buttonSizeY && app.ready) {
 				switch (i) {
 				case 0:
 					app.setInterface(app.intRealGame);

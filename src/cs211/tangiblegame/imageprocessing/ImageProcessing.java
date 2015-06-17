@@ -18,7 +18,7 @@ public final class ImageProcessing extends ProMaster {
 		0.5f, 0.38f,	//min vote, neighbour
 		0.6f, 0.2f };	//nb line kept, sobel threshold
 	public static final float[] paraCameraBase = { 
-		0.25f, 0.47f, 	//hue
+		0.32f, 0.45f, 	//hue
 		0.0f, 1f, 		//bright
 		0.15f, 1f,		//satur
 		0f, 1f, 		//r
@@ -27,12 +27,12 @@ public final class ImageProcessing extends ProMaster {
 		0.5f, 0.38f,	//min vote, neighbour
 		0.6f, 0.13f };	//nb line kept, sobel threshold
 	public static final float[] paraBoutonsBase = { 
-		0.25f, 0.53f, 	//hue
+		0.93f, 0.08f, 	//hue
 		0.0f, 1f, 		//bright
-		0.15f, 1f,		//satur
+		0.51f, 1f,		//satur
 		0.0f, 1f, 		//r (3)
 		0f, 1f, 		//g
-		0f, 0.88f};		//b
+		0.0f, 0.88f};		//b
 
 	static public int rgbColor(int r, int g, int b, int a) {
 		if (r > 255) r = 255;

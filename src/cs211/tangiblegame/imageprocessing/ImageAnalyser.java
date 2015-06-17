@@ -16,7 +16,8 @@ import processing.video.*;
 
 public class ImageAnalyser {
 	public static final float maxAcceptedAngle = 65f/360*PApplet.TWO_PI; //65°
-	public static boolean displayQuadRejectionCause = true;
+	public static boolean displayQuadRejectionCause = false;
+	public final boolean detectButtons = true;
 	private int idxCamera = 3;
 	
 	public final ReentrantLock imagesLock;
@@ -31,7 +32,6 @@ public class ImageAnalyser {
 	public PGraphics quadDetection;
 	
 	public final ReentrantLock buttonStateLock;
-	public boolean detectButtons = true;
 	public boolean displayButtonsState = true;
 	public boolean leftButtonVisible = false;
 	public boolean rightButtonVisible = false;
@@ -121,7 +121,6 @@ public class ImageAnalyser {
 					hough = new HoughLine(sobel, app);
 					
 					hasFoundQuad = hough.quad != null;
-					hasFoundRotation = false;
 					
 					// if quad is found, analyse buttons & rotation (with image lock release)
 					ButtonDetectionJob butDetJob = null;
@@ -168,6 +167,11 @@ public class ImageAnalyser {
 							buttonStateLock.unlock();
 						}
 						imagesLock.lock();
+					} else {
+						rotationLock.lock();
+						hasFoundRotation = false;
+						rotationLock.unlock();
+						buttonDetection.resetOutput();
 					}
 
 					//-- print control img

@@ -13,7 +13,9 @@ public abstract class Collider extends Body {
 	}
 	
 	public boolean doCollideFast(Collider c) {
-	  return PVector.sub(this.location, c.location).magSq() < sq(this.radiusEnveloppe + c.radiusEnveloppe);
+		boolean parenty = (parent == c || c.parent == this || (parent == c.parent && parent != null));
+		boolean contactEnveloppe = PVector.sub(this.location, c.location).magSq() < sq(this.radiusEnveloppe + c.radiusEnveloppe);
+		return !parenty && contactEnveloppe;
 	}
 	
 	public abstract void display();

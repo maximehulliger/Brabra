@@ -4,6 +4,8 @@ import cs211.tangiblegame.geo.Line;
 import processing.core.PVector;
 
 public interface Obstacle {
+	public abstract void update();
+	
 	public abstract void display();
 	
 	public abstract Line.Projection projetteSur(Line ligne);

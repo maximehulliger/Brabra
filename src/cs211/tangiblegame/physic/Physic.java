@@ -27,7 +27,7 @@ public class Physic
 		}
 	}
 	
-	// just... do magic :D
+	/** just... do magic  :D */
 	public void doMagic() {  
 		//1. on update les acteurs et les effets
 		for (Collider c : colliders)

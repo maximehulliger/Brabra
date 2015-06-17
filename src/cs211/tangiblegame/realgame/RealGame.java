@@ -5,7 +5,7 @@ import processing.core.PVector;
 import processing.event.MouseEvent;
 import cs211.tangiblegame.Interface;
 import cs211.tangiblegame.physic.Physic;
-import cs211.tangiblegame.realgame.Missile.LanceMissile;
+import cs211.tangiblegame.realgame.Armement;
 
 public class RealGame extends Interface {
 	private static final boolean drawAxis = false;
@@ -14,8 +14,8 @@ public class RealGame extends Interface {
 	private Starship starship;
 	
 	public RealGame() {
-		LanceMissile.missileImg = app.loadImage("missile.png");
-		int[] pixels = LanceMissile.missileImg.pixels;
+		Armement.missileImg = app.loadImage("missile.jpg");
+		int[] pixels = Armement.missileImg.pixels;
 		for (int i=0; i<pixels.length; i++)
 			if (pixels[i] == app.color(0))
 				pixels[i] = app.color(0, 0);
@@ -24,8 +24,8 @@ public class RealGame extends Interface {
 		Starship.skybox = app.loadShape("skybox.obj");
 		Starship.skybox.scale(100);
 		Starship.starship = app.loadShape("starship.obj");
-		Starship.starship.scale(15);
-		Missile.missile = app.loadShape("rocket.obj");
+		Starship.starship.scale( Starship.sizeFactor );
+		Armement.missile = app.loadShape("rocket.obj");
 	}
 	
 	public void draw() {
@@ -35,12 +35,13 @@ public class RealGame extends Interface {
 		physic.displayAll();
 		if (drawAxis)
 			drawAxis();
-
+		
 		physic.doMagic();
 
 		app.camera();
 		app.hint(PApplet.DISABLE_DEPTH_TEST);
 		starship.armement.displayGui();
+		app.hint(PApplet.DISABLE_DEPTH_TEST);
 		app.imgAnalyser.displayCtrImg();
 		app.hint(PApplet.ENABLE_DEPTH_TEST);
 	}
@@ -74,6 +75,8 @@ public class RealGame extends Interface {
 	}
 
 	public void init() {
+		app.imgAnalyser.play(true);
+		
 		physic = new Physic();
 		starship = new Starship( vec(0, 100, 0) );
 		//Mover mover = new Mover( vec(0, 120, -5) );
@@ -82,7 +85,7 @@ public class RealGame extends Interface {
 		physic.colliders.add(starship);
 		//physic.colliders.add( sol );
 		
-		physic.colliders.add( new Missile.Objectif(vec(0,100,-500), 20));
+		physic.colliders.add( new Armement.Objectif(vec(0,100,-500), 20));
 		
 		//Cube cube1 = new Cube( base, ProMaster.zero.get(), 5, vec(300, 30,300) );
 		//Cube cube2 = new Cube( dessus , vec(0, 0, QUARTER_PI), 1, vec(30, 30, 30) );

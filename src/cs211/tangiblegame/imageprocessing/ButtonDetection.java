@@ -22,11 +22,11 @@ public class ButtonDetection extends ReentrantLock {
 	private PImage inputImg;
 	private PVector[] corners;
 	
-	private static final int minVote = 30, maxVote = 100, overHeadVote = 30*40;
+	private static final int minVote = 50, maxVote = 100, overHeadVote = 30*40;
 	public boolean leftVisible = false, rightVisible = false;
 	public float leftScore = 0, rightScore = 0; //[0, 1]
 	
-	private List<Integer[]> blobs;
+	private List<Integer[]> blobs = null;
 	
 	public ButtonDetection(ImageAnalyser imageAnalyser) {
 		this.imgAnal = imageAnalyser;
@@ -60,6 +60,16 @@ public class ButtonDetection extends ReentrantLock {
 	
 	public void resetParameters() {
 		this.paraBoutons = ProMaster.copy(ImageProcessing.paraBoutonsBase);
+	}
+	
+	public void resetOutput() {
+		lock();
+		leftVisible = false;
+		rightVisible = false;
+		leftScore = 0;
+		rightScore = 0;
+		blobs = null;
+		unlock();
 	}
 	
 	/** detect blobs instance within the four corners of the Lego board from a thresholded image of the buttons. */

@@ -13,6 +13,9 @@ public final class CollisionSphere extends Collision {
 	}
 
 	public void resolve() {
+		if (!areCollidingFast(collider, obstacle))
+			return;
+		
 		impact = obstacle.projette(sphere.location);
 		if (distSq(sphere.location, impact) >= sq(sphere.radius)) 
 			return;
