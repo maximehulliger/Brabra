@@ -2,6 +2,7 @@ package cs211.tangiblegame.trivial;
 
 import cs211.tangiblegame.Interface;
 import cs211.tangiblegame.TangibleGame;
+import cs211.tangiblegame.geo.Quaternion;
 import processing.core.PApplet;
 import processing.core.PVector;
 import processing.event.MouseEvent;
@@ -34,12 +35,12 @@ public class TrivialGame extends Interface {
 	}
 	
 	public void init() {
+		app.imgAnalyser.play(true);
 		cylinders = new Cylinders();
 		mode = Mode.Jeu;
 		etat = 0; //entre 0 (jeu) et 1 (controle)
 		tiltSpeed = 1;
 		platRot = zero.get();
-		app.imgAnalyser.play(true);
 	}
 	
 	public void draw() {
@@ -68,9 +69,12 @@ public class TrivialGame extends Interface {
 		app.hint(PApplet.ENABLE_DEPTH_TEST);
 	}
 	
+	float etatTrans = 0;
+	Quaternion rot = new Quaternion();
+	
 	void rotateScene() {
 		//roation du plateau
-		float ratioEtat = 1-etat; //pour forcer une rotation nulle en mode contrôle.
+		/*float ratioEtat = 1-etat; //pour forcer une rotation nulle en mode contrôle.
 		PVector gameRotation = app.imgAnalyser.rotation();
 		
 		platRot.x = PApplet.constrain((platRot.x + ratioUpdate * (gameRotation.x - platRot.x)), -TangibleGame.inclinaisonMax, TangibleGame.inclinaisonMax);
@@ -78,7 +82,21 @@ public class TrivialGame extends Interface {
 		platRot.z = PApplet.constrain((platRot.z + ratioUpdate * (gameRotation.z - platRot.z)), -TangibleGame.inclinaisonMax, TangibleGame.inclinaisonMax);
 		app.rotateX(platRot.x * ratioEtat);
 		app.rotateY(platRot.y * ratioEtat);
-		app.rotateZ(platRot.z * ratioEtat);
+		app.rotateZ(platRot.z * ratioEtat);*/
+		
+		PVector v = vec(0, 1, 1);
+		v.normalize();
+		PVector v2 = vec(1, 0, 0);
+		v2.normalize();
+		Quaternion q1 = new Quaternion(PApplet.PI/4, v);
+		Quaternion q2 = new Quaternion();//new Quaternion(PApplet.PI/3, v2);
+
+		//rot.rotate(q1);
+		etatTrans += 2/app.frameRate;
+		if (etatTrans > 1)
+			etatTrans -= 1;
+		rotate( Quaternion.slerp(q1, q2, etatTrans) );
+		
 	}
 
 	void placeCamEtLum()

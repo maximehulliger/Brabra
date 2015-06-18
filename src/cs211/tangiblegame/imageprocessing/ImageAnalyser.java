@@ -31,6 +31,7 @@ public class ImageAnalyser {
 	public boolean hasFoundQuad = false;
 	public PGraphics quadDetection;
 	
+	//--- button detection
 	public final ReentrantLock buttonStateLock;
 	public boolean displayButtonsState = true;
 	public boolean leftButtonVisible = false;
@@ -49,8 +50,7 @@ public class ImageAnalyser {
 	public final ReentrantLock inputLock;
 	public boolean forced = false;	//force l'analyse de l'image même si l'input n'a pas changé.
 	public boolean takeMovie = false; //prend la camera si false.
-	public boolean pausedCam = false, pausedMov = false;
-	
+	public boolean pausedCam = true, pausedMov = true;
 	public float[] parametres, paraMovie, paraCamera;
 	
 	//rotation
@@ -60,12 +60,11 @@ public class ImageAnalyser {
 	private PVector lastRotation = new PVector(0,0,0);
 	private PVector gameRotation = new PVector(0,0,0);
 	
-	public PFont fontPaused = null;
+	public PFont standardFont;
 	public float strockWeight;
 	/*pkg*/ final TangibleGame app;
 	/*pkg*/ int inWidth = 0, inHeight = 0;
-	private boolean mustDrawPauseFrame = false;
-	private boolean readyForInput = false;
+	private boolean newInput = true;
 	private Movie mov = null;
 	private Capture cam = null;
 	
@@ -78,21 +77,32 @@ public class ImageAnalyser {
 		rotationLock = new ReentrantLock();
 		inputLock = new ReentrantLock();
 		buttonStateLock = new ReentrantLock();
+		standardFont = app.createFont("Arial", app.height/40f);
 		
 		paraMovie = ProMaster.copy(ImageProcessing.paraMovieBase);
 		paraCamera = ProMaster.copy(ImageProcessing.paraCameraBase);
-		if (takeMovie)
-			takeVideoInput();
-		else
-			takeCameraInput(idxCamera);
-		play(false); //pause
+		
 	}
 	
 	public void run() {
 		while (!app.over) {
 			try {
 				boolean newImage = false;
+				boolean once = false;
 				inputLock.lock();
+				
+				//video input initialisation (at first run)
+				if (newInput) {
+					if (takeMovie && mov == null) {
+						mov = new Movie(app, "testvideo.mp4");
+						mov.loop();
+						parametres = paraMovie;
+					} else if (!takeMovie && cam == null) {
+						takeCameraInput(idxCamera);
+						parametres = paraCamera;
+					}
+				}
+				
 				imagesLock.lock();
 				if (takeMovie && !pausedMov && mov.available()) {
 					newImage = true;
@@ -104,10 +114,13 @@ public class ImageAnalyser {
 					cam.read();
 					inputImg = cam.get();
 				}
-
-				if (inputImg != null && (newImage || forced || mustDrawPauseFrame)) {
-					mustDrawPauseFrame = false;
+				
+				if ( newImage && newInput ) {
 					updateForInput();
+					once = true;
+				}
+
+				if ( newImage || (forced && inputImg != null) || once ) {
 					
 					// analyse input to find a green quad
 					PImage threshold1g = ImageProcessing.colorThreshold(inputImg, parametres[0], parametres[1], parametres[2], parametres[3], parametres[4], parametres[5]);
@@ -186,17 +199,6 @@ public class ImageAnalyser {
 						buttonDetection.drawButtons(quadDetection);
 					} else
 						imagesLock.unlock();
-					// paused
-					inputLock.lock();
-					if ((pausedMov && takeMovie) || (pausedCam && !takeMovie)) {
-						quadDetection.textFont( fontPaused );
-						inputLock.unlock();
-						quadDetection.textAlign(PApplet.RIGHT, PApplet.BOTTOM);
-						quadDetection.fill(200, 100, 0, 255);
-						quadDetection.text("paused", quadDetection.width, quadDetection.height);
-					} else {
-						inputLock.unlock();
-					}
 					quadDetection.endDraw();
 					quadDetectionLock.unlock();
 				} else {
@@ -213,14 +215,16 @@ public class ImageAnalyser {
 	// ----- interaction response
 
 	public void updateForInput() {
-		if (!readyForInput && (inWidth != inputImg.width || inHeight != inputImg.height)) {
-			inWidth = inputImg.width;
-			inHeight = inputImg.height;
-			quadDetection = app.createGraphics(inWidth, inHeight);
-			fontPaused = app.createFont("Arial", inHeight/16);
-			strockWeight = PApplet.max(inWidth * 3f / app.width, 1f);
-			quadDetection.strokeWeight(strockWeight);
-			readyForInput = true;
+		if (newInput) {
+			//image size dependant parameters update
+			if (inWidth != inputImg.width || inHeight != inputImg.height) {
+				inWidth = inputImg.width;
+				inHeight = inputImg.height;
+				quadDetection = app.createGraphics(inWidth, inHeight);
+				strockWeight = PApplet.max(inWidth * 3f / app.width, 1f);
+				quadDetection.strokeWeight(strockWeight);
+			}
+			newInput = false;
 		}
 	}
 	
@@ -246,27 +250,17 @@ public class ImageAnalyser {
 	public void play(boolean play) {
 		inputLock.lock();
 		if (takeMovie) {
-			if (pausedMov == play) {
-				pausedMov = !play;
-				if (play) {
-					readyForInput = false;
-					mov.play();
-				} else {
-					mov.pause();
-					mustDrawPauseFrame = true;
-				}
+			if (pausedMov == play && mov != null) {
+				if (play) 	mov.play();
+				else 		mov.pause();
 			}
+			pausedMov = !play;
 		} else {
-			if (pausedCam == play) {
-				pausedCam = !play;
-				if (play) {
-					readyForInput = false;
-					cam.start();
-				} else {
-					cam.stop();
-					mustDrawPauseFrame = true;
-				}
+			if (pausedCam == play && cam != null) {
+				if (play) 	cam.start();
+				else		cam.stop();
 			}
+			pausedCam = !play;
 		}
 		inputLock.unlock();
 	}
@@ -276,19 +270,6 @@ public class ImageAnalyser {
 			play(pausedMov);
 		else
 			play(pausedCam);
-	}
-
-	public void takeVideoInput() {
-		inputLock.lock();
-		if (!takeMovie || mov == null) {
-			parametres = paraMovie;
-			if (mov == null) {
-				mov = new Movie(app, "testvideo.mp4");
-				mov.loop();
-			}
-		}
-		this.takeMovie = true;
-		inputLock.unlock();
 	}
 
 	public void takeCameraInput(int idxCam) {
@@ -313,23 +294,24 @@ public class ImageAnalyser {
 			cam.start();
 		}
 		this.idxCamera = idxCam;
-		this.takeMovie = false;
+		takeMovie = false;
 		inputLock.unlock();
 	}
 
 	public void changeInput() {
 		inputLock.lock();
-		boolean tm = takeMovie;
-		if (!tm)
-			takeVideoInput();
+		
+		takeMovie = !takeMovie;
+		if (takeMovie)
+			parametres = paraMovie;
 		else
-			takeCameraInput(idxCamera);
-		play(true);
-		readyForInput = false;
+			parametres = paraCamera;
+		
+		newInput = true;
+		
 		inputLock.unlock();
 	}
 
-	
 	public PVector rotation() {
 		try {
 			rotationLock.lock();
@@ -347,13 +329,23 @@ public class ImageAnalyser {
 			else if (hasFoundQuad) { //rotation is to big
 				app.tint(255, 0, 0, 230);
 				app.fill(255, 0, 0, 255);
-				app.rect(20, 20, app.width/6, app.height/6);
+				app.rect(20, 20, app.width/6f, app.height/6f);
 			}
 			app.fill(255);
-			app.image(quadDetection, 20, 20, app.width/6, app.height/6);
+			app.image(quadDetection, 20, 20, app.width/6f, app.height/6f);
+			quadDetectionLock.unlock();
 			app.tint(255, 255);
-		}
-		quadDetectionLock.unlock();
+			
+			if ((pausedMov && takeMovie) || (pausedCam && !takeMovie)) {
+				app.textFont( standardFont );
+				app.textAlign(PApplet.RIGHT, PApplet.BOTTOM);
+				app.fill(200, 100, 0, 255);
+				app.text("paused", 20 + app.width/6f, 20 + app.height/6f);
+			} else {
+			}
+			
+		} else
+			quadDetectionLock.unlock();
 	}
 }
 

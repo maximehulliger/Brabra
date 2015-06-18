@@ -16,7 +16,7 @@ public class Plane extends PseudoPolyedre {
 	private Line v2; //sur z
 	
 	// crée un plan de taille size2d (x,z)
-	public Plane(PVector loc, PVector rot, float mass, PVector size2d) {
+	public Plane(PVector loc, Quaternion rot, float mass, PVector size2d) {
 		super( loc, rot, size2d.mag()/2 );
 		this.size = size2d;
 		this.natCo = getNatCo(size2d);
@@ -26,7 +26,7 @@ public class Plane extends PseudoPolyedre {
 	}
 	
 	// crée un plan infini
-	public Plane(PVector loc, PVector rot) {
+	public Plane(PVector loc, Quaternion rot) {
 		super( loc, rot, 0 );
 		this.size = null;
 		this.natCo = getNatCo(new PVector(1, 0, 1));

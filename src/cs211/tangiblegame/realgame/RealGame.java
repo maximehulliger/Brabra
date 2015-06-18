@@ -41,7 +41,6 @@ public class RealGame extends Interface {
 		app.camera();
 		app.hint(PApplet.DISABLE_DEPTH_TEST);
 		starship.armement.displayGui();
-		app.hint(PApplet.DISABLE_DEPTH_TEST);
 		app.imgAnalyser.displayCtrImg();
 		app.hint(PApplet.ENABLE_DEPTH_TEST);
 	}
@@ -75,6 +74,7 @@ public class RealGame extends Interface {
 	}
 
 	public void init() {
+		
 		app.imgAnalyser.play(true);
 		
 		physic = new Physic();
@@ -85,7 +85,7 @@ public class RealGame extends Interface {
 		physic.colliders.add(starship);
 		//physic.colliders.add( sol );
 		
-		physic.colliders.add( new Armement.Objectif(vec(0,100,-500), 20));
+		physic.colliders.add( new Armement.Objectif(vec(0,100,-500), 2000));
 		
 		//Cube cube1 = new Cube( base, ProMaster.zero.get(), 5, vec(300, 30,300) );
 		//Cube cube2 = new Cube( dessus , vec(0, 0, QUARTER_PI), 1, vec(30, 30, 30) );

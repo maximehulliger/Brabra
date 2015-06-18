@@ -1,6 +1,7 @@
 package cs211.tangiblegame.realgame;
 
 import cs211.tangiblegame.geo.Cube;
+import cs211.tangiblegame.geo.Quaternion;
 import cs211.tangiblegame.realgame.Armement;
 import processing.core.PApplet;
 import processing.core.PShape;
@@ -16,8 +17,8 @@ public class Starship extends Cube
 	public float forceRatio = 15; //puissance du vaisseau
 	public boolean hasCamera = true;
 	
+	private float forceDepl = 0; // [0,1] si de la plaque, -1.1 ou 1.1 si du clavier. fait avancer ou reculer le vaisseau
 	private PVector forceRot = zero.get();
-	private PVector forceDepl = zero.get();
 	private boolean freine = false;
 	MeteorSpawner champ;
 	Armement armement;
@@ -25,7 +26,7 @@ public class Starship extends Cube
 	public static PShape starship;
 	
 	public Starship(PVector location) {
-		super(location, zero, 200, size);
+		super(location, new Quaternion(), 200, size);
 		PVector champSize = vec(10_000, 10_000, 15_000);
 		this.champ = new MeteorSpawner(this, vec(0, 0, -champSize.z/6), champSize);
 		this.armement = new Armement(this, 0, 1, 1);
@@ -43,15 +44,6 @@ public class Starship extends Cube
 	
 	public void update() {
 		super.update();
-		
-		if (transformChanged) {
-			PVector pRot = new PVector(rotation.x, 0, rotation.z);
-			if (pRot.mag() > PApplet.HALF_PI)
-				pRot.setMag( PApplet.HALF_PI );
-			rotation.x = pRot.x;
-			rotation.z = pRot.z;
-
-		}
 		
 		champ.update();
 		armement.update();
@@ -99,14 +91,17 @@ public class Starship extends Cube
 	
 	protected void addForces() {
 		if (!forceRot.equals(zero)) {
-			addForce(absolute(vec(0, 30, 0)), absolute(forceRot, zero, rotation));
+			PVector f = PVector.mult( forceRot, forceRatio/50 );
+			f.set(-f.y , f.x);
+			
+			
+			addForce(absolute(vec(0, 0, -150)), absolute(f, zero, rotation));
 			//angularVelocity.add(controlForce);
-			forceRot = zero.get();
+			if ( PApplet.abs(forceRot.x) != 1.1f ) forceRot.x = 0;
+			if ( PApplet.abs(forceRot.y) != 1.1f ) forceRot.y = 0;
 		}
-		if (!forceDepl.equals(zero)) {
-			avance(forceDepl.z*forceRatio*4);
-			rotation.y -= forceDepl.x/50;
-			//addForce(absolute(vec(0, 0, -50)), absolute( PVector.mult(forceDepl, forceRatio), zero, rotation));
+		if (forceDepl != 0) {
+			avance(forceDepl*forceRatio);
 		}
 		if (freine) {
 			freine(0.15f);
@@ -118,18 +113,19 @@ public class Starship extends Cube
 	public void mouseDragged() {
 		int diffX = app.mouseX-app.pmouseX;
 		int diffY = app.mouseY-app.pmouseY;
-		forceRot.add( new PVector(-diffX*forceRatio/10, 0, diffY*forceRatio/10) );
+		forceRot.add( new PVector(diffY*forceRatio/50, diffX*forceRatio/50) );
 		//float ratio = forceRatio / 10;
 		//controlForce.add( new PVector(diffY*ratio, 0, diffX*ratio) );
 	}
 	
 	public void keyPressed() {
-		if (app.key == ' ')			freine = true;
+		if (app.key == ' ')			forceDepl = 1.1f;
+		else if  (app.key == 'b')	forceDepl = -1.1f;
 			
-		if (app.key == 'w') 		forceDepl.z = 1;
-		else if (app.key == 's') 	forceDepl.z = -1;
-		if (app.key == 'a')			forceDepl.x = 1;
-		else if (app.key == 'd')	forceDepl.x = -1;
+		if (app.key == 'w') 		forceRot.x = -1.1f;
+		else if (app.key == 's') 	forceRot.x = 1.1f;
+		if (app.key == 'a')			forceRot.y = -1.1f;
+		else if (app.key == 'd')	forceRot.y = 1.1f;
 		
 		if (app.key == 'e')	armement.fire(1);
 		if (app.key >= '1' && app.key <= '5')
@@ -137,11 +133,12 @@ public class Starship extends Cube
 	}
 	
 	public void keyReleased() {
-		if (app.key == ' ')			freine = false;
+		if (app.key == ' ' && forceDepl > 0)		forceDepl = 0;
+		else if  (app.key == 'b' && forceDepl < 0)	forceDepl = 0;
 		
-		if (app.key == 'w' && forceDepl.z == 1) 		forceDepl.z = 0;
-		else if (app.key == 's' && forceDepl.z == -1) 	forceDepl.z = 0;
-		if (app.key == 'a' && forceDepl.x == 1) 		forceDepl.x = 0;
-		else if (app.key == 'd' && forceDepl.x == -1) 	forceDepl.x = 0;
+		if (app.key == 'w' && forceRot.x < 0) 		forceRot.x = 0;
+		else if (app.key == 's' && forceRot.x > 0) 	forceRot.x = 0;
+		if (app.key == 'a' && forceRot.y < 0) 		forceRot.y = 0;
+		else if (app.key == 'd' && forceRot.y > 0) 	forceRot.y = 0;
 	}
 }

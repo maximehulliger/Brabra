@@ -1,13 +1,14 @@
 package cs211.tangiblegame.physic;
 
 import cs211.tangiblegame.geo.Line;
+import cs211.tangiblegame.geo.Quaternion;
 import processing.core.*;
 
 /** une classe pouvant entraîner et réagir à une collision.*/
 public abstract class Collider extends Body {
 	public final float radiusEnveloppe;
 	
-	public Collider(PVector location, PVector rotation, float radiusEnveloppe) {
+	public Collider(PVector location, Quaternion rotation, float radiusEnveloppe) {
 	  super(location, rotation);
 	  this.radiusEnveloppe = radiusEnveloppe;
 	}

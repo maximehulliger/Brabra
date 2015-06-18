@@ -14,7 +14,7 @@ public class Cube extends PseudoPolyedre {
 	//private PVector[] axes; //abs (3)
 
 	
-	public Cube(PVector location, PVector rotation, float mass, PVector size) {
+	public Cube(PVector location, Quaternion rotation, float mass, PVector size) {
 	    super(location, rotation, size.mag()/2);
 	    this.size = size;
 	    this.dim = PVector.mult( size, 0.5f).array(); //à partir de l'origine
@@ -172,7 +172,7 @@ public class Cube extends PseudoPolyedre {
 	    PVector[] facesRot = getFacesRot();
 	    PVector[] facesSize = getFacesSize(size);
 	    for (int i=0; i<6; i++)
-	      faces[i] = new Plane(facesLoc[i], facesRot[i], -1, facesSize[i]);
+	      faces[i] = new Plane(facesLoc[i], new Quaternion(facesRot[i]), -1, facesSize[i]);
 	    return faces;
 	}
 

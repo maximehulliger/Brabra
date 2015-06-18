@@ -28,13 +28,11 @@ public class Calibration extends Interface {
 	}
 
 	public void init() {
-		ia.restartMovie();
+		app.imgAnalyser.play(true);
 		ia.inputLock.lock();
+		ia.restartMovie();
 		ImageAnalyser.displayQuadRejectionCause = true;
-		ia.play(true);
 		ia.forced = true;
-		app.textFont(fontLabel) ;
-		app.textAlign(PApplet.BASELINE);
 		for (int i=0; i<nbCara; i++) {
 			bar[i] = new HScrollbar(app, 0, app.height-caraBarsHeight+20*i, app.width, 20, app.imgAnalyser.parametres[i]);
 		}
@@ -45,6 +43,7 @@ public class Calibration extends Interface {
 	public void draw() {
 		app.background(0);
 		app.fill(255, 255);
+		app.textFont(fontLabel) ;
 		ia.imagesLock.lock();
 		if (ia.inputImg != null) {
 			int displayWid = app.width/3 + 1;
@@ -77,10 +76,10 @@ public class Calibration extends Interface {
 
 		// update GUI
 		app.fill(0);            
+		app.textAlign(PApplet.BASELINE);
 		for (int i=0; i<nbCara; i++) {
 			bar[i].update();
 			bar[i].display();
-			app.textAlign(PApplet.BASELINE);
 			app.text(info[i], 30,app.height-caraBarsHeight+17+20*i);
 		}
 	}

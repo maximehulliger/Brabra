@@ -2,6 +2,7 @@ package cs211.tangiblegame.physic;
 
 import cs211.tangiblegame.geo.Line;
 import cs211.tangiblegame.geo.Plane;
+import cs211.tangiblegame.geo.Quaternion;
 import processing.core.PVector;
 
 public abstract class PseudoPolyedre extends Collider {
@@ -9,7 +10,7 @@ public abstract class PseudoPolyedre extends Collider {
 	protected PVector[] sommets = null;
 	protected Line[] arretes = null;
 	
-	public PseudoPolyedre(PVector loc, PVector rot, float radiusEnveloppe) {
+	public PseudoPolyedre(PVector loc, Quaternion rot, float radiusEnveloppe) {
 		super(loc, rot, radiusEnveloppe);
 	}
 	

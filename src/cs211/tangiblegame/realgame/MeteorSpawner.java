@@ -1,6 +1,7 @@
 package cs211.tangiblegame.realgame;
 
 import cs211.tangiblegame.geo.Cube;
+import cs211.tangiblegame.geo.Quaternion;
 import cs211.tangiblegame.geo.Sphere;
 import cs211.tangiblegame.physic.Body;
 import processing.core.PShape;
@@ -19,7 +20,7 @@ public final class MeteorSpawner extends Cube {
 	private int nextPopTime;
 	
 	public MeteorSpawner(Body parent, PVector location, PVector size) {
-		super(location, zero, -1, size);
+		super(location, new Quaternion(), -1, size);
 		this.parent = parent;
 		setNext();
 	}
@@ -60,8 +61,10 @@ public final class MeteorSpawner extends Cube {
 			velocity.set(vel.array());
 			velocity.setMag(speed);
 			
-			rotationVel.set(random.nextFloat(), random.nextFloat(), random.nextFloat());
-			rotationVel.mult( speed/30f*random.nextFloat() );
+			PVector rotAxis = new PVector(random.nextFloat(), random.nextFloat(), random.nextFloat());
+			rotAxis.normalize();
+			float angle = speed/30f*random.nextFloat();
+			rotationVel = new Quaternion(angle, rotAxis);
 		}
 		
 		public void update() {

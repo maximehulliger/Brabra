@@ -8,7 +8,7 @@ public class Sphere extends Collider {
 	public float radius;
 	
 	public Sphere(PVector location, float mass, float radius) {
-	  super(location, zero, radius);
+	  super(location, new Quaternion(), radius);
 	  this.radius = radius;
 	  setMass(mass);
 	}

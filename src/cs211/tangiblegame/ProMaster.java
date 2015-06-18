@@ -2,6 +2,7 @@ package cs211.tangiblegame;
 
 import java.util.Random;
 
+import cs211.tangiblegame.geo.Quaternion;
 import processing.core.PApplet;
 import processing.core.PVector;
 
@@ -94,7 +95,7 @@ public abstract class ProMaster {
 	  	return ret;
 	}
 
-	public static PVector[] absolute(PVector[] v, PVector trans, PVector rotation, PVector baseRot) {
+	public static PVector[] absolute(PVector[] v, PVector trans, Quaternion rotation) {
 		PVector[] ret = new PVector[v.length];
 	  	for (int i=0; i<v.length; i++)
 	  		ret[i] = absolute(v[i], trans, rotation);
@@ -150,7 +151,7 @@ public abstract class ProMaster {
 	
 	//------ Transformations (location, rotation)
 	  
-	  public static PVector absolute(PVector rel, PVector trans, PVector rotation) {
+	  public static PVector absolute(PVector rel, PVector trans, Quaternion rotation) {
 			app.pushMatrix();
 			translate(trans);
 				app.pushMatrix();
@@ -161,15 +162,21 @@ public abstract class ProMaster {
 			return ret;
 	  }
 	  
-	  public static PVector local(PVector abs, PVector trans, PVector rotation) {
-		  return absolute( PVector.sub(abs, trans), zero, PVector.mult(rotation, -1));
+	  public static PVector local(PVector abs, PVector trans, Quaternion rotation) {
+		  return absolute( PVector.sub(abs, trans), zero, rotation.withOppositeAngle());
 	  }
 
 	  protected static void translate(PVector t) {
 		  app.translate(t.x, t.y, t.z);
 	  }
+	  
+	  protected static void rotate(Quaternion rotation) {
+		  rotate(rotation.rotAxis());
+	  }
 
 	  protected static void rotate(PVector rotation) {
+		  if (rotation == null)
+			  return;
 		  /*app.rotateY(rotation.y);
 		  app.rotateX(rotation.x);
 		  app.rotateZ(rotation.z);*/

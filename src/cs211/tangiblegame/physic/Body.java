@@ -1,6 +1,7 @@
 package cs211.tangiblegame.physic;
 
 import cs211.tangiblegame.ProMaster;
+import cs211.tangiblegame.geo.Quaternion;
 import processing.core.*;
 
 public abstract class Body extends ProMaster {
@@ -14,24 +15,21 @@ public abstract class Body extends ProMaster {
 	protected boolean affectedByCollision = true;
 
 	private PVector lastLocation = zero.get();
-	protected PVector lastRotation = zero.get();
-	protected PVector lastOrientation = zero.get();
+	protected Quaternion lastRotation = new Quaternion();
 	private PVector forces;
 	private PVector torques;
 	
 	public final PVector velocity = zero.get();
 	public final PVector location;
-	public PVector rotationVel = zero.get();
-	public PVector rotation = zero.get();
+	public Quaternion rotationVel = new Quaternion();
+	public Quaternion rotation = new Quaternion();
 	
 	public Body parent = null;			
 	public boolean transformChanged = true;	//indique si la transformation du body a été modifiée cette frame.
 
-	public Body(PVector location, PVector rotation) {
+	public Body(PVector location, Quaternion rotation) {
 		this.location = location.get();
 		this.rotation = rotation.get();
-		//this.rotationAxis = rotation.get();
-		//angle = rotation.mag();
 	}
 	
 	// set la masse du body. si -1, l'objet aura une mass et un moment d'inertie infini.
@@ -64,13 +62,11 @@ public abstract class Body extends ProMaster {
 			location.add(velocity);
 		}
 		
-		//2. rotation, vitesse angulaire, on prend rotation axis comme L
+		//2. rotation, vitesse angulaire, on prend rotation axis comme L/I
 		if (!torques.equals(zero)) {
-			rotationVel.add( multMatrix( inverseInertiaMom, torques ) );
+			rotationVel.addAngularMomentum( multMatrix( inverseInertiaMom, torques ) );
 		}
-		if (!rotationVel.equals(zero)) {
-			rotation.add( rotationVel );
-		}
+		rotation.rotate( rotationVel );
 			
 		//check changes
 		transformChanged = false;
@@ -111,7 +107,7 @@ public abstract class Body extends ProMaster {
 		PVector relPoint = local(absPos);
 		PVector relImpulse = PVector.sub(local( PVector.add(impulse, absPos)), relPoint);
 		PVector forRot = relPoint.cross(relImpulse);
-		rotationVel.add( multMatrix(inverseInertiaMom, forRot) );
+		rotationVel.addAngularMomentum( multMatrix(inverseInertiaMom, forRot) );
 	}
 	
 	// à surcharger pour réagir à une collision
@@ -154,7 +150,7 @@ public abstract class Body extends ProMaster {
 	}
 	
 	protected void avance(float force) {
-		addForce( PVector.mult(absFront(), force) );
+		addForce( absolute( PVector.mult(front, 30) ) , absFront(30 + force) );
 	}
 	
 	protected void freine(float perte) {
@@ -172,9 +168,10 @@ public abstract class Body extends ProMaster {
 	
 	// applique une force qui s'oppose à la vitesse angulaire.
 	protected void freineRot(float perte) {
-		if (isZeroEps(rotationVel, true))
+		/*if (rotationVel.isZeroEps(true))
 			return;
-		rotationVel.mult(1-perte);
+		else
+			*/rotationVel = Quaternion.slerp(rotationVel, Quaternion.identity, perte);
 	}
 	
 	
@@ -202,8 +199,9 @@ public abstract class Body extends ProMaster {
 			return local(abs, location, rotation);
 	}
 	
-	public PVector absFront() {
-		return absolute(front, zero, rotation);
+	/** return the pos in front of the body at dist from location */
+	public PVector absFront(float dist) {
+		return absolute(PVector.mult(front, dist), zero, rotation);
 	}
 	
 	/*protected static PVector orientation(PVector front) {
@@ -211,9 +209,9 @@ public abstract class Body extends ProMaster {
 	}*/
 	
 	protected PVector velocityAt(PVector loc) {
-		PVector relVel = PVector.add(
-				rotationVel.cross(PVector.sub(loc, location)), 
-				velocity);
+		PVector relVel = velocity.get();
+		if (!rotationVel.isZeroEps(false))
+			relVel.add( rotationVel.rotAxis().cross(PVector.sub(loc, location)) );
 		if (parent != null)
 			return PVector.add( parent.velocityAt(loc), relVel);
 		else

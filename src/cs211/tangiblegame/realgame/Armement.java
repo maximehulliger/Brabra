@@ -5,6 +5,7 @@ import java.util.List;
 
 import cs211.tangiblegame.ProMaster;
 import cs211.tangiblegame.geo.Cube;
+import cs211.tangiblegame.geo.Quaternion;
 import cs211.tangiblegame.geo.Sphere;
 import cs211.tangiblegame.physic.Collider;
 import processing.core.PApplet;
@@ -54,8 +55,8 @@ public class Armement extends ProMaster {
 		if (ratioIn[2] > 0) {
 			float ratioUpgrade2 = PApplet.map(ratioIn[2], 0, 1, ratioUpgradeMin, ratioUpgradeMax) * ratioIn[2];
 			
-			LanceMissile leftBigMissLaunch = new LanceMissile(vec(launcher.radiusEnveloppe*0.15f, 0, -20), 2, ratioUpgrade2);
-			LanceMissile rightBigMissLaunch = new LanceMissile(vec(launcher.radiusEnveloppe*-0.15f, 0, -20), 2, ratioUpgrade2);
+			LanceMissile leftBigMissLaunch = new LanceMissile(vec(launcher.radiusEnveloppe*0.25f, 0, -20), 2, ratioUpgrade2);
+			LanceMissile rightBigMissLaunch = new LanceMissile(vec(launcher.radiusEnveloppe*-0.25f, 0, -20), 2, ratioUpgrade2);
 			
 			lmissiles.add( 0, leftBigMissLaunch);
 			lmissiles.add( rightBigMissLaunch);
@@ -168,8 +169,8 @@ public class Armement extends ProMaster {
 		
 		public class Missile extends Cube {
 			
-			public Missile(PVector location, PVector orientation, int puissance) {
-				super(location, orientation, puissance, 
+			public Missile(PVector location, Quaternion rotation, int puissance) {
+				super(location, rotation, puissance, 
 						vec( tiersRatioSize[tier]*2*ratioSizeMissile, tiersRatioSize[tier]*2*ratioSizeMissile, tiersRatioSize[tier]*7*ratioSizeMissile) );
 				assert(tier > 0);
 			}
