@@ -1,5 +1,6 @@
 package cs211.tangiblegame.realgame;
 
+import cs211.tangiblegame.TangibleGame;
 import cs211.tangiblegame.geo.Cube;
 import cs211.tangiblegame.geo.Quaternion;
 import cs211.tangiblegame.realgame.Armement;
@@ -19,7 +20,6 @@ public class Starship extends Cube
 	
 	private float forceDepl = 0; // [0,1] si de la plaque, -1.1 ou 1.1 si du clavier. fait avancer ou reculer le vaisseau
 	private PVector forceRot = zero.get();
-	private boolean freine = false;
 	MeteorSpawner champ;
 	Armement armement;
 	public static PShape skybox;
@@ -45,7 +45,7 @@ public class Starship extends Cube
 	public void update() {
 		super.update();
 		
-		champ.update();
+		//champ.update(); TODO
 		armement.update();
 		
 		app.imgAnalyser.buttonDetection.lock();
@@ -61,10 +61,11 @@ public class Starship extends Cube
 		
 		//1. la camera
 		if (hasCamera) {
-			PVector relCamPos = new PVector(0, 75, 130);
+			PVector relCamPos = PVector.mult(new PVector(0, 6, 9), sizeFactor);
 			PVector camPos = absolute(relCamPos);
 			PVector or = PVector.mult(faces[3].normale.norm, 1);
-			app.camera(camPos.x, camPos.y, camPos.z, location.x, location.y, location.z, or.x, or.y, or.z);
+			PVector focus = PVector.add(location, absUp(4 * sizeFactor));
+			app.camera(camPos.x, camPos.y, camPos.z, focus.x, focus.y, focus.z, or.x, or.y, or.z);
 		}
 		
 		//2. le vaisseau (corp, tête, viseur)
@@ -90,30 +91,46 @@ public class Starship extends Cube
 	}
 	
 	protected void addForces() {
-		if (!forceRot.equals(zero)) {
-			PVector f = PVector.mult( forceRot, forceRatio/50 );
-			f.set(-f.y , f.x);
+		
+		//-- rotation - selon angle de la plaque
+		PVector plateRot = app.imgAnalyser.rotation();
+		/*plateRot = new PVector( //TODO
+				PApplet.pow(plateRot.x/TangibleGame.inclinaisonMax, 0.875f), //-> x ^ 1.75
+				PApplet.pow(plateRot.y/TangibleGame.inclinaisonMax, 0.875f),
+				PApplet.pow(plateRot.z/TangibleGame.inclinaisonMax, 0.875f) );*/
+		
+		forceRot.add( PVector.mult(plateRot, 2) );
+		PVector f = PVector.mult( forceRot, forceRatio );
+		addForce(absolute(vec(0, 0, -150)), absolute( new PVector(-f.y , f.x), zero, rotation));
+		addForce(absolute(vec(0, 50, 0)), absolute( new PVector(-f.z*3 , 0), zero, rotation));
+		if ( PApplet.abs(forceRot.x) != 1.1f ) forceRot.x = 0;
+		if ( PApplet.abs(forceRot.y) != 1.1f ) forceRot.y = 0;
+		forceRot.z = 0;
+
+		
+		//-- déplacement - selon le bouton droite
+		app.imgAnalyser.buttonStateLock.lock();
+		float rightScore = app.imgAnalyser.buttonDetection.rightScore;
+		app.imgAnalyser.buttonStateLock.unlock();
+		
+		if (forceDepl != 0 || rightScore > 0) {
+			avance((forceDepl+rightScore)*forceRatio);
+		}
 			
 			
-			addForce(absolute(vec(0, 0, -150)), absolute(f, zero, rotation));
-			//angularVelocity.add(controlForce);
-			if ( PApplet.abs(forceRot.x) != 1.1f ) forceRot.x = 0;
-			if ( PApplet.abs(forceRot.y) != 1.1f ) forceRot.y = 0;
-		}
-		if (forceDepl != 0) {
-			avance(forceDepl*forceRatio);
-		}
-		if (freine) {
+		//si pas visible, on freine
+		if ( rightScore == 0 ) {
 			freine(0.15f);
 		} else {
-			freine(0.05f);
+			freineDepl(0.005f);
+			freineRot(0.05f);
 		}
 	}
 	
 	public void mouseDragged() {
 		int diffX = app.mouseX-app.pmouseX;
 		int diffY = app.mouseY-app.pmouseY;
-		forceRot.add( new PVector(diffY*forceRatio/50, diffX*forceRatio/50) );
+		forceRot.add( new PVector(-diffY*forceRatio/50, diffX*forceRatio/50) );
 		//float ratio = forceRatio / 10;
 		//controlForce.add( new PVector(diffY*ratio, 0, diffX*ratio) );
 	}
@@ -122,8 +139,8 @@ public class Starship extends Cube
 		if (app.key == ' ')			forceDepl = 1.1f;
 		else if  (app.key == 'b')	forceDepl = -1.1f;
 			
-		if (app.key == 'w') 		forceRot.x = -1.1f;
-		else if (app.key == 's') 	forceRot.x = 1.1f;
+		if (app.key == 'w') 		forceRot.x = 1.1f;
+		else if (app.key == 's') 	forceRot.x = -1.1f;
 		if (app.key == 'a')			forceRot.y = -1.1f;
 		else if (app.key == 'd')	forceRot.y = 1.1f;
 		
@@ -136,8 +153,8 @@ public class Starship extends Cube
 		if (app.key == ' ' && forceDepl > 0)		forceDepl = 0;
 		else if  (app.key == 'b' && forceDepl < 0)	forceDepl = 0;
 		
-		if (app.key == 'w' && forceRot.x < 0) 		forceRot.x = 0;
-		else if (app.key == 's' && forceRot.x > 0) 	forceRot.x = 0;
+		if (app.key == 'w' && forceRot.x > 0) 		forceRot.x = 0;
+		else if (app.key == 's' && forceRot.x < 0) 	forceRot.x = 0;
 		if (app.key == 'a' && forceRot.y < 0) 		forceRot.y = 0;
 		else if (app.key == 'd' && forceRot.y > 0) 	forceRot.y = 0;
 	}

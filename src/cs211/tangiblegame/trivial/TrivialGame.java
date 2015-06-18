@@ -2,7 +2,6 @@ package cs211.tangiblegame.trivial;
 
 import cs211.tangiblegame.Interface;
 import cs211.tangiblegame.TangibleGame;
-import cs211.tangiblegame.geo.Quaternion;
 import processing.core.PApplet;
 import processing.core.PVector;
 import processing.event.MouseEvent;
@@ -46,14 +45,15 @@ public class TrivialGame extends Interface {
 	public void draw() {
 		updateMode();
 		placeCamEtLum();
+		
+		app.noStroke();
+		app.fill(100, 100, 100);
+		
 		rotateScene();
 		
 		//le terrain
-		app.fill(200);
 		app.pushMatrix();
 		app.translate(0, -tailleTerrain.y/2, 0);
-		app.noStroke();
-		app.fill(100, 100, 100);
 		app.box(tailleTerrain.x, tailleTerrain.y, tailleTerrain.z);
 		app.popMatrix();
 
@@ -69,21 +69,24 @@ public class TrivialGame extends Interface {
 		app.hint(PApplet.ENABLE_DEPTH_TEST);
 	}
 	
-	float etatTrans = 0;
-	Quaternion rot = new Quaternion();
-	
 	void rotateScene() {
 		//roation du plateau
-		/*float ratioEtat = 1-etat; //pour forcer une rotation nulle en mode contrôle.
+		float ratioEtat = 1-etat; //pour forcer une rotation nulle en mode contrôle.
 		PVector gameRotation = app.imgAnalyser.rotation();
 		
 		platRot.x = PApplet.constrain((platRot.x + ratioUpdate * (gameRotation.x - platRot.x)), -TangibleGame.inclinaisonMax, TangibleGame.inclinaisonMax);
 		platRot.y = 0;//PApplet.constrain(imgAnalyser.rotation.y, -plateMaxAngle, plateMaxAngle);
-		platRot.z = PApplet.constrain((platRot.z + ratioUpdate * (gameRotation.z - platRot.z)), -TangibleGame.inclinaisonMax, TangibleGame.inclinaisonMax);
+		platRot.z = PApplet.constrain((platRot.z + ratioUpdate * (-gameRotation.z - platRot.z)), -TangibleGame.inclinaisonMax, TangibleGame.inclinaisonMax);
 		app.rotateX(platRot.x * ratioEtat);
 		app.rotateY(platRot.y * ratioEtat);
-		app.rotateZ(platRot.z * ratioEtat);*/
-		
+		app.rotateZ(platRot.z * ratioEtat);
+	}
+	
+	/*
+	float etatTrans = 0;
+	Quaternion rot = new Quaternion();
+	
+	void testSlerp() {
 		PVector v = vec(0, 1, 1);
 		v.normalize();
 		PVector v2 = vec(1, 0, 0);
@@ -95,9 +98,31 @@ public class TrivialGame extends Interface {
 		etatTrans += 2/app.frameRate;
 		if (etatTrans > 1)
 			etatTrans -= 1;
-		rotate( Quaternion.slerp(q1, q2, etatTrans) );
 		
-	}
+		app.pushMatrix();
+		rotate( q1 );
+		app.pushMatrix();
+		app.translate(0, -tailleTerrain.y/2, 0);
+		app.box(tailleTerrain.x, tailleTerrain.y, tailleTerrain.z);
+		app.popMatrix();
+		app.popMatrix();
+		
+		app.pushMatrix();
+		rotate( q2 );
+		app.pushMatrix();
+		app.translate(0, -tailleTerrain.y/2, 0);
+		app.box(tailleTerrain.x, tailleTerrain.y, tailleTerrain.z);
+		app.popMatrix();
+		app.popMatrix();
+
+		app.pushMatrix();
+		rotate( Quaternion.slerp(q1, q2, etatTrans) );
+		app.pushMatrix();
+		app.translate(0, -tailleTerrain.y/2, 0);
+		app.box(tailleTerrain.x, tailleTerrain.y, tailleTerrain.z);
+		app.popMatrix();
+		app.popMatrix();
+	}*/
 
 	void placeCamEtLum()
 	{ 

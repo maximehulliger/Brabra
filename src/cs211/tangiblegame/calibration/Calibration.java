@@ -15,7 +15,7 @@ public class Calibration extends Interface {
 	private int caraBarsHeight = nbCara*20;
 	private HScrollbar[] bar = new HScrollbar[nbCara];
 	private PFont fontLabel;
-	public PFont fontButtonMode;
+	public PFont fontImages;
 	private String[] info = { "Hue min", "Hue max", "Brigh min", "Brigh max", "Satur min", "Satur max", 
 			"r min", "r max", "g min", "g max", "b min", "b max", 
 			"min vote", "neighbourhood", "nb lignes", "sobel threshold"};
@@ -24,7 +24,7 @@ public class Calibration extends Interface {
 	public Calibration() {
 		ia = app.imgAnalyser;
 		fontLabel = app.createFont("Arial", 18, true);
-		fontButtonMode = app.createFont("Arial", (app.height - caraBarsHeight - 75)/17, true);
+		fontImages = app.createFont("Arial", (app.height - caraBarsHeight - 75)/17, true);
 	}
 
 	public void init() {
@@ -43,7 +43,6 @@ public class Calibration extends Interface {
 	public void draw() {
 		app.background(0);
 		app.fill(255, 255);
-		app.textFont(fontLabel) ;
 		ia.imagesLock.lock();
 		if (ia.inputImg != null) {
 			int displayWid = app.width/3 + 1;
@@ -53,12 +52,17 @@ public class Calibration extends Interface {
 			app.image(ia.quadDetection, 0, 0, displayWid, displayHei);
 			ia.quadDetectionLock.unlock();
 			
+			app.textFont( fontImages );
+			app.textAlign(PApplet.RIGHT, PApplet.BOTTOM);
+			app.fill(200, 100, 0, 180);
+			
+			if ((ia.pausedMov && ia.takeMovie) || (ia.pausedCam && !ia.takeMovie)) {
+				app.text("paused", displayWid, displayHei);
+			}
+			
 			if (buttonCalibrationMode) {
 				if (ia.hasFoundQuad && ia.threshold2Button != null)
 					app.image(ia.threshold2Button, displayWid, 0, displayWid, displayHei);
-				app.textFont(fontButtonMode);
-				app.textAlign(PApplet.RIGHT, PApplet.BOTTOM);
-				app.fill(200, 100, 0, 180);
 				if (!ia.hasFoundQuad)
 					app.text("button detection mode: need to detect the plate. ", displayWid*2, displayHei);
 				else if ((ia.pausedMov && ia.takeMovie) || (ia.pausedCam && !ia.takeMovie))
@@ -66,8 +70,7 @@ public class Calibration extends Interface {
 				else
 					app.text("button detection mode (pause (p) to help yourself)  ", displayWid*2, displayHei);
 				
-			}
-			else
+			} else
 				app.image(ia.threshold2g, displayWid, 0, displayWid, displayHei);
 			
 			app.image(ia.inputImg, 2*displayWid, 0, displayWid, displayHei);
@@ -77,6 +80,7 @@ public class Calibration extends Interface {
 		// update GUI
 		app.fill(0);            
 		app.textAlign(PApplet.BASELINE);
+		app.textFont(fontLabel) ;
 		for (int i=0; i<nbCara; i++) {
 			bar[i].update();
 			bar[i].display();

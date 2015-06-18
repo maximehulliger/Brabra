@@ -8,7 +8,7 @@ public class Quaternion {
 
 	public static final Quaternion identity = new Quaternion();
 
-	public float W, X, Y, Z;      	// components of a quaternion
+	private float W, X, Y, Z;      	// components of a quaternion
 
 	public PVector rotAxis = null;	// updated when rotated, always normalized or null
 	public float angle = 0;
@@ -90,7 +90,7 @@ public class Quaternion {
 			float invSinHO = 1/s;
 			angle = halfomega*2;
 			rotAxis = new PVector( X*invSinHO, Y*invSinHO, Z*invSinHO ); //TODO normalized ?
-			float norm = rotAxis.mag();
+			rotAxis.normalize();
 		}
 	}
 
@@ -202,13 +202,16 @@ public class Quaternion {
 
 	public Quaternion normalize() {
 		float norm = PApplet.sqrt(W*W + X*X + Y*Y + Z*Z);
-		if (norm == 0)
-			throw new IllegalArgumentException( "quaternion null !" );
-		float invNorm = 1f/norm;
-		W *= invNorm;
-		X *= invNorm;
-		Y *= invNorm;
-		Z *= invNorm;
+		if (norm == 0) {
+			W = 1;
+			X = Y = Z = 0;
+		} else {
+			float invNorm = 1f/norm;
+			W *= invNorm;
+			X *= invNorm;
+			Y *= invNorm;
+			Z *= invNorm;
+		}
 		return this;
 	}
 

@@ -154,12 +154,12 @@ public abstract class Body extends ProMaster {
 	}
 	
 	protected void freine(float perte) {
-		freineAbs(perte);
+		freineDepl(perte);
 		freineRot(perte);
 	}
 	
 	// applique une force qui s'oppose à la vitesse. 
-	protected void freineAbs(float perte) {
+	protected void freineDepl(float perte) {
 		if (isZeroEps(velocity, true))
 			return;
 		//le frottement, frein. s'oppose à la vitesse :
@@ -168,10 +168,12 @@ public abstract class Body extends ProMaster {
 	
 	// applique une force qui s'oppose à la vitesse angulaire.
 	protected void freineRot(float perte) {
-		/*if (rotationVel.isZeroEps(true))
-			return;
-		else
-			*/rotationVel = Quaternion.slerp(rotationVel, Quaternion.identity, perte);
+		if (isZeroEps(rotationVel.angle) && rotationVel.angle != 0) {
+			rotationVel = new Quaternion();
+		} else {
+			rotationVel.angle *= (1 - perte);
+			rotationVel.initFromAxis();
+		}
 	}
 	
 	
@@ -202,6 +204,11 @@ public abstract class Body extends ProMaster {
 	/** return the pos in front of the body at dist from location */
 	public PVector absFront(float dist) {
 		return absolute(PVector.mult(front, dist), zero, rotation);
+	}
+	
+	/** return the pos in front of the body at dist from location */
+	public PVector absUp(float dist) {
+		return absolute(PVector.mult(up, dist), zero, rotation);
 	}
 	
 	/*protected static PVector orientation(PVector front) {
