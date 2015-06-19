@@ -22,7 +22,8 @@ public class ButtonDetection extends ReentrantLock {
 	private PImage inputImg;
 	private PVector[] corners;
 	
-	private static final int minVote = 50, maxVote = 100, overHeadVote = 30*40;
+	private static final float maxRayon = 50;
+	private static final int overHeadVote = 2500;
 	public boolean leftVisible = false, rightVisible = false;
 	public float leftScore = 0, rightScore = 0; //[0, 1]
 	
@@ -30,8 +31,7 @@ public class ButtonDetection extends ReentrantLock {
 	
 	public ButtonDetection(ImageAnalyser imageAnalyser) {
 		this.imgAnal = imageAnalyser;
-		paraBoutons = ProMaster.copy(ImageProcessing.paraBoutonsBase);
-		resetParameters();
+		paraBoutons = ProMaster.copy( imgAnal.imgProc.paraBoutonsBase );
 	}
 	
 	public void setInput(PImage input, PVector[] corners) {
@@ -41,25 +41,24 @@ public class ButtonDetection extends ReentrantLock {
 	
 	public void drawButtons(PGraphics input) {
 		if (blobs != null) {
-			input.noStroke();
 			for (Integer[] b : blobs) {
 				int bx = b[0];
 				int by = b[1];
-				float rayon = PApplet.min(b[2], maxVote);
-				if (b[2] >= overHeadVote)
-					input.fill(ProMaster.colorButtonRejected);
-				else if (b[2] >= minVote)
+				float rayon = b[2]*maxRayon/b[5];
+				if (b[3] == 2) 
+					input.stroke(0, 255, 0, 255);
+				else
+					input.noStroke();
+				
+				if (b[3] >= 1)
 					input.fill(ProMaster.colorButtonOk);
-				else {
+				else if (b[3] == 0)
 					input.fill(ProMaster.colorButtonRejected);
-				}
+				
+				
 				input.ellipse(bx, by, rayon, rayon);
 			}
 		}
-	}
-	
-	public void resetParameters() {
-		this.paraBoutons = ProMaster.copy(ImageProcessing.paraBoutonsBase);
 	}
 	
 	public void resetOutput() {
@@ -176,19 +175,40 @@ public class ButtonDetection extends ReentrantLock {
 		lock();
 		for (Integer[] b : blobsAcc.values()) {
 			int x = b[0] / b[2];
+			int y = b[1] / b[2];
+			int etat = 0;
+			int minVote = 0;
+			int maxVote = 0;
 			if (b[2] < overHeadVote) {
 				if (x > middleX) {
+					minVote = (int)paraBoutons[14];
+					maxVote = (int)paraBoutons[15];
+					if (b[2] > paraBoutons[15]) {
+						b[2] = (int)paraBoutons[15];
+						etat = 2;
+					} else if (b[2] > paraBoutons[14])
+						etat = 1;
 					if (b[2] > rightScoreApp)
 						rightScoreApp = b[2];
 				} else if (b[2] > leftScoreApp) {
-					leftScoreApp = b[2];
+					minVote = (int)paraBoutons[12];
+					maxVote = (int)paraBoutons[13];
+					if (b[2] > paraBoutons[13]) {
+						b[2] = (int)paraBoutons[13];
+						etat = 2;
+					} else if (b[2] > paraBoutons[12])
+						etat = 1;
+					else 
+						b[2] = 0;
+					if (b[2] > rightScoreApp)
+						leftScoreApp = b[2];
 				}
 			}
 			if (b[2] > 2) //bruit <= 2
-				blobs.add( new Integer[] { x, b[1] / b[2], b[2] } );
+				blobs.add( new Integer[] { x, y, b[2], etat, minVote, maxVote } );
 		}
-		leftScore = PApplet.constrain(1f * (leftScoreApp - minVote) / maxVote, 0, 1);
-		rightScore = PApplet.constrain(1f * (rightScoreApp - minVote) / maxVote, 0, 1);
+		leftScore = PApplet.constrain(1f * (leftScoreApp - paraBoutons[12]) / paraBoutons[13], 0, 1);
+		rightScore = PApplet.constrain(1f * (rightScoreApp - paraBoutons[14]) / paraBoutons[15], 0, 1);
 		leftVisible = leftScore > 0;
 		rightVisible = rightScore > 0;
 		unlock();

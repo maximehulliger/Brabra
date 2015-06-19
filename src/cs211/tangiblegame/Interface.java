@@ -6,6 +6,8 @@ public abstract class Interface extends ProMaster {
 	
 	public abstract void init();
 	
+	public abstract void wakeUp();
+	
 	public abstract void draw();
 	
 	//------- EVENTS

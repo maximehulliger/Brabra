@@ -1,6 +1,5 @@
 package cs211.tangiblegame.geo;
 
-import cs211.tangiblegame.TangibleGame;
 import processing.core.PApplet;
 import processing.core.PVector;
 
@@ -13,7 +12,7 @@ public class Quaternion {
 	public PVector rotAxis = null;	// updated when rotated, always normalized or null
 	public float angle = 0;
 
-	private static final int manucureAge = 1; // #rotate before normalize.
+	private static final int manucureAge = 0; // #rotate before normalize.
 	private int age = 0;
 
 	public Quaternion(float w, float x, float y, float z) {
@@ -112,6 +111,7 @@ public class Quaternion {
 		initFromAxis();
 	}
 
+	/*
 	public boolean isZeroEps(boolean setToZero) {
 		if (X + Y + Z < TangibleGame.EPSILON) {
 			if (setToZero) {
@@ -121,7 +121,7 @@ public class Quaternion {
 			return true;
 		} else
 			return false;
-	}
+	}*/
 
 	// Rotates towards other quaternion
 	public static Quaternion slerp(Quaternion a, Quaternion b, float t)

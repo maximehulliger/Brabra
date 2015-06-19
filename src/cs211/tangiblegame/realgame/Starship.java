@@ -13,9 +13,9 @@ public class Starship extends Cube
 {
 	public static final float sizeFactor = 15f;
 	private static final PVector size = PVector.mult( vec(4, 2, 8), sizeFactor); //for the collider
-	public static final boolean displaySkybox = false;
+	public static final boolean displaySkybox = true;
 	private static final boolean displayViseur = true;
-	public float forceRatio = 15; //puissance du vaisseau
+	public float forceRatio = 5; //puissance du vaisseau
 	public boolean hasCamera = true;
 	
 	private float forceDepl = 0; // [0,1] si de la plaque, -1.1 ou 1.1 si du clavier. fait avancer ou reculer le vaisseau
@@ -45,7 +45,7 @@ public class Starship extends Cube
 	public void update() {
 		super.update();
 		
-		//champ.update(); TODO
+		champ.update();
 		armement.update();
 		
 		app.imgAnalyser.buttonDetection.lock();
@@ -94,15 +94,15 @@ public class Starship extends Cube
 		
 		//-- rotation - selon angle de la plaque
 		PVector plateRot = app.imgAnalyser.rotation();
-		/*plateRot = new PVector( //TODO
+		/*plateRot = new PVector(
 				PApplet.pow(plateRot.x/TangibleGame.inclinaisonMax, 0.875f), //-> x ^ 1.75
 				PApplet.pow(plateRot.y/TangibleGame.inclinaisonMax, 0.875f),
 				PApplet.pow(plateRot.z/TangibleGame.inclinaisonMax, 0.875f) );*/
 		
 		forceRot.add( PVector.mult(plateRot, 2) );
 		PVector f = PVector.mult( forceRot, forceRatio );
-		addForce(absolute(vec(0, 0, -150)), absolute( new PVector(-f.y , f.x), zero, rotation));
-		addForce(absolute(vec(0, 50, 0)), absolute( new PVector(-f.z*3 , 0), zero, rotation));
+		addForce(absolute(vec(0, 0, -150)), absolute( new PVector(-f.y*10, f.x), zero, rotation));
+		//addForce(absolute(vec(0, 50, 0)), absolute( new PVector(-f.z*3 , 0), zero, rotation));
 		if ( PApplet.abs(forceRot.x) != 1.1f ) forceRot.x = 0;
 		if ( PApplet.abs(forceRot.y) != 1.1f ) forceRot.y = 0;
 		forceRot.z = 0;

@@ -24,7 +24,7 @@ public class HoughLine {
 	private static float[] sinTab = null;
 	private static float[] cosTab = null;
 	private int[] accumulator;
-	public List<Line> lines;
+	public List<Line> lines = new ArrayList<Line>();;
 	public PVector[] quad;
 	
 	public HoughLine(PImage edgeImg, PApplet app) {
@@ -67,7 +67,6 @@ public class HoughLine {
 		}
 		
 		//3. get reduced lines
-		lines = new ArrayList<Line>();
 		// only search around lines with more that this amount of votes
 		for (int accR = 0; accR < rDim; accR++) {
 			for (int accPhi = 0; accPhi < phiDim; accPhi++) {

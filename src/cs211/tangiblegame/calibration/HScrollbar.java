@@ -12,6 +12,7 @@ public class HScrollbar {
 	float yPosition; // Bar's y position in pixels
 	float sliderPosition, newSliderPosition; 	// Position of slider
 	float sliderPositionMin, sliderPositionMax; // Max and min values of slider
+	float etatMax;
 	boolean mouseOver;
 	boolean locked = false;
 	static boolean oneLocked = false;
@@ -25,20 +26,26 @@ public class HScrollbar {
 	 * @param w The width of the bar in pixels
 	 * @param h The height of the bar in pixels
 	 */
-	HScrollbar(PApplet p, float x, float y, float w, float h, float etat) {
+	HScrollbar(PApplet p, float x, float y, float w, float h, float etat, float etatMax) {
 		parent = p;
 		barWidth = w;
 		barHeight = h;
 		xPosition = x;
 		yPosition = y;
+		this.etatMax = etatMax;
 		sliderPosition = xPosition + barWidth / 2 - barHeight / 2;
 		sliderPositionMin = xPosition;
 		sliderPositionMax = xPosition + barWidth - barHeight;
-		newSliderPosition = sliderPositionMin + (sliderPositionMax-sliderPositionMin)*etat;
+		newSliderPosition = sliderPositionMin + (sliderPositionMax-sliderPositionMin)*etat/etatMax;
 	}
 	
 	public void setEtat(float etat) {
-		newSliderPosition = sliderPositionMin + (sliderPositionMax-sliderPositionMin)*etat;
+		newSliderPosition = sliderPositionMin + (sliderPositionMax-sliderPositionMin)*PApplet.min(etat, etatMax)/etatMax;
+	}
+
+	public void setEtat(float etat, float etatMax) {
+		this.etatMax = etatMax;
+		setEtat(etat);
 	}
 
 	/**
@@ -93,7 +100,7 @@ public class HScrollbar {
 	 * @return The slider position in the interval [0,1] corresponding to
 	 *         [leftmost position, rightmost position]
 	 */
-	float getPos() {
-		return (sliderPosition - xPosition) / (barWidth - barHeight);
+	float getEtat() {
+		return (sliderPosition - xPosition) / (barWidth - barHeight) * etatMax;
 	}
 }

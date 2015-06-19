@@ -22,6 +22,7 @@ public class TangibleGame extends PApplet {
 	public TrivialGame intTrivialGame;
 	public Calibration intCalibration;
 	public Menu intMenu;
+	public boolean hasPopup = false;
 	public boolean ready = false;
 	public boolean over = false;
 	
@@ -47,13 +48,16 @@ public class TangibleGame extends PApplet {
 		intRealGame = new RealGame();
 		intTrivialGame = new TrivialGame();
 		intCalibration = new Calibration();
+		intRealGame.init();
+		intTrivialGame.init();
+		intCalibration.init();
 		ready = true;
 		System.out.println("ready !");
 	}
 	
 	public void setInterface(Interface i) {
 		currentInterface = i;
-		i.init();
+		i.wakeUp();
 	}
 	
 	public void draw() {
@@ -65,11 +69,6 @@ public class TangibleGame extends PApplet {
 	public void keyPressed() {
 		//intercepte escape
 		if (key == 27 && currentInterface != intMenu) {
-			
-			imgAnalyser.play(false);
-			imgAnalyser.forced = false;
-			
-			ImageAnalyser.displayQuadRejectionCause = false; 
 			setInterface(intMenu);
 			key = 0;
 		} 
@@ -79,11 +78,9 @@ public class TangibleGame extends PApplet {
 			if (key == 'q')
 				currentInterface.init();
 			if (key == 'Q') {
-				if (intCalibration.buttonCalibrationMode)
-					imgAnalyser.buttonDetection.resetParameters();
-				else
-					imgAnalyser.resetParameters();
+				imgAnalyser.resetAllParameters(true);
 			}
+			
 			if (key == 'p')
 				imgAnalyser.playOrPause();
 			if (key=='i')
@@ -94,7 +91,7 @@ public class TangibleGame extends PApplet {
 	}  
 	
 	public void dispose() {
-		if (imgAnalyser.takeMovie && imgAnalyser.pausedMov) {
+		if (imgAnalyser.takeMovie && imgAnalyser.paused()) {
 			imgAnalyser.play(true);
 		}
 		over = true;

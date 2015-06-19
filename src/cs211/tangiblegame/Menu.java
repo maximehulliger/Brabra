@@ -1,5 +1,6 @@
 package cs211.tangiblegame;
 
+import cs211.tangiblegame.imageprocessing.ImageAnalyser;
 import processing.core.PApplet;
 import processing.core.PFont;
 import processing.core.PImage;
@@ -16,7 +17,7 @@ public class Menu extends Interface {
 	//help: button, zone & text
 	private static final int helpButtonOffsetX = app.width/2+150, helpButtonOffsetY = 200;
 	private static final int helpButtonSizeX = 150, helpButtonSizeY = 60;
-	private static final int helpZoneSizeX = 400, helpZoneSizeY = 400;
+	private static final int helpZoneSizeX = 400, helpZoneSizeY = 415;
 	private static final int helpZoneOffsetX = helpButtonOffsetX + helpButtonSizeX/2 - helpZoneSizeX/2,
 			helpZoneOffsetY = helpButtonOffsetY + helpButtonSizeY + 10;
 	private static final int helpTextOffsetX = helpZoneOffsetX + 30,
@@ -32,7 +33,7 @@ public class Menu extends Interface {
 	private static final String helpText = "Controls:\n"
 			+ "  i -> change video input\n"
 			+ "  p -> pause/play video input\n"
-			+ "  q/Q -> restart / reset parameters\n"
+			+ "  q/Q -> reset / reset all parameters\n"
 			+ "  esc -> quit or return\n"
 			+ "Real game: \n"
 			+ "  the goal is to destroy all the yellow balls.\n"
@@ -41,8 +42,10 @@ public class Menu extends Interface {
 			+ "  wasd, left button -> move\n"
 			+ "Trivial game:\n"
 			+ "  hold shift to enter placement mode, \n"
-			+ "  click to place obstacle on the plate.\n\n"
-			+ "for more info, look in 'readmeplz.txt'";
+			+ "  click to place obstacle on the plate."
+			+ "Calibration:\n"
+			+ "  l/s -> load/save parameters\n\n"
+			+ "          for more info, look in 'readmeplz.txt'";
 	
 	private PImage imgBoutonUp;
 	private PImage imgBoutonDown;
@@ -62,8 +65,13 @@ public class Menu extends Interface {
 		fontHelpText = app.createFont("Arial", helpFontSize, true);
 	}
 	
-	public void init() {
-		etatInfo = 0;
+	public void init() {}
+	
+	public void wakeUp() {
+		app.imgAnalyser.play(false);
+		app.imgAnalyser.forced = false;
+		app.imgAnalyser.detectButtons = false;
+		ImageAnalyser.displayQuadRejectionCause = false; 
 	}
 
 	public void draw() {

@@ -17,11 +17,11 @@ import processing.video.*;
 public class ImageAnalyser {
 	public static final float maxAcceptedAngle = 65f/360*PApplet.TWO_PI; //65°
 	public static boolean displayQuadRejectionCause = false;
-	public final boolean detectButtons = true;
 	private int idxCamera = 3;
 	
 	//--- images & quad detection (control img)
 	public final ReentrantLock imagesLock;
+	public final ImageProcessing imgProc = new ImageProcessing();
 	public PImage inputImg;
 	public PImage threshold2g;
 	public PImage sobel;
@@ -32,6 +32,7 @@ public class ImageAnalyser {
 	public PGraphics quadDetection;
 	
 	//--- button detection
+	public boolean detectButtons = false;
 	public final ReentrantLock buttonStateLock;
 	public boolean displayButtonsState = true;
 	public boolean leftButtonVisible = false;
@@ -50,7 +51,7 @@ public class ImageAnalyser {
 	public final ReentrantLock inputLock;
 	public boolean forced = false;	//force l'analyse de l'image même si l'input n'a pas changé.
 	public boolean takeMovie = false; //prend la camera si false.
-	public boolean pausedCam = true, pausedMov = true;
+	private boolean pausedCam = true, pausedMov = true;
 	public float[] parametres, paraMovie, paraCamera;
 	
 	//rotation
@@ -63,6 +64,7 @@ public class ImageAnalyser {
 	
 	public PFont standardFont;
 	public float strockWeight;
+	//public final ReentrantLock safeStartLock; TODO
 	public boolean ready = true;
 	/*pkg*/ final TangibleGame app;
 	/*pkg*/ int inWidth = 0, inHeight = 0;
@@ -73,6 +75,8 @@ public class ImageAnalyser {
 	public ImageAnalyser(TangibleGame app) {
 		this.app = app;
 		
+		//safeStartLock = new ReentrantLock();
+		//safeStartLock.lock();
 		buttonDetection = new ButtonDetection(this);
 		imagesLock = new ReentrantLock();
 		quadDetectionLock = new ReentrantLock();
@@ -82,7 +86,11 @@ public class ImageAnalyser {
 		standardFont = app.createFont("Arial", app.height/40f);
 		
 		paraMovie = ProMaster.copy(ImageProcessing.paraMovieBase);
-		paraCamera = ProMaster.copy(ImageProcessing.paraCameraBase);
+		paraCamera = ProMaster.copy(imgProc.paraCameraBase);
+		if (takeMovie)
+			parametres = paraMovie;
+		else
+			parametres = paraCamera;
 	}
 	
 	public void run() {
@@ -91,26 +99,13 @@ public class ImageAnalyser {
 				boolean newImage = false;
 				boolean once = false;
 				inputLock.lock();
-				
-				//video input initialisation (at first run)
-				if (newInput) {
-					if (takeMovie && mov == null) {
-						mov = new Movie(app, "testvideo.mp4");
-						mov.loop();
-						parametres = paraMovie;
-					} else if (!takeMovie && cam == null) {
-						takeCameraInput(idxCamera);
-						parametres = paraCamera;
-					}
-				}
-				
 				imagesLock.lock();
-				if (takeMovie && (!pausedMov || newInput) && mov.available()) {
+				if (takeMovie && (!pausedMov || newInput) && (mov!=null) ) {
 					newImage = true;
 					mov.read();
 					inputImg = mov.get();
 
-				} else if (!takeMovie && (!pausedCam || newInput) && cam.available()) {
+				} else if (!takeMovie && (!pausedCam || newInput) && (cam!=null && cam.available()) ) {
 					newImage = true;
 					cam.read();
 					inputImg = cam.get();
@@ -121,16 +116,16 @@ public class ImageAnalyser {
 					once = true;
 				}
 
-				if ( newImage || (forced && inputImg != null) || once ) {
+				if ( (newImage && !paused()) || (forced && inputImg != null) || once ) {
 					
 					// analyse input to find a green quad
 					PImage threshold1g = ImageProcessing.colorThreshold(inputImg, parametres[0], parametres[1], parametres[2], parametres[3], parametres[4], parametres[5]);
 					PImage bluredg = ImageProcessing.blur(threshold1g);
 					threshold2g = ImageProcessing.intensityThreshold(bluredg, parametres[6], parametres[7], parametres[8], parametres[9], parametres[10], parametres[11]);
 					sobel = ImageProcessing.sobel(threshold2g, parametres[15]);
-					HoughLine.minVotes = PApplet.round(parametres[12] * 100);
-					HoughLine.neighbourhood = PApplet.round(parametres[13] * 100);
-					HoughLine.maxKeptLines = PApplet.round(parametres[14] * 10);
+					HoughLine.minVotes = PApplet.round(parametres[12]);
+					HoughLine.neighbourhood = PApplet.round(parametres[13]);
+					HoughLine.maxKeptLines = PApplet.round(parametres[14]);
 					inputLock.unlock();
 					hough = new HoughLine(sobel, app);
 					
@@ -241,33 +236,51 @@ public class ImageAnalyser {
 		inputLock.unlock();
 	}
 	
-	public void resetParameters() {
+	public void resetAllParameters(boolean movieToo) {
 		inputLock.lock();
-		if (takeMovie) {
+		if (movieToo)
 			paraMovie = ProMaster.copy(ImageProcessing.paraMovieBase);
+		paraCamera = ProMaster.copy(imgProc.paraCameraBase);
+		buttonDetection.paraBoutons = ProMaster.copy( imgProc.paraBoutonsBase );
+		
+		if (takeMovie && movieToo)
 			parametres = paraMovie;
-		} else {
-			paraCamera = ProMaster.copy(ImageProcessing.paraCameraBase);
+		else if (!takeMovie)
 			parametres = paraCamera;
-		}
 		inputLock.unlock();
+	}
+	
+	public boolean paused() {
+		return (pausedMov && takeMovie) || (pausedCam && !takeMovie);
 	}
 	
 	public void play(boolean play) {
 		inputLock.lock();
+		
+		//video input initialisation (at first run)
+		if (takeMovie && mov == null) {
+			mov = new Movie(app, "testvideo.mp4");
+			mov.loop();
+			parametres = paraMovie;
+		} else if (!takeMovie && cam == null) {
+			takeCameraInput(idxCamera);
+			parametres = paraCamera;
+		}
+		
 		if (takeMovie) {
 			if (pausedMov == play && mov != null) {
 				if (play) 	mov.play();
 				else 		mov.pause();
+				pausedMov = !play;
 			}
-			pausedMov = !play;
 		} else {
 			if (pausedCam == play && cam != null) {
 				if (play) 	cam.start();
 				else		cam.stop();
+				pausedCam = !play;
 			}
-			pausedCam = !play;
 		}
+		
 		inputLock.unlock();
 	}
 
@@ -313,15 +326,13 @@ public class ImageAnalyser {
 			parametres = paraCamera;
 		}
 		
-		if (!pausedCam) {
-			if (takeMovie)
-				cam.stop();
-			else
-				cam.start();
+		if (takeMovie) {
+			if (!pausedCam) cam.stop();
+		} else {
+			if (!pausedCam) cam.start();
 		}
-		
 		newInput = true;
-		
+		play(!paused());
 		inputLock.unlock();
 	}
 
@@ -353,7 +364,7 @@ public class ImageAnalyser {
 			app.image(quadDetection, 20, 20, app.width/6f, app.height/6f);
 			quadDetectionLock.unlock();
 			app.tint(255, 255);
-			if ((pausedMov && takeMovie) || (pausedCam && !takeMovie)) {
+			if (paused()) {
 				app.fill(200, 100, 0, 180);
 				app.text("paused", 20 + app.width/6f, 20 + app.height/6f);
 			}

@@ -217,8 +217,9 @@ public abstract class Body extends ProMaster {
 	
 	protected PVector velocityAt(PVector loc) {
 		PVector relVel = velocity.get();
-		if (!rotationVel.isZeroEps(false))
-			relVel.add( rotationVel.rotAxis().cross(PVector.sub(loc, location)) );
+		/*PVector rotVelAxis = rotationVel.rotAxis();
+		if (!isZeroEps( rotationVel.angle ));
+			relVel.add( rotVelAxis.cross(PVector.sub(loc, location)) );*/
 		if (parent != null)
 			return PVector.add( parent.velocityAt(loc), relVel);
 		else

@@ -229,7 +229,7 @@ public class Armement extends ProMaster {
 		}
 
 		public void addForces() {
-			freine(0.01f);
+			freine(0.07f);
 		}
 
 		public void damage(int damage) {

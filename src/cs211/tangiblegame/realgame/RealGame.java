@@ -28,6 +28,40 @@ public class RealGame extends Interface {
 		Armement.missile = app.loadShape("rocket.obj");
 	}
 	
+
+	public void init() {
+		physic = new Physic();
+		starship = new Starship( vec(0, 100, 0) );
+		//Mover mover = new Mover( vec(0, 120, -5) );
+		//Plane sol = new Plane(ProMaster.zero, ProMaster.zero);
+		//physic.colliders.add(mover);
+		physic.colliders.add(starship);
+		//physic.colliders.add( sol );
+		
+		physic.colliders.add( new Armement.Objectif(vec(0,100,-500), 1000));
+		physic.colliders.add( new Armement.Objectif(vec(0,100,500), 1000));
+		physic.colliders.add( new Armement.Objectif(vec(400,100,-800), 1000));
+		physic.colliders.add( new Armement.Objectif(vec(-400,100,-800), 1000));
+		physic.colliders.add( new Armement.Objectif(vec(0,800,100), 1000));
+		physic.colliders.add( new Armement.Objectif(vec(0, -500,0), 1000));
+		physic.colliders.add( new Armement.Objectif(vec(400,400,400), 1000));
+		physic.colliders.add( new Armement.Objectif(vec(-400,-400,400), 1000));
+		physic.colliders.add( new Armement.Objectif(vec(600, 800,-500), 1000));
+		physic.colliders.add( new Armement.Objectif(vec(400,100,-500), 1000));
+		
+		//Cube cube1 = new Cube( base, ProMaster.zero.get(), 5, vec(300, 30,300) );
+		//Cube cube2 = new Cube( dessus , vec(0, 0, QUARTER_PI), 1, vec(30, 30, 30) );
+		
+		//physic.colliders.add( cube1 );
+		//physic.colliders.add( cube2 );
+		//cube2.applyImpulse(cube2.location, new PVector(0, -1, 0));
+	}
+	
+	public void wakeUp() {
+		app.imgAnalyser.detectButtons = true;
+		app.imgAnalyser.play(true);
+	}
+	
 	public void draw() {
 		placeCamEtLum();
 
@@ -44,7 +78,6 @@ public class RealGame extends Interface {
 		app.imgAnalyser.displayCtrImg();
 		app.hint(PApplet.ENABLE_DEPTH_TEST);
 	}
-	
 
 	private void placeCamEtLum() { 
 		if (!starship.hasCamera) {
@@ -62,8 +95,6 @@ public class RealGame extends Interface {
 			app.background(200);
 	}
 
-	
-
 	private void drawAxis() {
 		float far = 10000;
 		app.stroke(255, 0, 0);
@@ -73,28 +104,6 @@ public class RealGame extends Interface {
 		app.line(0, 0, 0, 0, 0, far);
 	}
 
-	public void init() {
-		
-		app.imgAnalyser.play(true);
-		
-		physic = new Physic();
-		starship = new Starship( vec(0, 100, 0) );
-		//Mover mover = new Mover( vec(0, 120, -5) );
-		//Plane sol = new Plane(ProMaster.zero, ProMaster.zero);
-		//physic.colliders.add(mover);
-		physic.colliders.add(starship);
-		//physic.colliders.add( sol );
-		
-		physic.colliders.add( new Armement.Objectif(vec(0,100,-500), 2000));
-		
-		//Cube cube1 = new Cube( base, ProMaster.zero.get(), 5, vec(300, 30,300) );
-		//Cube cube2 = new Cube( dessus , vec(0, 0, QUARTER_PI), 1, vec(30, 30, 30) );
-		
-		//physic.colliders.add( cube1 );
-		//physic.colliders.add( cube2 );
-		//cube2.applyImpulse(cube2.location, new PVector(0, -1, 0));
-	}
-	
 	//-------- EVENTS
 	
 	public void mouseDragged() {

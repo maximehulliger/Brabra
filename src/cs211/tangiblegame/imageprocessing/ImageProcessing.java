@@ -1,38 +1,68 @@
 package cs211.tangiblegame.imageprocessing;
 
 import java.awt.Polygon;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.PrintWriter;
+import java.util.Arrays;
+
+import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
 
 import cs211.tangiblegame.ProMaster;
 import processing.core.PApplet;
 import processing.core.PImage;
 
 public final class ImageProcessing extends ProMaster {
-
+	public static final int nbParaBase = 12;
+	public static final int nbParaInput = 4;
+	public static final int nbParaBouton = 4; //TODO add vote map to button detection
+	public static final float basicParaMaxValue = 255;
+	
+	public static final float[] inputParaMaxValue = {
+		200, //MaxMinVote
+		200, //MaxNeighBour
+		10,  //MaxLineKept
+		1, //MaxSobelThreshold
+	};
+	
+	public static final float[] buttonParaMaxValue = {
+		200, //MinVoteLeft
+		200, //MaxVoteLeft -> #button pixel needed to have score 1
+		200,  //MinVoteRight 
+		200, //MaxVoteTight
+	};
+	
 	public static final float[] paraMovieBase = { 
-		0.37f, 0.5f, 	//hue
-		0, 0.65f, 		//bright
-		0.31f, 1,		//satur
-		0, 0.4f, 		//r
-		0.1f, 0.6f, 	//g
-		0.2f, 1,		//b
-		0.5f, 0.38f,	//min vote, neighbour
-		0.6f, 0.2f };	//nb line kept, sobel threshold
-	public static final float[] paraCameraBase = { 
-		0.32f, 0.45f, 	//hue
-		0.0f, 1f, 		//bright
-		0.15f, 1f,		//satur
-		0f, 1f, 		//r
-		0f, 1f, 		//g
-		0f, 0.88f,		//b
-		0.5f, 0.38f,	//min vote, neighbour
-		0.6f, 0.13f };	//nb line kept, sobel threshold
-	public static final float[] paraBoutonsBase = { 
-		0.93f, 0.08f, 	//hue
-		0.0f, 1f, 		//bright
-		0.51f, 1f,		//satur
-		0.0f, 1f, 		//r (3)
-		0f, 1f, 		//g
-		0.0f, 0.88f};		//b
+		90f, 127.5f, 	//hue
+		0, 165.7f, 		//bright
+		79f, 255f,		//satur
+		0, 102f, 		//r
+		25.5f, 153f, 	//g
+		51f, 255,		//b
+		127f, 97f,	//min vote, neighbour
+		153f, 0.2f };	//nb line kept, sobel threshold
+	
+	public float[] paraCameraBase = { 
+		81.6f, 114.7f, 	//hue
+		0.0f, 255f, 		//bright
+		38.2f, 255f,		//satur
+		0f, 255f, 		//r
+		0f, 255f, 		//g
+		0f, 224.4f,		//b
+		50f, 38f,	//min vote, neighbour
+		6f, 0.13f };	//nb line kept, sobel threshold
+	public float[] paraBoutonsBase = { 
+		237f, 20f, 	//hue
+		0.0f,255f, 		//bright
+		128f, 255f,		//satur
+		0.0f, 255f, 		//r (3)
+		0f, 255f, 		//g
+		0.0f, 224.4f,	//b
+		0.0f, 50f,	//vote map left button
+		0.0f, 100f };	//vote map right button
 
 	static public int rgbColor(int r, int g, int b, int a) {
 		if (r > 255) r = 255;
@@ -44,21 +74,22 @@ public final class ImageProcessing extends ProMaster {
 	static public int rgbColor(int rgb) {
 		return rgbColor(rgb, rgb, rgb, 255);
 	}
-	
+
 	public static PImage quadFilter(PImage input, Polygon quad) {
 		PImage ret = app.createImage(input.width, input.height, PApplet.RGB);
 		for(int x = 0; x < input.width; x++) {
 			for(int y = 0; y < input.height; y++) {
 				int i = y * input.width + x;
 				if (quad.contains(x, y))
-						ret.pixels[i] = input.pixels[i];
-					else
-						ret.pixels[i] = color0;
+					ret.pixels[i] = input.pixels[i];
+				else
+					ret.pixels[i] = color0;
 			}
 		}
 		return ret;
 	}
 
+	/** from 0 to 255 */
 	public static PImage intensityThreshold(PImage img, 
 			float minR, float maxR,
 			float minG, float maxG, 
@@ -71,9 +102,9 @@ public final class ImageProcessing extends ProMaster {
 		PImage ret = app.createImage(img.width, img.height, PApplet.RGB);
 		for(int i = 0; i < img.width * img.height; i++) {
 			int p = img.pixels[i];
-			if ( ((!invR && isIn(app.red(p), minR*255, maxR*255)) || (invR && !isIn(app.hue(p), maxR*255, minR*255)))  &&
-					((!invG && isIn(app.green(p), minG*255, maxG*255)) || (invG && !isIn(app.brightness(p), maxG*255, minG*255))) &&
-					((!invB && isIn(app.blue(p), minB*255, maxB*255)) || (invB && !isIn(app.saturation(p), maxB*255, minB*255))) )
+			if ( ((!invR && isIn(app.red(p), minR, maxR)) || (invR && !isIn(app.hue(p), maxR, minR)))  &&
+					((!invG && isIn(app.green(p), minG, maxG)) || (invG && !isIn(app.brightness(p), maxG, minG))) &&
+					((!invB && isIn(app.blue(p), minB, maxB)) || (invB && !isIn(app.saturation(p), maxB, minB))) )
 				ret.pixels[i] = p;
 			else
 				ret.pixels[i] = color0;
@@ -81,6 +112,7 @@ public final class ImageProcessing extends ProMaster {
 		return ret;
 	}
 
+	/** from 0 to 255 */
 	public static PImage colorThreshold(PImage img, 
 			float minHue, float maxHue,			
 			float minBright, float maxBright,	
@@ -94,9 +126,9 @@ public final class ImageProcessing extends ProMaster {
 		for(int i = 0; i < img.width * img.height; i++) {
 			int p = img.pixels[i];
 
-			if ( ((!invHue && isIn(app.hue(p), minHue*255, maxHue*255)) || (invHue && !isIn(app.hue(p), maxHue*255, minHue*255)))  &&
-					((!invBright && isIn(app.brightness(p), minBright*255, maxBright*255)) || (invBright && !isIn(app.brightness(p), maxBright*255, minBright*255))) &&
-					((!invSatur && isIn(app.saturation(p), minSatur*255, maxSatur*255)) || (invSatur && !isIn(app.saturation(p), maxSatur*255, minSatur*255))) )
+			if ( ((!invHue && isIn(app.hue(p), minHue, maxHue)) || (invHue && !isIn(app.hue(p), maxHue, minHue)))  &&
+					((!invBright && isIn(app.brightness(p), minBright, maxBright)) || (invBright && !isIn(app.brightness(p), maxBright, minBright))) &&
+					((!invSatur && isIn(app.saturation(p), minSatur, maxSatur)) || (invSatur && !isIn(app.saturation(p), maxSatur, minSatur))) )
 				ret.pixels[i] = p;
 			else
 				ret.pixels[i] = color0;
@@ -198,5 +230,60 @@ public final class ImageProcessing extends ProMaster {
 			}
 		}
 		return result;
+	}
+	
+
+	// ----- gestion parametres
+	public void selectParameters() {
+		try {
+			JFileChooser dialogue = new JFileChooser(new File("."));
+			
+			if (dialogue.showOpenDialog(null)== JFileChooser.APPROVE_OPTION) {
+				File fichier = dialogue.getSelectedFile();
+			    FileReader fileReader = new FileReader(new File(fichier.getPath()));
+			    BufferedReader buffer = new BufferedReader(fileReader);
+			    String s;
+			    if ((s = buffer.readLine()) != null) {
+			    	String[] sf = s.split(" ");
+			    	float[] f = new float[sf.length];
+			    	int nbParaBoutTot = nbParaBouton + nbParaBase, nbParaInTot = nbParaBase + nbParaInput;
+			    	if (sf.length != nbParaInTot + nbParaBoutTot) { //! valid file
+			    		JOptionPane.showMessageDialog(null, "can't understand that file", "sorry :'(", JOptionPane.INFORMATION_MESSAGE);
+			    	} else {
+			    		for (int i=0; i<sf.length; i++) {
+				    		f[i] = Float.parseFloat(sf[i]);
+				    	}
+			    		float[] pCam = Arrays.copyOfRange(f, 0, nbParaInTot);
+			    		float[] pBout = Arrays.copyOfRange(f, nbParaInTot, nbParaInTot + nbParaBoutTot);
+			    		paraCameraBase = pCam;
+			    		paraBoutonsBase = pBout;
+			    		app.imgAnalyser.resetAllParameters(false);
+			    	}
+			    }
+			    buffer.close();
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public void saveParameters() {
+		try {
+			JFileChooser dialogue = new JFileChooser(new File("."));
+			if (dialogue.showOpenDialog(null)== 
+			    JFileChooser.APPROVE_OPTION) {
+				File fichier = dialogue.getSelectedFile();
+				PrintWriter sortie = new PrintWriter(new FileWriter(fichier.getPath(), false));
+				for (int i=0; i<app.imgAnalyser.paraCamera.length; i++) {
+					sortie.print(app.imgAnalyser.paraCamera[i] + " ");
+				}
+				for (int i=0; i<app.imgAnalyser.buttonDetection.paraBoutons.length; i++) {
+					sortie.print(app.imgAnalyser.buttonDetection.paraBoutons[i] + " ");
+				}
+				sortie.close();
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 }
