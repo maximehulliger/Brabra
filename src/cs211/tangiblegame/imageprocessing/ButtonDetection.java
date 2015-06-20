@@ -16,18 +16,21 @@ import processing.core.PVector;
 
 @SuppressWarnings("serial")
 public class ButtonDetection extends ReentrantLock {
+	private static final float maxRayon = 50;
+	private static final int overHeadVote = 2500;
+	private static final boolean printButtonScore = true;
+	
 	public float[] paraBoutons;
 	public PImage threshold2Button = null;
+	
+	/*pkg*/ boolean leftVisible = false, rightVisible = false;
+	/*pkg*/ float leftScore = 0, rightScore = 0; //[0, 1]
 	private final ImageAnalyser imgAnal;
 	private PImage inputImg;
 	private PVector[] corners;
-	
-	private static final float maxRayon = 50;
-	private static final int overHeadVote = 2500;
-	public boolean leftVisible = false, rightVisible = false;
-	public float leftScore = 0, rightScore = 0; //[0, 1]
-	
 	private List<Integer[]> blobs = null;
+	
+	
 	
 	public ButtonDetection(ImageAnalyser imageAnalyser) {
 		this.imgAnal = imageAnalyser;
@@ -198,8 +201,6 @@ public class ButtonDetection extends ReentrantLock {
 						etat = 2;
 					} else if (b[2] > paraBoutons[12])
 						etat = 1;
-					else 
-						b[2] = 0;
 					if (b[2] > rightScoreApp)
 						leftScoreApp = b[2];
 				}
@@ -207,11 +208,14 @@ public class ButtonDetection extends ReentrantLock {
 			if (b[2] > 2) //bruit <= 2
 				blobs.add( new Integer[] { x, y, b[2], etat, minVote, maxVote } );
 		}
-		leftScore = PApplet.constrain(1f * (leftScoreApp - paraBoutons[12]) / paraBoutons[13], 0, 1);
-		rightScore = PApplet.constrain(1f * (rightScoreApp - paraBoutons[14]) / paraBoutons[15], 0, 1);
+		leftScore = PApplet.map(leftScoreApp, paraBoutons[12], paraBoutons[13], 0, 1);
+		rightScore = PApplet.map(rightScoreApp, paraBoutons[14], paraBoutons[15], 0, 1);
 		leftVisible = leftScore > 0;
 		rightVisible = rightScore > 0;
 		unlock();
+		if (printButtonScore) {
+			System.out.println("bout: gauche: "+leftScore+", droite: "+rightScore);
+		}
 		
 		imgAnal.imagesLock.lock();
 		imgAnal.threshold2Button = threshold2Button;

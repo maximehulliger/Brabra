@@ -12,7 +12,7 @@ public class Quaternion {
 	public PVector rotAxis = null;	// updated when rotated, always normalized or null
 	public float angle = 0;
 
-	private static final int manucureAge = 0; // #rotate before normalize.
+	private static final int manucureAge = 3; // #rotate before normalize.
 	private int age = 0;
 
 	public Quaternion(float w, float x, float y, float z) {
@@ -88,13 +88,14 @@ public class Quaternion {
 		} else {
 			float invSinHO = 1/s;
 			angle = halfomega*2;
-			rotAxis = new PVector( X*invSinHO, Y*invSinHO, Z*invSinHO ); //TODO normalized ?
+			rotAxis = new PVector( X*invSinHO, Y*invSinHO, Z*invSinHO );
+			
 			rotAxis.normalize();
 		}
 	}
 
 	public Quaternion withOppositeAngle() {
-		return new Quaternion(-W, X, Y, Z);
+		return new Quaternion(W, -X, -Y, -Z).normalize();
 	}
 
 	public void addAngularMomentum(PVector dL) {
@@ -163,16 +164,15 @@ public class Quaternion {
 	public void initFromAxis() { 
 		float omega = 0.5f * angle; 
 		float s = PApplet.sin(omega);
-		if (s == 0) {
-			W = 1;
-			X = Y = W = 0;
-		} else {
-			//s = 1/s;
+		if (PApplet.abs(s) > Float.MIN_VALUE) {
 			W = PApplet.cos(omega);
 			X = s*rotAxis.x;
 			Y = s*rotAxis.y;
 			Z = s*rotAxis.z;
 			normalize();
+		} else {
+			W = 1;
+			X = Y = W = 0;
 		}
 	}
 

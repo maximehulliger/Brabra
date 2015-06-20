@@ -18,6 +18,14 @@ public class ImageAnalyser {
 	public static final float maxAcceptedAngle = 65f/360*PApplet.TWO_PI; //65°
 	public static boolean displayQuadRejectionCause = false;
 	private int idxCamera = 3;
+
+	//--- input
+	public final ReentrantLock inputLock;
+	public boolean detectButtons = false;
+	public boolean forced = false;	//force l'analyse de l'image même si l'input n'a pas changé.
+	public boolean takeMovie = false; //prend la camera si false.
+	private boolean pausedCam = true, pausedMov = true;
+	public float[] parametres, paraMovie, paraCamera;
 	
 	//--- images & quad detection (control img)
 	public final ReentrantLock imagesLock;
@@ -32,11 +40,11 @@ public class ImageAnalyser {
 	public PGraphics quadDetection;
 	
 	//--- button detection
-	public boolean detectButtons = false;
 	public final ReentrantLock buttonStateLock;
 	public boolean displayButtonsState = true;
 	public boolean leftButtonVisible = false;
 	public boolean rightButtonVisible = false;
+	public float leftButtonScore = 0, rightButtonScore = 0;
 	public final ButtonDetection buttonDetection;
 	private class ButtonDetectionJob extends Thread {
 		public ButtonDetectionJob(PImage input, PVector[] corners) {
@@ -47,28 +55,20 @@ public class ImageAnalyser {
 		}
 	}
 	
-	//--- input
-	public final ReentrantLock inputLock;
-	public boolean forced = false;	//force l'analyse de l'image même si l'input n'a pas changé.
-	public boolean takeMovie = false; //prend la camera si false.
-	private boolean pausedCam = true, pausedMov = true;
-	public float[] parametres, paraMovie, paraCamera;
-	
 	//rotation
 	private final ReentrantLock rotationLock;
-	public boolean hasFoundRotation = true;
+	public boolean hasFoundRotation = false;
 	private int rotationAge = 0;
 	private PVector rotation = new PVector(0,0,0);
 	private PVector lastRotation = new PVector(0,0,0);
 	private PVector gameRotation = new PVector(0,0,0);
 	
+	//"interne" (lulz)
 	public PFont standardFont;
 	public float strockWeight;
-	//public final ReentrantLock safeStartLock; TODO
-	public boolean ready = true;
 	/*pkg*/ final TangibleGame app;
 	/*pkg*/ int inWidth = 0, inHeight = 0;
-	private boolean newInput = true;
+	private boolean newInput = false;
 	private Movie mov = null;
 	private Capture cam = null;
 	
@@ -84,6 +84,7 @@ public class ImageAnalyser {
 		inputLock = new ReentrantLock();
 		buttonStateLock = new ReentrantLock();
 		standardFont = app.createFont("Arial", app.height/40f);
+		quadDetection = app.createGraphics(1920, 1080);
 		
 		paraMovie = ProMaster.copy(ImageProcessing.paraMovieBase);
 		paraCamera = ProMaster.copy(imgProc.paraCameraBase);
@@ -126,6 +127,7 @@ public class ImageAnalyser {
 					HoughLine.minVotes = PApplet.round(parametres[12]);
 					HoughLine.neighbourhood = PApplet.round(parametres[13]);
 					HoughLine.maxKeptLines = PApplet.round(parametres[14]);
+					boolean detectButtonsInt = detectButtons && !takeMovie;
 					inputLock.unlock();
 					hough = new HoughLine(sobel, app);
 					
@@ -137,7 +139,7 @@ public class ImageAnalyser {
 					if (hasFoundQuad) {
 						//-- finish with images & start button det.
 						detectedQuad = hough.quad();
-						if (detectButtons) {
+						if (detectButtonsInt) {
 							butDetJob = new ButtonDetectionJob(inputImg, hough.quad);
 							butDetJob.start();
 						}
@@ -153,10 +155,9 @@ public class ImageAnalyser {
 							if (!lastRotation.equals(newRot) ) {
 								lastRotation = rotation;
 								rotation = newRot;
-								PVector rotMoyenne = PVector.div( PVector.add(lastRotation, rotation), 2); //moyenne des 2 dernières entrées
-								float ratioXZ = TangibleGame.inclinaisonMax / maxAcceptedAngle;
-								gameRotation = new PVector(-rotMoyenne.x * ratioXZ, rotMoyenne.z, rotMoyenne.y* ratioXZ);
-								//on adoucis les angles d'entrée (pour + de contrôle proche de 0)
+								gameRotation = PVector.div( PVector.add(lastRotation, rotation), 2); //moyenne des 2 dernières entrées
+								gameRotation.mult(-TangibleGame.inclinaisonMax / maxAcceptedAngle);
+								//on adoucis les angles d'entrée (pour + de contrôle proche de 0) TODO
 								float r = 360/PApplet.TWO_PI;
 								System.out.printf("rot: x: %.1f y: %.1f z: %.1f (°)\n", rotation.x*r, rotation.y*r, rotation.z*r);	
 							}
@@ -164,28 +165,38 @@ public class ImageAnalyser {
 							hasFoundRotation = true;
 							rotationLock.unlock();
 						} else {
+							hasFoundRotation = false;
 							if (displayQuadRejectionCause)
 								System.out.println("angle trop grand !");
 						}
 						
 						//-- get & set button state
-						if (detectButtons) {
+						if (detectButtonsInt) {
 							butDetJob.join();
 							butDetJob = null;
-							buttonStateLock.lock();
-							leftButtonVisible = buttonDetection.leftVisible;
-							rightButtonVisible = buttonDetection.rightVisible;
-							buttonStateLock.unlock();
+							if (hasFoundRotation) {
+								buttonStateLock.lock();
+								leftButtonVisible = buttonDetection.leftVisible;
+								rightButtonVisible = buttonDetection.rightVisible;
+								leftButtonScore = buttonDetection.leftScore;
+								rightButtonScore = buttonDetection.rightScore;
+								buttonStateLock.unlock();
+							}
 						}
 						imagesLock.lock();
-					} else {
+					} 
+					if (!hasFoundQuad || !hasFoundRotation) { // no good input -> old the whole !
 						rotationLock.lock();
-						hasFoundRotation = false;
 						if (rotationAge++ == 6) {
 							gameRotation = ProMaster.zero.get();
 						}
 						rotationLock.unlock();
-						buttonDetection.resetOutput();
+						buttonStateLock.lock();
+						leftButtonVisible = false;
+						rightButtonVisible = false;
+						leftButtonScore = 0;
+						rightButtonScore = 0;
+						buttonStateLock.unlock();
 					}
 
 					//-- print control img
@@ -215,10 +226,10 @@ public class ImageAnalyser {
 	
 	// ----- interaction response
 
-	public void updateForInput() {
+	private void updateForInput() {
 		if (newInput) {
 			//image size dependant parameters update
-			if (inWidth != inputImg.width || inHeight != inputImg.height) {
+			if (quadDetection.width != inputImg.width || quadDetection.height != inputImg.height) {
 				inWidth = inputImg.width;
 				inHeight = inputImg.height;
 				quadDetection = app.createGraphics(inWidth, inHeight);
@@ -242,11 +253,11 @@ public class ImageAnalyser {
 			paraMovie = ProMaster.copy(ImageProcessing.paraMovieBase);
 		paraCamera = ProMaster.copy(imgProc.paraCameraBase);
 		buttonDetection.paraBoutons = ProMaster.copy( imgProc.paraBoutonsBase );
-		
 		if (takeMovie && movieToo)
 			parametres = paraMovie;
 		else if (!takeMovie)
 			parametres = paraCamera;
+		newInput = true;
 		inputLock.unlock();
 	}
 	
@@ -280,6 +291,8 @@ public class ImageAnalyser {
 				pausedCam = !play;
 			}
 		}
+		if (play)
+			newInput = true;
 		
 		inputLock.unlock();
 	}

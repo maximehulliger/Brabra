@@ -16,7 +16,7 @@ import processing.core.PVector;
 public class Armement extends ProMaster {
 	private static final int guiWidth = 400;
 	private static final float ratioSizeMissile = 1f;
-	private static final float ratioTRechargeMissile = 1f;
+	private static final float ratioTRechargeMissile = 0.7f;
 	private static final float ratioUpgradeMax = 1.5f; //ratio max d'amélioratio 
 	private static final float ratioUpgradeMin = 0.4f; 
 	private static final float ratioUpgradeToExist = 0.2f; // -> pour que l'armement existe
@@ -55,8 +55,8 @@ public class Armement extends ProMaster {
 		if (ratioIn[2] > 0) {
 			float ratioUpgrade2 = PApplet.map(ratioIn[2], 0, 1, ratioUpgradeMin, ratioUpgradeMax) * ratioIn[2];
 			
-			LanceMissile leftBigMissLaunch = new LanceMissile(vec(launcher.radiusEnveloppe*0.25f, 0, -20), 2, ratioUpgrade2);
-			LanceMissile rightBigMissLaunch = new LanceMissile(vec(launcher.radiusEnveloppe*-0.25f, 0, -20), 2, ratioUpgrade2);
+			LanceMissile leftBigMissLaunch = new LanceMissile(vec(launcher.radiusEnveloppe*0.25f, -10, 0), 2, ratioUpgrade2);
+			LanceMissile rightBigMissLaunch = new LanceMissile(vec(launcher.radiusEnveloppe*-0.25f, -10, 0), 2, ratioUpgrade2);
 			
 			lmissiles.add( 0, leftBigMissLaunch);
 			lmissiles.add( rightBigMissLaunch);
@@ -66,8 +66,8 @@ public class Armement extends ProMaster {
 		if  (ratioIn[1] > 0) {
 			float ratioUpgrade1 = PApplet.map(ratioIn[1], 0, 1, ratioUpgradeMin, ratioUpgradeMax) * ratioIn[1];
 			
-			LanceMissile leftSmallMissLaunch = new LanceMissile(vec(launcher.radiusEnveloppe*0.65f, 0, -20), 1, ratioUpgrade1);
-			LanceMissile rightSmallMissLaunch = new LanceMissile(vec(launcher.radiusEnveloppe*-0.65f, 0, -20), 1, ratioUpgrade1);
+			LanceMissile leftSmallMissLaunch = new LanceMissile(vec(launcher.radiusEnveloppe*0.65f, -10, 0), 1, ratioUpgrade1);
+			LanceMissile rightSmallMissLaunch = new LanceMissile(vec(launcher.radiusEnveloppe*-0.65f, -10, 0), 1, ratioUpgrade1);
 			
 			lmissiles.add( 0, leftSmallMissLaunch );
 			lmissiles.add( rightSmallMissLaunch);
@@ -173,6 +173,14 @@ public class Armement extends ProMaster {
 				super(location, rotation, puissance, 
 						vec( tiersRatioSize[tier]*2*ratioSizeMissile, tiersRatioSize[tier]*2*ratioSizeMissile, tiersRatioSize[tier]*7*ratioSizeMissile) );
 				assert(tier > 0);
+				velocity.set(launcher.velocity);
+			}
+			
+			public void update() {
+				super.update();
+				if (ProMaster.distSq(launcher.location, location) > Starship.distSqBeforeRemove)
+					app.intRealGame.physic.toRemove.add( this );
+
 			}
 	
 			public void display() {
@@ -180,8 +188,6 @@ public class Armement extends ProMaster {
 				app.scale( tiersRatioSize[tier] * ratioSizeMissile );
 				app.shape(missile);
 				popLocal();
-				app.fill(255, 0, 0, 100);
-				super.display();
 			}
 	
 			public boolean doCollideFast(Collider col) {
@@ -197,7 +203,7 @@ public class Armement extends ProMaster {
 			}
 	
 			protected void addForces() {
-				avance( puissance );
+				avance( puissance*3 );
 			}
 	
 			public void onCollision(Collider col, PVector impact) {

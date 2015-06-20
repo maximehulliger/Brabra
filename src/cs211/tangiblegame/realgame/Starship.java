@@ -11,15 +11,14 @@ import processing.core.PVector;
 //une classe pouvant intervenir dans une collision. ne réagit pas.
 public class Starship extends Cube
 {
+	public static final float distSqBeforeRemove = 5000*5000;
 	public static final float sizeFactor = 15f;
-	private static final PVector size = PVector.mult( vec(4, 2, 8), sizeFactor); //for the collider
+	private static final PVector size = PVector.mult( vec(7, 2, 8), sizeFactor); //for the collider
 	public static final boolean displaySkybox = true;
 	private static final boolean displayViseur = true;
-	public float forceRatio = 5; //puissance du vaisseau
+	public float forceRatio = 15; //puissance du vaisseau
 	public boolean hasCamera = true;
 	
-	private float forceDepl = 0; // [0,1] si de la plaque, -1.1 ou 1.1 si du clavier. fait avancer ou reculer le vaisseau
-	private PVector forceRot = zero.get();
 	MeteorSpawner champ;
 	Armement armement;
 	public static PShape skybox;
@@ -48,11 +47,11 @@ public class Starship extends Cube
 		champ.update();
 		armement.update();
 		
-		app.imgAnalyser.buttonDetection.lock();
-		if (app.imgAnalyser.buttonDetection.leftVisible) {
-			armement.fire(app.imgAnalyser.buttonDetection.leftScore);
+		app.imgAnalyser.buttonStateLock.lock();
+		if (app.imgAnalyser.leftButtonVisible) {
+			armement.fire(app.imgAnalyser.leftButtonScore);
 		}
-		app.imgAnalyser.buttonDetection.unlock();
+		app.imgAnalyser.buttonStateLock.unlock();
 		
 	}
 
@@ -68,94 +67,106 @@ public class Starship extends Cube
 			app.camera(camPos.x, camPos.y, camPos.z, focus.x, focus.y, focus.z, or.x, or.y, or.z);
 		}
 		
-		//2. le vaisseau (corp, tête, viseur)
+		//2. le vaisseau (+viseur)
 		app.pushMatrix();
-		translate(location);
+		translate( location );
 		if (displaySkybox)
 			app.shape(skybox);
 		app.pushMatrix();
 		rotate(rotation);
 		app.fill(50, 100, 125);
-		//app.box(size.x, size.y, size.z);
 		if (displayViseur) {
-			//PVector to = PVector.mult(front, 10000);
-			app.stroke(255, 0, 0, 50);
-			app.line(0, 0, 0, 0, 0, -100000);
+			app.stroke(255, 0, 0, 150);
+			app.line(0, -1, 0, 0, -1, -100000);
 			app.noStroke();
 		}
+		translate( vec(0, -10, 20) );
 		app.shape(starship);
-		//app.translate(0, dim[1], dim[2]/2);
-		//app.sphere(dim[0]/2);
 		popLocal();
-		
+		/*app.fill(255, 0, 0, 100);
+		super.display();*/
 	}
 	
 	protected void addForces() {
+		PVector forceRot = zero.get();
 		
-		//-- rotation - selon angle de la plaque
-		PVector plateRot = app.imgAnalyser.rotation();
-		/*plateRot = new PVector(
-				PApplet.pow(plateRot.x/TangibleGame.inclinaisonMax, 0.875f), //-> x ^ 1.75
-				PApplet.pow(plateRot.y/TangibleGame.inclinaisonMax, 0.875f),
-				PApplet.pow(plateRot.z/TangibleGame.inclinaisonMax, 0.875f) );*/
+		//-- rotation - selon angle de la plaque et sd + souris
+		PVector plateRot = PVector.div(app.imgAnalyser.rotation(), TangibleGame.inclinaisonMax); //sur 1
+		// on adoucit par x -> x ^ 1.75
+		plateRot = new PVector(			
+				PApplet.pow(PApplet.abs(plateRot.x), 1.75f) * sgn(plateRot.x), 
+				PApplet.pow(PApplet.abs(plateRot.y), 1.75f) * sgn(plateRot.y),
+				PApplet.pow(PApplet.abs(plateRot.z), 1.75f) * sgn(plateRot.z));
+		forceRot.add( PVector.mult(plateRot,  TangibleGame.inclinaisonMax/4 ) );
 		
-		forceRot.add( PVector.mult(plateRot, 2) );
-		PVector f = PVector.mult( forceRot, forceRatio );
-		addForce(absolute(vec(0, 0, -150)), absolute( new PVector(-f.y*10, f.x), zero, rotation));
-		//addForce(absolute(vec(0, 50, 0)), absolute( new PVector(-f.z*3 , 0), zero, rotation));
-		if ( PApplet.abs(forceRot.x) != 1.1f ) forceRot.x = 0;
-		if ( PApplet.abs(forceRot.y) != 1.1f ) forceRot.y = 0;
-		forceRot.z = 0;
-
+		forceRot.add( PVector.div(forceMouse, 3));
+		forceMouse.set( zero );
+		if (keyDownTourneGauche)	forceRot.z -= 1;
+		if (keyDownTourneDroite)	forceRot.z += 1;
 		
-		//-- déplacement - selon le bouton droite
+		PVector f = PVector.mult( forceRot, forceRatio/(sizeFactor*sizeFactor*300) );	
+ 		addForce(absolute(vec(0, 0, -150)), absolute( new PVector(f.y*inertiaMom.y*2/3, f.x*inertiaMom.x), zero, rotation));
+		addForce(absolute(vec(0, 100, 0)), absolute( new PVector(-f.z*inertiaMom.z , 0), zero, rotation));
+		
+		//-- déplacement - selon ws et le bouton droite
+		float forceDepl = 0;
+		if (keyDownAvance)	forceDepl += 1;
+		if (keyDownRecule)	forceDepl -= 1;
+		
 		app.imgAnalyser.buttonStateLock.lock();
-		float rightScore = app.imgAnalyser.buttonDetection.rightScore;
+		float rightScore = app.imgAnalyser.rightButtonScore;
 		app.imgAnalyser.buttonStateLock.unlock();
 		
 		if (forceDepl != 0 || rightScore > 0) {
-			avance((forceDepl+rightScore)*forceRatio);
+			avance((forceDepl+rightScore)*100*forceRatio);
 		}
 			
 			
-		//si pas visible, on freine
-		if ( rightScore == 0 ) {
-			freine(0.15f);
+		//-- si pas visible et pas debrayé (espace -> non-frein), on freine
+		if ( rightScore == 0) {
+			if (debraie) {
+				freineDepl(0.001f);
+				freineRot(0.1f);
+			} else
+				freine(0.15f);
 		} else {
-			freineDepl(0.005f);
-			freineRot(0.05f);
+			freineDepl(0.1f);
+			freineRot(0.15f);
 		}
 	}
+	 
+	//----- gestion evenement
+	
+	private PVector forceMouse = zero.get();
+	private boolean debraie = false;
+	private boolean keyDownAvance = false;
+	private boolean keyDownRecule = false;
+	private boolean keyDownTourneGauche = false;
+	private boolean keyDownTourneDroite = false;
+	
 	
 	public void mouseDragged() {
 		int diffX = app.mouseX-app.pmouseX;
 		int diffY = app.mouseY-app.pmouseY;
-		forceRot.add( new PVector(-diffY*forceRatio/50, diffX*forceRatio/50) );
-		//float ratio = forceRatio / 10;
-		//controlForce.add( new PVector(diffY*ratio, 0, diffX*ratio) );
+		forceMouse.add( new PVector(-diffY*forceRatio/50, -diffX*forceRatio/50) );
 	}
 	
 	public void keyPressed() {
-		if (app.key == ' ')			forceDepl = 1.1f;
-		else if  (app.key == 'b')	forceDepl = -1.1f;
-			
-		if (app.key == 'w') 		forceRot.x = 1.1f;
-		else if (app.key == 's') 	forceRot.x = -1.1f;
-		if (app.key == 'a')			forceRot.y = -1.1f;
-		else if (app.key == 'd')	forceRot.y = 1.1f;
-		
-		if (app.key == 'e')	armement.fire(1);
+		if (app.key == ' ')		debraie = true;
+		if (app.key == 'w') 	keyDownAvance = true;
+		if (app.key == 's') 	keyDownRecule = true;
+		if (app.key == 'a')		keyDownTourneGauche = true;
+		if (app.key == 'd')		keyDownTourneDroite = true;
+		if (app.key == 'e')		armement.fire(1);
 		if (app.key >= '1' && app.key <= '5')
 			armement.fireFromSlot(app.key-'1');
 	}
 	
 	public void keyReleased() {
-		if (app.key == ' ' && forceDepl > 0)		forceDepl = 0;
-		else if  (app.key == 'b' && forceDepl < 0)	forceDepl = 0;
-		
-		if (app.key == 'w' && forceRot.x > 0) 		forceRot.x = 0;
-		else if (app.key == 's' && forceRot.x < 0) 	forceRot.x = 0;
-		if (app.key == 'a' && forceRot.y < 0) 		forceRot.y = 0;
-		else if (app.key == 'd' && forceRot.y > 0) 	forceRot.y = 0;
+		if (app.key == ' ')		debraie = false;
+		if (app.key == 'w') 	keyDownAvance = false;
+		if (app.key == 's') 	keyDownRecule = false;
+		if (app.key == 'a')		keyDownTourneGauche = false;
+		if (app.key == 'd')		keyDownTourneDroite = false;
 	}
 }

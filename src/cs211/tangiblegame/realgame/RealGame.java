@@ -38,16 +38,17 @@ public class RealGame extends Interface {
 		physic.colliders.add(starship);
 		//physic.colliders.add( sol );
 		
-		physic.colliders.add( new Armement.Objectif(vec(0,100,-500), 1000));
-		physic.colliders.add( new Armement.Objectif(vec(0,100,500), 1000));
-		physic.colliders.add( new Armement.Objectif(vec(400,100,-800), 1000));
-		physic.colliders.add( new Armement.Objectif(vec(-400,100,-800), 1000));
-		physic.colliders.add( new Armement.Objectif(vec(0,800,100), 1000));
-		physic.colliders.add( new Armement.Objectif(vec(0, -500,0), 1000));
-		physic.colliders.add( new Armement.Objectif(vec(400,400,400), 1000));
-		physic.colliders.add( new Armement.Objectif(vec(-400,-400,400), 1000));
-		physic.colliders.add( new Armement.Objectif(vec(600, 800,-500), 1000));
-		physic.colliders.add( new Armement.Objectif(vec(400,100,-500), 1000));
+		int vie = 200;
+		physic.colliders.add( new Armement.Objectif(vec(0,100,-500), vie));
+		physic.colliders.add( new Armement.Objectif(vec(0,100,500), vie));
+		physic.colliders.add( new Armement.Objectif(vec(400,100,-800), vie));
+		physic.colliders.add( new Armement.Objectif(vec(-400,100,-800), vie));
+		physic.colliders.add( new Armement.Objectif(vec(0,800,100), vie));
+		physic.colliders.add( new Armement.Objectif(vec(0, -500,0), vie));
+		physic.colliders.add( new Armement.Objectif(vec(400,400,400), vie));
+		physic.colliders.add( new Armement.Objectif(vec(-400,-400,400), vie));
+		physic.colliders.add( new Armement.Objectif(vec(600, 800,-500), vie));
+		physic.colliders.add( new Armement.Objectif(vec(400,100,-500), vie));
 		
 		//Cube cube1 = new Cube( base, ProMaster.zero.get(), 5, vec(300, 30,300) );
 		//Cube cube2 = new Cube( dessus , vec(0, 0, QUARTER_PI), 1, vec(30, 30, 30) );
@@ -59,7 +60,7 @@ public class RealGame extends Interface {
 	
 	public void wakeUp() {
 		app.imgAnalyser.detectButtons = true;
-		app.imgAnalyser.play(true);
+		app.imgAnalyser.play(false);
 	}
 	
 	public void draw() {
@@ -76,6 +77,10 @@ public class RealGame extends Interface {
 		app.hint(PApplet.DISABLE_DEPTH_TEST);
 		starship.armement.displayGui();
 		app.imgAnalyser.displayCtrImg();
+		if (starship.hasCamera) { //TODO not working
+			app.fill(255, 255, 255, 255);
+			app.point(app.width/2, app.height/2);
+		}
 		app.hint(PApplet.ENABLE_DEPTH_TEST);
 	}
 

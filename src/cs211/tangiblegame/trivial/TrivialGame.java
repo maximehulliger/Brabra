@@ -82,7 +82,7 @@ public class TrivialGame extends Interface {
 		
 		platRot.x = PApplet.constrain((platRot.x + ratioUpdate * (gameRotation.x - platRot.x)), -TangibleGame.inclinaisonMax, TangibleGame.inclinaisonMax);
 		platRot.y = 0;//PApplet.constrain(imgAnalyser.rotation.y, -plateMaxAngle, plateMaxAngle);
-		platRot.z = PApplet.constrain((platRot.z + ratioUpdate * (-gameRotation.z - platRot.z)), -TangibleGame.inclinaisonMax, TangibleGame.inclinaisonMax);
+		platRot.z = PApplet.constrain((platRot.z + ratioUpdate * (gameRotation.y - platRot.z)), -TangibleGame.inclinaisonMax, TangibleGame.inclinaisonMax);
 		app.rotateX(platRot.x * ratioEtat);
 		app.rotateY(platRot.y * ratioEtat);
 		app.rotateZ(platRot.z * ratioEtat);

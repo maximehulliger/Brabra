@@ -31,38 +31,38 @@ public final class ImageProcessing extends ProMaster {
 	public static final float[] buttonParaMaxValue = {
 		200, //MinVoteLeft
 		200, //MaxVoteLeft -> #button pixel needed to have score 1
-		200,  //MinVoteRight 
+		200, //MinVoteRight 
 		200, //MaxVoteTight
 	};
 	
 	public static final float[] paraMovieBase = { 
-		90f, 127.5f, 	//hue
-		0, 165.7f, 		//bright
-		79f, 255f,		//satur
-		0, 102f, 		//r
-		25.5f, 153f, 	//g
-		51f, 255,		//b
-		127f, 97f,	//min vote, neighbour
-		153f, 0.2f };	//nb line kept, sobel threshold
+		101.6f, 127.1f, //hue
+		0, 209f, 		//bright
+		37.8f, 255f,	//satur
+		0, 255f, 		//r
+		81.8f, 202f, 	//g
+		51f, 236,		//b
+		35f, 25.4f,		//min vote, neighbour
+		6f, 0.3f };		//nb line kept, sobel threshold
 	
 	public float[] paraCameraBase = { 
-		81.6f, 114.7f, 	//hue
-		0.0f, 255f, 		//bright
-		38.2f, 255f,		//satur
-		0f, 255f, 		//r
-		0f, 255f, 		//g
-		0f, 224.4f,		//b
-		50f, 38f,	//min vote, neighbour
+		67.6f, 107.5f, 	//hue
+		54.3f, 255f, 	//bright
+		109f, 255f,		//satur
+		0f, 125f, 		//r
+		47.8f, 255f, 	//g
+		0f, 175f,		//b
+		50f, 38f,		//min vote, neighbour
 		6f, 0.13f };	//nb line kept, sobel threshold
 	public float[] paraBoutonsBase = { 
-		237f, 20f, 	//hue
+		243.7f, 6f, 	//hue
 		0.0f,255f, 		//bright
-		128f, 255f,		//satur
-		0.0f, 255f, 		//r (3)
+		114f, 255f,		//satur
+		0.0f, 255f, 	//r (3)
 		0f, 255f, 		//g
 		0.0f, 224.4f,	//b
-		0.0f, 50f,	//vote map left button
-		0.0f, 100f };	//vote map right button
+		50f, 100f,		//vote map left button
+		50f, 100f };	//vote map right button
 
 	static public int rgbColor(int r, int g, int b, int a) {
 		if (r > 255) r = 255;

@@ -37,15 +37,16 @@ public class Menu extends Interface {
 			+ "  esc -> quit or return\n"
 			+ "Real game: \n"
 			+ "  the goal is to destroy all the yellow balls.\n"
-			+ "  the plate make turn the ship (over the vertical axis).\n"
-			+ "  1-4, e, right button -> launch missile\n"
-			+ "  wasd, left button -> move\n"
+			+ "  right button, 1-4, e  -> launch missiles\n"
+			+ "  left button, ws -> move\n"
+			+ "  plate rotation, ad, mouse drag -> rotate the ship\n"
+			+ "  <tab> -> change the view\n"
 			+ "Trivial game:\n"
 			+ "  hold shift to enter placement mode, \n"
-			+ "  click to place obstacle on the plate."
+			+ "  click to place obstacle on the plate.\n"
 			+ "Calibration:\n"
-			+ "  l/s -> load/save parameters\n\n"
-			+ "          for more info, look in 'readmeplz.txt'";
+			+ "  l/s -> load/save parameters\n";
+			//+ "                       for more info, look in 'readmeplz.txt'";
 	
 	private PImage imgBoutonUp;
 	private PImage imgBoutonDown;
@@ -84,7 +85,7 @@ public class Menu extends Interface {
 		for (int i=0; i<nbButton; i++, y+=buttonDiffY) {
 			int diffx = app.mouseX - buttonOffsetX, diffy = app.mouseY - y;
 			if (diffx > 0 && diffx < buttonSizeX && diffy > 0 && diffy < buttonSizeY && //dedans
-					app.ready && app.imgAnalyser.ready) { 
+					app.ready) { 
 				app.fill(100, 0, 200);
 				toDraw = imgBoutonDown;
 			} else {
@@ -173,7 +174,7 @@ public class Menu extends Interface {
 		for (int i=0; i<nbButton; i++, y+=buttonDiffY) {
 			int diffx = app.mouseX - buttonOffsetX, diffy = app.mouseY - y;
 			if (diffx > 0 && diffx < buttonSizeX && diffy > 0 && diffy < buttonSizeY && 
-					app.ready && app.imgAnalyser.ready) {
+					app.ready) {
 				switch (i) {
 				case 0:
 					app.setInterface(app.intRealGame);

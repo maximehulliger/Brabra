@@ -72,6 +72,11 @@ public class TangibleGame extends PApplet {
 			setInterface(intMenu);
 			key = 0;
 		} 
+		
+		//l ou s -> load ou save parameters
+		if (key == 'l') {
+			imgAnalyser.imgProc.selectParameters();
+		}
 			
 		//pour tous les jeux:
 		if (currentInterface != intMenu) {

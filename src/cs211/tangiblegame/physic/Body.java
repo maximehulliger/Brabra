@@ -121,7 +121,7 @@ public abstract class Body extends ProMaster {
 	// permet d'appliquer une force au body à ce point (absolu)
 	protected void addForce(PVector absPos, PVector force) {
 		if (drawInteraction) {
-			PVector to = PVector.add(absPos, PVector.mult(force, 100));
+			PVector to = PVector.add(absPos, PVector.mult(force, 0.2f));
 			app.stroke(255);
 			app.line(absPos.x, absPos.y, absPos.z, to.x, to.y, to.z);
 		}
@@ -150,7 +150,7 @@ public abstract class Body extends ProMaster {
 	}
 	
 	protected void avance(float force) {
-		addForce( absolute( PVector.mult(front, 30) ) , absFront(30 + force) );
+		addForce( absolute( PVector.mult(front, 150) ) , absFront(force) );
 	}
 	
 	protected void freine(float perte) {
@@ -168,11 +168,13 @@ public abstract class Body extends ProMaster {
 	
 	// applique une force qui s'oppose à la vitesse angulaire.
 	protected void freineRot(float perte) {
-		if (isZeroEps(rotationVel.angle) && rotationVel.angle != 0) {
-			rotationVel = new Quaternion();
-		} else {
-			rotationVel.angle *= (1 - perte);
-			rotationVel.initFromAxis();
+		if (rotationVel.angle != 0) {
+			if ( isZeroEps(rotationVel.angle) ) {
+				rotationVel = new Quaternion();
+			} else {
+				rotationVel.angle *= (1 - perte);
+				rotationVel.initFromAxis();
+			}
 		}
 	}
 	

@@ -123,12 +123,13 @@ public class Calibration extends Interface {
 			ia.inputLock.lock();
 			if (ia.takeMovie) {
 				ia.restartMovie();
-			ia.paraMovie = copy(ImageProcessing.paraMovieBase);
+				ia.paraMovie = copy(ImageProcessing.paraMovieBase);
 			} else if (buttonCalibrationMode) {
 				ia.paraCamera = ProMaster.copy(ia.imgProc.paraCameraBase);
 			} else {
 				ia.buttonDetection.lock();
 				ia.buttonDetection.paraBoutons = ProMaster.copy(ia.imgProc.paraBoutonsBase);
+				ia.buttonDetection.unlock();
 			}
 			ia.inputLock.unlock();
 		}
@@ -147,9 +148,9 @@ public class Calibration extends Interface {
 		}
 		
 		if (app.key == 'l') {
-			app.imgAnalyser.imgProc.selectParameters();
 			updateBars();
-		} else if (app.key == 's') {
+		}
+		if (app.key == 's') {
 			app.imgAnalyser.imgProc.saveParameters();
 		}
 	}
