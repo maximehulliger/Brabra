@@ -1,7 +1,5 @@
-*.txt
-*.jar
-*.so
 *.dll
+*.jar
 
 #################
 ## Eclipse
@@ -63,6 +61,7 @@ build/
 *_p.c
 *.ilk
 *.meta
+*.obj
 *.pch
 *.pdb
 *.pgc

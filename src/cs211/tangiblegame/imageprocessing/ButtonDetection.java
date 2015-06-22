@@ -16,9 +16,9 @@ import processing.core.PVector;
 
 @SuppressWarnings("serial")
 public class ButtonDetection extends ReentrantLock {
-	private static final float maxRayon = 50;
+	private static final float maxRayon = 60;
 	private static final int overHeadVote = 2500;
-	private static final boolean printButtonScore = true;
+	private static final boolean printButtonScore = false;
 	
 	public float[] paraBoutons;
 	public PImage threshold2Button = null;

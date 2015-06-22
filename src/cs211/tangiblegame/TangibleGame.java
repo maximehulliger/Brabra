@@ -12,7 +12,7 @@ public class TangibleGame extends PApplet {
 	private static final long serialVersionUID = 338280650599573653L;
 
 	//--parametres
-	private static final int ratioSize = 4; //généralement de 2 (640x360) à 5 (1920x1080)
+	//private static final int ratioSize = 4; //généralement de 2 (640x360) à 6 (1920x1080)
 	public static final float inclinaisonMax = PApplet.PI/5; 
 	
 	//--interne
@@ -30,7 +30,7 @@ public class TangibleGame extends PApplet {
 	
 	public void setup() {
 		ProMaster.init(this);
-		size(16*20*ratioSize, 9*20*ratioSize, P3D);
+		size(1280, 720, P3D);
 		imgAnalyser = new ImageAnalyser(this);
 		thread("loadInterfaces");
 		thread("imageProcessing");

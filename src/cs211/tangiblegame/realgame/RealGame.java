@@ -114,10 +114,10 @@ public class RealGame extends Interface {
 	public void mouseDragged() {
 		starship.mouseDragged();
 	}
-
+	
 	public void mouseWheel(MouseEvent event) {
 		float delta = - event.getCount(); //delta negatif si vers l'utilisateur
-		starship.forceRatio = PApplet.constrain( starship.forceRatio + 0.05f*delta , 0.1f, 2 );
+		starship.forceRatio = PApplet.constrain( starship.forceRatio + 0.05f*delta , 0.2f, 60 );
 	}
 
 	public void keyReleased() {

@@ -191,12 +191,8 @@ public class ImageAnalyser {
 							gameRotation = ProMaster.zero.get();
 						}
 						rotationLock.unlock();
-						buttonStateLock.lock();
-						leftButtonVisible = false;
-						rightButtonVisible = false;
-						leftButtonScore = 0;
-						rightButtonScore = 0;
-						buttonStateLock.unlock();
+
+						resetBoutonOutput();
 					}
 
 					//-- print control img
@@ -261,6 +257,13 @@ public class ImageAnalyser {
 		inputLock.unlock();
 	}
 	
+	private void resetBoutonOutput() {
+		leftButtonScore = 0;
+		rightButtonScore = 0;
+		leftButtonVisible = false;
+		rightButtonVisible = false;
+	}
+	
 	public boolean paused() {
 		return (pausedMov && takeMovie) || (pausedCam && !takeMovie);
 	}
@@ -291,8 +294,11 @@ public class ImageAnalyser {
 				pausedCam = !play;
 			}
 		}
+		
 		if (play)
 			newInput = true;
+		else
+			resetBoutonOutput();
 		
 		inputLock.unlock();
 	}
