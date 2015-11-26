@@ -188,6 +188,10 @@ public class Armement extends ProMaster {
 				app.scale( tiersRatioSize[tier] * ratioSizeMissile );
 				app.shape(missile);
 				popLocal();
+				if (drawCollider) {
+					app.fill(255, 0, 0, 100);
+					super.display();
+				}
 			}
 	
 			public boolean doCollideFast(Collider col) {

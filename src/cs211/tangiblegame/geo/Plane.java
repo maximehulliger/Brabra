@@ -15,7 +15,7 @@ public class Plane extends PseudoPolyedre {
 	private Line v1; //sur x
 	private Line v2; //sur z
 	
-	// crée un plan de taille size2d (x,z)
+	/** crée un plan de taille size2d (x,z) */
 	public Plane(PVector loc, Quaternion rot, float mass, PVector size2d) {
 		super( loc, rot, size2d.mag()/2 );
 		this.size = size2d;
@@ -25,9 +25,9 @@ public class Plane extends PseudoPolyedre {
 		setMass(mass);
 	}
 	
-	// crée un plan infini
+	/* crée un plan infini */
 	public Plane(PVector loc, Quaternion rot) {
-		super( loc, rot, 0 );
+		super( loc, rot, Float.MAX_VALUE );
 		this.size = null;
 		this.natCo = getNatCo(new PVector(1, 0, 1));
 		this.finite = false;
@@ -74,17 +74,18 @@ public class Plane extends PseudoPolyedre {
 	      		app.box(v2.vectorMag, 1, v1.vectorMag);
 	      	} else {
 	      		app.stroke(0, 140, 0);
-	    		app.fill(0, 100, 100, 1);
-	      		app.box(1000, 1, 1000);
+	    		app.fill(0, 100, 100, 200);
+	      		app.box(10000, 1, 10000);
 	      	}
+	    	app.noStroke();
 	    popLocal();
 	}
 
 	public Line collisionLineFor(PVector p) {
-		/*if (isFacing(p))
+		if (isFacing(p))
 			return normale;
 		else
-			*/return new Line(projette(p), p, false);
+			return new Line(projette(p), p, false);
 	}
 	
 	public boolean isIn(PVector abs) {
@@ -105,9 +106,8 @@ public class Plane extends PseudoPolyedre {
 	public PVector pointContre(PVector normale) {
 		if (!finite)
 			return farfarAway;
-		PVector cNorm = PVector.mult(normale, -1);
-		PVector proj = PVector.mult( v1.norm, size.x/2 * sgn(v1.norm.dot(cNorm)) );
-		proj.add( PVector.mult( v2.norm, size.z/2 * sgn(v2.norm.dot(cNorm))) );
+		PVector proj = PVector.mult( v1.norm, size.x/2 * -sgn(v1.norm.dot(normale)) );
+		proj.add( PVector.mult( v2.norm, size.z/2 * -sgn(v2.norm.dot(normale))) );
 		proj.add(location);
 		return proj;
 	}
@@ -118,7 +118,8 @@ public class Plane extends PseudoPolyedre {
 		else if (finite)
 			return ligne.projette( sommets );
 		else
-			throw new IllegalArgumentException("infinite plane projected !!");
+			return ligne.new Projection(Float.MIN_VALUE, Float.MAX_VALUE);
+			//throw new IllegalArgumentException("infinite plane projected !!");
 	}
 	
 	public Plane[] plansSeparationFor(PVector colliderLocation) {
@@ -167,9 +168,4 @@ public class Plane extends PseudoPolyedre {
 				new PVector(-size2d.x/2, 0, size2d.z/2), 
 				new PVector(size2d.x/2, 0, size2d.z/2)};
 	}
-
-	/*public boolean hasIntrudersOver(Line colLine) {
-		// TODO Auto-generated method stub
-		return false;
-	}*/
 }

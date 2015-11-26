@@ -12,7 +12,7 @@ public class Quaternion {
 	public PVector rotAxis = null;	// updated when rotated, always normalized or null
 	public float angle = 0;
 
-	private static final int manucureAge = 3; // #rotate before normalize.
+	private static final int manucureAge = 2; // #rotate before normalize.
 	private int age = 0;
 
 	public Quaternion(float w, float x, float y, float z) {
@@ -24,6 +24,13 @@ public class Quaternion {
 
 	public Quaternion() {
 		this(1, 0, 0, 0);
+	}
+	
+	public void set(float w, float x, float y, float z) {
+		W = w;
+		X = x;
+		Y = y;
+		Z = z;
 	}
 
 	public Quaternion(PVector rotation) {

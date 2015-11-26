@@ -6,6 +6,8 @@ import processing.core.*;
 
 /** une classe pouvant entraîner et réagir à une collision.*/
 public abstract class Collider extends Body {
+	public final static boolean drawCollider = false;
+	
 	public final float radiusEnveloppe;
 	
 	public Collider(PVector location, Quaternion rotation, float radiusEnveloppe) {
@@ -15,8 +17,9 @@ public abstract class Collider extends Body {
 	
 	public boolean doCollideFast(Collider c) {
 		boolean parenty = (parent == c || c.parent == this || (parent == c.parent && parent != null));
+		assert (!parenty);
 		boolean contactEnveloppe = PVector.sub(this.location, c.location).magSq() < sq(this.radiusEnveloppe + c.radiusEnveloppe);
-		return !parenty && contactEnveloppe;
+		return contactEnveloppe;
 	}
 	
 	public abstract void display();

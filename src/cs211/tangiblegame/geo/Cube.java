@@ -5,13 +5,9 @@ import processing.core.*;
 
 public class Cube extends PseudoPolyedre {
 	
-	//nativeCo:
 	public final PVector size;
 	protected final float[] dim;
-	//private final PVector[] natSommets;
-	
 	protected final Plane[] faces;
-	//private PVector[] axes; //abs (3)
 
 	
 	public Cube(PVector location, Quaternion rotation, float mass, PVector size) {
@@ -19,7 +15,6 @@ public class Cube extends PseudoPolyedre {
 	    this.size = size;
 	    this.dim = PVector.mult( size, 0.5f).array(); //à partir de l'origine
 		this.faces = getFaces(size);
-	    //this.natSommets = getSommetsLoc(size);
 	    updateAbs();
 	    setMass(mass);
 	}

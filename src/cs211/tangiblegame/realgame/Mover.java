@@ -7,11 +7,16 @@ import processing.core.*;
 public class Mover extends Sphere {
 	public Mover(PVector location)  {
 		//super(location, zero, 1, new PVector(10, 20, 10));
-		super(location, 1, 10);
+		super(location, 1, 30);
 	}
 
 	public void addForces() {
 		pese();
-		freine(0.05f);
+		//freine(0.05f);
+	}
+	
+	public void display() {
+		app.fill(0, 100, 200);
+		super.display();
 	}
 }

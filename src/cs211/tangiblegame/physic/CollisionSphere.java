@@ -22,7 +22,9 @@ public final class CollisionSphere extends Collision {
 		
 		Line colLine = obstacle.collisionLineFor(sphere.location);
 		norm = colLine.norm;
-		PVector contact = sphere.projette(impact);
+		PVector toContact = PVector.mult(norm, -1);
+		toContact.setMag(sphere.radius);
+		PVector contact = PVector.add(sphere.location, toContact);
 		correction = PVector.sub(impact, contact);
 		nulle = false;
 	}

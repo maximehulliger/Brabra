@@ -12,16 +12,23 @@ import processing.core.PVector;
  */
 public final class MeteorSpawner extends Cube {
 	public static PShape meteor;
-	private final float minSpeed = 1, maxSpeed = 12;
-	private final float minMass = 2, maxMass = 4;
-	private final float minRadius = 1, maxRadius = 40;
-	private final int minPopTime = 1, maxPopTime = 10;
+	private static final int nbMeteorMax = 60;
+	private static final int ratioRandomToPlayer = 10; //nb de météorite tirée aléatoirement pour une contre le joueur.
+	private static final int minPopTime = 15, maxPopTime = 60;
+	private static final float minSpeed = 1, maxSpeed = 12;
+	private static final float minMass = 2, maxMass = 30;
+	private static final float minRadius = 1, maxRadius = 120;
 	
+	private int nbMeteor = 0;
+	private int randomMeteorCounter = 0;
 	private int nextPopTime;
+	private final Body meteorParent;
 	
 	public MeteorSpawner(Body parent, PVector location, PVector size) {
 		super(location, new Quaternion(), -1, size);
-		this.parent = parent;
+		super.parent = parent;
+		this.meteorParent = parent;
+		
 		setNext();
 	}
 	
@@ -38,13 +45,20 @@ public final class MeteorSpawner extends Cube {
 	}
 	
 	public void popMeteor() {
-		int idxStartFace = random.nextInt(6);
-		
-		int toOtherSideIdx = (idxStartFace%2 == 0 ? 1 : -1);
-		PVector startPos = faces[idxStartFace].randomPoint();
-		PVector goal = faces[idxStartFace + toOtherSideIdx].randomPoint();
-		
-		app.intRealGame.physic.toAdd.add( new Meteor(startPos, goal) );
+		if (nbMeteor < nbMeteorMax) {
+			int idxStartFace = random.nextInt(6);
+			PVector startPos = faces[idxStartFace].randomPoint();
+			PVector goal;
+			if (randomMeteorCounter++ >= ratioRandomToPlayer) { //temps de viser le joueur
+				goal = parent.location;
+				randomMeteorCounter = 0;
+			} else {
+				int toOtherSideIdx = (idxStartFace%2 == 0 ? 1 : -1);
+				goal = faces[idxStartFace + toOtherSideIdx].randomPoint();
+			}
+			app.intRealGame.physic.toAdd.add( new Meteor(startPos, goal) );
+			nbMeteor++;
+		}
 	}
 	
 	private class Meteor extends Sphere {
@@ -61,17 +75,19 @@ public final class MeteorSpawner extends Cube {
 			velocity.set(vel.array());
 			velocity.setMag(speed);
 			
-			PVector rotAxis = new PVector(random.nextFloat(), random.nextFloat(), random.nextFloat());
-			rotAxis.normalize();
-			float angle = speed/30f*random.nextFloat();
-			rotationVel = new Quaternion(angle, rotAxis);
+			rotationVel.rotAxis = new PVector(random.nextFloat(), random.nextFloat(), random.nextFloat());
+			rotationVel.rotAxis.normalize();
+			rotationVel.angle = speed/30f*random.nextFloat();
+			rotationVel.initFromAxis();
 		}
 		
 		public void update() {
 			super.update();
 			
-			if ( !isIn(this.location))
+			if ( distSq(this.location, meteorParent.location) > Starship.distSqBeforeRemove) {
 				app.intRealGame.physic.toRemove.add(this);
+				nbMeteor--;
+			}
 		}
 		
 		public void display() {
@@ -79,6 +95,10 @@ public final class MeteorSpawner extends Cube {
 			app.scale(radius);
 			app.shape(meteor);
 			popLocal();
+			if (drawCollider) {
+				app.fill(255, 0, 0, 100);
+				super.display();
+			}
 		}
 	}
 }

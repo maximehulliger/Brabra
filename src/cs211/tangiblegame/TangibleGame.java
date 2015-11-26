@@ -28,9 +28,16 @@ public class TangibleGame extends PApplet {
 	
 	//----- setup et boucle d'update (draw)
 	
+	public static void main(String args[])
+	{
+		PApplet.main(new String[] { cs211.tangiblegame.TangibleGame.class.getName() });
+	}
+	
 	public void setup() {
 		ProMaster.init(this);
 		size(1280, 720, P3D);
+		float camZ = height / (2*tan(PI*60/360.0f));
+		perspective(PI/3, width/(float)height, camZ/10, camZ*1000);
 		imgAnalyser = new ImageAnalyser(this);
 		thread("loadInterfaces");
 		thread("imageProcessing");

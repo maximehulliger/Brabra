@@ -16,7 +16,6 @@ public class Sphere extends Collider {
 	protected void setMass(float mass) {
 		super.setMass(mass);
 		if (inverseMass > 0) {
-			//float fact = mass/12;
 			float fact = mass*radius*2/5;
 			super.inertiaMom = new PVector(fact, fact, fact);
 			super.inverseInertiaMom = new PVector(
@@ -53,9 +52,10 @@ public class Sphere extends Collider {
 	public Line collisionLineFor(PVector p) {
 		//on prend le vecteur this->c. la ligne part du perimetre à c.
 		PVector sc = PVector.sub(p, location);
-		PVector out = null;
-		sc.setMag(out, radius);
-		return new Line( PVector.add(location, sc), p, false);
+		sc.setMag(radius);
+		PVector base = PVector.add(location, sc);
+		return new Line( base,
+				PVector.add(base, sc), false);
 	}
 	
 	public static boolean areSpheresColliding(PVector p1, float r1, PVector p2, float r2) {

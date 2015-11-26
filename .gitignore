@@ -1,6 +1,6 @@
 *.dll
 *.jar
-
+lib/*
 #################
 ## Eclipse
 #################
@@ -217,3 +217,6 @@ pip-log.txt
 
 #Mr Developer
 .mr.developer.cfg
+*.html
+lib/base/dxf/export.txt
+preferences.txt

@@ -2,6 +2,7 @@ package cs211.tangiblegame.realgame;
 
 import cs211.tangiblegame.TangibleGame;
 import cs211.tangiblegame.geo.Cube;
+import cs211.tangiblegame.geo.Plane;
 import cs211.tangiblegame.geo.Quaternion;
 import cs211.tangiblegame.realgame.Armement;
 import processing.core.PApplet;
@@ -9,9 +10,9 @@ import processing.core.PShape;
 import processing.core.PVector;
 
 //une classe pouvant intervenir dans une collision. ne réagit pas.
-public class Starship extends Cube
+public class Starship extends Plane//Cube
 {
-	public static final float distSqBeforeRemove = 5000*5000;
+	public static final float distSqBeforeRemove = 12_000*12_000; //distance du vaisseau avant remove
 	public static final float sizeFactor = 15f;
 	private static final PVector size = PVector.mult( vec(7, 2, 8), sizeFactor); //for the collider
 	public static final boolean displaySkybox = true;
@@ -26,7 +27,7 @@ public class Starship extends Cube
 	
 	public Starship(PVector location) {
 		super(location, new Quaternion(), 200, size);
-		PVector champSize = vec(10_000, 10_000, 15_000);
+		PVector champSize = vec(5000, 5000, 8000);
 		this.champ = new MeteorSpawner(this, vec(0, 0, -champSize.z/6), champSize);
 		this.armement = new Armement(this, 0, 1, 1);
 	}
@@ -44,7 +45,7 @@ public class Starship extends Cube
 	public void update() {
 		super.update();
 		
-		champ.update();
+		//champ.update();
 		armement.update();
 		
 		app.imgAnalyser.buttonStateLock.lock();
@@ -58,13 +59,13 @@ public class Starship extends Cube
 	public void display() {
 		app.noStroke();
 		
-		//1. la camera
+		//1. la camera TODO
 		if (hasCamera) {
 			PVector relCamPos = PVector.mult(new PVector(0, 6, 9), sizeFactor);
 			PVector camPos = absolute(relCamPos);
-			PVector or = PVector.mult(faces[3].normale.norm, 1);
+			PVector or = absolute(up, zero, rotation);//faces[3].normale.norm;
 			PVector focus = PVector.add(location, absUp(4 * sizeFactor));
-			app.camera(camPos.x, camPos.y, camPos.z, focus.x, focus.y, focus.z, or.x, or.y, or.z);
+			app.camera(camPos.x, camPos.y, camPos.z, focus.x, focus.y, focus.z, -or.x, -or.y, -or.z);
 		}
 		
 		//2. le vaisseau (+viseur)
@@ -83,8 +84,10 @@ public class Starship extends Cube
 		translate( vec(0, -10, 20) );
 		app.shape(starship);
 		popLocal();
-		/*app.fill(255, 0, 0, 100);
-		super.display();*/
+		if (drawCollider) {
+			app.fill(255, 0, 0, 100);
+			super.display();
+		}
 	}
 	
 	protected void addForces() {

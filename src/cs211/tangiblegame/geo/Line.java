@@ -42,6 +42,7 @@ public final class Line extends ProMaster {
 	    return PVector.sub( p, base ).dot(norm);
 	  }
 	  
+	  /** retourne true si le point est dans l'hyperplan formé par cette ligne. */
 	  public boolean isFacing(PVector point) {
 		  float pf = projectionFactor(point);
 		  return 0 <= pf && pf <= vectorMag;

@@ -21,8 +21,8 @@ public abstract class Body extends ProMaster {
 	
 	public final PVector velocity = zero.get();
 	public final PVector location;
-	public Quaternion rotationVel = new Quaternion();
-	public Quaternion rotation = new Quaternion();
+	public final Quaternion rotationVel = new Quaternion();
+	public final Quaternion rotation;
 	
 	public Body parent = null;			
 	public boolean transformChanged = true;	//indique si la transformation du body a été modifiée cette frame.
@@ -37,6 +37,7 @@ public abstract class Body extends ProMaster {
 	protected void setMass(float mass) {
 		if (mass == -1) {
 			this.mass = -1;
+			this.affectedByCollision = false;
 			this.inverseMass = 0;
 			this.inverseInertiaMom = zero.get();
 		} else if (mass <= 0)
@@ -44,6 +45,7 @@ public abstract class Body extends ProMaster {
 		else {
 			this.mass = mass;
 			this.inverseMass = 1/this.mass;
+			this.affectedByCollision = true;
 		}
 	}
 
@@ -170,7 +172,7 @@ public abstract class Body extends ProMaster {
 	protected void freineRot(float perte) {
 		if (rotationVel.angle != 0) {
 			if ( isZeroEps(rotationVel.angle) ) {
-				rotationVel = new Quaternion();
+				rotationVel.set(1, 0, 0, 0);
 			} else {
 				rotationVel.angle *= (1 - perte);
 				rotationVel.initFromAxis();
@@ -238,9 +240,9 @@ public abstract class Body extends ProMaster {
 	}
 	
 	protected void popLocal() {
-		if (parent != null)
-			parent.popLocal();
 		app.popMatrix();
 	    app.popMatrix();
+	    if (parent != null)
+			parent.popLocal();
 	}
 }

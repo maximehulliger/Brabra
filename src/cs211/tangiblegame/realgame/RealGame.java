@@ -4,6 +4,9 @@ import processing.core.PApplet;
 import processing.core.PVector;
 import processing.event.MouseEvent;
 import cs211.tangiblegame.Interface;
+import cs211.tangiblegame.ProMaster;
+import cs211.tangiblegame.geo.Plane;
+import cs211.tangiblegame.geo.Quaternion;
 import cs211.tangiblegame.physic.Physic;
 import cs211.tangiblegame.realgame.Armement;
 
@@ -22,7 +25,7 @@ public class RealGame extends Interface {
 		
 		MeteorSpawner.meteor = app.loadShape("asteroid.obj");
 		Starship.skybox = app.loadShape("skybox.obj");
-		Starship.skybox.scale(100);
+		Starship.skybox.scale(10000);
 		Starship.starship = app.loadShape("starship.obj");
 		Starship.starship.scale( Starship.sizeFactor );
 		Armement.missile = app.loadShape("rocket.obj");
@@ -31,24 +34,28 @@ public class RealGame extends Interface {
 
 	public void init() {
 		physic = new Physic();
-		starship = new Starship( vec(0, 100, 0) );
-		//Mover mover = new Mover( vec(0, 120, -5) );
-		//Plane sol = new Plane(ProMaster.zero, ProMaster.zero);
-		//physic.colliders.add(mover);
+		starship = new Starship( vec(0, 100, -700) );
+		//Mover mover = new Mover( vec(0, 300, 0) );
+		//Plane sol = new Plane(ProMaster.zero, new Quaternion(), -1, vec(1000, 0, 1000));
 		physic.colliders.add(starship);
+		//physic.colliders.add(mover);
 		//physic.colliders.add( sol );
+		//mover.applyImpulse( PVector.add(mover.location, vec(0, 0, 0)), vec(0, 0, 1));
+		
+		//physic.colliders.add( new Shield(vec(0, 100, 0), vec(200, 20, 80)));
 		
 		int vie = 200;
-		physic.colliders.add( new Armement.Objectif(vec(0,100,-500), vie));
-		physic.colliders.add( new Armement.Objectif(vec(0,100,500), vie));
-		physic.colliders.add( new Armement.Objectif(vec(400,100,-800), vie));
-		physic.colliders.add( new Armement.Objectif(vec(-400,100,-800), vie));
-		physic.colliders.add( new Armement.Objectif(vec(0,800,100), vie));
-		physic.colliders.add( new Armement.Objectif(vec(0, -500,0), vie));
-		physic.colliders.add( new Armement.Objectif(vec(400,400,400), vie));
-		physic.colliders.add( new Armement.Objectif(vec(-400,-400,400), vie));
-		physic.colliders.add( new Armement.Objectif(vec(600, 800,-500), vie));
-		physic.colliders.add( new Armement.Objectif(vec(400,100,-500), vie));
+		int d = 1000;
+		physic.colliders.add( new Armement.Objectif(vec(0,100,-d), vie));
+		physic.colliders.add( new Armement.Objectif(vec(0,100,d), vie));
+		physic.colliders.add( new Armement.Objectif(vec(d,100,-2*d), vie));
+		physic.colliders.add( new Armement.Objectif(vec(-d,100,-2*d), vie));
+		physic.colliders.add( new Armement.Objectif(vec(0,2*d,100), vie));
+		physic.colliders.add( new Armement.Objectif(vec(0, -d,0), vie));
+		physic.colliders.add( new Armement.Objectif(vec(d,d,d), vie));
+		physic.colliders.add( new Armement.Objectif(vec(-d,-d,d), vie));
+		physic.colliders.add( new Armement.Objectif(vec(2*d, 2*d,-d), vie));
+		physic.colliders.add( new Armement.Objectif(vec(d,100,-d), vie));
 		
 		//Cube cube1 = new Cube( base, ProMaster.zero.get(), 5, vec(300, 30,300) );
 		//Cube cube2 = new Cube( dessus , vec(0, 0, QUARTER_PI), 1, vec(30, 30, 30) );

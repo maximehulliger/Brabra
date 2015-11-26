@@ -71,13 +71,21 @@ public class Physic
 				
 				if ( (o.affectedByCollision || c.affectedByCollision) && (o.doCollideFast(c) && c.doCollideFast(o)) ) {
 					Collision col = null;
-					if (c instanceof Sphere)
+					if (c.affectedByCollision && c instanceof Sphere)
 						col = new CollisionSphere((Sphere)c, o);
-					else if (o instanceof Sphere)
+					else if (o.affectedByCollision && o instanceof Sphere)
 						col = new CollisionSphere((Sphere)o, c);
-					else if (c instanceof PseudoPolyedre && o instanceof PseudoPolyedre)
-						col = new CollisionPPolyedre((PseudoPolyedre)c, (PseudoPolyedre)o);
-					else
+					else if (c instanceof PseudoPolyedre && o instanceof PseudoPolyedre) {
+						PseudoPolyedre ppc, ppo;
+						if (c.affectedByCollision) {
+							ppc = (PseudoPolyedre)c;
+							ppo = (PseudoPolyedre)o;
+						} else {
+							ppc = (PseudoPolyedre)o;
+							ppo = (PseudoPolyedre)c;
+						}
+						col = new CollisionPPolyedre(ppc, ppo);
+					} else
 						throw new IllegalArgumentException("collider inconnu !");
 					collisions.add( col );
 		    	}
