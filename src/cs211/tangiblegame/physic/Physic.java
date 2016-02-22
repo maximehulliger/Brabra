@@ -33,31 +33,21 @@ public class Physic
 		for (Collider c : colliders)
 			c.update();
 		if (toRemove.size() > 0 ) {
-			for (Collider c : toRemove) {
-				colliders.remove(c);
-			}
+			colliders.removeAll(toRemove);
 			toRemove.clear();
 		}
 		if (toAdd.size() > 0) {
-			for (Collider c : toAdd) {
-				colliders.add(c);
-				//c.update();
-			}
+			colliders.addAll(toAdd);
 			toAdd.clear();
 		}
 		for (Effect e : effects)
 			e.update();
 		if (effectsToRemove.size() > 0) {
-			for (Effect e : effectsToRemove) {
-				effects.remove(e);
-			}
+			effects.removeAll(effectsToRemove);
 			effectsToRemove.clear();
 		}
 		if (effectsToAdd.size() > 0) {
-			for (Effect e : effectsToAdd) {
-				effects.add(e);
-				//e.update();
-			}
+			effects.addAll(effectsToAdd);
 			effectsToAdd.clear();
 		}
 		

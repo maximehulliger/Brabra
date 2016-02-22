@@ -1,7 +1,6 @@
 package cs211.tangiblegame.realgame;
 
 import cs211.tangiblegame.TangibleGame;
-import cs211.tangiblegame.geo.Cube;
 import cs211.tangiblegame.geo.Plane;
 import cs211.tangiblegame.geo.Quaternion;
 import cs211.tangiblegame.realgame.Armement;
@@ -15,14 +14,11 @@ public class Starship extends Plane//Cube
 	public static final float distSqBeforeRemove = 12_000*12_000; //distance du vaisseau avant remove
 	public static final float sizeFactor = 15f;
 	private static final PVector size = PVector.mult( vec(7, 2, 8), sizeFactor); //for the collider
-	public static final boolean displaySkybox = true;
 	private static final boolean displayViseur = true;
 	public float forceRatio = 15; //puissance du vaisseau
-	public boolean hasCamera = true;
 	
 	MeteorSpawner champ;
 	Armement armement;
-	public static PShape skybox;
 	public static PShape starship;
 	
 	public Starship(PVector location) {
@@ -58,21 +54,9 @@ public class Starship extends Plane//Cube
 
 	public void display() {
 		app.noStroke();
-		
-		//1. la camera TODO
-		if (hasCamera) {
-			PVector relCamPos = PVector.mult(new PVector(0, 6, 9), sizeFactor);
-			PVector camPos = absolute(relCamPos);
-			PVector or = absolute(up, zero, rotation);//faces[3].normale.norm;
-			PVector focus = PVector.add(location, absUp(4 * sizeFactor));
-			app.camera(camPos.x, camPos.y, camPos.z, focus.x, focus.y, focus.z, -or.x, -or.y, -or.z);
-		}
-		
 		//2. le vaisseau (+viseur)
 		app.pushMatrix();
 		translate( location );
-		if (displaySkybox)
-			app.shape(skybox);
 		app.pushMatrix();
 		rotate(rotation);
 		app.fill(50, 100, 125);

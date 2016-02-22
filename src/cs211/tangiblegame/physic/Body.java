@@ -4,7 +4,7 @@ import cs211.tangiblegame.ProMaster;
 import cs211.tangiblegame.geo.Quaternion;
 import processing.core.*;
 
-public abstract class Body extends ProMaster {
+public class Body extends ProMaster {
 	private static final boolean drawInteraction = true; //forces et impulse
 	
 	protected float mass = 0;
@@ -110,6 +110,11 @@ public abstract class Body extends ProMaster {
 		PVector relImpulse = PVector.sub(local( PVector.add(impulse, absPos)), relPoint);
 		PVector forRot = relPoint.cross(relImpulse);
 		rotationVel.addAngularMomentum( multMatrix(inverseInertiaMom, forRot) );
+	}
+	
+	// ajoute de la quantité de mouvement au centre de masse (absolu).
+	public void applyImpulse(PVector impulse) {
+		applyImpulse(location, impulse);
 	}
 	
 	// à surcharger pour réagir à une collision

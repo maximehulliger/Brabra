@@ -1,6 +1,8 @@
 package cs211.tangiblegame;
 
 import java.util.Random;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import cs211.tangiblegame.geo.Quaternion;
 import processing.core.PApplet;
@@ -15,6 +17,8 @@ public abstract class ProMaster {
 	public static final PVector left = new PVector(1, 0, 0);
 	public static final PVector up = new PVector(0, 1, 0);
 	public static final PVector front = new PVector(0, 0, -1);
+	public static final Quaternion identity = new Quaternion();
+	private static final Pattern floatPattern = Pattern.compile("\\d+[.]?\\d*");
 	
 	public static int color0, color255;
 	public static int colorButtonOk, colorButtonRejected, colorQuad;
@@ -86,6 +90,20 @@ public abstract class ProMaster {
 
 	protected static PVector vec(float x, float y, float z) {
 		return new PVector(x, y, z);
+	}
+	
+	protected static PVector vec(String vec) {
+		Matcher matcher = floatPattern.matcher(vec);
+		float[] values = new float[3];
+	    for (int i=0; i<3; i++) {
+	    	if (matcher.find()) {
+		    	values[i] = Float.parseFloat(matcher.group());
+	    	} else {
+	    		System.out.println("wrong vector format for \""+vec+"\", taking zero");
+	    		return zero;
+	    	}
+	    }
+	    return vec(values[0],values[1],values[2]);
 	}
 	
 	public static PVector[] copy(PVector[] vectors) {

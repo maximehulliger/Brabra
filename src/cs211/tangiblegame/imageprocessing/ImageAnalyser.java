@@ -269,6 +269,9 @@ public class ImageAnalyser {
 	}
 	
 	public void play(boolean play) {
+		if (!play && pausedCam && pausedMov)
+			return;
+		
 		inputLock.lock();
 		
 		//video input initialisation (at first run)

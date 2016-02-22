@@ -14,6 +14,7 @@ public class TangibleGame extends PApplet {
 	//--parametres
 	//private static final int ratioSize = 4; //généralement de 2 (640x360) à 6 (1920x1080)
 	public static final float inclinaisonMax = PApplet.PI/5; 
+	public static final boolean imgAnalysis = false;
 	
 	//--interne
 	public ImageAnalyser imgAnalyser;
@@ -39,8 +40,10 @@ public class TangibleGame extends PApplet {
 		float camZ = height / (2*tan(PI*60/360.0f));
 		perspective(PI/3, width/(float)height, camZ/10, camZ*1000);
 		imgAnalyser = new ImageAnalyser(this);
+		if (imgAnalysis) {
+			thread("imageProcessing");
+		}
 		thread("loadInterfaces");
-		thread("imageProcessing");
 		intMenu = new Menu();
 		
 		setInterface(intMenu);

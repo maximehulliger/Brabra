@@ -1,19 +1,22 @@
 package cs211.tangiblegame.realgame;
 
+import javafx.scene.input.KeyCode;
 import processing.core.PApplet;
-import processing.core.PVector;
 import processing.event.MouseEvent;
+import cs211.tangiblegame.Camera;
 import cs211.tangiblegame.Interface;
 import cs211.tangiblegame.ProMaster;
+import cs211.tangiblegame.TangibleGame;
+import cs211.tangiblegame.geo.Cube;
 import cs211.tangiblegame.geo.Plane;
 import cs211.tangiblegame.geo.Quaternion;
+import cs211.tangiblegame.physic.Body;
 import cs211.tangiblegame.physic.Physic;
 import cs211.tangiblegame.realgame.Armement;
 
 public class RealGame extends Interface {
-	private static final boolean drawAxis = false;
-	
-	public Physic physic;
+	public static Physic physic;
+	private Camera camera;
 	private Starship starship;
 	
 	public RealGame() {
@@ -24,8 +27,8 @@ public class RealGame extends Interface {
 				pixels[i] = app.color(0, 0);
 		
 		MeteorSpawner.meteor = app.loadShape("asteroid.obj");
-		Starship.skybox = app.loadShape("skybox.obj");
-		Starship.skybox.scale(10000);
+		Camera.skybox = app.loadShape("skybox.obj");
+		Camera.skybox.scale(10000);
 		Starship.starship = app.loadShape("starship.obj");
 		Starship.starship.scale( Starship.sizeFactor );
 		Armement.missile = app.loadShape("rocket.obj");
@@ -34,17 +37,27 @@ public class RealGame extends Interface {
 
 	public void init() {
 		physic = new Physic();
-		starship = new Starship( vec(0, 100, -700) );
-		//Mover mover = new Mover( vec(0, 300, 0) );
-		//Plane sol = new Plane(ProMaster.zero, new Quaternion(), -1, vec(1000, 0, 1000));
-		physic.colliders.add(starship);
-		//physic.colliders.add(mover);
-		//physic.colliders.add( sol );
+		camera = new Camera();
+		//starship = new Starship( vec(0, 100, -700) );
+		//physic.colliders.add(starship);
+		
+		
 		//mover.applyImpulse( PVector.add(mover.location, vec(0, 0, 0)), vec(0, 0, 1));
 		
 		//physic.colliders.add( new Shield(vec(0, 100, 0), vec(200, 20, 80)));
 		
-		int vie = 200;
+		
+		//Cube cube1 = new Cube( base, ProMaster.zero.get(), 5, vec(300, 30,300) );
+		//Cube cube2 = new Cube( dessus , vec(0, 0, QUARTER_PI), 1, vec(30, 30, 30) );
+		
+		Prefab.file.load();
+		/*Prefab.add("floor", zero);
+		Prefab.add("ball", vec(0, 20, 0));
+		Prefab.add("ball", vec(0, 10, 0)).applyImpulse(vec(0, 10, 0));
+		Prefab.add("box", vec(5, 10, 0));*/
+		
+		
+		/*
 		int d = 1000;
 		physic.colliders.add( new Armement.Objectif(vec(0,100,-d), vie));
 		physic.colliders.add( new Armement.Objectif(vec(0,100,d), vie));
@@ -55,14 +68,7 @@ public class RealGame extends Interface {
 		physic.colliders.add( new Armement.Objectif(vec(d,d,d), vie));
 		physic.colliders.add( new Armement.Objectif(vec(-d,-d,d), vie));
 		physic.colliders.add( new Armement.Objectif(vec(2*d, 2*d,-d), vie));
-		physic.colliders.add( new Armement.Objectif(vec(d,100,-d), vie));
-		
-		//Cube cube1 = new Cube( base, ProMaster.zero.get(), 5, vec(300, 30,300) );
-		//Cube cube2 = new Cube( dessus , vec(0, 0, QUARTER_PI), 1, vec(30, 30, 30) );
-		
-		//physic.colliders.add( cube1 );
-		//physic.colliders.add( cube2 );
-		//cube2.applyImpulse(cube2.location, new PVector(0, -1, 0));
+		physic.colliders.add( new Armement.Objectif(vec(d,100,-d), vie));*/
 	}
 	
 	public void wakeUp() {
@@ -71,72 +77,51 @@ public class RealGame extends Interface {
 	}
 	
 	public void draw() {
-		placeCamEtLum();
+		camera.place();
 
 		//update & display everything
 		physic.displayAll();
-		if (drawAxis)
-			drawAxis();
 		
 		physic.doMagic();
-
+		
+		//GUI
 		app.camera();
 		app.hint(PApplet.DISABLE_DEPTH_TEST);
-		starship.armement.displayGui();
-		app.imgAnalyser.displayCtrImg();
-		if (starship.hasCamera) { //TODO not working
-			app.fill(255, 255, 255, 255);
-			app.point(app.width/2, app.height/2);
-		}
+		if (starship != null)
+			starship.armement.displayGui();
+		if (TangibleGame.imgAnalysis)
+			app.imgAnalyser.displayCtrImg();
 		app.hint(PApplet.ENABLE_DEPTH_TEST);
-	}
-
-	private void placeCamEtLum() { 
-		if (!starship.hasCamera) {
-			float distss = 300;
-			PVector posVue = starship.location.get();
-			PVector posCam = PVector.add( new PVector(distss, distss, distss), posVue );
-			app.camera(posCam.x, posCam.y, posCam.z, posVue.x, posVue.y, posVue.z, 0, -1, 0);
-		}
-		
-		//lum
-		//ambientLight(255, 255, 255);
-		//directionalLight(50, 100, 125, 0, -1, 0);
-		//le bg
-		if (!Starship.displaySkybox)
-			app.background(200);
-	}
-
-	private void drawAxis() {
-		float far = 10000;
-		app.stroke(255, 0, 0);
-		app.line(0, 0, 0, 0, far, 0);
-		app.stroke(0, 0, 255);
-		app.line(0, 0, 0, far, 0, 0);
-		app.line(0, 0, 0, 0, 0, far);
 	}
 
 	//-------- EVENTS
 	
 	public void mouseDragged() {
-		starship.mouseDragged();
+		if (starship != null)
+			starship.mouseDragged();
 	}
 	
 	public void mouseWheel(MouseEvent event) {
-		float delta = - event.getCount(); //delta negatif si vers l'utilisateur
-		starship.forceRatio = PApplet.constrain( starship.forceRatio + 0.05f*delta , 0.2f, 60 );
+		if (starship != null) {
+			float delta = - event.getCount(); //delta negatif si vers l'utilisateur
+			starship.forceRatio = PApplet.constrain( starship.forceRatio + 0.05f*delta , 0.2f, 60 );
+		}
 	}
 
 	public void keyReleased() {
-		starship.keyReleased();
+		if (starship != null)
+			starship.keyReleased();
+		if (app.key == 'r')
+			init();
 	}
 
 	public void keyPressed() {
-		starship.keyPressed();
+		if (starship != null)
+			starship.keyPressed();
 		
 		//tab: switch camera
 		if (app.keyCode == PApplet.TAB) {
-			starship.hasCamera = !starship.hasCamera;
+			camera.nextMode();
 		}
 	}  
 
