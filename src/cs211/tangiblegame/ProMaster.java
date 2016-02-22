@@ -93,6 +93,8 @@ public abstract class ProMaster {
 	}
 	
 	protected static PVector vec(String vec) {
+		if (vec.equals("zero"))
+			return zero;
 		Matcher matcher = floatPattern.matcher(vec);
 		float[] values = new float[3];
 	    for (int i=0; i<3; i++) {

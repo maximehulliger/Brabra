@@ -13,12 +13,25 @@ public class Camera extends ProMaster {
 		public FollowMode next() {
 	        return values()[(this.ordinal()+1) % values().length];
 	    }
+		
+		public static FollowMode fromString(String f) {
+			if (f.equals("static"))
+				return FollowMode.Static;
+			else if (f.equals("relative"))
+				return FollowMode.Relative;
+			else if (f.equals("not"))
+				return FollowMode.Not;
+			else {
+				System.out.println("FollowMode pour camera inconu :"+f);
+				return FollowMode.Not;
+			}
+		}
 	}
 	
 	public static PShape skybox;
 	
 	public boolean displaySkybox = true;
-	public boolean pointCentral = false;
+	public boolean pointCentral = true;
 	public boolean drawAxis = true;
 	
 	public FollowMode followMode = FollowMode.Not;
@@ -28,11 +41,18 @@ public class Camera extends ProMaster {
 	public PVector distStatic = vec(300,300,300);
 	public PVector distRel = PVector.mult(vec(0, 6, 9), 15f);
 	
-	//public Camera() {}
-	
-	public void set(Body toFollow, FollowMode followMode) {
-		this.toFollow = toFollow;
-		this.followMode = followMode;
+	public void setAt(PVector dist) {
+		switch(followMode) {
+		case Not:
+			distNot = dist;
+			break;
+		case Static:
+			distStatic = dist;
+			break;
+		case Relative:
+			distRel = dist;
+			break;
+		}
 	}
 	
 	public void place() {

@@ -1,24 +1,20 @@
 package cs211.tangiblegame.realgame;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
 
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
-import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 import org.xml.sax.Attributes;
 import org.xml.sax.helpers.DefaultHandler;
 
+import cs211.tangiblegame.Camera.FollowMode;
 import cs211.tangiblegame.ProMaster;
 import cs211.tangiblegame.physic.Body;
 
 public final class XmlLoader extends ProMaster {
+	public static RealGame game;
 	private static final String filename = "scene.xml";
 	private XMLReader xmlreader;
 	
@@ -50,16 +46,37 @@ public final class XmlLoader extends ProMaster {
 	    		throws SAXException {
 	    	if (localName.equals("scene"))
 	    		return;
-	    	else {
-			  String pos = atts.getValue("pos");
-			  String impulse = atts.getValue("impulse");
+	    	else if (localName.equals("camera")) {
+	    		String mode = atts.getValue("mode");
+			  	if (mode != null) 
+				  	game.camera.followMode = FollowMode.fromString(mode);
+			  	String dist = atts.getValue("dist");
+				if (dist != null)
+				  	game.camera.setAt(vec(dist));
+				String displaySkybox = atts.getValue("displaySkybox");
+				if (displaySkybox != null)
+				  	game.camera.displaySkybox = Boolean.getBoolean(displaySkybox);
+	    	} else { //body
+	    		String pos = atts.getValue("pos");
+	    		String impulse = atts.getValue("impulse");
+			  	String camera = atts.getValue("camera");
 			  
-			  Body b = Prefab.add(localName, vec(pos));
-			  if (impulse != null)
-				  b.applyImpulse(vec(impulse));
-		  	}
-		}
-		
+			  	Body b = Prefab.add(localName, vec(pos));
+			  	if (b != null) {
+				  	if (impulse != null)
+					  	b.applyImpulse(vec(impulse));
+				  	if (camera != null) {
+				  		game.camera.toFollow = b;
+					  	game.camera.followMode = FollowMode.fromString(camera);
+					  	String dist = atts.getValue("cameraDist");
+						if (dist != null)
+							game.camera.setAt(vec(dist));
+					  	System.out.println("camera now following "+b.toString());
+				  	}
+			  	}
+	    	}
+	    }
+	    
 	    /*@Override
 	    public void endElement(String uri, String localName, String qName)
 	    		throws SAXException {

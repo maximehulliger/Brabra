@@ -11,6 +11,7 @@ import processing.core.*;
  * Help class to add object in the scene
  */
 public class Prefab extends ProMaster {
+	public static RealGame game;
 	public static XmlLoader file = new XmlLoader();
 	
 	/**
@@ -30,7 +31,7 @@ public class Prefab extends ProMaster {
 			return null;
 		}
 		
-		RealGame.physic.colliders.add( col );
+		game.physic.colliders.add( col );
 		return col;
 	}
 	

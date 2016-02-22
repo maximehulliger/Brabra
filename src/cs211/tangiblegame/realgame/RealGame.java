@@ -1,25 +1,21 @@
 package cs211.tangiblegame.realgame;
 
-import javafx.scene.input.KeyCode;
 import processing.core.PApplet;
 import processing.event.MouseEvent;
 import cs211.tangiblegame.Camera;
 import cs211.tangiblegame.Interface;
-import cs211.tangiblegame.ProMaster;
 import cs211.tangiblegame.TangibleGame;
-import cs211.tangiblegame.geo.Cube;
-import cs211.tangiblegame.geo.Plane;
-import cs211.tangiblegame.geo.Quaternion;
-import cs211.tangiblegame.physic.Body;
 import cs211.tangiblegame.physic.Physic;
 import cs211.tangiblegame.realgame.Armement;
 
 public class RealGame extends Interface {
-	public static Physic physic;
-	private Camera camera;
+	public Physic physic;
+	public Camera camera;
 	private Starship starship;
 	
 	public RealGame() {
+		XmlLoader.game = this;
+		Prefab.game = this;
 		Armement.missileImg = app.loadImage("missile.jpg");
 		int[] pixels = Armement.missileImg.pixels;
 		for (int i=0; i<pixels.length; i++)
