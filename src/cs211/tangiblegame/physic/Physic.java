@@ -9,7 +9,8 @@ import cs211.tangiblegame.realgame.Effect;
 
 public class Physic
 {
-	public static final float gravityConstant = 0.8f; //0.7f
+	public static float gravity = 0.8f; //0.7f
+	public static float deltaTime = 0.2f; //1f
 	
 	// les agents B)
 	public ArrayList<Collider> colliders = new ArrayList<>();

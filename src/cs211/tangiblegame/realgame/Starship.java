@@ -26,6 +26,7 @@ public class Starship extends Plane//Cube
 		PVector champSize = vec(5000, 5000, 8000);
 		this.champ = new MeteorSpawner(this, vec(0, 0, -champSize.z/6), champSize);
 		this.armement = new Armement(this, 0, 1, 1);
+		setName("Starship");
 	}
 	
 	protected void setMass(float mass) {

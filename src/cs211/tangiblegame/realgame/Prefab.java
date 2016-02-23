@@ -11,27 +11,28 @@ import processing.core.*;
  * Help class to add object in the scene
  */
 public class Prefab extends ProMaster {
-	public static RealGame game;
 	public static XmlLoader file = new XmlLoader();
 	
 	/**
 	 *	add a new object to the physic from the name. following names supported:
-	 *	box, ball, floor
+	 *	box, ball, floor, starship
 	 */
 	public static Body add(String name, PVector location) {
 		Collider col;
-		if (name == "box")
+		if (name.equals("box"))
 			col = new TCube(location);
-		else if (name == "ball")
+		else if (name.equals("ball"))
 			col = new TBall(location);
-		else if (name == "floor")
+		else if (name.equals("floor"))
 			col = new Plane(location, identity, -1, vec(1000, 0, 1000));
-		else {
+		else if (name.equals("starship")) {
+			app.intRealGame.starship = new Starship( vec(0, 100, -700) );
+			col = app.intRealGame.starship;
+		} else {
 			System.out.println("\""+name+"\" unknown, ignoring");
 			return null;
 		}
-		
-		game.physic.colliders.add( col );
+		app.intRealGame.physic.colliders.add( col );
 		return col;
 	}
 	

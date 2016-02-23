@@ -7,6 +7,7 @@ import processing.core.*;
 public class Body extends ProMaster {
 	private static final boolean drawInteraction = true; //forces et impulse
 	
+	protected String name = "Body";
 	protected float mass = 0;
 	protected float inverseMass = 0;
 	protected PVector inertiaMom;
@@ -58,10 +59,10 @@ public class Body extends ProMaster {
 		//1. translation, forces
 		if (!forces.equals(zero)) {
 			PVector acceleration = PVector.mult( forces, inverseMass );
-			velocity.add(acceleration);
+			velocity.add(PVector.mult(acceleration,Physic.deltaTime));
 		}
 		if (!velocity.equals(zero)) {
-			location.add(velocity);
+			location.add(PVector.mult(velocity,Physic.deltaTime));
 		}
 		
 		//2. rotation, vitesse angulaire, on prend rotation axis comme L/I
@@ -84,6 +85,13 @@ public class Body extends ProMaster {
 			System.out.println("rotation: \nmag: "+rotation.mag()+"\n vec: "+rotation);
 			System.out.println("vitesse Ang.: \nmag: "+angularVelocity.mag()+"\n vec: "+angularVelocity);*/
 		}
+	}
+	
+	public String toString() {
+		return name;
+	}
+	public void setName(String name) {
+		this.name = name;
 	}
 	
 	// ajoute de la quantité de mouvement au body à point (absolu).
@@ -152,7 +160,7 @@ public class Body extends ProMaster {
 	protected void pese() {
 		if (mass == -1)
 			throw new IllegalArgumentException("un objet de mass infini ne devrait pas peser !");
-		PVector poids = new PVector(0, -Physic.gravityConstant*mass, 0);
+		PVector poids = new PVector(0, -Physic.gravity*mass, 0);
 		addForce(poids);
 	}
 	

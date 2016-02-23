@@ -30,7 +30,7 @@ public class Camera extends ProMaster {
 	
 	public static PShape skybox;
 	
-	public boolean displaySkybox = true;
+	public boolean displaySkybox = false;
 	public boolean pointCentral = true;
 	public boolean drawAxis = true;
 	
@@ -41,7 +41,7 @@ public class Camera extends ProMaster {
 	public PVector distStatic = vec(300,300,300);
 	public PVector distRel = PVector.mult(vec(0, 6, 9), 15f);
 	
-	public void setAt(PVector dist) {
+	private void setDist(PVector dist) {
 		switch(followMode) {
 		case Not:
 			distNot = dist;
@@ -53,6 +53,41 @@ public class Camera extends ProMaster {
 			distRel = dist;
 			break;
 		}
+	}
+	
+	private PVector getDist() {
+		switch(followMode) {
+		case Not:
+			return distNot;
+		case Static:
+			return distStatic;
+		case Relative:
+			return distRel;
+		default: 
+			return zero;
+		}
+	}
+	
+	public void setSkybox(Boolean displaySkybox) {
+		this.displaySkybox = displaySkybox;
+		if (displaySkybox)
+			System.out.println("avec skybox");
+		else
+			System.out.println("sans skybox");
+	}
+	
+	public void set(String mode, String dist, Body toFollow) {
+		if (mode != null) 
+		  	followMode = FollowMode.fromString(mode);
+		if (toFollow == null)
+			followMode = FollowMode.Not;
+	  	if (dist != null)
+		  	setDist(vec(dist));
+	  	
+	  	if (app.intRealGame.camera.followMode == FollowMode.Not)
+			System.out.println("camera fixed at "+getDist());
+		else
+			System.out.println("camera now following "+toFollow.toString()+" at "+getDist()+" in "+mode+" mode.");
 	}
 	
 	public void place() {
@@ -76,6 +111,7 @@ public class Camera extends ProMaster {
 		if (displaySkybox) {
 			translate( toFollow.location  );
 			app.shape(skybox); 
+			System.out.println("skybox :D");
 		} else {
 			app.background(200);
 			app.ambientLight(255, 255, 255);
@@ -103,5 +139,6 @@ public class Camera extends ProMaster {
 	
 	public void nextMode() {
 		followMode = followMode.next();
+		System.out.println("now in "+followMode+" mode at "+getDist());
 	}
 }

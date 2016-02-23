@@ -9,9 +9,9 @@ import org.xml.sax.XMLReader;
 import org.xml.sax.Attributes;
 import org.xml.sax.helpers.DefaultHandler;
 
-import cs211.tangiblegame.Camera.FollowMode;
 import cs211.tangiblegame.ProMaster;
 import cs211.tangiblegame.physic.Body;
+import cs211.tangiblegame.physic.Physic;
 
 public final class XmlLoader extends ProMaster {
 	public static RealGame game;
@@ -47,16 +47,18 @@ public final class XmlLoader extends ProMaster {
 	    	if (localName.equals("scene"))
 	    		return;
 	    	else if (localName.equals("camera")) {
-	    		String mode = atts.getValue("mode");
-			  	if (mode != null) 
-				  	game.camera.followMode = FollowMode.fromString(mode);
-			  	String dist = atts.getValue("dist");
-				if (dist != null)
-				  	game.camera.setAt(vec(dist));
-				String displaySkybox = atts.getValue("displaySkybox");
+	    		game.camera.set(atts.getValue("mode"),atts.getValue("dist"),null);
+			  	String displaySkybox = atts.getValue("displaySkybox");
 				if (displaySkybox != null)
-				  	game.camera.displaySkybox = Boolean.getBoolean(displaySkybox);
-	    	} else { //body
+				  	game.camera.setSkybox(Boolean.getBoolean(displaySkybox));
+	    	} else if (localName.equals("physic")) {
+	    		String gravity = atts.getValue("gravity");
+	    		if (gravity != null)
+				  	Physic.gravity = Float.parseFloat(gravity);
+			  	String deltaTime = atts.getValue("deltaTime");
+			  	if (deltaTime != null)
+			  		Physic.deltaTime = Float.parseFloat(deltaTime);
+	    	} else {
 	    		String pos = atts.getValue("pos");
 	    		String impulse = atts.getValue("impulse");
 			  	String camera = atts.getValue("camera");
@@ -66,12 +68,7 @@ public final class XmlLoader extends ProMaster {
 				  	if (impulse != null)
 					  	b.applyImpulse(vec(impulse));
 				  	if (camera != null) {
-				  		game.camera.toFollow = b;
-					  	game.camera.followMode = FollowMode.fromString(camera);
-					  	String dist = atts.getValue("cameraDist");
-						if (dist != null)
-							game.camera.setAt(vec(dist));
-					  	System.out.println("camera now following "+b.toString());
+				  		game.camera.set(camera,atts.getValue("dist"),b);
 				  	}
 			  	}
 	    	}

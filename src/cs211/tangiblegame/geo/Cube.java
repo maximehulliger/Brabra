@@ -17,6 +17,7 @@ public class Cube extends PseudoPolyedre {
 		this.faces = getFaces(size);
 	    updateAbs();
 	    setMass(mass);
+	    setName("Cube");
 	}
 	
 	public boolean isIn(PVector abs) {

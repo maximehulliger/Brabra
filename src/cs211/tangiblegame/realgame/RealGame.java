@@ -11,11 +11,10 @@ import cs211.tangiblegame.realgame.Armement;
 public class RealGame extends Interface {
 	public Physic physic;
 	public Camera camera;
-	private Starship starship;
+	public Starship starship;
 	
 	public RealGame() {
 		XmlLoader.game = this;
-		Prefab.game = this;
 		Armement.missileImg = app.loadImage("missile.jpg");
 		int[] pixels = Armement.missileImg.pixels;
 		for (int i=0; i<pixels.length; i++)
@@ -34,8 +33,8 @@ public class RealGame extends Interface {
 	public void init() {
 		physic = new Physic();
 		camera = new Camera();
-		//starship = new Starship( vec(0, 100, -700) );
-		//physic.colliders.add(starship);
+		
+		Prefab.file.load();
 		
 		
 		//mover.applyImpulse( PVector.add(mover.location, vec(0, 0, 0)), vec(0, 0, 1));
@@ -46,11 +45,6 @@ public class RealGame extends Interface {
 		//Cube cube1 = new Cube( base, ProMaster.zero.get(), 5, vec(300, 30,300) );
 		//Cube cube2 = new Cube( dessus , vec(0, 0, QUARTER_PI), 1, vec(30, 30, 30) );
 		
-		Prefab.file.load();
-		/*Prefab.add("floor", zero);
-		Prefab.add("ball", vec(0, 20, 0));
-		Prefab.add("ball", vec(0, 10, 0)).applyImpulse(vec(0, 10, 0));
-		Prefab.add("box", vec(5, 10, 0));*/
 		
 		
 		/*
