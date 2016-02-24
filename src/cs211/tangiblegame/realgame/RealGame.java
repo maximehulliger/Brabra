@@ -49,7 +49,7 @@ public class RealGame extends Interface {
 		
 		/*
 		int d = 1000;
-		physic.colliders.add( new Armement.Objectif(vec(0,100,-d), vie));
+		physic.colliders.add( );
 		physic.colliders.add( new Armement.Objectif(vec(0,100,d), vie));
 		physic.colliders.add( new Armement.Objectif(vec(d,100,-2*d), vie));
 		physic.colliders.add( new Armement.Objectif(vec(-d,100,-2*d), vie));

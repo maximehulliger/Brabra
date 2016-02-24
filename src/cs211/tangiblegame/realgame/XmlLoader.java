@@ -64,8 +64,9 @@ public final class XmlLoader extends ProMaster {
 	    		String camera = atts.getValue("camera");
 	    		String mass = atts.getValue("mass");
 	    		String name = atts.getValue("name");
+	    		String life = atts.getValue("life");
 			  	
-			  	Body b = Prefab.add(localName, vec(pos));
+	    		Body b = Prefab.add(localName, vec(pos));
 			  	if (b != null) {
 			  		if (impulse != null)
 					  	b.applyImpulse(vec(impulse));
@@ -73,6 +74,8 @@ public final class XmlLoader extends ProMaster {
 					  	b.setMass(Float.parseFloat(mass));
 			  		if (name != null)
 					  	b.setName(name);
+			  		if (life != null)
+			  			setLife(b, life);
 				  	if (camera != null) {
 				  		game.camera.set(camera,atts.getValue("cameraDist"),b);
 				  	}
@@ -90,5 +93,18 @@ public final class XmlLoader extends ProMaster {
 	    public void characters(char[] ch, int start, int length) {
 	    	//buffer.append(ch, start, length);
 	    }*/
+	}
+	
+
+	private void setLife(Body alive, String lifeText) {
+		String[] sub = lifeText.split("/");
+		if (sub.length == 2)
+			alive.setLife(Integer.parseInt(sub[0]),Integer.parseInt(sub[1]));
+		else if (sub.length == 1) {
+			int life = Integer.parseInt(sub[0]);
+			alive.setLife(life, life);
+		} else
+			System.out.println("unsuported life format: \""+lifeText+"\"");
+		
 	}
 }

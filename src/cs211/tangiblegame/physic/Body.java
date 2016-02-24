@@ -8,6 +8,9 @@ public class Body extends ProMaster {
 	private static final boolean drawInteraction = true; //forces et impulse
 	
 	protected String name = "Body";
+	protected int life = -1;
+	protected int maxLife = -1;
+	
 	protected float mass = -1;
 	protected float inverseMass = 0;
 	protected PVector inertiaMom;
@@ -31,23 +34,6 @@ public class Body extends ProMaster {
 	public Body(PVector location, Quaternion rotation) {
 		this.location = location.get();
 		this.rotation = rotation.get();
-	}
-	
-	// set la masse du body. si -1, l'objet aura une mass et un moment d'inertie infini.
-	// à surcharger (et appeler) pour set le moment d'inertie.
-	public void setMass(float mass) {
-		if (mass == -1) {
-			this.mass = -1;
-			this.affectedByCollision = false;
-			this.inverseMass = 0;
-			this.inverseInertiaMom = zero.get();
-		} else if (mass <= 0)
-			throw new IllegalArgumentException("mass négative ou nulle !");
-		else {
-			this.mass = mass;
-			this.inverseMass = 1/this.mass;
-			this.affectedByCollision = true;
-		}
 	}
 
 	// applique les forces et update l'etat (+transformChanged)
@@ -96,6 +82,43 @@ public class Body extends ProMaster {
 	public Body withName(String name) {
 		setName(name);
 		return this;
+	}
+	
+	// life management
+	public void setLife(int life, int maxLife) {
+		this.life = life;
+		this.maxLife = maxLife;
+	}
+	public void damage(int damage) {
+		if (maxLife < 0)
+			System.out.println(toString()+" is a poor non-living object !");
+		else if (life < 0)
+			System.out.println(toString()+" is already dead !");
+		else {
+			life -= damage;
+			if (life < 0 )
+				onDeath();
+		}
+	}
+	/** à surcharger pour réagir à la mort par damage(dmg) */
+	protected void onDeath() {}
+	
+	
+	/** set la masse du body. si -1, l'objet aura une mass et un moment d'inertie infini.
+		à surcharger (et appeler) pour set le moment d'inertie. */
+	public void setMass(float mass) {
+		if (mass == -1) {
+			this.mass = -1;
+			this.affectedByCollision = false;
+			this.inverseMass = 0;
+			this.inverseInertiaMom = zero.get();
+		} else if (mass <= 0)
+			throw new IllegalArgumentException("mass négative ou nulle !");
+		else {
+			this.mass = mass;
+			this.inverseMass = 1/this.mass;
+			this.affectedByCollision = true;
+		}
 	}
 	
 	// ajoute de la quantité de mouvement au body à point (absolu).

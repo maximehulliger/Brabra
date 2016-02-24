@@ -269,6 +269,8 @@ public class ImageAnalyser {
 	}
 	
 	public void play(boolean play) {
+		if (!TangibleGame.imgAnalysis)
+			return;
 		if (!play && pausedCam && pausedMov)
 			return;
 		
@@ -313,7 +315,7 @@ public class ImageAnalyser {
 			play(pausedCam);
 	}
 
-	public void takeCameraInput(int idxCam) {
+	private void takeCameraInput(int idxCam) {
 		inputLock.lock();
 		if (takeMovie || idxCam != this.idxCamera || cam == null) {
 			parametres = paraCamera;

@@ -15,6 +15,11 @@ public abstract class Collider extends Body {
 	  this.radiusEnveloppe = radiusEnveloppe;
 	}
 	
+	public Collider withName(String name) {
+		super.setName(name);
+		return this;
+	}
+	
 	public boolean doCollideFast(Collider c) {
 		boolean parenty = (parent == c || c.parent == this || (parent == c.parent && parent != null));
 		assert (!parenty);

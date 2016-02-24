@@ -112,7 +112,10 @@ public class Camera extends ProMaster {
 		}
 		
 		if (drawAxis)
-			drawAxis();
+			drawAxis();	
+	}
+	
+	public void gui() {
 		
 	}
 	
@@ -151,7 +154,6 @@ public class Camera extends ProMaster {
 	}
 	
 	private void drawAxis() {
-		float far = 10000;
 		app.stroke(255, 0, 0);
 		app.line(0, 0, 0, 0, far, 0);
 		app.stroke(0, 0, 255);

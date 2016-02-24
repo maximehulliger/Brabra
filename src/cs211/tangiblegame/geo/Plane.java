@@ -25,7 +25,7 @@ public class Plane extends PseudoPolyedre {
 		setMass(mass);
 	}
 	
-	/* crée un plan infini */
+	/** crée un plan infini */
 	public Plane(PVector loc, Quaternion rot) {
 		super( loc, rot, Float.MAX_VALUE );
 		this.size = null;
@@ -34,7 +34,21 @@ public class Plane extends PseudoPolyedre {
 		updateAbs();
 		setMass(-1);
 	}
+
+	//retourne un point appartenant au plan fini
+	public PVector randomPoint() {
+		if (!finite)
+			throw new IllegalArgumentException("aïe !!");
+		float a = random.nextFloat() * size.x;
+		float b = random.nextFloat() * size.z;
+		PVector ret = v1.base.get();
+		ret.add( PVector.mult(v1.norm, a) );
+		ret.add( PVector.mult(v2.norm, b) );
+		return ret;
+	}
 	
+	//------ surcharge:
+
 	public void setMass(float mass) {
 		super.setMass(mass);
 		if (inverseMass > 0) {
@@ -50,8 +64,6 @@ public class Plane extends PseudoPolyedre {
 		}
 	}
 	
-	//------ surcharge:
-
 	public float projetteSur(PVector normale) {
 		float proj = 0;
 		proj += v1.norm.dot(normale) * size.x/2;
@@ -71,11 +83,11 @@ public class Plane extends PseudoPolyedre {
 	    	if (finite) {
 	    		app.stroke(255);
 	    		app.fill(200, 150);
-	      		app.box(v2.vectorMag, 1, v1.vectorMag);
+	      		app.box(v2.vectorMag, small, v1.vectorMag);
 	      	} else {
-	      		app.stroke(0, 140, 0);
+	      		app.stroke(255);
 	    		app.fill(0, 100, 100, 200);
-	      		app.box(10000, 1, 10000);
+	      		app.box(far, small, far);
 	      	}
 	    	app.noStroke();
 	    popLocal();
@@ -124,18 +136,6 @@ public class Plane extends PseudoPolyedre {
 	
 	public Plane[] plansSeparationFor(PVector colliderLocation) {
 		return new Plane[] {this};
-	}
-	
-	//retourne un point appartenant au plan fini
-	public PVector randomPoint() {
-		if (!finite)
-			throw new IllegalArgumentException("aïe !!");
-		float a = random.nextFloat() * size.x;
-		float b = random.nextFloat() * size.z;
-		PVector ret = v1.base.get();
-		ret.add( PVector.mult(v1.norm, a) );
-		ret.add( PVector.mult(v2.norm, b) );
-		return ret;
 	}
 	
 	//----- private

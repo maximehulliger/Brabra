@@ -24,7 +24,9 @@ public class Prefab extends ProMaster {
 		else if (name.equals("ball"))
 			col = new TBall(location);
 		else if (name.equals("floor"))
-			col = new Plane(location, identity, -1, vec(1000, 0, 1000));
+			col = new Plane(location, identity).withName("Floor");
+		else if (name.equals("objectif"))
+			col = new Armement.Objectif(location);
 		else if (name.equals("starship")) {
 			app.intRealGame.starship = new Starship( vec(0, 100, -700) );
 			col = app.intRealGame.starship;

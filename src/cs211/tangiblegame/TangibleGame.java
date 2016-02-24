@@ -10,6 +10,7 @@ import processing.event.MouseEvent;
 
 public class TangibleGame extends PApplet {
 	private static final long serialVersionUID = 338280650599573653L;
+	public enum View {Menu, Calibration, TrivialGame, RealGame}
 
 	//--parametres
 	//private static final int ratioSize = 4; //généralement de 2 (640x360) à 6 (1920x1080)
@@ -24,13 +25,11 @@ public class TangibleGame extends PApplet {
 	public Calibration intCalibration;
 	public Menu intMenu;
 	public boolean hasPopup = false;
-	public boolean ready = false;
 	public boolean over = false;
 	
 	//----- setup et boucle d'update (draw)
 	
-	public static void main(String args[])
-	{
+	public static void main(String args[]) {
 		PApplet.main(new String[] { cs211.tangiblegame.TangibleGame.class.getName() });
 	}
 	
@@ -40,34 +39,47 @@ public class TangibleGame extends PApplet {
 		float camZ = height / (2*tan(PI*60/360.0f));
 		perspective(PI/3, width/(float)height, camZ/10, camZ*1000);
 		imgAnalyser = new ImageAnalyser(this);
-		if (imgAnalysis) {
+		if (imgAnalysis)
 			thread("imageProcessing");
-		}
-		thread("loadInterfaces");
-		intMenu = new Menu();
 		
-		setInterface(intMenu);
-		//Quaternion.test();
+		setView(View.RealGame);
 	}
 	
 	public void imageProcessing() {
 		imgAnalyser.run();
 	}
 	
-	public void loadInterfaces() {
-		intRealGame = new RealGame();
-		intTrivialGame = new TrivialGame();
-		intCalibration = new Calibration();
-		intRealGame.init();
-		intTrivialGame.init();
-		intCalibration.init();
-		ready = true;
-		System.out.println("ready !");
-	}
-	
-	public void setInterface(Interface i) {
-		currentInterface = i;
-		i.wakeUp();
+	public void setView(View view) {
+		switch (view) {
+		case Menu:
+			if (intMenu == null) {
+				intMenu = new Menu();
+			}
+			currentInterface = intMenu;
+			break;
+		case Calibration:
+			if (intCalibration == null) {
+				intCalibration = new Calibration();
+				intCalibration.init();
+			}
+			currentInterface = intCalibration;
+			break;
+		case RealGame:
+			if (intRealGame == null) {
+				intRealGame = new RealGame();
+				intRealGame.init();
+			}
+			currentInterface = intRealGame;
+			break;
+		case TrivialGame:
+			if (intTrivialGame == null) {
+				intTrivialGame = new TrivialGame();
+				intTrivialGame.init();
+			}
+			currentInterface = intTrivialGame;
+			break;
+		}
+		currentInterface.wakeUp();
 	}
 	
 	public void draw() {
@@ -79,7 +91,7 @@ public class TangibleGame extends PApplet {
 	public void keyPressed() {
 		//intercepte escape
 		if (key == 27 && currentInterface != intMenu) {
-			setInterface(intMenu);
+			setView(View.Menu);
 			key = 0;
 		} 
 		
@@ -110,7 +122,7 @@ public class TangibleGame extends PApplet {
 			imgAnalyser.play(true);
 		}
 		over = true;
-		System.out.println("\n\nbye bye !");
+		System.out.println("bye bye !");
 	} 
 
 	public void mouseDragged() {

@@ -224,13 +224,9 @@ public class Armement extends ProMaster {
 	
 	// une sphère à détruire
 	public static class Objectif extends Sphere {
-		public int life;
-		public final int maxLife;
-
-		public Objectif(PVector location, int life) {
+		
+		public Objectif(PVector location) {
 			super(location, 30, 50);
-			this.maxLife = life;
-			this.life = life;
 		}
 
 		public void display() {
