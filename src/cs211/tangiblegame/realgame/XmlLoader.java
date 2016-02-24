@@ -50,7 +50,7 @@ public final class XmlLoader extends ProMaster {
 	    		game.camera.set(atts.getValue("mode"),atts.getValue("dist"),null);
 			  	String displaySkybox = atts.getValue("displaySkybox");
 				if (displaySkybox != null)
-				  	game.camera.setSkybox(Boolean.getBoolean(displaySkybox));
+				  	game.camera.setSkybox(Boolean.parseBoolean(displaySkybox));
 	    	} else if (localName.equals("physic")) {
 	    		String gravity = atts.getValue("gravity");
 	    		if (gravity != null)
@@ -61,14 +61,20 @@ public final class XmlLoader extends ProMaster {
 	    	} else {
 	    		String pos = atts.getValue("pos");
 	    		String impulse = atts.getValue("impulse");
-			  	String camera = atts.getValue("camera");
-			  
+	    		String camera = atts.getValue("camera");
+	    		String mass = atts.getValue("mass");
+	    		String name = atts.getValue("name");
+			  	
 			  	Body b = Prefab.add(localName, vec(pos));
 			  	if (b != null) {
-				  	if (impulse != null)
+			  		if (impulse != null)
 					  	b.applyImpulse(vec(impulse));
+			  		if (mass != null)
+					  	b.setMass(Float.parseFloat(mass));
+			  		if (name != null)
+					  	b.setName(name);
 				  	if (camera != null) {
-				  		game.camera.set(camera,atts.getValue("dist"),b);
+				  		game.camera.set(camera,atts.getValue("cameraDist"),b);
 				  	}
 			  	}
 	    	}

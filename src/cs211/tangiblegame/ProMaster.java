@@ -18,7 +18,7 @@ public abstract class ProMaster {
 	public static final PVector up = new PVector(0, 1, 0);
 	public static final PVector front = new PVector(0, 0, -1);
 	public static final Quaternion identity = new Quaternion();
-	private static final Pattern floatPattern = Pattern.compile("\\d+[.]?\\d*");
+	private static final Pattern floatPattern = Pattern.compile("[+-]?\\d+[.]?\\d*");
 	
 	public static int color0, color255;
 	public static int colorButtonOk, colorButtonRejected, colorQuad;
@@ -93,7 +93,7 @@ public abstract class ProMaster {
 	}
 	
 	protected static PVector vec(String vec) {
-		if (vec.equals("zero"))
+		if (vec==null || vec.equals("zero"))
 			return zero;
 		Matcher matcher = floatPattern.matcher(vec);
 		float[] values = new float[3];

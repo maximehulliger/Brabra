@@ -83,7 +83,7 @@ public final class Line extends ProMaster {
 		//projection non nulle sur une droite quelconque. 'de' est toujours plus petit ou égal à 'a'.
 		    public Projection(float de, float a) {
 		      if (de > a)
-		    	  throw new IllegalArgumentException("projection invalide !");
+		    	  throw new IllegalArgumentException("projection invalide de "+de+" à "+a+" !");
 		      this.de = de;
 		      this.a = a;
 		    }

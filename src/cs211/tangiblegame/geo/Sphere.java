@@ -14,7 +14,7 @@ public class Sphere extends Collider {
 	  	setName("Ball");
 	}
 	
-	protected void setMass(float mass) {
+	public void setMass(float mass) {
 		super.setMass(mass);
 		if (inverseMass > 0) {
 			float fact = mass*radius*2/5;

@@ -29,7 +29,7 @@ public class Starship extends Plane//Cube
 		setName("Starship");
 	}
 	
-	protected void setMass(float mass) {
+	public void setMass(float mass) {
 		super.setMass(mass);
 		if (inverseMass > 0) {
 			float fact = mass*(sq(size.x) + sq(size.y) + sq(size.z))/7;

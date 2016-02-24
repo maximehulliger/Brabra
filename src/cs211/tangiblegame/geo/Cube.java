@@ -112,7 +112,7 @@ public class Cube extends PseudoPolyedre {
 				absolute(front, zero, rotation) };*/
 	}
 
-	protected void setMass(float mass) {
+	public void setMass(float mass) {
 		super.setMass(mass);
 		if (inverseMass > 0) {
 			float fact = mass/12;

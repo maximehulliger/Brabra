@@ -8,7 +8,7 @@ public class Body extends ProMaster {
 	private static final boolean drawInteraction = true; //forces et impulse
 	
 	protected String name = "Body";
-	protected float mass = 0;
+	protected float mass = -1;
 	protected float inverseMass = 0;
 	protected PVector inertiaMom;
 	protected PVector inverseInertiaMom;
@@ -35,7 +35,7 @@ public class Body extends ProMaster {
 	
 	// set la masse du body. si -1, l'objet aura une mass et un moment d'inertie infini.
 	// à surcharger (et appeler) pour set le moment d'inertie.
-	protected void setMass(float mass) {
+	public void setMass(float mass) {
 		if (mass == -1) {
 			this.mass = -1;
 			this.affectedByCollision = false;
@@ -92,6 +92,10 @@ public class Body extends ProMaster {
 	}
 	public void setName(String name) {
 		this.name = name;
+	}
+	public Body withName(String name) {
+		setName(name);
+		return this;
 	}
 	
 	// ajoute de la quantité de mouvement au body à point (absolu).
@@ -196,7 +200,7 @@ public class Body extends ProMaster {
 	
 	//------ position absolue de points relatifs
 
-	//retourne la position de rel, un point relatif au body en absolu 
+	/**retourne la position de rel, un point relatif au body en absolu*/
 	public PVector absolute(PVector rel) {
 		PVector relAbs = absolute(rel, location, rotation);
 		if (parent != null)
