@@ -41,7 +41,7 @@ public class Plane extends PseudoPolyedre {
 			throw new IllegalArgumentException("aïe !!");
 		float a = random.nextFloat() * size.x;
 		float b = random.nextFloat() * size.z;
-		PVector ret = v1.base.get();
+		PVector ret = v1.base.copy();
 		ret.add( PVector.mult(v1.norm, a) );
 		ret.add( PVector.mult(v2.norm, b) );
 		return ret;

@@ -19,12 +19,12 @@ public class Body extends ProMaster {
 	protected float restitution = 0.8f; // [0, 1]
 	protected boolean affectedByCollision = true;
 
-	private PVector lastLocation = zero.get();
+	private PVector lastLocation = zero.copy();
 	protected Quaternion lastRotation = new Quaternion();
 	private PVector forces;
 	private PVector torques;
 	
-	public final PVector velocity = zero.get();
+	public final PVector velocity = zero.copy();
 	public final PVector location;
 	public final Quaternion rotationVel = new Quaternion();
 	public final Quaternion rotation;
@@ -33,14 +33,14 @@ public class Body extends ProMaster {
 	public boolean transformChanged = true;	//indique si la transformation du body a été modifiée cette frame.
 
 	public Body(PVector location, Quaternion rotation) {
-		this.location = location.get();
+		this.location = location.copy();
 		this.rotation = rotation.get();
 	}
 
 	// applique les forces et update l'etat (+transformChanged)
 	public void update() {
-		forces = zero.get();
-		torques = zero.get();
+		forces = zero.copy();
+		torques = zero.copy();
 		addForces();
 		
 		//1. translation, forces
@@ -61,7 +61,7 @@ public class Body extends ProMaster {
 		//check changes
 		transformChanged = false;
 		if (!location.equals(lastLocation)) {
-			lastLocation = location.get();
+			lastLocation = location.copy();
 			transformChanged = true;
 		} 
 		if (!rotation.equals(lastRotation)) {
@@ -128,7 +128,7 @@ public class Body extends ProMaster {
 			this.mass = -1;
 			this.affectedByCollision = false;
 			this.inverseMass = 0;
-			this.inverseInertiaMom = zero.get();
+			this.inverseInertiaMom = zero.copy();
 		} else if (mass <= 0)
 			throw new IllegalArgumentException("mass négative ou nulle !");
 		else {
@@ -277,7 +277,7 @@ public class Body extends ProMaster {
 	}*/
 	
 	protected PVector velocityAt(PVector loc) {
-		PVector relVel = velocity.get();
+		PVector relVel = velocity.copy();
 		/*PVector rotVelAxis = rotationVel.rotAxis();
 		if (!isZeroEps( rotationVel.angle ));
 			relVel.add( rotVelAxis.cross(PVector.sub(loc, location)) );*/

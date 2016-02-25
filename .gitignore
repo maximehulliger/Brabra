@@ -1,6 +1,7 @@
 *.dll
 *.jar
 lib/*
+application.*
 *.pydevproject
 .project
 .metadata

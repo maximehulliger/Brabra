@@ -113,7 +113,7 @@ public abstract class ProMaster {
 	public static PVector[] copy(PVector[] vectors) {
 		PVector[] ret = new PVector[vectors.length];
 		for (int i=0; i<vectors.length; i++)
-			ret[i] = vectors[i].get();
+			ret[i] = vectors[i].copy();
 		return ret;
 	}
 
@@ -156,7 +156,7 @@ public abstract class ProMaster {
 	}
 
 	public static PVector moyenne(PVector[] points) {
-		PVector moyenne = zero.get();
+		PVector moyenne = zero.copy();
 		for (PVector p : points)
 			moyenne.add(p);
 		moyenne.div(points.length);

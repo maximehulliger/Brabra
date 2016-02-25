@@ -9,6 +9,7 @@ import processing.event.MouseEvent;
 
 
 public class TangibleGame extends PApplet {
+	public static final String name = "Brabra";
 	//private static final long serialVersionUID = 338280650599573653L;
 	public enum View {Menu, Calibration, TrivialGame, RealGame}
 
@@ -27,22 +28,38 @@ public class TangibleGame extends PApplet {
 	public boolean hasPopup = false;
 	public boolean over = false;
 	
+	public static String dataPath;
+	public static String inputPath;
+	
 	//----- setup et boucle d'update (draw)
 	
 	public static void main(String args[]) {
 		PApplet.main(new String[] { cs211.tangiblegame.TangibleGame.class.getName() });
 	}
 	
+	public void settings() {
+		size(1280, 720, "processing.opengl.PGraphics3D");
+	}
+	
 	public void setup() {
+		surface.setTitle(name);
 		ProMaster.init(this);
-		size(1280, 720, P3D);
 		float camZ = height / (2*tan(PI*60/360.0f));
 		perspective(PI/3, width/(float)height, camZ/10, camZ*1000);
 		imgAnalyser = new ImageAnalyser(this);
+		setPaths();
+		System.out.println("dataPath: "+dataPath);
+		
 		if (imgAnalysis)
 			thread("imageProcessing");
 		
 		setView(View.RealGame);
+	}
+	
+	private void setPaths() {
+		String base = dataPath("").substring(0, dataPath("").lastIndexOf(name)+name.length());
+		dataPath = base+"\\bin\\data\\";
+		inputPath = base+"\\bin\\input\\";
 	}
 	
 	public void imageProcessing() {

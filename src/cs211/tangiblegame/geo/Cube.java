@@ -59,7 +59,7 @@ public class Cube extends PseudoPolyedre {
 	//retourne le point qui est le plus contre cette normale (par rapport au centre)
 	public PVector pointContre(PVector normale) {
 		PVector cNorm = PVector.mult(normale, -1);
-		PVector proj = zero.get();
+		PVector proj = zero.copy();
 		for (int i=0; i<3; i++)
 			proj.add( PVector.mult( faces[i*2].normale.norm, dim[i] * sgn(faces[i*2].normale.norm.dot(cNorm))) );
 		proj.add(location);

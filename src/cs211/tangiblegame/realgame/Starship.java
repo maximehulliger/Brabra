@@ -76,7 +76,7 @@ public class Starship extends Plane//Cube
 	}
 	
 	protected void addForces() {
-		PVector forceRot = zero.get();
+		PVector forceRot = zero.copy();
 		
 		//-- rotation - selon angle de la plaque et sd + souris
 		PVector plateRot = PVector.div(app.imgAnalyser.rotation(), TangibleGame.inclinaisonMax); //sur 1
@@ -125,7 +125,7 @@ public class Starship extends Plane//Cube
 	 
 	//----- gestion evenement
 	
-	private PVector forceMouse = zero.get();
+	private PVector forceMouse = zero.copy();
 	private boolean debraie = false;
 	private boolean keyDownAvance = false;
 	private boolean keyDownRecule = false;

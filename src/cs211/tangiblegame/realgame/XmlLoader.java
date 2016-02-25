@@ -10,12 +10,13 @@ import org.xml.sax.Attributes;
 import org.xml.sax.helpers.DefaultHandler;
 
 import cs211.tangiblegame.ProMaster;
+import cs211.tangiblegame.TangibleGame;
 import cs211.tangiblegame.physic.Body;
 import cs211.tangiblegame.physic.Physic;
 
 public final class XmlLoader extends ProMaster {
 	public static RealGame game;
-	private static final String filename = "data/scene.xml";
+	private static final String filename = TangibleGame.inputPath+"scene.xml";
 	private XMLReader xmlreader;
 	
 	public XmlLoader() {

@@ -20,7 +20,7 @@ public final class Line extends ProMaster {
 		this.base = base;
 		this.vector = PVector.sub(b, base);
 		this.vectorMag = vector.mag();
-		norm = vector.get();
+		norm = vector.copy();
 		norm.normalize();
 	}
 

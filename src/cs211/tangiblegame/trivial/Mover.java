@@ -31,7 +31,7 @@ public class Mover extends ProMaster {
 	void update() {
 
 		// frottement, frein. s'oppose à la vitesse :
-		PVector frein = velocity.get();
+		PVector frein = velocity.copy();
 		frein.normalize();
 		frein.mult(-frictionMagnitude*gravityConstant);
 
@@ -106,7 +106,7 @@ public class Mover extends ProMaster {
 
 	//utilise x and z, centre de 2 spheres et leurs rayons
 	private boolean collide2D(PVector p1, float r1, PVector p2, float r2) {
-		PVector v = p1.get();
+		PVector v = p1.copy();
 		v.sub(p2);
 		v.y = 0;
 		return v.magSq() <= (r1+r2)*(r1+r2);

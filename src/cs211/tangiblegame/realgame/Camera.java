@@ -80,7 +80,7 @@ public class Camera extends ProMaster {
 			app.camera(distNot.x, distNot.y, distNot.z, 0, 0, 0, 0, -1, 0);
 			break;
 		case Static:
-			PVector posVue = toFollow.location.get();
+			PVector posVue = toFollow.location.copy();
 			PVector posCam = PVector.add( distStatic, posVue );
 			app.camera(posCam.x, posCam.y, posCam.z, posVue.x, posVue.y, posVue.z, 0, -1, 0);
 			break;

@@ -10,7 +10,7 @@ public class Ellipsoide extends Sphere {
 	
 	public Ellipsoide(PVector location, float mass, PVector rayons) {
 		super(location, mass, PApplet.max(rayons.array()));
-		this.r = rayons.get();
+		this.r = rayons.copy();
 		setMyMass();
 	}
 	

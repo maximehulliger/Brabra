@@ -3,6 +3,7 @@ package cs211.tangiblegame.realgame;
 import processing.core.PApplet;
 import processing.event.MouseEvent;
 import cs211.tangiblegame.Interface;
+import cs211.tangiblegame.TangibleGame;
 import cs211.tangiblegame.physic.Physic;
 import cs211.tangiblegame.realgame.Armement;
 
@@ -13,18 +14,18 @@ public class RealGame extends Interface {
 	
 	public RealGame() {
 		XmlLoader.game = this;
-		Armement.missileImg = app.loadImage("missile.jpg");
+		Armement.missileImg = app.loadImage(TangibleGame.dataPath+"missile.jpg");
 		int[] pixels = Armement.missileImg.pixels;
 		for (int i=0; i<pixels.length; i++)
 			if (pixels[i] == app.color(0))
 				pixels[i] = app.color(0, 0);
 		
-		MeteorSpawner.meteor = app.loadShape("asteroid.obj");
-		Camera.skybox = app.loadShape("skybox.obj");
+		MeteorSpawner.meteor = app.loadShape(TangibleGame.dataPath+"asteroid.obj");
+		Camera.skybox = app.loadShape(TangibleGame.dataPath+"skybox.obj");
 		Camera.skybox.scale(10000);
-		Starship.starship = app.loadShape("starship.obj");
+		Starship.starship = app.loadShape(TangibleGame.dataPath+"starship.obj");
 		Starship.starship.scale( Starship.sizeFactor );
-		Armement.missile = app.loadShape("rocket.obj");
+		Armement.missile = app.loadShape(TangibleGame.dataPath+"rocket.obj");
 	}
 	
 

@@ -14,7 +14,7 @@ import processing.core.PApplet;
 import processing.core.PVector;
 import processing.video.*;
 
-public class ImageAnalyser {
+public class ImageAnalyser extends ProMaster {
 	public static final float maxAcceptedAngle = 65f/360*PApplet.TWO_PI; //65°
 	public static boolean displayQuadRejectionCause = false;
 	private int idxCamera = 3;
@@ -86,8 +86,8 @@ public class ImageAnalyser {
 		standardFont = app.createFont("Arial", app.height/40f);
 		quadDetection = app.createGraphics(1920, 1080);
 		
-		paraMovie = ProMaster.copy(ImageProcessing.paraMovieBase);
-		paraCamera = ProMaster.copy(imgProc.paraCameraBase);
+		paraMovie = copy(ImageProcessing.paraMovieBase);
+		paraCamera = copy(imgProc.paraCameraBase);
 		if (takeMovie)
 			parametres = paraMovie;
 		else
@@ -148,9 +148,9 @@ public class ImageAnalyser {
 						//-- compute & set rotation
 						TwoDThreeD deathMasterLongSword = new TwoDThreeD(inWidth, inHeight);
 						PVector newRot = deathMasterLongSword.get3DRotations(detectedQuad);
-						if (ProMaster.isConstrained(newRot.x, -maxAcceptedAngle, maxAcceptedAngle) &&
-								ProMaster.isConstrained(newRot.x, -maxAcceptedAngle, maxAcceptedAngle) &&
-								ProMaster.isConstrained(newRot.x, -maxAcceptedAngle, maxAcceptedAngle)) {
+						if (isConstrained(newRot.x, -maxAcceptedAngle, maxAcceptedAngle) &&
+								isConstrained(newRot.x, -maxAcceptedAngle, maxAcceptedAngle) &&
+								isConstrained(newRot.x, -maxAcceptedAngle, maxAcceptedAngle)) {
 							rotationLock.lock();
 							if (!lastRotation.equals(newRot) ) {
 								lastRotation = rotation;
@@ -188,7 +188,7 @@ public class ImageAnalyser {
 					if (!hasFoundQuad || !hasFoundRotation) { // no good input -> old the whole !
 						rotationLock.lock();
 						if (rotationAge++ == 6) {
-							gameRotation = ProMaster.zero.get();
+							gameRotation = zero.copy();
 						}
 						rotationLock.unlock();
 
@@ -246,9 +246,9 @@ public class ImageAnalyser {
 	public void resetAllParameters(boolean movieToo) {
 		inputLock.lock();
 		if (movieToo)
-			paraMovie = ProMaster.copy(ImageProcessing.paraMovieBase);
-		paraCamera = ProMaster.copy(imgProc.paraCameraBase);
-		buttonDetection.paraBoutons = ProMaster.copy( imgProc.paraBoutonsBase );
+			paraMovie = copy(ImageProcessing.paraMovieBase);
+		paraCamera = copy(imgProc.paraCameraBase);
+		buttonDetection.paraBoutons = copy( imgProc.paraBoutonsBase );
 		if (takeMovie && movieToo)
 			parametres = paraMovie;
 		else if (!takeMovie)
@@ -363,7 +363,7 @@ public class ImageAnalyser {
 	public PVector rotation() {
 		try {
 			rotationLock.lock();
-			return gameRotation.get();
+			return gameRotation.copy();
 		} finally {
 			rotationLock.unlock();
 		}

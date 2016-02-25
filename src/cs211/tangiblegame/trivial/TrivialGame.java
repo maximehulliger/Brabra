@@ -38,7 +38,7 @@ public class TrivialGame extends Interface {
 		mode = Mode.Jeu;
 		etat = 0; //entre 0 (jeu) et 1 (controle)
 		tiltSpeed = 1;
-		platRot = zero.get();
+		platRot = zero.copy();
 	}
 	
 	public void wakeUp() {
