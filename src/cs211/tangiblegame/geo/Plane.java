@@ -9,12 +9,12 @@ public class Plane extends PseudoPolyedre {
 	private final PVector size; //x et z
 	private final PVector[] natCo; 	//native relative coordonates (4 points)
 	private final boolean finite;
-	
+
 	// updaté quand transformChanged
 	public Line normale;
 	private Line v1; //sur x
 	private Line v2; //sur z
-	
+
 	/** crée un plan de taille size2d (x,z) */
 	public Plane(PVector loc, Quaternion rot, float mass, PVector size2d) {
 		super( loc, rot, size2d.mag()/2 );
@@ -24,7 +24,7 @@ public class Plane extends PseudoPolyedre {
 		updateAbs();
 		setMass(mass);
 	}
-	
+
 	/** crée un plan infini */
 	public Plane(PVector loc, Quaternion rot) {
 		super( loc, rot, Float.MAX_VALUE );
@@ -46,7 +46,7 @@ public class Plane extends PseudoPolyedre {
 		ret.add( PVector.mult(v2.norm, b) );
 		return ret;
 	}
-	
+
 	//------ surcharge:
 
 	public void setMass(float mass) {
@@ -63,34 +63,31 @@ public class Plane extends PseudoPolyedre {
 					1/inertiaMom.z );
 		}
 	}
-	
+
 	public float projetteSur(PVector normale) {
 		float proj = 0;
 		proj += v1.norm.dot(normale) * size.x/2;
 		proj += v2.norm.dot(normale) * size.z/2;
 		return proj;
 	}
-	
+
 	public void update() {
 		super.update();
 		if (transformChanged) {
 			updateAbs();
 		}
 	}
-	
+
 	public void display() {
 		pushLocal();
-	    	if (finite) {
-	    		app.stroke(255);
-	    		app.fill(200, 150);
-	      		app.box(v2.vectorMag, small, v1.vectorMag);
-	      	} else {
-	      		app.stroke(255);
-	    		app.fill(0, 100, 100, 200);
-	      		app.box(far, small, far);
-	      	}
-	    	app.noStroke();
-	    popLocal();
+		if (finite) {
+			color.fill();
+			app.box(v2.vectorMag, small, v1.vectorMag);
+		} else {
+			color.fill();
+			app.box(far*2, small, far*2);
+		}
+		popLocal();
 	}
 
 	public Line collisionLineFor(PVector p) {
@@ -99,7 +96,7 @@ public class Plane extends PseudoPolyedre {
 		else
 			return new Line(projette(p), p, false);
 	}
-	
+
 	public boolean isIn(PVector abs) {
 		return isFacing(abs) && normale.projectionFactor(abs)<0;
 	}
@@ -109,11 +106,11 @@ public class Plane extends PseudoPolyedre {
 		PVector proj2 = v2.projetteLocal(point);
 		return PVector.add(proj1, proj2);
 	}
-	
+
 	public boolean doCollideFast(Collider c) {
 		return c.projetteSur(normale).comprend(0) && (!finite || super.doCollideFast(c));
 	}
-	
+
 	//retourne le point qui est le plus contre cette normale (par rapport au centre)
 	public PVector pointContre(PVector normale) {
 		if (!finite)
@@ -123,7 +120,7 @@ public class Plane extends PseudoPolyedre {
 		proj.add(location);
 		return proj;
 	}
-	
+
 	public Line.Projection projetteSur(Line ligne) {
 		if (ligne == normale)
 			return ligne.new Projection(0, 0);
@@ -131,36 +128,36 @@ public class Plane extends PseudoPolyedre {
 			return ligne.projette( sommets );
 		else
 			return ligne.new Projection(Float.MIN_VALUE, Float.MAX_VALUE);
-			//throw new IllegalArgumentException("infinite plane projected !!");
+		//throw new IllegalArgumentException("infinite plane projected !!");
 	}
-	
+
 	public Plane[] plansSeparationFor(PVector colliderLocation) {
 		return new Plane[] {this};
 	}
-	
+
 	//----- private
-	
+
 	//update les coordonnées absolue. (à chaque transform change du parent)
 	protected void updateAbs() {
 		super.sommets = absolute(natCo);
-		
+
 		v1 = new Line(sommets[0], sommets[1], finite); //sur x
 		v2 = new Line(sommets[0], sommets[2], finite); //sur z
-	  
+
 		PVector norm = v2.norm.cross(v1.norm);
 		norm.normalize(); // ? plus besoin
 		normale = new Line(sommets[0], PVector.add( sommets[0], norm ), false);
-		
+
 		super.arretes = new Line[] {
 				v1, v2,
 				new Line(sommets[1], sommets[3], true),
 				new Line(sommets[2], sommets[3], true)};
 	}
-	
+
 	private boolean isFacing(PVector p) {
 		return !finite || (v1.isFacing(p) && v2.isFacing(p));
 	}
-	
+
 	private static PVector[] getNatCo(PVector size2d) {
 		return new PVector[] { 
 				new PVector(-size2d.x/2, 0, -size2d.z/2), 

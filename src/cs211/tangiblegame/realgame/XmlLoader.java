@@ -15,7 +15,7 @@ import cs211.tangiblegame.physic.Physic;
 
 public final class XmlLoader extends ProMaster {
 	public static RealGame game;
-	private static final String filename = "scene.xml";
+	private static final String filename = "data/scene.xml";
 	private XMLReader xmlreader;
 	
 	public XmlLoader() {
@@ -62,12 +62,17 @@ public final class XmlLoader extends ProMaster {
 	    		String pos = atts.getValue("pos");
 	    		String impulse = atts.getValue("impulse");
 	    		String camera = atts.getValue("camera");
+	    		String cameraDist = atts.getValue("cameraDist");
 	    		String mass = atts.getValue("mass");
 	    		String name = atts.getValue("name");
 	    		String life = atts.getValue("life");
+	    		String color = atts.getValue("color");
+	    		String stroke = atts.getValue("stroke");
 			  	
 	    		Body b = Prefab.add(localName, vec(pos));
-			  	if (b != null) {
+	    		if (b != null) {
+			  		if (color != null)
+			  			b.setColor( new Color(color, stroke) );
 			  		if (impulse != null)
 					  	b.applyImpulse(vec(impulse));
 			  		if (mass != null)
@@ -77,22 +82,16 @@ public final class XmlLoader extends ProMaster {
 			  		if (life != null)
 			  			setLife(b, life);
 				  	if (camera != null) {
-				  		game.camera.set(camera,atts.getValue("cameraDist"),b);
+				  		game.camera.set(camera,cameraDist,b);
 				  	}
 			  	}
 	    	}
 	    }
 	    
-	    /*@Override
-	    public void endElement(String uri, String localName, String qName)
-	    		throws SAXException {
-	
-	    }
-	
-	    @Override
-	    public void characters(char[] ch, int start, int length) {
-	    	//buffer.append(ch, start, length);
-	    }*/
+	    /*
+		public void endElement(String uri, String localName, String qName) throws SAXException {}
+		public void characters(char[] ch, int start, int length) {}
+		*/
 	}
 	
 

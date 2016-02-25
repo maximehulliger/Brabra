@@ -10,6 +10,7 @@ public class Body extends ProMaster {
 	protected String name = "Body";
 	protected int life = -1;
 	protected int maxLife = -1;
+	protected Color color = Color.basic;
 	
 	protected float mass = -1;
 	protected float inverseMass = 0;
@@ -73,9 +74,11 @@ public class Body extends ProMaster {
 		}
 	}
 	
-	public String toString() {
-		return name;
+	public void setColor(Color color) {
+		this.color = color;
 	}
+	
+	// name
 	public void setName(String name) {
 		this.name = name;
 	}
@@ -83,11 +86,23 @@ public class Body extends ProMaster {
 		setName(name);
 		return this;
 	}
+	public String toString() {
+		return name;
+	}
 	
 	// life management
 	public void setLife(int life, int maxLife) {
-		this.life = life;
+		if (maxLife <= 0) {
+			System.err.println(toString()+" should have positive maxLife");
+			maxLife = 1;
+		}
 		this.maxLife = maxLife;
+		if (life > maxLife) {
+			this.life = maxLife;
+			System.err.println(toString()+" can not have more life than maxLife, setting at "+life());
+		} else {
+			this.life = life;
+		}
 	}
 	public void damage(int damage) {
 		if (maxLife < 0)
@@ -100,9 +115,11 @@ public class Body extends ProMaster {
 				onDeath();
 		}
 	}
+	public String life() {
+		return life+"/"+maxLife;
+	}
 	/** à surcharger pour réagir à la mort par damage(dmg) */
 	protected void onDeath() {}
-	
 	
 	/** set la masse du body. si -1, l'objet aura une mass et un moment d'inertie infini.
 		à surcharger (et appeler) pour set le moment d'inertie. */

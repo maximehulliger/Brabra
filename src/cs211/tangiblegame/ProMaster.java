@@ -18,9 +18,10 @@ public abstract class ProMaster {
 	public static final PVector up = new PVector(0, 1, 0);
 	public static final PVector front = new PVector(0, 0, -1);
 	public static final Quaternion identity = new Quaternion();
-	public static final float small = 0.001f;
+	public static final float small = 0.05f;
 	public static final float far = 10_000;
 	private static final Pattern floatPattern = Pattern.compile("[+-]?\\d+[.]?\\d*");
+	private static final Pattern intPattern = Pattern.compile("[+]?\\d+");
 
 	public static int color0, color255;
 	public static int colorButtonOk, colorButtonRejected, colorQuad;
@@ -209,37 +210,104 @@ public abstract class ProMaster {
 	}
 
 	// --- Couleurs ---
-	public static final Color grey = new Color(150, 150);
-	public static final Color white = new Color(150, 150);
-	public static final Color red = new Color(255, 0,0);
-	public static final Color green = new Color(150, 100);
-
+	
 	public static class Color {
-		final int[] c;
-		int[] s = null;
+		public static final Color grey = new Color(150, 150);
+		public static final Color white = new Color(255, 150);
+		public static final Color red = new Color(255, 0, 0, 200);
+		public static final Color green = new Color(0, 255, 0, 200);
+		public static final Color blue = new Color(0, 0, 255, 200);
+		public static final Color yellow = new Color("255,255,0,150", "255");
+		public static final Color pink = new Color(255, 105, 180);
+		public static final Color basic = yellow;
+		
+		private final int[] c;
+		private final int[] s;
 
 		/**
 		 * c,c,c,255; c,c,c,a; r,g,b,255; or r,g,b,a;
 		 */
 		public Color(int... rgba) {
 			c = fromUF(rgba);
+			s = null;
 		}
 		
-		public void setStroke(int... s) {
-			this.s = fromUF(s);
+		public Color(String color, String stroke) {
+			Color c = getColor(color);
+			if (c == null) {
+				System.err.println("Color is not set, taking basic");
+				c = basic;
+			}
+			Color s = getColor(stroke);
+			if (s == null) {
+				this.c = c.get();
+				this.s = c.getStroke();
+			} else {
+				this.c = c.get();
+				this.s = s.get();
+			}
+		}
+		
+		/** retourne un clone du tableau de couleur primaire */
+		private int[] get() {
+			return c.clone();
+		}
+		
+		private int[] getStroke() {
+			if (s == null)
+				return null;
+			else
+				return s.clone();
 		}
 
+		/** applique la couleur primaire et le stroke si set */
 		public void fill() {
 			app.fill(c[0], c[1], c[2], c[3]);
 			if (s != null)
 				app.stroke(s[0], s[1], s[2], s[3]);
-		}
-		
-		private int[] get() {
-			return c.clone();
+			else
+				app.noStroke();
 		}
 
-		private int[] fromUF(int[] rgba) {
+		private static Color getColor(String color) {
+			if (color == null) {
+				return null;
+			} else if (color.equals("basic")) 
+				return basic;
+			else if (color.equals("grey")) 
+				return grey;
+			else if (color.equals("white")) 
+				return white;
+			else if (color.equals("red")) 
+				return red;
+			else if (color.equals("blue")) 
+				return blue;
+			else if (color.equals("green")) 
+				return green;
+			else if (color.equals("yellow")) 
+				return yellow;
+			else if (color.equals("pink"))
+				return pink;
+			else {
+				Matcher matcher = intPattern.matcher(color);
+				int[] values = new int[4];
+				int i=0;
+				for (; i<=3 && matcher.find(); i++) {
+					values[i] = Integer.parseInt(matcher.group());
+				}
+				if (i == 0) {
+					System.out.println("wrong color format for \""+color+"\", taking basic");
+					return basic;
+				} else if (i < 4) {
+					int[] ret = new int[i];
+					System.arraycopy(values, 0, ret, 0, i);
+					values = ret;
+				}
+				return new Color(values);
+			}
+		}
+		
+		private static int[] fromUF(int[] rgba) {
 			switch (rgba.length) {
 			case 1:
 				return new int[] {rgba[0], rgba[0], rgba[0], 255};
@@ -251,7 +319,7 @@ public abstract class ProMaster {
 				return rgba;
 			default:
 				System.err.println("no cool color input: "+rgba);
-				return white.get();
+				return white.c.clone();
 			}
 		}
 	}

@@ -1,9 +1,11 @@
-package cs211.tangiblegame;
+package cs211.tangiblegame.realgame;
 
+import processing.core.PApplet;
 import processing.core.PShape;
 import processing.core.PVector;
 import cs211.tangiblegame.physic.Body;
 import cs211.tangiblegame.ProMaster;
+import cs211.tangiblegame.TangibleGame;
 
 //gère la camera, le background et la lumière. point central en option :)
 public class Camera extends ProMaster {
@@ -21,7 +23,7 @@ public class Camera extends ProMaster {
 			else if (f.equals("fixed"))
 				return FollowMode.Not;
 			else {
-				System.out.println("FollowMode pour camera inconu :"+f);
+				System.err.println("mode pour camera inconu : \""+f+"\"\n");
 				return FollowMode.Not;
 			}
 		}
@@ -36,34 +38,36 @@ public class Camera extends ProMaster {
 	private FollowMode followMode = FollowMode.Not;
 	private Body toFollow = null;
 
-	private PVector distNot = vec(50,50,50);
-	private PVector distStatic = vec(300,300,300);
-	private PVector distRel = PVector.mult(vec(0, 6, 9), 15f);
+	private static PVector distNot = vec(100,100,100);
+	private static PVector distStatic = vec(300,300,300);
+	private static PVector distRel = PVector.mult(vec(0, 6, 9), 15f);
 	
-	public void set(String mode, String dist, Body toFollow) {
-		if (mode == null && dist == null && toFollow == null)
+	public void set(String followMode, String dist, Body toFollow) {
+		if (followMode == null && dist == null && toFollow == null)
 			return;
 		
-		if (mode != null) {
-			FollowMode followMode = FollowMode.fromString(mode);
-			if (toFollow == null && dist != null) {
-				FollowMode oldMode = this.followMode;
-				this.followMode = followMode;
-				setDist(vec(dist));
-				System.out.println("camera dist in "+mode+" mode set at "+dist);
-				this.followMode = oldMode;
-				return;
-			} else
-				this.followMode = followMode; 	
-		}
 		
-		if (toFollow != null)
+		if (toFollow != null) {
 			this.toFollow = toFollow;
+			if (followMode != null) {
+				this.followMode = FollowMode.fromString(followMode);
+				displayState();
+			}
+		}
+		if (followMode != null && dist != null)
+			updateModeDist(FollowMode.fromString(followMode), vec(dist), toFollow == null);
+				
 		
-	  	if (dist != null)
-		  	setDist(vec(dist));
-
-	  	displayState();
+	}
+	
+	private void updateModeDist(FollowMode mode, PVector dist, boolean blabla) {
+		FollowMode oldMode = this.followMode;
+		PVector oldDist = getDist();
+		this.followMode = mode;
+		setDist(dist);
+		if (!oldDist.equals(getDist()) && blabla)
+			System.out.println("camera dist in "+mode+" mode set at "+dist);
+		this.followMode = oldMode;
 	}
 
 	public void setSkybox(boolean displaySkybox) {
@@ -76,8 +80,6 @@ public class Camera extends ProMaster {
 	}
 	
 	public void place() {
-		app.noStroke();
-		
 		switch(followMode) {
 		case Not:
 			app.camera(distNot.x, distNot.y, distNot.z, 0, 0, 0, 0, -1, 0);
@@ -97,7 +99,8 @@ public class Camera extends ProMaster {
 		
 		if (displaySkybox) {
 			app.pushMatrix();
-			translate( toFollow.location  );
+			if (toFollow != null)
+				translate( toFollow.location  );
 			app.shape(skybox);
 			app.popMatrix();
 		} else {
@@ -116,14 +119,20 @@ public class Camera extends ProMaster {
 	}
 	
 	public void gui() {
-		
+		app.camera();
+		app.hint(PApplet.DISABLE_DEPTH_TEST);
+		if (app.intRealGame.starship != null)
+			app.intRealGame.starship.armement.displayGui();
+		if (TangibleGame.imgAnalysis)
+			app.imgAnalyser.displayCtrImg();
+		app.hint(PApplet.ENABLE_DEPTH_TEST);
 	}
 	
-	private void displayState() {
+	public void displayState() {
 		if (followMode == FollowMode.Not)
 			System.out.println("camera fixed at "+getDist());
 		else
-			System.out.println("camera following "+toFollow.toString()+" at "+getDist()+" in "+followMode+" mode.");
+			System.out.println("camera following "+toFollow.toString()+" at "+toFollow.location+" from "+getDist()+" in "+followMode+" mode.");
 	}
 	
 	private void setDist(PVector dist) {

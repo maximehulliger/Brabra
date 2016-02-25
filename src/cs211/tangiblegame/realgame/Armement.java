@@ -227,6 +227,11 @@ public class Armement extends ProMaster {
 		
 		public Objectif(PVector location) {
 			super(location, 30, 50);
+			setName("Objectif");
+		}
+		
+		public String toString() {
+			return super.toString()+" ("+life()+")";
 		}
 
 		public void display() {

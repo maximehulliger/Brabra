@@ -19,6 +19,34 @@ public class Cube extends PseudoPolyedre {
 	    setMass(mass);
 	    setName("Cube");
 	}
+
+	public void display() {
+		pushLocal();
+		color.fill();
+		app.box(size.x, size.y, size.z);
+		popLocal();
+	}
+
+	public void setMass(float mass) {
+		super.setMass(mass);
+		if (inverseMass > 0) {
+			float fact = mass/12;
+			super.inertiaMom = new PVector(
+					fact*(sq(size.y) + sq(size.z)), 
+					fact*(sq(size.x) + sq(size.z)), 
+					fact*(sq(size.x) + sq(size.y)));
+			super.inverseInertiaMom = new PVector(
+					1/inertiaMom.x,
+					1/inertiaMom.y,
+					1/inertiaMom.z );
+		}
+	}
+	
+	public void update() {
+		super.update();
+		if (transformChanged)
+			updateAbs();
+	}
 	
 	public boolean isIn(PVector abs) {
 		float[] loc = local(abs).array();
@@ -94,8 +122,6 @@ public class Cube extends PseudoPolyedre {
 		return bestProj;
 	}
 	
-	//----- suite OK
-	
 	//update les coordonnées absolue. (à chaque transform change du parent)
 	private void updateAbs() {
 		//1. update les plans
@@ -111,57 +137,9 @@ public class Cube extends PseudoPolyedre {
 				absolute(up, zero, rotation),
 				absolute(front, zero, rotation) };*/
 	}
-
-	public void setMass(float mass) {
-		super.setMass(mass);
-		if (inverseMass > 0) {
-			float fact = mass/12;
-			super.inertiaMom = new PVector(
-					fact*(sq(size.y) + sq(size.z)), 
-					fact*(sq(size.x) + sq(size.z)), 
-					fact*(sq(size.x) + sq(size.y)));
-			super.inverseInertiaMom = new PVector(
-					1/inertiaMom.x,
-					1/inertiaMom.y,
-					1/inertiaMom.z );
-		}
-	}
-	
-	public void display() {
-		pushLocal();
-		app.box(size.x, size.y, size.z);
-		popLocal();
-	}
-	/*
-	public void display() {
-		pushLocal();
-		for (Plane p : faces) 
-			p.display();
-		popLocal();
-	}*/
-
-	public void update() {
-		super.update();
-		if (transformChanged)
-			updateAbs();
-	}
 	
 	//-- static:
 	
-	/*private static PVector[] getSommetsLoc(PVector size) {
-		PVector hs = PVector.div(size, 2);
-		return new PVector[] {
-				new PVector( -hs.x,	hs.y, 	hs.y),
-				new PVector( -hs.x,	-hs.y, 	hs.z),
-				new PVector( hs.x, 	-hs.y,	hs.z),
-				new PVector( hs.x, 	hs.y,	hs.z),
-				new PVector( -hs.x,	hs.y,	-hs.z),
-				new PVector( -hs.x,	-hs.y,	-hs.z),
-				new PVector( hs.x,	-hs.y,	-hs.z),
-				new PVector( hs.x,	hs.y,	-hs.z)
-		};
-	}*/
-	  
 	private static Plane[] getFaces(PVector size) {
 	    Plane[] faces =  new Plane[6];
 	    PVector[] facesLoc = getFacesLoc(size);

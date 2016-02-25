@@ -46,6 +46,7 @@ public class Sphere extends Collider {
 	
 	public void display() {
 		pushLocal();
+		color.fill();
 		app.sphere(radius);
 		popLocal();
 	}

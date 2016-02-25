@@ -2,9 +2,7 @@ package cs211.tangiblegame.realgame;
 
 import processing.core.PApplet;
 import processing.event.MouseEvent;
-import cs211.tangiblegame.Camera;
 import cs211.tangiblegame.Interface;
-import cs211.tangiblegame.TangibleGame;
 import cs211.tangiblegame.physic.Physic;
 import cs211.tangiblegame.realgame.Armement;
 
@@ -36,17 +34,6 @@ public class RealGame extends Interface {
 		
 		Prefab.file.load();
 		
-		
-		//mover.applyImpulse( PVector.add(mover.location, vec(0, 0, 0)), vec(0, 0, 1));
-		
-		//physic.colliders.add( new Shield(vec(0, 100, 0), vec(200, 20, 80)));
-		
-		
-		//Cube cube1 = new Cube( base, ProMaster.zero.get(), 5, vec(300, 30,300) );
-		//Cube cube2 = new Cube( dessus , vec(0, 0, QUARTER_PI), 1, vec(30, 30, 30) );
-		
-		
-		
 		/*
 		int d = 1000;
 		physic.colliders.add( );
@@ -69,19 +56,11 @@ public class RealGame extends Interface {
 	public void draw() {
 		camera.place();
 
-		//update & display everything
 		physic.displayAll();
 		
 		physic.doMagic();
 		
-		//GUI
-		app.camera();
-		app.hint(PApplet.DISABLE_DEPTH_TEST);
-		if (starship != null)
-			starship.armement.displayGui();
-		if (TangibleGame.imgAnalysis)
-			app.imgAnalyser.displayCtrImg();
-		app.hint(PApplet.ENABLE_DEPTH_TEST);
+		camera.gui();
 	}
 
 	//-------- EVENTS
@@ -98,24 +77,19 @@ public class RealGame extends Interface {
 		}
 	}
 
+	public void keyPressed() {
+		if (starship != null)
+			starship.keyPressed();
+	}  
+	
 	public void keyReleased() {
 		if (starship != null)
 			starship.keyReleased();
 		if (app.key == 'r')
 			init();
-	}
-
-	public void keyPressed() {
-		if (starship != null)
-			starship.keyPressed();
-		
-		//tab: switch camera
-		if (app.keyCode == PApplet.TAB) {
+		else if (app.key == 'c')
+			camera.displayState();
+		if (app.keyCode == PApplet.TAB)
 			camera.nextMode();
-		}
-	}  
-
-	public void mouseReleased() {
-		
 	}
 }

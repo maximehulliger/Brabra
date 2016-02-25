@@ -27,6 +27,7 @@ public class Ellipsoide extends Sphere {
 
 	public void display() {
 		pushLocal();
+		color.fill();
 		app.scale(r.x, r.y, r.z);
 		app.sphere(1);
 		popLocal();

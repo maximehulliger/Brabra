@@ -28,7 +28,7 @@ public class Prefab extends ProMaster {
 		else if (name.equals("objectif"))
 			col = new Armement.Objectif(location);
 		else if (name.equals("starship")) {
-			app.intRealGame.starship = new Starship( vec(0, 100, -700) );
+			app.intRealGame.starship = new Starship(location);
 			col = app.intRealGame.starship;
 		} else {
 			System.out.println("\""+name+"\" unknown, ignoring");
