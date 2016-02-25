@@ -46,7 +46,6 @@ public class Camera extends ProMaster {
 		if (followMode == null && dist == null && toFollow == null)
 			return;
 		
-		
 		if (toFollow != null) {
 			this.toFollow = toFollow;
 			if (followMode != null) {
@@ -54,20 +53,16 @@ public class Camera extends ProMaster {
 				displayState();
 			}
 		}
-		if (followMode != null && dist != null)
-			updateModeDist(FollowMode.fromString(followMode), vec(dist), toFollow == null);
-				
 		
-	}
-	
-	private void updateModeDist(FollowMode mode, PVector dist, boolean blabla) {
-		FollowMode oldMode = this.followMode;
-		PVector oldDist = getDist();
-		this.followMode = mode;
-		setDist(dist);
-		if (!oldDist.equals(getDist()) && blabla)
-			System.out.println("camera dist in "+mode+" mode set at "+dist);
-		this.followMode = oldMode;
+		if (followMode != null && dist != null) {
+			FollowMode oldMode = this.followMode;
+			PVector oldDist = getDist();
+			this.followMode = FollowMode.fromString(followMode);
+			setDist(vec(dist));
+			if (!oldDist.equals(getDist()) && toFollow == null)
+				System.out.println("camera dist in "+followMode+" mode set at "+dist);
+			this.followMode = oldMode;
+		}
 	}
 
 	public void setSkybox(boolean displaySkybox) {

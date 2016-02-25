@@ -9,7 +9,7 @@ import processing.event.MouseEvent;
 
 
 public class TangibleGame extends PApplet {
-	private static final long serialVersionUID = 338280650599573653L;
+	//private static final long serialVersionUID = 338280650599573653L;
 	public enum View {Menu, Calibration, TrivialGame, RealGame}
 
 	//--parametres
