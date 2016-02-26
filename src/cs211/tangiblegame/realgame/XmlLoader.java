@@ -69,6 +69,7 @@ public final class XmlLoader extends ProMaster {
 	    		String life = atts.getValue("life");
 	    		String color = atts.getValue("color");
 	    		String stroke = atts.getValue("stroke");
+	    		String focus = atts.getValue("focus");
 			  	
 	    		Body b = Prefab.add(localName, vec(pos));
 	    		if (b != null) {
@@ -84,6 +85,8 @@ public final class XmlLoader extends ProMaster {
 			  			setLife(b, life);
 				  	if (camera != null) {
 				  		game.camera.set(camera,cameraDist,b);
+				  	if (focus != null && Boolean.parseBoolean(focus))
+				  		game.physicInteraction.setFocused(b);
 				  	}
 			  	}
 	    	}

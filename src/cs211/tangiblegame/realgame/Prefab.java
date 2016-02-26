@@ -28,20 +28,19 @@ public class Prefab extends ProMaster {
 		else if (name.equals("objectif"))
 			col = new Armement.Objectif(location);
 		else if (name.equals("starship")) {
-			app.intRealGame.starship = new Starship(location);
-			col = app.intRealGame.starship;
+			col = new Starship(location);
 		} else {
 			System.out.println("\""+name+"\" unknown, ignoring");
 			return null;
 		}
-		app.intRealGame.physic.colliders.add( col );
+		game.physic.colliders.add( col );
 		return col;
 	}
 	
 	//une sphère soumise à la gravité.
 	private static class TBall extends Sphere {
 		public TBall(PVector location)  {
-			super(location, 1, 1);
+			super(location, 1, 10);
 		}
 		public void addForces() {
 			pese();
@@ -55,7 +54,7 @@ public class Prefab extends ProMaster {
 	
 	private static class TCube extends Cube {
 		public TCube(PVector location) {
-			super(location, identity, 1, vec(1,1,1));
+			super(location, identity, 1, vec(20,20,20));
 		}
 		protected void addForces() {
 			this.pese();

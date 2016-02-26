@@ -84,6 +84,7 @@ public class TangibleGame extends PApplet {
 		case RealGame:
 			if (intRealGame == null) {
 				intRealGame = new RealGame();
+				ProMaster.game = intRealGame;
 				intRealGame.init();
 			}
 			currentInterface = intRealGame;

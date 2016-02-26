@@ -5,12 +5,14 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import cs211.tangiblegame.geo.Quaternion;
+import cs211.tangiblegame.realgame.RealGame;
 import processing.core.PApplet;
 import processing.core.PVector;
 
 // Processing master
 public abstract class ProMaster {
 	public static TangibleGame app;
+	public static RealGame game;
 	public static Random random;
 	public static final PVector zero = new PVector(0, 0, 0);
 	public static final PVector farfarAway = new PVector(Float.MAX_VALUE, Float.MAX_VALUE, Float.MAX_VALUE);
@@ -29,6 +31,7 @@ public abstract class ProMaster {
 
 	public static void init(TangibleGame app) {
 		ProMaster.app = app;
+		
 		random = new Random();
 
 		color0 = app.color(0);

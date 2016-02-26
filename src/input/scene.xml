@@ -1,10 +1,29 @@
 <scene>
-	<camera displaySkybox="true" mode="fixed" dist="(100,100,100)"></camera> <!---->
-	<physic gravity="0.8" deltaTime="0.7"></physic>
-	<!-- <box pos="(5,5,0)" name="box1"></box>
-	<box pos="(0,5,0)"></box>
-	<ball pos="(0,5,5)" mass="5"></ball> -->
-	<objectif pos="(100,100,-500)" life="200" color="red"></objectif>
+	<camera displaySkybox="true" mode="static" dist="(100,140,100)"></camera>
+	<physic gravity="0.2" deltaTime="0.7"></physic>
 	<floor pos="zero" color="green" stroke="blue"></floor>
+	<ball pos="(0,5,5)" mass="5" color="red" camera="static" ></ball>
+	
+	<!-- 
+	<box pos="(5,5,0)" name="box1"></box>
+	<box pos="(0,5,0)"></box>
+	-->
+	
 	<starship pos="(100 ,5000,100)" camera="relative"></starship>
+	
+	<!--  
+	<box pos="(0,5,-5)" mass="5" color="blue"></box>
+	<box pos="(0,40,6)" mass="5" color="red"></box> 
+	-->
+	<!-- 
+	<objectif pos="(100,100,-500)" life="200" color="red"></objectif>
+	<objectif pos="(1000,100,-2000)" life="200" color="red"></objectif>
+	<objectif pos="(-1000,100,-2000)" life="200" color="red"></objectif>
+	<objectif pos="(0,2000,100)" life="200" color="red"></objectif>
+	<objectif pos="(1000,1000,1000)" life="10" color="yellow"></objectif>
+	<objectif pos="(0, -1000,0)" life="10" color="yellow"></objectif>
+	<objectif pos="(-1000,-1000,1000)" life="10" color="yellow"></objectif>
+	<objectif pos="(2000, 2000,-1000)" life="10" color="yellow"></objectif>
+	<objectif pos="(1000,100,-1000)" life="10" color="yellow"></objectif>
+	-->
 </scene>

@@ -21,8 +21,8 @@ public class Body extends ProMaster {
 
 	private PVector lastLocation = zero.copy();
 	protected Quaternion lastRotation = new Quaternion();
-	private PVector forces;
-	private PVector torques;
+	private PVector forces = zero.copy();
+	private PVector torques = zero.copy();
 	
 	public final PVector velocity = zero.copy();
 	public final PVector location;
@@ -39,8 +39,6 @@ public class Body extends ProMaster {
 
 	// applique les forces et update l'etat (+transformChanged)
 	public void update() {
-		forces = zero.copy();
-		torques = zero.copy();
 		addForces();
 		
 		//1. translation, forces
@@ -72,11 +70,19 @@ public class Body extends ProMaster {
 			System.out.println("rotation: \nmag: "+rotation.mag()+"\n vec: "+rotation);
 			System.out.println("vitesse Ang.: \nmag: "+angularVelocity.mag()+"\n vec: "+angularVelocity);*/
 		}
+		
+		forces = zero.copy();
+		torques = zero.copy();
 	}
 	
 	public void setColor(Color color) {
 		this.color = color;
 	}
+	
+	public PVector inertiaMom() {
+		return inertiaMom.copy();
+	}
+	
 	
 	// name
 	public void setName(String name) {
@@ -170,7 +176,7 @@ public class Body extends ProMaster {
 	}
 	
 	// à surcharger pour réagir à une collision
-	public void onCollision(Collider col, PVector impact) {}
+	protected void onCollision(Collider col, PVector impact) {}
 	
 	//------ Gestion des forces et torques
 	
@@ -178,7 +184,7 @@ public class Body extends ProMaster {
 	protected void addForces() {}
 
 	// permet d'appliquer une force au body à ce point (absolu)
-	protected void addForce(PVector absPos, PVector force) {
+	public void addForce(PVector absPos, PVector force) {
 		if (drawInteraction) {
 			PVector to = PVector.add(absPos, PVector.mult(force, 0.2f));
 			app.stroke(255);
@@ -194,31 +200,31 @@ public class Body extends ProMaster {
 	}
 	
 	// permet d'appliquer une force absolue au centre de masse du body.
-	protected void addForce(PVector force) {	
+	public void addForce(PVector force) {	
 		forces.add(force);
 	}
 	
 	//-- méthodes cuites pour ajouter une force
 	
 	// applique son poids à l'objet
-	protected void pese() {
+	public void pese() {
 		if (mass == -1)
 			throw new IllegalArgumentException("un objet de mass infini ne devrait pas peser !");
 		PVector poids = new PVector(0, -Physic.gravity*mass, 0);
 		addForce(poids);
 	}
 	
-	protected void avance(float force) {
+	public void avance(float force) {
 		addForce( absolute( PVector.mult(front, 150) ) , absFront(force) );
 	}
 	
-	protected void freine(float perte) {
+	public void freine(float perte) {
 		freineDepl(perte);
 		freineRot(perte);
 	}
 	
 	// applique une force qui s'oppose à la vitesse. 
-	protected void freineDepl(float perte) {
+	public void freineDepl(float perte) {
 		if (isZeroEps(velocity, true))
 			return;
 		//le frottement, frein. s'oppose à la vitesse :
@@ -226,7 +232,7 @@ public class Body extends ProMaster {
 	}
 	
 	// applique une force qui s'oppose à la vitesse angulaire.
-	protected void freineRot(float perte) {
+	public void freineRot(float perte) {
 		if (rotationVel.angle != 0) {
 			if ( isZeroEps(rotationVel.angle) ) {
 				rotationVel.set(1, 0, 0, 0);

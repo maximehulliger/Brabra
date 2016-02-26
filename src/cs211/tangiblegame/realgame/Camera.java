@@ -69,8 +69,11 @@ public class Camera extends ProMaster {
 	}
 	
 	public void nextMode() {
-		followMode = followMode.next();
-		displayState();
+		if (toFollow != null) {
+			followMode = followMode.next();
+			displayState();
+		} else
+			System.out.println("camera need an object to focus on.");
 	}
 	
 	public void place() {
@@ -115,8 +118,10 @@ public class Camera extends ProMaster {
 	public void gui() {
 		app.camera();
 		app.hint(PApplet.DISABLE_DEPTH_TEST);
-		if (app.intRealGame.starship != null)
-			app.intRealGame.starship.armement.displayGui();
+		if (game.physicInteraction == null)
+			System.out.println("oui");
+		if (game.physicInteraction.armement != null)
+			game.physicInteraction.armement.displayGui();
 		//if (TangibleGame.imgAnalysis && !app.imgAnalyser.paused())
 		//	app.imgAnalyser.displayCtrImg();
 		app.hint(PApplet.ENABLE_DEPTH_TEST);

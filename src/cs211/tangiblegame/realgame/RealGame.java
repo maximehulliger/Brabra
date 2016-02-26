@@ -10,10 +10,9 @@ import cs211.tangiblegame.realgame.Armement;
 public class RealGame extends Interface {
 	public Physic physic;
 	public Camera camera;
-	public Starship starship;
+	public PhysicInteraction physicInteraction;
 	
 	public RealGame() {
-		XmlLoader.game = this;
 		Armement.missileImg = app.loadImage(TangibleGame.dataPath+"missile.jpg");
 		int[] pixels = Armement.missileImg.pixels;
 		for (int i=0; i<pixels.length; i++)
@@ -32,21 +31,10 @@ public class RealGame extends Interface {
 	public void init() {
 		physic = new Physic();
 		camera = new Camera();
+		physicInteraction = new PhysicInteraction();
+		RealGame r = game;
 		
 		Prefab.file.load();
-		
-		/*
-		int d = 1000;
-		physic.colliders.add( );
-		physic.colliders.add( new Armement.Objectif(vec(0,100,d), vie));
-		physic.colliders.add( new Armement.Objectif(vec(d,100,-2*d), vie));
-		physic.colliders.add( new Armement.Objectif(vec(-d,100,-2*d), vie));
-		physic.colliders.add( new Armement.Objectif(vec(0,2*d,100), vie));
-		physic.colliders.add( new Armement.Objectif(vec(0, -d,0), vie));
-		physic.colliders.add( new Armement.Objectif(vec(d,d,d), vie));
-		physic.colliders.add( new Armement.Objectif(vec(-d,-d,d), vie));
-		physic.colliders.add( new Armement.Objectif(vec(2*d, 2*d,-d), vie));
-		physic.colliders.add( new Armement.Objectif(vec(d,100,-d), vie));*/
 	}
 	
 	public void wakeUp() {
@@ -55,11 +43,14 @@ public class RealGame extends Interface {
 	}
 	
 	public void draw() {
+		
 		camera.place();
-
-		physic.displayAll();
+		
+		physicInteraction.update();
 		
 		physic.doMagic();
+		
+		physic.displayAll();
 		
 		camera.gui();
 	}
@@ -67,25 +58,19 @@ public class RealGame extends Interface {
 	//-------- EVENTS
 	
 	public void mouseDragged() {
-		if (starship != null)
-			starship.mouseDragged();
+		physicInteraction.mouseDragged();
 	}
 	
 	public void mouseWheel(MouseEvent event) {
-		if (starship != null) {
-			float delta = - event.getCount(); //delta negatif si vers l'utilisateur
-			starship.forceRatio = PApplet.constrain( starship.forceRatio + 0.05f*delta , 0.2f, 60 );
-		}
+		physicInteraction.mouseWheel(event);
 	}
 
 	public void keyPressed() {
-		if (starship != null)
-			starship.keyPressed();
+		physicInteraction.keyPressed();
 	}  
 	
 	public void keyReleased() {
-		if (starship != null)
-			starship.keyReleased();
+		physicInteraction.keyReleased();
 		if (app.key == 'r')
 			init();
 		else if (app.key == 'c')
