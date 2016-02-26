@@ -18,7 +18,7 @@ import processing.core.PImage;
 public final class ImageProcessing extends ProMaster {
 	public static final int nbParaBase = 12;
 	public static final int nbParaInput = 4;
-	public static final int nbParaBouton = 4; //TODO add vote map to button detection
+	public static final int nbParaBouton = 4;
 	public static final float basicParaMaxValue = 255;
 	
 	public static final float[] inputParaMaxValue = {

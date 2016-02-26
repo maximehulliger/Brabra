@@ -43,13 +43,12 @@ public class TangibleGame extends PApplet {
 	
 	public void setup() {
 		surface.setTitle(name);
+		setPaths();
 		ProMaster.init(this);
 		float camZ = height / (2*tan(PI*60/360.0f));
 		perspective(PI/3, width/(float)height, camZ/10, camZ*1000);
-		imgAnalyser = new ImageAnalyser(this);
-		setPaths();
-		System.out.println("dataPath: "+dataPath);
 		
+		imgAnalyser = new ImageAnalyser(this);
 		if (imgAnalysis)
 			thread("imageProcessing");
 		
@@ -57,9 +56,10 @@ public class TangibleGame extends PApplet {
 	}
 	
 	private void setPaths() {
-		String base = dataPath("").substring(0, dataPath("").lastIndexOf(name)+name.length());
-		dataPath = base+"\\bin\\data\\";
-		inputPath = base+"\\bin\\input\\";
+		String base = dataPath("").substring(0, dataPath("").lastIndexOf(name)+name.length())+"\\bin\\";
+		dataPath = base+"data\\";
+		inputPath = base+"input\\";
+		System.out.println("base path: "+base);
 	}
 	
 	public void imageProcessing() {

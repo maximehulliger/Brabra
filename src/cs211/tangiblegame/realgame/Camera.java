@@ -5,9 +5,8 @@ import processing.core.PShape;
 import processing.core.PVector;
 import cs211.tangiblegame.physic.Body;
 import cs211.tangiblegame.ProMaster;
-import cs211.tangiblegame.TangibleGame;
 
-//gère la camera, le background et la lumière. point central en option :)
+//g�re la camera, le background et la lumière. point central en option :)
 public class Camera extends ProMaster {
 	public enum FollowMode {
 		Not, Static, Relative;
@@ -118,8 +117,8 @@ public class Camera extends ProMaster {
 		app.hint(PApplet.DISABLE_DEPTH_TEST);
 		if (app.intRealGame.starship != null)
 			app.intRealGame.starship.armement.displayGui();
-		if (TangibleGame.imgAnalysis)
-			app.imgAnalyser.displayCtrImg();
+		//if (TangibleGame.imgAnalysis && !app.imgAnalyser.paused())
+		//	app.imgAnalyser.displayCtrImg();
 		app.hint(PApplet.ENABLE_DEPTH_TEST);
 	}
 	

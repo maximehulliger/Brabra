@@ -14,8 +14,7 @@ import processing.core.PGraphics;
 import processing.core.PImage;
 import processing.core.PVector;
 
-@SuppressWarnings("serial")
-public class ButtonDetection extends ReentrantLock {
+public class ButtonDetection {
 	private static final float maxRayon = 60;
 	private static final int overHeadVote = 2500;
 	private static final boolean printButtonScore = false;
@@ -23,6 +22,9 @@ public class ButtonDetection extends ReentrantLock {
 	public float[] paraBoutons;
 	public PImage threshold2Button = null;
 	
+	public final ReentrantLock jobOverLock = new ReentrantLock();
+	public final ReentrantLock outputLock = new ReentrantLock();
+	public final ReentrantLock inputLock = new ReentrantLock();
 	/*pkg*/ boolean leftVisible = false, rightVisible = false;
 	/*pkg*/ float leftScore = 0, rightScore = 0; //[0, 1]
 	private final ImageAnalyser imgAnal;
@@ -30,10 +32,8 @@ public class ButtonDetection extends ReentrantLock {
 	private PVector[] corners;
 	private List<Integer[]> blobs = null;
 	
-	
-	
 	public ButtonDetection(ImageAnalyser imageAnalyser) {
-		this.imgAnal = imageAnalyser;
+		imgAnal = imageAnalyser;
 		paraBoutons = ProMaster.copy( imgAnal.imgProc.paraBoutonsBase );
 	}
 	
@@ -65,28 +65,29 @@ public class ButtonDetection extends ReentrantLock {
 	}
 	
 	public void resetOutput() {
-		lock();
+		outputLock.lock();
 		leftVisible = false;
 		rightVisible = false;
 		leftScore = 0;
 		rightScore = 0;
 		blobs = null;
-		unlock();
+		outputLock.unlock();
 	}
 	
 	/** detect blobs instance within the four corners of the Lego board from a thresholded image of the buttons. */
 	public void detect() {
+		jobOverLock.lock();
 		Polygon quad = new Polygon();
 		for (int i=0; i<corners.length; i++)
 			quad.addPoint((int) corners[i].x, (int) corners[i].y);
 		
 		//1. threshold the image
 		PImage quadFiltered = ImageProcessing.quadFilter(inputImg, quad);
-		lock();
+		inputLock.lock();
 		PImage threshold1r = ImageProcessing.colorThreshold(quadFiltered, paraBoutons[0], paraBoutons[1], paraBoutons[2], paraBoutons[3], paraBoutons[4], paraBoutons[5]);
 		PImage bluredr = ImageProcessing.blur(threshold1r);
 		threshold2Button = ImageProcessing.intensityThreshold(bluredr, paraBoutons[6], paraBoutons[7], paraBoutons[8], paraBoutons[9], paraBoutons[10], paraBoutons[11]);
-		unlock();
+		inputLock.unlock();
 		
 		//2. First pass: label the pixels and store labels' equivalences
 		int [][] labels= new int [inputImg.width][inputImg.height];
@@ -175,7 +176,7 @@ public class ButtonDetection extends ReentrantLock {
 		middleX /= 4;
 		int rightScoreApp = 0, leftScoreApp = 0;
 		
-		lock();
+		outputLock.lock();
 		for (Integer[] b : blobsAcc.values()) {
 			int x = b[0] / b[2];
 			int y = b[1] / b[2];
@@ -212,7 +213,8 @@ public class ButtonDetection extends ReentrantLock {
 		rightScore = PApplet.map(rightScoreApp, paraBoutons[14], paraBoutons[15], 0, 1);
 		leftVisible = leftScore > 0;
 		rightVisible = rightScore > 0;
-		unlock();
+		outputLock.unlock();
+		jobOverLock.unlock();
 		if (printButtonScore) {
 			System.out.println("bout: gauche: "+leftScore+", droite: "+rightScore);
 		}

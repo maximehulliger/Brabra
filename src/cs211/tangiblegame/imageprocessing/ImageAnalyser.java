@@ -17,46 +17,43 @@ import processing.video.*;
 public class ImageAnalyser extends ProMaster {
 	public static final float maxAcceptedAngle = 65f/360*PApplet.TWO_PI; //65°
 	public static boolean displayQuadRejectionCause = false;
+	private static final int sleepTime = 200;
 	private int idxCamera = 3;
 
 	//--- input
-	public final ReentrantLock inputLock;
+	public final ReentrantLock inputLock = new ReentrantLock();
 	public boolean detectButtons = false;
-	public boolean forced = false;	//force l'analyse de l'image même si l'input n'a pas changé.
 	public boolean takeMovie = false; //prend la camera si false.
-	private boolean pausedCam = true, pausedMov = true;
 	public float[] parametres, paraMovie, paraCamera;
+	public boolean forced = false;	//force l'analyse de l'image même si l'input n'a pas changé.
+	private boolean pausedCam = true, pausedMov = true;
 	
 	//--- images & quad detection (control img)
-	public final ReentrantLock imagesLock;
+	public final ReentrantLock imagesLock = new ReentrantLock();
 	public final ImageProcessing imgProc = new ImageProcessing();
 	public PImage inputImg;
 	public PImage threshold2g;
 	public PImage sobel;
 	public HoughLine hough;
 	public PImage threshold2Button;
-	public final ReentrantLock quadDetectionLock;
+	public final ReentrantLock quadDetectionLock = new ReentrantLock();
 	public boolean hasFoundQuad = false;
 	public PGraphics quadDetection;
 	
 	//--- button detection
-	public final ReentrantLock buttonStateLock;
+	public final ReentrantLock buttonStateLock = new ReentrantLock();
 	public boolean displayButtonsState = true;
 	public boolean leftButtonVisible = false;
 	public boolean rightButtonVisible = false;
 	public float leftButtonScore = 0, rightButtonScore = 0;
 	public final ButtonDetection buttonDetection;
-	private class ButtonDetectionJob extends Thread {
-		public ButtonDetectionJob(PImage input, PVector[] corners) {
-			buttonDetection.setInput(input, corners);
-		}
-		public void run() {
-			buttonDetection.detect();
-		}
+	
+	public void runButtonDetection() {
+		buttonDetection.detect();
 	}
 	
 	//rotation
-	private final ReentrantLock rotationLock;
+	private final ReentrantLock rotationLock = new ReentrantLock();
 	public boolean hasFoundRotation = false;
 	private int rotationAge = 0;
 	private PVector rotation = new PVector(0,0,0);
@@ -75,14 +72,7 @@ public class ImageAnalyser extends ProMaster {
 	public ImageAnalyser(TangibleGame app) {
 		this.app = app;
 		
-		//safeStartLock = new ReentrantLock();
-		//safeStartLock.lock();
 		buttonDetection = new ButtonDetection(this);
-		imagesLock = new ReentrantLock();
-		quadDetectionLock = new ReentrantLock();
-		rotationLock = new ReentrantLock();
-		inputLock = new ReentrantLock();
-		buttonStateLock = new ReentrantLock();
 		standardFont = app.createFont("Arial", app.height/40f);
 		quadDetection = app.createGraphics(1920, 1080);
 		
@@ -96,126 +86,120 @@ public class ImageAnalyser extends ProMaster {
 	
 	public void run() {
 		while (!app.over) {
-			try {
-				boolean newImage = false;
-				boolean once = false;
-				inputLock.lock();
-				imagesLock.lock();
-				if (takeMovie && (!pausedMov || newInput) && (mov!=null) ) {
-					newImage = true;
-					mov.read();
-					inputImg = mov.get();
+			boolean newImage = false;
+			boolean once = false;
+			inputLock.lock();
+			imagesLock.lock();
+			if (takeMovie && (!pausedMov || newInput) && (mov!=null) ) {
+				newImage = true;
+				mov.read();
+				inputImg = mov.get();
 
-				} else if (!takeMovie && (!pausedCam || newInput) && (cam!=null && cam.available()) ) {
-					newImage = true;
-					cam.read();
-					inputImg = cam.get();
-				}
+			} else if (!takeMovie && (!pausedCam || newInput) && (cam!=null && cam.available()) ) {
+				newImage = true;
+				cam.read();
+				inputImg = cam.get();
+			}
+			
+			if ( newImage && newInput ) {
+				updateForInput();
+				once = true;
+			}
+
+			if ( (newImage && !paused()) || (forced && inputImg != null) || once ) {
 				
-				if ( newImage && newInput ) {
-					updateForInput();
-					once = true;
-				}
-
-				if ( (newImage && !paused()) || (forced && inputImg != null) || once ) {
-					
-					// analyse input to find a green quad
-					PImage threshold1g = ImageProcessing.colorThreshold(inputImg, parametres[0], parametres[1], parametres[2], parametres[3], parametres[4], parametres[5]);
-					PImage bluredg = ImageProcessing.blur(threshold1g);
-					threshold2g = ImageProcessing.intensityThreshold(bluredg, parametres[6], parametres[7], parametres[8], parametres[9], parametres[10], parametres[11]);
-					sobel = ImageProcessing.sobel(threshold2g, parametres[15]);
-					HoughLine.minVotes = PApplet.round(parametres[12]);
-					HoughLine.neighbourhood = PApplet.round(parametres[13]);
-					HoughLine.maxKeptLines = PApplet.round(parametres[14]);
-					boolean detectButtonsInt = detectButtons && !takeMovie;
-					inputLock.unlock();
-					hough = new HoughLine(sobel, app);
-					
-					hasFoundQuad = hough.quad != null;
-					
-					// if quad is found, analyse buttons & rotation (with image lock release)
-					ButtonDetectionJob butDetJob = null;
-					ArrayList<PVector> detectedQuad = null;
-					if (hasFoundQuad) {
-						//-- finish with images & start button det.
-						detectedQuad = hough.quad();
-						if (detectButtonsInt) {
-							butDetJob = new ButtonDetectionJob(inputImg, hough.quad);
-							butDetJob.start();
-						}
-						imagesLock.unlock();
-
-						//-- compute & set rotation
-						TwoDThreeD deathMasterLongSword = new TwoDThreeD(inWidth, inHeight);
-						PVector newRot = deathMasterLongSword.get3DRotations(detectedQuad);
-						if (isConstrained(newRot.x, -maxAcceptedAngle, maxAcceptedAngle) &&
-								isConstrained(newRot.x, -maxAcceptedAngle, maxAcceptedAngle) &&
-								isConstrained(newRot.x, -maxAcceptedAngle, maxAcceptedAngle)) {
-							rotationLock.lock();
-							if (!lastRotation.equals(newRot) ) {
-								lastRotation = rotation;
-								rotation = newRot;
-								gameRotation = PVector.div( PVector.add(lastRotation, rotation), 2); //moyenne des 2 dernières entrées
-								gameRotation.mult(-TangibleGame.inclinaisonMax / maxAcceptedAngle);
-								//on adoucis les angles d'entrée (pour + de contrôle proche de 0) TODO
-								float r = 360/PApplet.TWO_PI;
-								System.out.printf("rot: x: %.1f y: %.1f z: %.1f (°)\n", rotation.x*r, rotation.y*r, rotation.z*r);	
-							}
-							rotationAge = 0;
-							hasFoundRotation = true;
-							rotationLock.unlock();
-						} else {
-							hasFoundRotation = false;
-							if (displayQuadRejectionCause)
-								System.out.println("angle trop grand !");
-						}
-						
-						//-- get & set button state
-						if (detectButtonsInt) {
-							butDetJob.join();
-							butDetJob = null;
-							if (hasFoundRotation) {
-								buttonStateLock.lock();
-								leftButtonVisible = buttonDetection.leftVisible;
-								rightButtonVisible = buttonDetection.rightVisible;
-								leftButtonScore = buttonDetection.leftScore;
-								rightButtonScore = buttonDetection.rightScore;
-								buttonStateLock.unlock();
-							}
-						}
-						imagesLock.lock();
-					} 
-					if (!hasFoundQuad || !hasFoundRotation) { // no good input -> old the whole !
-						rotationLock.lock();
-						if (rotationAge++ == 6) {
-							gameRotation = zero.copy();
-						}
-						rotationLock.unlock();
-
-						resetBoutonOutput();
+				// analyse input to find a green quad
+				PImage threshold1g = ImageProcessing.colorThreshold(inputImg, parametres[0], parametres[1], parametres[2], parametres[3], parametres[4], parametres[5]);
+				PImage bluredg = ImageProcessing.blur(threshold1g);
+				threshold2g = ImageProcessing.intensityThreshold(bluredg, parametres[6], parametres[7], parametres[8], parametres[9], parametres[10], parametres[11]);
+				sobel = ImageProcessing.sobel(threshold2g, parametres[15]);
+				HoughLine.minVotes = PApplet.round(parametres[12]);
+				HoughLine.neighbourhood = PApplet.round(parametres[13]);
+				HoughLine.maxKeptLines = PApplet.round(parametres[14]);
+				boolean detectButtonsInt = detectButtons && !takeMovie;
+				inputLock.unlock();
+				hough = new HoughLine(sobel, app);
+				
+				hasFoundQuad = hough.quad != null;
+				
+				// if quad is found, analyse buttons & rotation (with image lock release)
+				ArrayList<PVector> detectedQuad = null;
+				if (hasFoundQuad) {
+					//-- finish with images & start button det.
+					detectedQuad = hough.quad();
+					if (detectButtonsInt) {
+						app.thread("runButtonDetection");
 					}
-
-					//-- print control img
-					quadDetectionLock.lock();
-					quadDetection.beginDraw();
-					quadDetection.fill(255, 255);
-					quadDetection.image(sobel, 0, 0);
-					hough.drawLines(quadDetection);
-					if (hasFoundQuad) {
-						hough.drawQuad(quadDetection);
-						imagesLock.unlock();
-						buttonDetection.drawButtons(quadDetection);
-					} else
-						imagesLock.unlock();
-					quadDetection.endDraw();
-					quadDetectionLock.unlock();
-				} else {
-					inputLock.unlock();
 					imagesLock.unlock();
-					app.delay(50); //dors 50 ms
+
+					//-- compute & set rotation
+					TwoDThreeD deathMasterLongSword = new TwoDThreeD(inWidth, inHeight);
+					PVector newRot = deathMasterLongSword.get3DRotations(detectedQuad);
+					if (isConstrained(newRot.x, -maxAcceptedAngle, maxAcceptedAngle) &&
+							isConstrained(newRot.x, -maxAcceptedAngle, maxAcceptedAngle) &&
+							isConstrained(newRot.x, -maxAcceptedAngle, maxAcceptedAngle)) {
+						rotationLock.lock();
+						if (!lastRotation.equals(newRot) ) {
+							lastRotation = rotation;
+							rotation = newRot;
+							gameRotation = PVector.div( PVector.add(lastRotation, rotation), 2); //moyenne des 2 dernières entrées
+							gameRotation.mult(-TangibleGame.inclinaisonMax / maxAcceptedAngle);
+							//on adoucis les angles d'entr�e (pour + de contr�le proche de 0)
+							float r = 360/PApplet.TWO_PI;
+							System.out.printf("rot: x: %.1f y: %.1f z: %.1f (°)\n", rotation.x*r, rotation.y*r, rotation.z*r);	
+						}
+						rotationAge = 0;
+						hasFoundRotation = true;
+						rotationLock.unlock();
+					} else {
+						hasFoundRotation = false;
+						if (displayQuadRejectionCause)
+							System.out.println("angle trop grand !");
+					}
+					
+					//-- get & set button state
+					if (detectButtonsInt) {
+						buttonDetection.jobOverLock.lock();
+						buttonDetection.jobOverLock.unlock();
+						if (hasFoundRotation) {
+							buttonStateLock.lock();
+							leftButtonVisible = buttonDetection.leftVisible;
+							rightButtonVisible = buttonDetection.rightVisible;
+							leftButtonScore = buttonDetection.leftScore;
+							rightButtonScore = buttonDetection.rightScore;
+							buttonStateLock.unlock();
+						}
+					}
+					imagesLock.lock();
+				} 
+				if (!hasFoundQuad || !hasFoundRotation) { // no good input -> old the whole !
+					rotationLock.lock();
+					if (rotationAge++ == 6) {
+						gameRotation = zero.copy();
+					}
+					rotationLock.unlock();
+
+					resetBoutonOutput();
 				}
-			} catch (InterruptedException e) {
-				e.printStackTrace();
+
+				//-- print control img
+				quadDetectionLock.lock();
+				quadDetection.beginDraw();
+				quadDetection.fill(255, 255);
+				quadDetection.image(sobel, 0, 0);
+				hough.drawLines(quadDetection);
+				if (hasFoundQuad) {
+					hough.drawQuad(quadDetection);
+					imagesLock.unlock();
+					buttonDetection.drawButtons(quadDetection);
+				} else
+					imagesLock.unlock();
+				quadDetection.endDraw();
+				quadDetectionLock.unlock();
+			} else {
+				inputLock.unlock();
+				imagesLock.unlock();
+				app.delay(sleepTime); //dort sleepTime
 			}
 		}
 	}

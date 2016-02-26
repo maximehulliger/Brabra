@@ -127,9 +127,9 @@ public class Calibration extends Interface {
 			} else if (buttonCalibrationMode) {
 				ia.paraCamera = ProMaster.copy(ia.imgProc.paraCameraBase);
 			} else {
-				ia.buttonDetection.lock();
+				ia.buttonDetection.inputLock.lock();
 				ia.buttonDetection.paraBoutons = ProMaster.copy(ia.imgProc.paraBoutonsBase);
-				ia.buttonDetection.unlock();
+				ia.buttonDetection.inputLock.unlock();
 			}
 			ia.inputLock.unlock();
 		}
@@ -181,7 +181,7 @@ public class Calibration extends Interface {
 	public void mouseDragged() {
 		if (HScrollbar.oneLocked) { //write bars values
 			if (buttonCalibrationMode)
-				ia.buttonDetection.lock();
+				ia.buttonDetection.inputLock.lock();
 			else
 				ia.inputLock.lock();
 
@@ -190,7 +190,7 @@ public class Calibration extends Interface {
 			}
 
 			if (buttonCalibrationMode)
-				ia.buttonDetection.unlock();
+				ia.buttonDetection.inputLock.unlock();
 			else
 				ia.inputLock.unlock();
 		}
