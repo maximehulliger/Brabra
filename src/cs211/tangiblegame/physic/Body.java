@@ -34,7 +34,7 @@ public class Body extends ProMaster {
 
 	public Body(PVector location, Quaternion rotation) {
 		this.location = location.copy();
-		this.rotation = rotation.get();
+		this.rotation = rotation.copy();
 	}
 
 	// applique les forces et update l'etat (+transformChanged)
@@ -63,7 +63,7 @@ public class Body extends ProMaster {
 			transformChanged = true;
 		} 
 		if (!rotation.equals(lastRotation)) {
-			lastRotation = rotation.get();
+			lastRotation = rotation.copy();
 			transformChanged = true;
 			//checkAngles();
 			/*System.out.println("---------------");
@@ -75,6 +75,8 @@ public class Body extends ProMaster {
 		torques = zero.copy();
 	}
 	
+	public void onDelete() {}
+	
 	public void setColor(Color color) {
 		this.color = color;
 	}
@@ -82,7 +84,6 @@ public class Body extends ProMaster {
 	public PVector inertiaMom() {
 		return inertiaMom.copy();
 	}
-	
 	
 	// name
 	public void setName(String name) {
@@ -126,8 +127,6 @@ public class Body extends ProMaster {
 	}
 	/** à surcharger pour réagir à la mort par damage(dmg) */
 	protected void onDeath() {}
-	
-	public void onDelete() {}
 	
 	/** set la masse du body. si -1, l'objet aura une mass et un moment d'inertie infini.
 		à surcharger (et appeler) pour set le moment d'inertie. */

@@ -1,12 +1,10 @@
 package cs211.tangiblegame.realgame;
 
 import processing.core.PApplet;
-import processing.core.PVector;
 import processing.event.MouseEvent;
 import cs211.tangiblegame.Interface;
 import cs211.tangiblegame.ProMaster;
 import cs211.tangiblegame.TangibleGame;
-import cs211.tangiblegame.geo.Quaternion;
 import cs211.tangiblegame.physic.Physic;
 import cs211.tangiblegame.realgame.Armement;
 
@@ -29,13 +27,6 @@ public class RealGame extends Interface {
 		Starship.starship = app.loadShape(TangibleGame.dataPath+"starship.obj");
 		Starship.starship.scale( Starship.sizeFactor );
 		Armement.missile = app.loadShape(TangibleGame.dataPath+"rocket.obj");
-		
-		Quaternion q1 = Quaternion.fromDirection(ProMaster.front);
-		PVector v1 = q1.rotAxis();
-		System.out.println(q1+"\nrotAxis"+normalized(v1)+" angle = "+v1.mag());
-		Quaternion q2 = Quaternion.fromDirection(ProMaster.vec(1,0,-4));
-		PVector v2 = q2.rotAxis();
-		System.out.println(q2+"\nrotAxis"+normalized(v2)+" angle = "+v2.mag());
 	}
 
 	public void init() {
@@ -52,11 +43,11 @@ public class RealGame extends Interface {
 	
 	public void draw() {
 		
-		camera.place();
-		
 		physicInteraction.update();
 		
 		physic.doMagic();
+		
+		camera.place();
 		
 		physic.displayAll();
 	}

@@ -15,6 +15,12 @@ public abstract class ProMaster {
 	protected static TangibleGame app;
 	protected static RealGame game;
 	protected static Random random;
+	private static final Pattern floatPattern = Pattern.compile("[+-]?\\d+[.]?\\d*");
+	private static final Pattern intPattern = Pattern.compile("[+]?\\d+");
+	protected static int colorButtonOk, colorButtonRejected, colorQuad;
+	protected static int color0, color255;
+	
+	
 	public static final PVector zero = new PVector(0, 0, 0);
 	public static final PVector farfarAway = new PVector(Float.MAX_VALUE, Float.MAX_VALUE, Float.MAX_VALUE);
 	public static final PVector left = new PVector(1, 0, 0);
@@ -26,12 +32,7 @@ public abstract class ProMaster {
 	public static final Quaternion identity = new Quaternion();
 	public static final float small = 0.05f;
 	public static final float far = 10_000;
-	private static final Pattern floatPattern = Pattern.compile("[+-]?\\d+[.]?\\d*");
-	private static final Pattern intPattern = Pattern.compile("[+]?\\d+");
-
-	protected static int color0, color255;
-	protected static int colorButtonOk, colorButtonRejected, colorQuad;
-
+	
 
 	public static void init(TangibleGame app) {
 		ProMaster.app = app;
@@ -108,6 +109,19 @@ public abstract class ProMaster {
 	protected static PVector vec(String vec) {
 		if (vec==null || vec.equals("zero"))
 			return zero;
+		else if (vec.equals("front"))
+			return front;
+		else if (vec.equals("behind") || vec.equals("back"))
+			return behind;
+		else if (vec.equals("right"))
+			return right;
+		else if (vec.equals("left"))
+			return left;
+		else if (vec.equals("up"))
+			return up;
+		else if (vec.equals("down"))
+			return down;
+		
 		Matcher matcher = floatPattern.matcher(vec);
 		float[] values = new float[3];
 		for (int i=0; i<3; i++) {

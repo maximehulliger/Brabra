@@ -37,6 +37,17 @@ public class Prefab extends ProMaster {
 		return col;
 	}
 	
+	public static Body add(String name, PVector location, Quaternion rotation) {
+		Body b = add(name, location);
+		if (b == null)
+			return null;
+		else {
+			b.rotation.set(rotation);
+			return b;
+		}
+			
+	}
+	
 	//une sphère soumise à la gravité.
 	private static class TBall extends Sphere {
 		public TBall(PVector location)  {

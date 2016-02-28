@@ -7,7 +7,9 @@ import processing.core.PVector;
 public class Quaternion {
 
 	public static final Quaternion identity = new Quaternion();
+	public static final Quaternion toTurnAround = fromRotAxis(new PVector(0, PApplet.PI, 0));
 
+	
 	private float W, X, Y, Z;      	// components of a quaternion
 
 	public PVector rotAxis = null;	// updated when rotated, always normalized or null
@@ -27,11 +29,12 @@ public class Quaternion {
 		this(1, 0, 0, 0);
 	}
 
-	public Quaternion(PVector rotation) {
-		angle = rotation.mag();
-		rotation.normalize();
-		this.rotAxis = rotation;
-		initFromAxis();
+	public static Quaternion fromRotAxis(PVector rotAxis) {
+		Quaternion q = new Quaternion();
+		q.angle = rotAxis.mag();
+		rotAxis.normalize();
+		q.rotAxis = rotAxis;
+		return q.initFromAxis();
 	}
 
 	/** Makes quaternion from normalized axis */
@@ -42,6 +45,9 @@ public class Quaternion {
 	}
 
 	public static Quaternion fromDirection(PVector vDirection) {
+		if (ProMaster.equalsEps(vDirection, ProMaster.behind))
+			return toTurnAround.copy();
+				
 		vDirection.normalize();
 		PVector up = ProMaster.up.copy();
         // Step 1. Setup basis vectors describing the rotation given the input vector and assuming an initial up direction of (0, 1, 0)
@@ -70,10 +76,10 @@ public class Quaternion {
 	        qrot.Z = (up.x - vRight.y) / dfWScale;
 	        return qrot;
         } else
-        	return identity.get();
+        	return identity.copy();
     }
-
-	public Quaternion get() {
+	
+	public Quaternion copy() {
 		return new Quaternion(W, X, Y, Z);
 	}
 	
@@ -82,6 +88,10 @@ public class Quaternion {
 		X = x;
 		Y = y;
 		Z = z;
+	}
+	
+	public void set(Quaternion rot) {
+		set(rot.W, rot.X, rot.Y, rot.Z);
 	}
 
 	public PVector rotAxis() {
@@ -101,7 +111,7 @@ public class Quaternion {
 	// ---- manipulation methods
 
 	public Quaternion rotatedBy(Quaternion r) {
-		return get().rotate(r);
+		return copy().rotate(r);
 	}
 
 	public Quaternion rotate(Quaternion r) {
@@ -200,8 +210,10 @@ public class Quaternion {
 	// ---- basic operations
 
 
-	/** axis must be normalized */
-	public void initFromAxis() { 
+	/** 
+	 * set WXYZ from rotation axis attributes, return this
+	 * axis must be normalized */
+	public Quaternion initFromAxis() { 
 		float omega = 0.5f * angle; 
 		float s = PApplet.sin(omega);
 		if (PApplet.abs(s) > Float.MIN_VALUE) {
@@ -214,10 +226,11 @@ public class Quaternion {
 			W = 1;
 			X = Y = W = 0;
 		}
+		return this;
 	}
 
 	public Quaternion multBy(Quaternion q) {
-		return get().mult(q);
+		return copy().mult(q);
 	}
 
 	// mult by a normalized quaternion
@@ -237,7 +250,7 @@ public class Quaternion {
 	}*/
 
 	public Quaternion normalized() {
-		return get().normalize();
+		return copy().normalize();
 	}
 
 	public Quaternion normalize() {

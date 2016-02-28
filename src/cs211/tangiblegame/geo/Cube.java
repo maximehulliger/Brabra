@@ -147,7 +147,7 @@ public class Cube extends PseudoPolyedre {
 	    PVector[] facesRot = getFacesRot();
 	    PVector[] facesSize = getFacesSize(size);
 	    for (int i=0; i<6; i++)
-	      faces[i] = new Plane(facesLoc[i], new Quaternion(facesRot[i]), -1, facesSize[i]);
+	      faces[i] = new Plane(facesLoc[i], Quaternion.fromRotAxis(facesRot[i]), -1, facesSize[i]);
 	    return faces;
 	}
 

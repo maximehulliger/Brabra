@@ -6,20 +6,20 @@
 	<ball pos="(0,5,5)" mass="5" color="red"></ball>
 	<ball pos="(10,5,5)" mass="5" color="red"></ball>
 	<ball pos="(1,20,5)" mass="5" color="red"></ball>
-	<ball pos="(2,5,7)" mass="5" color="red" camera="static"></ball>
+	<ball pos="(2,5,7)" mass="5" color="red"></ball>
 	
 	
-	<box pos="(5,5,0)" name="box1"></box>
-	<box pos="(0,5,20)"></box>
 	
+	<starship pos="(100,300,100)" dir="left" camera="relative" focus="true" force="40"></starship>
 	
 	
 	<!--  
 	camera="relative" 
 	<box pos="(0,5,-5)" mass="5" color="blue"></box>
 	<box pos="(0,40,6)" mass="5" color="red"></box> 
+	<box pos="(5,5,0)" name="box1"></box>
+	<box pos="(0,5,20)"></box>
 	
-	<starship pos="(100,300,100)" focus="true" force="40"></starship>
 	
 	<objectif pos="(100,100,-500)" life="200" color="red"></objectif>
 	<objectif pos="(1000,100,-2000)" life="200" color="red"></objectif>

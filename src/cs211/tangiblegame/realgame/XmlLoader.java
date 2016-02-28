@@ -11,6 +11,7 @@ import org.xml.sax.helpers.DefaultHandler;
 
 import cs211.tangiblegame.ProMaster;
 import cs211.tangiblegame.TangibleGame;
+import cs211.tangiblegame.geo.Quaternion;
 import cs211.tangiblegame.physic.Body;
 import cs211.tangiblegame.physic.Physic;
 
@@ -71,8 +72,12 @@ public final class XmlLoader extends ProMaster {
 	    		String color = atts.getValue("color");
 	    		String stroke = atts.getValue("stroke");
 	    		String focus = atts.getValue("focus");
-	    		
-	    		Body b = Prefab.add(localName, vec(pos));
+	    		String dir = atts.getValue("dir");
+	    			
+	    		Body b = (dir != null) ?
+	    				Prefab.add(localName, vec(pos), Quaternion.fromDirection(vec(dir)))
+	    				: Prefab.add(localName, vec(pos));
+	    				
 	    		if (b != null) {
 			  		if (color != null)
 			  			b.setColor( new Color(color, stroke) );
