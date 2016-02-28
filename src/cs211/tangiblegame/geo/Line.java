@@ -29,7 +29,7 @@ public final class Line extends ProMaster {
 		return PVector.add( base, projetteLocal(p));
 	}
 
-	// retourne la projection du point par rapport à la base de la ligne
+	// retourne la projection du point par rapport � la base de la ligne
 	public PVector projetteLocal(PVector p) {
 		if (!finite)
 			return PVector.mult(norm, projectionFactor(p));
@@ -37,7 +37,7 @@ public final class Line extends ProMaster {
 			return PVector.mult(norm, TangibleGame.constrain(projectionFactor(p), 0, vectorMag));
 	}
 
-	// retourne le facteur de projection du point relativement à la norme
+	// retourne le facteur de projection du point relativement � la norme
 	public float projectionFactor(PVector p) {
 		return PVector.sub( p, base ).dot(norm);
 	}
@@ -45,7 +45,7 @@ public final class Line extends ProMaster {
 	/** retourne true si le point est dans l'hyperplan formé par cette ligne. */
 	public boolean isFacing(PVector point) {
 		float pf = projectionFactor(point);
-		return 0 <= pf && pf <= vectorMag;
+		return 0 <= pf;// && pf <= vectorMag;
 	}
 
 	// projette les points sur la ligne
@@ -77,8 +77,9 @@ public final class Line extends ProMaster {
 		return intruders.toArray(ret);
 	}
 
-	public class Projection {
-		float de,  a;
+	/** projection sur une ligne [de <= a] */
+	public static class Projection {
+		public final float de,  a;
 
 		//projection non nulle sur une droite quelconque. 'de' est toujours plus petit ou égal à 'a'.
 		public Projection(float de, float a) {
@@ -86,6 +87,10 @@ public final class Line extends ProMaster {
 				throw new IllegalArgumentException("projection invalide de "+de+" à "+a+" !");
 			this.de = de;
 			this.a = a;
+		}
+		
+		public Projection(float de) {
+			this(de, Float.MAX_VALUE);
 		}
 
 		public boolean intersectionne(Projection other) {

@@ -3,13 +3,13 @@ package cs211.tangiblegame.realgame;
 import cs211.tangiblegame.geo.Plane;
 import cs211.tangiblegame.geo.Quaternion;
 import cs211.tangiblegame.realgame.Armement;
+import cs211.tangiblegame.realgame.Armement.Armed;
 import processing.core.PShape;
 import processing.core.PVector;
 
 //une classe pouvant intervenir dans une collision. ne réagit pas.
-public class Starship extends Plane//Cube
+public class Starship extends Plane implements Armed//Cube
 {
-	public static final float distSqBeforeRemove = 12_000*12_000; //distance du vaisseau avant remove
 	public static final float sizeFactor = 15f;
 	private static final PVector size = PVector.mult( vec(7, 2, 8), sizeFactor); //for the collider
 	private static final boolean displayViseur = true;
@@ -24,6 +24,10 @@ public class Starship extends Plane//Cube
 		this.champ = new MeteorSpawner(this, vec(0, 0, -champSize.z/6), champSize);
 		this.armement = new Armement(this, 0, 1, 1);
 		setName("Starship");
+	}
+	
+	public Armement armement() {
+		return armement;
 	}
 	
 	public void setMass(float mass) {

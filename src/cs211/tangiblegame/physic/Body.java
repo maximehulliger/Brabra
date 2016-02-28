@@ -127,6 +127,8 @@ public class Body extends ProMaster {
 	/** à surcharger pour réagir à la mort par damage(dmg) */
 	protected void onDeath() {}
 	
+	public void onDelete() {}
+	
 	/** set la masse du body. si -1, l'objet aura une mass et un moment d'inertie infini.
 		à surcharger (et appeler) pour set le moment d'inertie. */
 	public void setMass(float mass) {

@@ -5,12 +5,13 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+import cs211.tangiblegame.ProMaster;
 import processing.core.PApplet;
 import processing.core.PGraphics;
 import processing.core.PImage;
 import processing.core.PVector;
  
-public class HoughLine {
+public class HoughLine extends ProMaster {
 	private static final float discretizationStepsPhi = 0.06f;
 	private static final float discretizationStepsR = 2.5f;
 	public static int minVotes = 50;

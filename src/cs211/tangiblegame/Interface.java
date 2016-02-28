@@ -10,6 +10,8 @@ public abstract class Interface extends ProMaster {
 	
 	public abstract void draw();
 	
+	public void gui() {}
+	
 	//------- EVENTS
 	
 	public void mouseDragged() {}

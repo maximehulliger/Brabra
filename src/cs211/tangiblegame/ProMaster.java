@@ -1,5 +1,6 @@
 package cs211.tangiblegame;
 
+import java.util.Arrays;
 import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -11,22 +12,25 @@ import processing.core.PVector;
 
 // Processing master
 public abstract class ProMaster {
-	public static TangibleGame app;
-	public static RealGame game;
-	public static Random random;
+	protected static TangibleGame app;
+	protected static RealGame game;
+	protected static Random random;
 	public static final PVector zero = new PVector(0, 0, 0);
 	public static final PVector farfarAway = new PVector(Float.MAX_VALUE, Float.MAX_VALUE, Float.MAX_VALUE);
 	public static final PVector left = new PVector(1, 0, 0);
+	public static final PVector right = new PVector(-1, 0, 0);
 	public static final PVector up = new PVector(0, 1, 0);
+	public static final PVector down = new PVector(0, -1, 0);
 	public static final PVector front = new PVector(0, 0, -1);
+	public static final PVector behind = new PVector(0, 0, 1);
 	public static final Quaternion identity = new Quaternion();
 	public static final float small = 0.05f;
 	public static final float far = 10_000;
 	private static final Pattern floatPattern = Pattern.compile("[+-]?\\d+[.]?\\d*");
 	private static final Pattern intPattern = Pattern.compile("[+]?\\d+");
 
-	public static int color0, color255;
-	public static int colorButtonOk, colorButtonRejected, colorQuad;
+	protected static int color0, color255;
+	protected static int colorButtonOk, colorButtonRejected, colorQuad;
 
 
 	public static void init(TangibleGame app) {
@@ -49,6 +53,10 @@ public abstract class ProMaster {
 
 	public static float sq(float t) {
 		return t*t;
+	}
+
+	public static float sqrt(float t) {
+		return PApplet.sqrt(t);
 	}
 
 	//retourne true si v E [min, max]
@@ -112,6 +120,10 @@ public abstract class ProMaster {
 		}
 		return vec(values[0],values[1],values[2]);
 	}
+	
+	public static PVector add(PVector v1, PVector v2) {
+		return PVector.add(v1, v2);
+	}
 
 	public static PVector[] copy(PVector[] vectors) {
 		PVector[] ret = new PVector[vectors.length];
@@ -154,8 +166,17 @@ public abstract class ProMaster {
 		}
 	}
 
-	protected static boolean isZeroEps(float f) {
+	public static boolean isZeroEps(float f) {
 		return f==0 || (f <= TangibleGame.EPSILON && f >= -TangibleGame.EPSILON);	
+	}
+	
+	protected void line(PVector v1, PVector v2) {
+		app.line(v1.x,v1.y,v1.z,v2.x,v2.y,v2.z);
+	}
+	
+	protected PVector normalized(PVector p) {
+		PVector pp = p.copy();
+		return pp.normalize();
 	}
 
 	public static PVector moyenne(PVector[] points) {
@@ -202,9 +223,6 @@ public abstract class ProMaster {
 	protected static void rotate(PVector rotation) {
 		if (rotation == null)
 			return;
-		/*app.rotateY(rotation.y);
-		  app.rotateX(rotation.x);
-		  app.rotateZ(rotation.z);*/
 		app.rotate(rotation.mag(), rotation.x, rotation.y, rotation.z);
 	}
 
@@ -220,7 +238,8 @@ public abstract class ProMaster {
 		public static final Color red = new Color(255, 0, 0, 200);
 		public static final Color green = new Color(0, 255, 0, 200);
 		public static final Color blue = new Color(0, 0, 255, 200);
-		public static final Color yellow = new Color("255,255,0,150", "255");
+		public static final Color grass = new Color(128,200,128);
+		public static final Color yellow = new Color(255,255,0,150, 255);
 		public static final Color pink = new Color(255, 105, 180);
 		public static final Color basic = yellow;
 		
@@ -229,10 +248,16 @@ public abstract class ProMaster {
 
 		/**
 		 * c,c,c,255; c,c,c,a; r,g,b,255; or r,g,b,a;
+		 * si plus de 4 arguments, le reste set le stroke.
 		 */
 		public Color(int... rgba) {
-			c = fromUF(rgba);
-			s = null;
+			if (rgba.length <= 4) {
+				c = fromUF(rgba);
+				s = null;
+			} else {
+				c = fromUF(Arrays.copyOfRange(rgba, 0, 4));
+				s = fromUF(Arrays.copyOfRange(rgba, 4, rgba.length));
+			}
 		}
 		
 		public Color(String color, String stroke) {
@@ -289,6 +314,8 @@ public abstract class ProMaster {
 				return green;
 			else if (color.equals("yellow")) 
 				return yellow;
+			else if (color.equals("grass")) 
+				return grass;
 			else if (color.equals("pink"))
 				return pink;
 			else {

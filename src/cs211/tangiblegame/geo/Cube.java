@@ -1,5 +1,6 @@
 package cs211.tangiblegame.geo;
 
+import cs211.tangiblegame.geo.Line.Projection;
 import cs211.tangiblegame.physic.PseudoPolyedre;
 import processing.core.*;
 
@@ -101,10 +102,10 @@ public class Cube extends PseudoPolyedre {
 		return bestNormale;
 	}
 	
-	public Line.Projection projetteSur(Line ligne) {
+	public Projection projetteSur(Line ligne) {
 	  float mid = ligne.projectionFactor(this.location);
 	  float proj = PApplet.abs(projetteSur(ligne.norm));
-	  return ligne.new Projection(mid-proj, mid+proj);
+	  return new Projection(mid-proj, mid+proj);
 	}
 	
 	public PVector projette(PVector point) {

@@ -16,7 +16,7 @@ public class TangibleGame extends PApplet {
 	//--parametres
 	//private static final int ratioSize = 4; //généralement de 2 (640x360) à 6 (1920x1080)
 	public static final float inclinaisonMax = PApplet.PI/5; 
-	public static final boolean imgAnalysis = false;
+	public static boolean imgAnalysis = false;
 	
 	//--interne
 	public ImageAnalyser imgAnalyser;
@@ -39,6 +39,7 @@ public class TangibleGame extends PApplet {
 	
 	public void settings() {
 		size(1280, 720, "processing.opengl.PGraphics3D");
+		//surface.setResizable(true);
 	}
 	
 	public void setup() {
@@ -49,16 +50,18 @@ public class TangibleGame extends PApplet {
 		perspective(PI/3, width/(float)height, camZ/10, camZ*1000);
 		
 		imgAnalyser = new ImageAnalyser(this);
-		if (imgAnalysis)
+		if (imgAnalysis) {
+			System.out.println("starting img analysis thread.");
 			thread("imageProcessing");
+		}
 		
 		setView(View.RealGame);
 	}
 	
 	private void setPaths() {
-		String base = dataPath("").substring(0, dataPath("").lastIndexOf(name)+name.length())+"\\bin\\";
-		dataPath = base+"data\\";
-		inputPath = base+"input\\";
+		String base = dataPath("").substring(0, dataPath("").lastIndexOf(name)+name.length())+"/bin/";
+		dataPath = base+"data/";
+		inputPath = base+"input/";
 		System.out.println("base path: "+base);
 	}
 	
@@ -84,7 +87,6 @@ public class TangibleGame extends PApplet {
 		case RealGame:
 			if (intRealGame == null) {
 				intRealGame = new RealGame();
-				ProMaster.game = intRealGame;
 				intRealGame.init();
 			}
 			currentInterface = intRealGame;
@@ -102,7 +104,18 @@ public class TangibleGame extends PApplet {
 	
 	public void draw() {
 		currentInterface.draw();
+		
+		//gui
+		camera();
+		hint(PApplet.DISABLE_DEPTH_TEST);
+		if (imgAnalysis)
+			imgAnalyser.gui();
+		currentInterface.gui();
+		hint(PApplet.ENABLE_DEPTH_TEST);
+		
 	}
+	
+	
 
 	//-------- Gestion Evenements
 
@@ -113,7 +126,7 @@ public class TangibleGame extends PApplet {
 			key = 0;
 		} 
 		
-		//l ou s -> load ou save parameters
+		//l -> load parameters
 		if (key == 'l') {
 			imgAnalyser.imgProc.selectParameters();
 		}

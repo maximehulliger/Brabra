@@ -68,11 +68,6 @@ public class TrivialGame extends Interface {
 			mover.update();
 		mover.display();
 		cylinders.displayCylinders();
-		
-		app.camera();
-		app.hint(PApplet.DISABLE_DEPTH_TEST);
-		app.imgAnalyser.displayCtrImg();
-		app.hint(PApplet.ENABLE_DEPTH_TEST);
 	}
 	
 	void rotateScene() {

@@ -1,21 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <scene>
-	<camera displaySkybox="true" mode="static" dist="(100,140,100)"></camera>
+	<camera displaySkybox="true" mode="not" dist="(200,200,200)"></camera>
 	<physic gravity="0.2" deltaTime="0.7"></physic>
-	<floor pos="zero" color="green" stroke="blue"></floor>
-	<ball pos="(0,5,5)" mass="5" color="red" camera="static" ></ball>
+	<floor pos="zero" color="grass" stroke="green"></floor>
+	<ball pos="(0,5,5)" mass="5" color="red"></ball>
+	<ball pos="(10,5,5)" mass="5" color="red"></ball>
+	<ball pos="(1,20,5)" mass="5" color="red"></ball>
+	<ball pos="(2,5,7)" mass="5" color="red" camera="static"></ball>
 	
-	<!-- 
+	
 	<box pos="(5,5,0)" name="box1"></box>
-	<box pos="(0,5,0)"></box>
-	-->
+	<box pos="(0,5,20)"></box>
 	
-	<starship pos="(100 ,5000,100)" camera="relative"></starship>
+	
 	
 	<!--  
+	camera="relative" 
 	<box pos="(0,5,-5)" mass="5" color="blue"></box>
 	<box pos="(0,40,6)" mass="5" color="red"></box> 
-	-->
-	<!-- 
+	
+	<starship pos="(100,300,100)" focus="true" force="40"></starship>
+	
 	<objectif pos="(100,100,-500)" life="200" color="red"></objectif>
 	<objectif pos="(1000,100,-2000)" life="200" color="red"></objectif>
 	<objectif pos="(-1000,100,-2000)" life="200" color="red"></objectif>

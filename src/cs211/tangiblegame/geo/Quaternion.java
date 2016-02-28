@@ -1,5 +1,6 @@
 package cs211.tangiblegame.geo;
 
+import cs211.tangiblegame.ProMaster;
 import processing.core.PApplet;
 import processing.core.PVector;
 
@@ -25,13 +26,6 @@ public class Quaternion {
 	public Quaternion() {
 		this(1, 0, 0, 0);
 	}
-	
-	public void set(float w, float x, float y, float z) {
-		W = w;
-		X = x;
-		Y = y;
-		Z = z;
-	}
 
 	public Quaternion(PVector rotation) {
 		angle = rotation.mag();
@@ -47,8 +41,47 @@ public class Quaternion {
 		initFromAxis();
 	}
 
+	public static Quaternion fromDirection(PVector vDirection) {
+		vDirection.normalize();
+		PVector up = ProMaster.up.copy();
+        // Step 1. Setup basis vectors describing the rotation given the input vector and assuming an initial up direction of (0, 1, 0)
+		PVector vRight = up.cross(vDirection);    // The perpendicular vector to Up and Direction
+		up = vDirection.cross(vRight);            // The actual up vector given the direction and the right vector
+        if (up.equals(ProMaster.zero)) {
+        	up = ProMaster.up.copy();
+        }
+        
+        // Step 2. Put the three vectors into the matrix to bulid a basis rotation matrix
+        // This step isnt necessary, but im adding it because often you would want to convert from matricies to quaternions instead of vectors to quaternions
+        // If you want to skip this step, you can use the vector values directly in the quaternion setup below
+        /*Matrix4 mBasis = new Matrix4(vRight.x, vRight.y, vRight.z, 0.0f,
+                                    vUp.x, vUp.y, vUp.z, 0.0f,
+                                    vDirection.x, vDirection.y, vDirection.z, 0.0f,
+                                    0.0f, 0.0f, 0.0f, 1.0f);*/
+        
+        // Step 3. Build a quaternion from the matrix
+        float in = 1.0f + vRight.x + up.y + vDirection.z;
+        if (in > 0) {
+        	Quaternion qrot = new Quaternion();
+            qrot.W = PApplet.sqrt(in) / 2.0f;
+	        float dfWScale = qrot.W * 4.0f;
+	        qrot.X = (vDirection.y - up.z) / dfWScale;
+	        qrot.Y = (vRight.z - vDirection.x) / dfWScale;
+	        qrot.Z = (up.x - vRight.y) / dfWScale;
+	        return qrot;
+        } else
+        	return identity.get();
+    }
+
 	public Quaternion get() {
 		return new Quaternion(W, X, Y, Z);
+	}
+	
+	public void set(float w, float x, float y, float z) {
+		W = w;
+		X = x;
+		Y = y;
+		Z = z;
 	}
 
 	public PVector rotAxis() {
@@ -89,9 +122,9 @@ public class Quaternion {
 		// update rotation axis & angle
 		float halfomega = PApplet.acos(W);
 		float s = PApplet.sin(halfomega);
-		if (s == 0) { //no rotation
+		if (ProMaster.isZeroEps(s)) { //no rotation
 			angle = 0;
-			rotAxis = null;
+			rotAxis = ProMaster.zero.copy();
 		} else {
 			float invSinHO = 1/s;
 			angle = halfomega*2;

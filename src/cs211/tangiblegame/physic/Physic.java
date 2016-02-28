@@ -35,6 +35,8 @@ public class Physic
 			c.update();
 		if (toRemove.size() > 0 ) {
 			colliders.removeAll(toRemove);
+			for (Collider c : toRemove)
+				c.onDelete();
 			toRemove.clear();
 		}
 		if (toAdd.size() > 0) {
@@ -83,14 +85,19 @@ public class Physic
 		  	}
 		}
 		
-		//3. on rÃ©sout les collisions
-		for (Collision col : collisions) {
-			col.resolve();
-		}
-		
-		//4. on applique les collision aux agents (si nÃ©cessaire)
-		for (Collision col : collisions) {
-			col.apply();
+		try {
+			//3. on résout les collisions
+			for (Collision col : collisions) {
+				col.resolve();
+			}
+			
+			//4. on applique les collision aux agents (si nécessaire)
+			for (Collision col : collisions) {
+				col.apply();
+			}
+		} catch (Exception e) {
+			System.err.println("physical error :/");
+			e.printStackTrace();
 		}
 	}
 }

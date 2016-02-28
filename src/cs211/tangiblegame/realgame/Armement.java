@@ -32,7 +32,11 @@ public class Armement extends ProMaster {
 	private final Collider launcher;
 	private float[] ratioIn;
 	
-	/** t0-2 : thresholds pour rÃ©partir la l'amÃ©lioration puissance sur les diffÃ©rents tiers d'armement. */
+	public interface Armed {
+		public Armement armement();
+	}
+	
+	/** t0-2 : thresholds pour répartir la l'amélioration puissance sur les differents tiers d'armement. */
 	public Armement(Collider launcher, float ratio0, float ratio1, float ratio2) {
 		this.launcher = launcher;
 		
@@ -85,7 +89,7 @@ public class Armement extends ProMaster {
 				lm.fire();
 				return;
 			}
-		System.out.println("rien de prÃªt, capitaine !");
+		//System.out.println("rien de prêt, capitaine !");
 	}
 
 	public void fireFromSlot(int idx) {
@@ -178,8 +182,6 @@ public class Armement extends ProMaster {
 			
 			public void update() {
 				super.update();
-				if (ProMaster.distSq(launcher.location, location) > Starship.distSqBeforeRemove)
-					app.intRealGame.physic.toRemove.add( this );
 
 			}
 	

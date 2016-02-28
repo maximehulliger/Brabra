@@ -1,14 +1,19 @@
 package cs211.tangiblegame.realgame;
 
+import java.util.ArrayList;
+
 import cs211.tangiblegame.ProMaster;
 import cs211.tangiblegame.TangibleGame;
+import cs211.tangiblegame.geo.Line;
+import cs211.tangiblegame.geo.Line.Projection;
 import cs211.tangiblegame.physic.Body;
+import cs211.tangiblegame.physic.Collider;
 import processing.core.PApplet;
 import processing.core.PVector;
 import processing.event.MouseEvent;
 
 public final class PhysicInteraction extends ProMaster {
-	public float forceRatio = 5; //puissance du vaisseau
+	public float forceRatio = 5; //puissance de l'interaction
 	
 	public Body focused = null;
 	public Armement armement = null;
@@ -34,6 +39,53 @@ public final class PhysicInteraction extends ProMaster {
 				armement.fire(app.imgAnalyser.leftButtonScore);
 			}
 			app.imgAnalyser.buttonStateLock.unlock();
+		}
+	}
+	
+	public Collider raycast(PVector from, PVector dir) {
+		assert(!dir.equals(zero));
+		Line ray = new Line(from, add(from,dir), true);
+		PVector other = vec(1,1,1);
+		PVector target1 = new PVector();
+		PVector target2 = new PVector();
+		dir.cross(other, target1);
+		if (target1.equals(zero))
+			other = vec(-2,-3,-5);
+		dir.cross(other, target1);
+		dir.cross(target1, target2);
+		assert (!target1.equals(zero) && !!target2.equals(zero));
+		Line p1 = new Line(from, target1, true);
+		Line p2 = new Line(from, target2, true);
+		Projection targetProj = new Line.Projection(0);
+		ArrayList<Collider> candidates = new ArrayList<>();
+		ArrayList<Float> candidatesDist = new ArrayList<>();
+		
+		for (Collider c : game.physic.colliders) {
+			if (c.projetteSur(p1).comprend(0)&& c.projetteSur(p2).comprend(0)) {
+				Projection proj = c.projetteSur(ray);
+				if (proj.intersectionne(targetProj)) {
+					candidates.add(c);
+					candidatesDist.add(proj.de);
+				}
+			}
+		}
+		
+		if (candidates.size() == 0)
+			return null;
+		else if (candidates.size() == 1)
+			return candidates.get(0);
+		else {
+			Collider best = null;
+			float bestDe = Float.MAX_VALUE;
+			for (int i=0; i<candidates.size(); i++) {
+				float de = candidatesDist.get(i);
+				if (bestDe > de) {
+					bestDe = de;
+					best = candidates.get(i);
+				}
+			}
+			assert(best != null);
+			return best;
 		}
 	}
 	

@@ -15,7 +15,6 @@ import cs211.tangiblegame.physic.Body;
 import cs211.tangiblegame.physic.Physic;
 
 public final class XmlLoader extends ProMaster {
-	public static RealGame game;
 	private static final String filename = TangibleGame.inputPath+"scene.xml";
 	private XMLReader xmlreader;
 	
@@ -36,6 +35,7 @@ public final class XmlLoader extends ProMaster {
 		try {
 			xmlreader.parse(filename);
 		} catch (Exception e) {
+			System.err.println("\nerreur dans scene.xml:");
 			e.printStackTrace();
 		}
 	}
@@ -47,6 +47,7 @@ public final class XmlLoader extends ProMaster {
 	    		throws SAXException {
 	    	if (localName.equals("scene"))
 	    		return;
+	    	
 	    	else if (localName.equals("camera")) {
 	    		game.camera.set(atts.getValue("mode"),atts.getValue("dist"),null);
 			  	String displaySkybox = atts.getValue("displaySkybox");
@@ -70,7 +71,7 @@ public final class XmlLoader extends ProMaster {
 	    		String color = atts.getValue("color");
 	    		String stroke = atts.getValue("stroke");
 	    		String focus = atts.getValue("focus");
-			  	
+	    		
 	    		Body b = Prefab.add(localName, vec(pos));
 	    		if (b != null) {
 			  		if (color != null)
@@ -87,6 +88,9 @@ public final class XmlLoader extends ProMaster {
 				  		game.camera.set(camera,cameraDist,b);
 				  	if (focus != null && Boolean.parseBoolean(focus))
 				  		game.physicInteraction.setFocused(b);
+				  		String force = atts.getValue("force");
+				  		if (force != null)
+				  			game.physicInteraction.forceRatio = Float.parseFloat(force);
 				  	}
 			  	}
 	    	}

@@ -22,12 +22,10 @@ public final class MeteorSpawner extends Cube {
 	private int nbMeteor = 0;
 	private int randomMeteorCounter = 0;
 	private int nextPopTime;
-	private final Body meteorParent;
 	
 	public MeteorSpawner(Body parent, PVector location, PVector size) {
 		super(location, new Quaternion(), -1, size);
 		super.parent = parent;
-		this.meteorParent = parent;
 		
 		setNext();
 	}
@@ -81,13 +79,8 @@ public final class MeteorSpawner extends Cube {
 			rotationVel.initFromAxis();
 		}
 		
-		public void update() {
-			super.update();
-			
-			if ( distSq(this.location, meteorParent.location) > Starship.distSqBeforeRemove) {
-				app.intRealGame.physic.toRemove.add(this);
-				nbMeteor--;
-			}
+		public void onDelete() {
+			nbMeteor--;
 		}
 		
 		public void display() {

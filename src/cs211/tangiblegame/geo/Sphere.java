@@ -1,5 +1,6 @@
 package cs211.tangiblegame.geo;
 
+import cs211.tangiblegame.geo.Line.Projection;
 import cs211.tangiblegame.physic.Collider;
 import processing.core.*;
 
@@ -28,7 +29,7 @@ public class Sphere extends Collider {
 	
 	public Line.Projection projetteSur(Line ligne) {
 	  float proj = ligne.projectionFactor(this.location);
-	  return ligne.new Projection(proj-this.radius, proj+this.radius);
+	  return new Projection(proj-this.radius, proj+this.radius);
 	}
 	
 	public PVector[] getIntruderPointOver(Line colLine) {

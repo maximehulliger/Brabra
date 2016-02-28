@@ -128,6 +128,7 @@ public class ImageAnalyser extends ProMaster {
 					//-- finish with images & start button det.
 					detectedQuad = hough.quad();
 					if (detectButtonsInt) {
+						System.out.println("new button det job");
 						app.thread("runButtonDetection");
 					}
 					imagesLock.unlock();
@@ -353,28 +354,30 @@ public class ImageAnalyser extends ProMaster {
 		}
 	}
 
-	public void displayCtrImg() {
-		app.textFont( standardFont );
-		app.textAlign(PApplet.RIGHT, PApplet.BOTTOM);
-		
-		if (quadDetectionLock.isLocked() && newInput) {
-			app.fill(0, 0, 0, 180);
-			app.rect(20, 20, app.width/6f, app.height/6f);
-			app.fill(200, 100, 0, 180);
-			app.text("coming...", 20 + app.width/6f, 20 + app.height/6f);
-		} else if (quadDetection != null) {
-			quadDetectionLock.lock();
-			app.fill(255);
-			if (hasFoundRotation)
-				app.tint(255, 255, 255, 150); 
-			else if (hasFoundQuad)		//rotation is to big
-				app.tint(255, 0, 0, 210);
-			app.image(quadDetection, 20, 20, app.width/6f, app.height/6f);
-			quadDetectionLock.unlock();
-			app.tint(255, 255);
-			if (paused()) {
+	public void gui() {
+		if (!paused() && TangibleGame.imgAnalysis) {
+			app.textFont( standardFont );
+			app.textAlign(PApplet.RIGHT, PApplet.BOTTOM);
+			
+			if (quadDetectionLock.isLocked() && newInput) {
+				app.fill(0, 0, 0, 180);
+				app.rect(20, 20, app.width/6f, app.height/6f);
 				app.fill(200, 100, 0, 180);
-				app.text("paused", 20 + app.width/6f, 20 + app.height/6f);
+				app.text("coming...", 20 + app.width/6f, 20 + app.height/6f);
+			} else if (quadDetection != null) {
+				quadDetectionLock.lock();
+				app.fill(255);
+				if (hasFoundRotation)
+					app.tint(255, 255, 255, 150); 
+				else if (hasFoundQuad)		//rotation is to big
+					app.tint(255, 0, 0, 210);
+				app.image(quadDetection, 20, 20, app.width/6f, app.height/6f);
+				quadDetectionLock.unlock();
+				app.tint(255, 255);
+				if (paused()) {
+					app.fill(200, 100, 0, 180);
+					app.text("paused", 20 + app.width/6f, 20 + app.height/6f);
+				}
 			}
 		}
 	}

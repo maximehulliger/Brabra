@@ -14,7 +14,7 @@ import processing.core.PGraphics;
 import processing.core.PImage;
 import processing.core.PVector;
 
-public class ButtonDetection {
+public class ButtonDetection extends ProMaster {
 	private static final float maxRayon = 60;
 	private static final int overHeadVote = 2500;
 	private static final boolean printButtonScore = false;

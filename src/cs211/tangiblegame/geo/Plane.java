@@ -1,5 +1,6 @@
 package cs211.tangiblegame.geo;
 
+import cs211.tangiblegame.geo.Line.Projection;
 import cs211.tangiblegame.physic.Collider;
 import cs211.tangiblegame.physic.PseudoPolyedre;
 import processing.core.*;
@@ -82,12 +83,25 @@ public class Plane extends PseudoPolyedre {
 		pushLocal();
 		if (finite) {
 			color.fill();
-			app.box(v2.vectorMag, small, v1.vectorMag);
+			displayPlane(v2.vectorMag, v1.vectorMag);
 		} else {
 			color.fill();
-			app.box(far*2, small, far*2);
+			displayPlane(far*2, far*2);
 		}
 		popLocal();
+	}
+	
+	private void displayPlane(float magX, float magZ) {
+		float x = magX/2;
+		float z = magZ/2;
+		app.beginShape(PApplet.QUADS);
+		{
+		    app.vertex(-x,0,-z);
+		    app.vertex(x,0,-z);
+		    app.vertex(x,0,z);
+		    app.vertex(-x,0,z);
+		}
+		app.endShape();
 	}
 
 	public Line collisionLineFor(PVector p) {
@@ -121,13 +135,13 @@ public class Plane extends PseudoPolyedre {
 		return proj;
 	}
 
-	public Line.Projection projetteSur(Line ligne) {
+	public Projection projetteSur(Line ligne) {
 		if (ligne == normale)
-			return ligne.new Projection(0, 0);
+			return new Projection(0, 0);
 		else if (finite)
 			return ligne.projette( sommets );
 		else
-			return ligne.new Projection(Float.MIN_VALUE, Float.MAX_VALUE);
+			return new Projection(Float.MIN_VALUE, Float.MAX_VALUE);
 		//throw new IllegalArgumentException("infinite plane projected !!");
 	}
 
