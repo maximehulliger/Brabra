@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+﻿<?xml version="1.0" encoding="UTF-8"?>
 <scene>
 	<camera displaySkybox="true" mode="not" dist="(200,200,200)"></camera>
 	<physic gravity="0.2" deltaTime="0.7"></physic>
