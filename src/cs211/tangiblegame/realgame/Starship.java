@@ -67,7 +67,5 @@ public class Starship extends Plane implements Armed//Cube
 		}
 	}
 	
-	protected void addForces() {
-		
-	}
+	//protected void addForces() {}
 }

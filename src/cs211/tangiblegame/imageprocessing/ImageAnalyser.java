@@ -76,8 +76,8 @@ public class ImageAnalyser extends ProMaster {
 		standardFont = app.createFont("Arial", app.height/40f);
 		quadDetection = app.createGraphics(1920, 1080);
 		
-		paraMovie = copy(ImageProcessing.paraMovieBase);
-		paraCamera = copy(imgProc.paraCameraBase);
+		paraMovie = ImageProcessing.paraMovieBase.clone();
+		paraCamera = imgProc.paraCameraBase.clone();
 		if (takeMovie)
 			parametres = paraMovie;
 		else
@@ -231,9 +231,9 @@ public class ImageAnalyser extends ProMaster {
 	public void resetAllParameters(boolean movieToo) {
 		inputLock.lock();
 		if (movieToo)
-			paraMovie = copy(ImageProcessing.paraMovieBase);
-		paraCamera = copy(imgProc.paraCameraBase);
-		buttonDetection.paraBoutons = copy( imgProc.paraBoutonsBase );
+			paraMovie = ImageProcessing.paraMovieBase.clone();
+		paraCamera = imgProc.paraCameraBase.clone();
+		buttonDetection.paraBoutons = imgProc.paraBoutonsBase.clone();
 		if (takeMovie && movieToo)
 			parametres = paraMovie;
 		else if (!takeMovie)

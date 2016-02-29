@@ -34,7 +34,7 @@ public class ButtonDetection extends ProMaster {
 	
 	public ButtonDetection(ImageAnalyser imageAnalyser) {
 		imgAnal = imageAnalyser;
-		paraBoutons = ProMaster.copy( imgAnal.imgProc.paraBoutonsBase );
+		paraBoutons = imgAnal.imgProc.paraBoutonsBase.clone();
 	}
 	
 	public void setInput(PImage input, PVector[] corners) {

@@ -3,7 +3,6 @@ package cs211.tangiblegame.calibration;
 import processing.core.PApplet;
 import processing.core.PFont;
 import cs211.tangiblegame.Interface;
-import cs211.tangiblegame.ProMaster;
 import cs211.tangiblegame.imageprocessing.ImageAnalyser;
 import cs211.tangiblegame.imageprocessing.ImageProcessing;
 import cs211.tangiblegame.calibration.HScrollbar;
@@ -123,12 +122,12 @@ public class Calibration extends Interface {
 			ia.inputLock.lock();
 			if (ia.takeMovie) {
 				ia.restartMovie();
-				ia.paraMovie = copy(ImageProcessing.paraMovieBase);
+				ia.paraMovie = ImageProcessing.paraMovieBase.clone();
 			} else if (buttonCalibrationMode) {
-				ia.paraCamera = ProMaster.copy(ia.imgProc.paraCameraBase);
+				ia.paraCamera = ia.imgProc.paraCameraBase.clone();
 			} else {
 				ia.buttonDetection.inputLock.lock();
-				ia.buttonDetection.paraBoutons = ProMaster.copy(ia.imgProc.paraBoutonsBase);
+				ia.buttonDetection.paraBoutons = ia.imgProc.paraBoutonsBase.clone();
 				ia.buttonDetection.inputLock.unlock();
 			}
 			ia.inputLock.unlock();

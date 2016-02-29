@@ -1,4 +1,4 @@
-﻿package cs211.tangiblegame.physic;
+package cs211.tangiblegame.physic;
 
 import java.util.ArrayList;
 import java.util.LinkedList;

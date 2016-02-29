@@ -1,4 +1,4 @@
-```sh
+﻿```sh
 ============================================  
 =  ______           _                 _    =  
 =  | ___ \         | |               | |   =  
@@ -60,7 +60,7 @@ supported object names: ***floor, ball, box, objectif, starship***.
 
 supported attributes: ***pos, dir, mass, name, impluse, [color, stroke], life, camera, cameraDist, focus***.
 
-supported parameters: ***physic**: gravity, deltaTime. **camera**: displaySkybox, displayAxis, [mode, dist]*
+supported parameters: <i>**physic**: gravity, deltaTime. **camera**: displaySkybox, displayAxis, [mode, dist]</i>
 
 file example with all supported attributes:
 

@@ -6,12 +6,19 @@ import processing.core.*;
 
 public class Body extends ProMaster {
 	private static final boolean drawInteraction = true; //forces et impulse
-	
+
+	public final PVector velocity = zero.copy();
+	public final PVector location;
+	public final Quaternion rotationVel = identity.copy();
+	public final Quaternion rotation;
+	/** Indicate the modification of the body transform during the frame before the update. */
+	public boolean transformChanged = false;
+
 	protected String name = "Body";
+	protected Body parent = null;
 	protected int life = -1;
 	protected int maxLife = -1;
 	protected Color color = Color.basic;
-	
 	protected float mass = -1;
 	protected float inverseMass = 0;
 	protected PVector inertiaMom;
@@ -19,22 +26,51 @@ public class Body extends ProMaster {
 	protected float restitution = 0.8f; // [0, 1]
 	protected boolean affectedByCollision = true;
 
-	private PVector lastLocation = zero.copy();
-	protected Quaternion lastRotation = new Quaternion();
 	private PVector forces = zero.copy();
 	private PVector torques = zero.copy();
+	private boolean transformChangedCurrent = false;
 	
-	public final PVector velocity = zero.copy();
-	public final PVector location;
-	public final Quaternion rotationVel = new Quaternion();
-	public final Quaternion rotation;
+	// PVector notifiant le body des changements
+	private class BVector extends PVector {
+		private static final long serialVersionUID = 5162673540041216409L;
+		public BVector(PVector v) {
+			super(v.x,v.y,v.z);
+		}
+		public PVector set(PVector v) {
+			transformChangedCurrent = true;
+			return super.set(v);
+		}
+		public PVector add(PVector v) {
+			if (!v.equals(zero)) {
+				transformChangedCurrent = true;
+				return super.add(v);
+			} else
+				return this;
+		}
+	}
 	
-	public Body parent = null;			
-	public boolean transformChanged = true;	//indique si la transformation du body a été modifiée cette frame.
-
+	// Quaternion notifiant le body des changements
+	private class BQuaternion extends Quaternion {
+		public BQuaternion(Quaternion q) {
+			super((q == null) ? identity : q);
+		}
+		public Quaternion set(Quaternion v) {
+			transformChangedCurrent = true;
+			return super.set(v);
+		}
+		public Quaternion rotate(Quaternion r) {
+			if (!r.equals(identity)) {
+				transformChangedCurrent = true;
+				return super.set(r);
+			} else
+				return this;
+		}
+	}
+	
+	/** create a Body with this location & location. location can be null */
 	public Body(PVector location, Quaternion rotation) {
-		this.location = location.copy();
-		this.rotation = rotation.copy();
+		this.location = new BVector(location);
+		this.rotation = new BQuaternion(rotation.copy());
 	}
 
 	// applique les forces et update l'etat (+transformChanged)
@@ -42,37 +78,29 @@ public class Body extends ProMaster {
 		addForces();
 		
 		//1. translation, forces
-		if (!forces.equals(zero)) {
+		if (!isZeroEps(forces, false)) {
 			PVector acceleration = PVector.mult( forces, inverseMass );
 			velocity.add(PVector.mult(acceleration,Physic.deltaTime));
 		}
-		if (!velocity.equals(zero)) {
+		if (!isZeroEps(velocity, true)) {
 			location.add(PVector.mult(velocity,Physic.deltaTime));
 		}
 		
 		//2. rotation, vitesse angulaire, on prend rotation axis comme L/I
-		if (!torques.equals(zero)) {
+		if (!isZeroEps(torques, false)) {
 			rotationVel.addAngularMomentum( multMatrix( inverseInertiaMom, torques ) );
 		}
 		rotation.rotate( rotationVel );
 			
 		//check changes
-		transformChanged = false;
-		if (!location.equals(lastLocation)) {
-			lastLocation = location.copy();
-			transformChanged = true;
-		} 
-		if (!rotation.equals(lastRotation)) {
-			lastRotation = rotation.copy();
-			transformChanged = true;
-			//checkAngles();
-			/*System.out.println("---------------");
-			System.out.println("rotation: \nmag: "+rotation.mag()+"\n vec: "+rotation);
-			System.out.println("vitesse Ang.: \nmag: "+angularVelocity.mag()+"\n vec: "+angularVelocity);*/
-		}
-		
+		transformChanged = transformChangedCurrent;
+		transformChangedCurrent = false;
 		forces = zero.copy();
 		torques = zero.copy();
+		
+		/*System.out.println("---------------");
+		System.out.println("rotation: \nmag: "+rotation.mag()+"\n vec: "+rotation);
+		System.out.println("vitesse Ang.: \nmag: "+angularVelocity.mag()+"\n vec: "+angularVelocity);*/
 	}
 	
 	public void onDelete() {}
@@ -234,14 +262,8 @@ public class Body extends ProMaster {
 	
 	// applique une force qui s'oppose à la vitesse angulaire.
 	public void freineRot(float perte) {
-		if (rotationVel.angle != 0) {
-			if ( isZeroEps(rotationVel.angle) ) {
-				rotationVel.set(1, 0, 0, 0);
-			} else {
-				rotationVel.angle *= (1 - perte);
-				rotationVel.initFromAxis();
-			}
-		}
+		if ( !rotationVel.isZeroEps() )
+			rotationVel.setAngle(rotationVel.angle() * (1 - perte));
 	}
 	
 	

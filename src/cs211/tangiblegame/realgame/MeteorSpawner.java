@@ -69,14 +69,8 @@ public final class MeteorSpawner extends Cube {
 			radius = minRadius + tailleRatio * (maxRadius - minRadius);
 			
 			float speed = minSpeed + random.nextFloat() * (maxSpeed - minSpeed);
-			PVector vel = PVector.sub(goal, startPos);
-			velocity.set(vel.array());
-			velocity.setMag(speed);
-			
-			rotationVel.rotAxis = new PVector(random.nextFloat(), random.nextFloat(), random.nextFloat());
-			rotationVel.rotAxis.normalize();
-			rotationVel.angle = speed/30f*random.nextFloat();
-			rotationVel.initFromAxis();
+			velocity.set( PVector.sub(goal, startPos).setMag(speed) );
+			rotationVel.set( randomVec(), speed/30f*random.nextFloat() );
 		}
 		
 		public void onDelete() {

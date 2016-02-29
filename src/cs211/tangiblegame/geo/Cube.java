@@ -144,10 +144,10 @@ public class Cube extends PseudoPolyedre {
 	private static Plane[] getFaces(PVector size) {
 	    Plane[] faces =  new Plane[6];
 	    PVector[] facesLoc = getFacesLoc(size);
-	    PVector[] facesRot = getFacesRot();
+	    Quaternion[] facesRot = getFacesRot();
 	    PVector[] facesSize = getFacesSize(size);
 	    for (int i=0; i<6; i++)
-	      faces[i] = new Plane(facesLoc[i], Quaternion.fromRotAxis(facesRot[i]), -1, facesSize[i]);
+	      faces[i] = new Plane(facesLoc[i], facesRot[i], -1, facesSize[i]);
 	    return faces;
 	}
 
@@ -158,13 +158,21 @@ public class Cube extends PseudoPolyedre {
 	  	    new PVector(0, 0, size.z/2), new PVector(0, 0, -size.z/2)};	//devant, derriere (z)
 	}
 	
-	private static PVector[] getFacesRot() {
-		float hpi = PApplet.HALF_PI;
+	private static Quaternion[] getFacesRot() {
+		return new Quaternion[] {
+				Quaternion.fromDirection(left), Quaternion.fromDirection(right),
+				Quaternion.fromDirection(up), Quaternion.fromDirection(down),
+				Quaternion.fromDirection(front), Quaternion.fromDirection(behind),
+				};
+	    /*
+	    float hpi = PApplet.HALF_PI;
 		float pi = PApplet.PI;
-	    return new PVector[] {
+		return new PVector[] {
 	    	new PVector(0, 0, -hpi), new PVector(0, 0, hpi), 	//gauche,  droite  (x)
 	    	new PVector(0, 0, 0), new PVector(0, 0, pi), 		//dessus, dessous  (y)
 	  	    new PVector(hpi, 0, 0), new PVector(-hpi, 0, 0)};	//devant, derriere (z)
+		*/
+		
 	}
 	
 	private static PVector[] getFacesSize(PVector size) {

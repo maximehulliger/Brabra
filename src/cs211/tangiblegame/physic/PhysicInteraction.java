@@ -1,4 +1,4 @@
-package cs211.tangiblegame.realgame;
+package cs211.tangiblegame.physic;
 
 import java.util.ArrayList;
 
@@ -6,8 +6,8 @@ import cs211.tangiblegame.ProMaster;
 import cs211.tangiblegame.TangibleGame;
 import cs211.tangiblegame.geo.Line;
 import cs211.tangiblegame.geo.Line.Projection;
-import cs211.tangiblegame.physic.Body;
-import cs211.tangiblegame.physic.Collider;
+import cs211.tangiblegame.realgame.Armement;
+import cs211.tangiblegame.realgame.Starship;
 import processing.core.PApplet;
 import processing.core.PVector;
 import processing.event.MouseEvent;

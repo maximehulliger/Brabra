@@ -130,7 +130,7 @@ public class Camera extends ProMaster {
 			System.out.println("camera following "+toFollow.toString()+" at "+toFollow.location+" from "+getDist()+" in "+followMode+" mode.");
 	}
 	
-	private void drawMouseray(float dist) {
+	public void drawMouseray(float dist) {
 		float focal = 10;
 	    PVector mrel = new PVector(-(app.mouseX-app.width/2)/focal, -(app.mouseY-app.height/2)/focal, -focal);
 	    

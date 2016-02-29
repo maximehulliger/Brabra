@@ -47,64 +47,45 @@ public abstract class ProMaster {
 	}
 
 	//---- general mastery
-
-	public static float random(float min, float max) {
-		return min + (max-min) * random.nextFloat();
-	}
-
-	public static float sq(float t) {
-		return t*t;
-	}
-
-	public static float sqrt(float t) {
-		return PApplet.sqrt(t);
-	}
-
-	//retourne true si v E [min, max]
-	public static boolean isConstrained(float v, float min, float max) {
-		return v>=min && v<=max;
-	}
-
-	public static float min(float a, float b) {
-		return a<b ? a : b;
-	}
-
-	public static float max(float a, float b) {
-		return a>b ? a : b;
-	}
-
+	
+	/** angle en radian => [-pi, pi] */
 	public static float entrePiEtMoinsPi(float a) {
 		if (a > PApplet.PI) return a - PApplet.TWO_PI;
 		else if (a < -PApplet.PI) return a + PApplet.TWO_PI;
 		else return a;
 	}
-
-	//secondes -> frames
-	public static int toFrame(float seconde) {
-		return TangibleGame.round(seconde * app.frameRate);
+	
+	/** [min, max] => [min2, max2] */
+	public static float map(float val, float min, float max, float min2, float max2) {
+		return (clamp(val, min, max)-min)/(max-min)*(max2-min2) + min2;
+	}
+	
+	/** [min, max] => [0, 1] */
+	private static float clamp(float val, float min, float max) {
+		return (val - min)/(max - min);
+	}
+	
+	public static float random(float min, float max) {
+		return min + (max-min) * random.nextFloat();
+	}
+	
+	public static PVector moyenne(PVector[] points) {
+		PVector moyenne = zero.copy();
+		for (PVector p : points)
+			moyenne.add(p);
+		moyenne.div(points.length);
+		return moyenne;
 	}
 
-	public static int sgn(float a) {
-		if (isZeroEps(a))
-			return 0;
-		else if (a>0)
-			return 1;
-		else 
-			return -1;
-	}
-
-	public static float[] copy(float[] tab) {
-		float[] ret = new float[tab.length];
-		for (int i=0; i<tab.length; i++)
-			ret[i] = tab[i];
-		return ret;
+	// effectue une multiplication slot par slot. (utile pour L = Iw)
+	public static PVector multMatrix(PVector matriceDiagOnly, PVector vector) {
+		return new PVector(
+				matriceDiagOnly.x * vector.x,
+				matriceDiagOnly.y * vector.y,
+				matriceDiagOnly.z * vector.z );
 	}
 
 	//---- processing mastery
-
-	protected static PVector vec(float x, float y, float z) {
-		return new PVector(x, y, z);
-	}
 
 	protected static PVector vec(String vec) {
 		if (vec==null || vec.equals("zero"))
@@ -135,55 +116,53 @@ public abstract class ProMaster {
 		return vec(values[0],values[1],values[2]);
 	}
 	
-	public static PVector add(PVector v1, PVector v2) {
-		return PVector.add(v1, v2);
+	//secondes -> frames
+	public static int toFrame(float seconde) {
+		return TangibleGame.round(seconde * app.frameRate);
+	}
+	
+	// --- EPSILON (small value) ---
+
+	public static boolean isZeroEps(PVector p, boolean clean) {
+		if (p.equals(zero))
+			return true;
+		else {
+			if (isZeroEps(p.x) && isZeroEps(p.y) && isZeroEps(p.z)) {
+				if (clean)
+					p.x = p.y = p.z = 0;
+				return true;
+			} else
+				return p.equals(zero);
+			
+			/*if (p.x != 0 && isZeroEps(p.x)) p.x = 0;
+			if (p.y != 0 && isZeroEps(p.y)) p.y = 0;
+			if (p.z != 0 && isZeroEps(p.z)) p.z = 0;*/
+			//return isZeroEps(p.x) && isZeroEps(p.y) && isZeroEps(p.z);
+		}
 	}
 
-	public static PVector[] copy(PVector[] vectors) {
-		PVector[] ret = new PVector[vectors.length];
-		for (int i=0; i<vectors.length; i++)
-			ret[i] = vectors[i].copy();
-		return ret;
+	public static boolean isZeroEps(float f) {
+		return f==0 || isConstrained(f, -TangibleGame.EPSILON, TangibleGame.EPSILON);	
 	}
 
-	public static PVector[] absolute(PVector[] v, PVector trans, Quaternion rotation) {
-		PVector[] ret = new PVector[v.length];
-		for (int i=0; i<v.length; i++)
-			ret[i] = absolute(v[i], trans, rotation);
-		return ret;
+	public static boolean equalsEps(PVector p1, PVector p2) {
+		return isZeroEps( PVector.sub(p1, p2), false );
+	}
+	
+	public static boolean equalEps(float f, float other) {
+		return isZeroEps(f - other);
+	}
+	
+	// --- processing syntactic sugar ---
+	
+	protected static PVector vec(float x, float y, float z) {
+		return new PVector(x, y, z);
 	}
 
 	public static float distSq(PVector p1, PVector p2) {
 		return PVector.sub(p1, p2).magSq();
 	}
 
-	public static boolean equalsEps(PVector p1, PVector p2) {
-		return isZeroEps( PVector.sub(p1, p2), false);
-	}
-
-	public static boolean isZeroEps(PVector p, boolean setToZero) {
-		if (p.equals(zero))
-			return true;
-		else {
-			if (setToZero) {
-				if (p.x != 0 && isZeroEps(p.x))
-					p.x = 0;
-				if (p.y != 0 && isZeroEps(p.y))
-					p.y = 0;
-				if (p.z != 0 && isZeroEps(p.z))
-					p.z = 0;
-				return p.equals(zero);
-			} else {
-				return isZeroEps(p.x) && isZeroEps(p.y) && isZeroEps(p.z);
-			}
-
-		}
-	}
-
-	public static boolean isZeroEps(float f) {
-		return f==0 || (f <= TangibleGame.EPSILON && f >= -TangibleGame.EPSILON);	
-	}
-	
 	protected void line(PVector v1, PVector v2) {
 		app.line(v1.x,v1.y,v1.z,v2.x,v2.y,v2.z);
 	}
@@ -192,21 +171,69 @@ public abstract class ProMaster {
 		PVector pp = p.copy();
 		return pp.normalize();
 	}
-
-	public static PVector moyenne(PVector[] points) {
-		PVector moyenne = zero.copy();
-		for (PVector p : points)
-			moyenne.add(p);
-		moyenne.div(points.length);
-		return moyenne;
+	
+	public static PVector add(PVector v1, PVector v2) {
+		return PVector.add(v1, v2);
 	}
 
-	// effectue une multiplication slot par slot. (utile pour L = Iw)
-	public static PVector multMatrix(PVector matriceDiagOnly, PVector vector) {
-		return new PVector(
-				matriceDiagOnly.x * vector.x,
-				matriceDiagOnly.y * vector.y,
-				matriceDiagOnly.z * vector.z );
+	public static PVector mult(PVector v1, float f) {
+		return PVector.mult(v1, f);
+	}
+	
+	/** retourne un vecteur avec xyz dans [0,1] */
+	public static PVector randomVec() {
+		return new PVector(randomBi(), randomBi(), randomBi());
+	}
+	
+	// --- general syntactic sugar ---
+
+	public static int sgn(float a) {
+		if (a == 0)
+			return 0;
+		else if (a>0)
+			return 1;
+		else 
+			return -1;
+	}
+	
+	/** a random value in [-1, 1] */ 
+	public static float randomBi() {
+		return random(-1, 1);
+	}
+	
+	public static float sq(float t) {
+		return t*t;
+	}
+
+	public static float sqrt(float t) {
+		return PApplet.sqrt(t);
+	}
+
+	public static float min(float a, float b) {
+		return a<b ? a : b;
+	}
+
+	public static float max(float a, float b) {
+		return a>b ? a : b;
+	}
+
+	/** retourne true si v E [min, max] */
+	public static boolean isConstrained(float v, float min, float max) {
+		return v>=min && v<=max;
+	}
+	
+	public static PVector[] copy(PVector[] vectors) {
+		PVector[] ret = new PVector[vectors.length];
+		for (int i=0; i<vectors.length; i++)
+			ret[i] = vectors[i].copy();
+		return ret;
+	}
+	
+	public static PVector[] absolute(PVector[] v, PVector trans, Quaternion rotation) {
+		PVector[] ret = new PVector[v.length];
+		for (int i=0; i<v.length; i++)
+			ret[i] = absolute(v[i], trans, rotation);
+		return ret;
 	}
 
 	//------ Transformations (location, rotation)

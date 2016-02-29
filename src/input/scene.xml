@@ -10,7 +10,7 @@
 	
 	
 	
-	<starship pos="(100,300,100)" dir="left" camera="relative" focus="true" force="40"></starship>
+	<starship pos="(100,100,100)" dir="right" camera="relative" focus="true" force="40"></starship>
 	
 	
 	<!--  

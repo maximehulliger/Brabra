@@ -14,7 +14,7 @@ public class TangibleGame extends PApplet {
 	public enum View {Menu, Calibration, TrivialGame, RealGame}
 
 	//--parametres
-	//private static final int ratioSize = 4; //généralement de 2 (640x360) à 6 (1920x1080)
+	private static final int windowSize = 4; //generaly from 2 (640x360) to� 6 (1920x1080)
 	public static final float inclinaisonMax = PApplet.PI/5; 
 	public static boolean imgAnalysis = false;
 	
@@ -38,7 +38,7 @@ public class TangibleGame extends PApplet {
 	}
 	
 	public void settings() {
-		size(1280, 720, "processing.opengl.PGraphics3D");
+		size(windowSize*320, windowSize*160, "processing.opengl.PGraphics3D");
 		//surface.setResizable(true);
 	}
 	
@@ -154,6 +154,7 @@ public class TangibleGame extends PApplet {
 		}
 		over = true;
 		System.out.println("bye bye !");
+		exit();
 	} 
 
 	public void mouseDragged() {

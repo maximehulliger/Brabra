@@ -6,6 +6,7 @@ import cs211.tangiblegame.Interface;
 import cs211.tangiblegame.ProMaster;
 import cs211.tangiblegame.TangibleGame;
 import cs211.tangiblegame.physic.Physic;
+import cs211.tangiblegame.physic.PhysicInteraction;
 import cs211.tangiblegame.realgame.Armement;
 
 public class RealGame extends Interface {
@@ -41,13 +42,15 @@ public class RealGame extends Interface {
 		app.imgAnalyser.play(false);
 	}
 	
+	boolean fr = true;
+	
 	public void draw() {
 		
+		camera.place();
+			
 		physicInteraction.update();
 		
 		physic.doMagic();
-		
-		camera.place();
 		
 		physic.displayAll();
 	}

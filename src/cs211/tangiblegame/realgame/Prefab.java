@@ -45,7 +45,6 @@ public class Prefab extends ProMaster {
 			b.rotation.set(rotation);
 			return b;
 		}
-			
 	}
 	
 	//une sphère soumise à la gravité.
