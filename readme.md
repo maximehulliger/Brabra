@@ -1,4 +1,4 @@
-﻿```sh
+```sh
 ============================================  
 =  ______           _                 _    =  
 =  | ___ \         | |               | |   =  
@@ -9,6 +9,7 @@
 =                                          =  
 ============================================  
 ```
+
 
 #	Brabra !
 
@@ -23,6 +24,7 @@ CS-211 "Introduction to visual computing" given in 2014-2015 at EPFL.
 - Image analysis for quad detection (bugged for now)
 
 
+<br>
 # 1.	Real Game
 
 The key interface of the project :D
@@ -30,7 +32,7 @@ The key interface of the project :D
 - *q*, *r*     ->  restart the game
 - <_tab_>	   ->  change the camera mode
 
----
+<br>
 #### focused object
 You can focus your interaction on an object or body. 
 
@@ -41,7 +43,7 @@ You can focus your interaction on an object or body.
 				->  turn the object around
 - scroll wheel 	->  change the interaction force
 
----
+<br>
 #### Camera
 The camera can work in several modes and follow a particular object.
 
@@ -49,7 +51,7 @@ modes: ***fixed, static, relative***.
 
 each mode has his own distance from the looked point.
 
----
+<br>
 #### Scene initialization
 You will find an input file "Brabra/bin/input/scene.xml" to configure the initialization 
 of the scene's objects and parameters (camera, physic). To reload the file, restart the game with *q* or *r*.
@@ -60,38 +62,35 @@ supported attributes: ***pos, dir, mass, name, impluse, [color, stroke], life, c
 
 supported parameters: ***physic**: gravity, deltaTime. **camera**: displaySkybox, displayAxis, [mode, dist]*
 
-vector format: "*(x,y,z)*"
-	<?xml version="1.0" encoding="UTF-8"?>
-	<scene>
 file example with all supported attributes:
 
-    <?xml version="1.0" encoding="UTF-8"?>
-    <scene>
-        <camera displaySkybox="true" mode="not" dist="(200,200,200)"></camera>
+	<?xml version="1.0" encoding="UTF-8"?>
+	<scene>
+		<camera displaySkybox="true" mode="not" dist="(200,200,200)"></camera>
 		<physic gravity="0.2" deltaTime="0.7"></physic>
 		<floor pos="zero" color="grass" stroke="green"></floor>
 		<ball pos="(0,5,5)" mass="5"></ball>
 		<box pos="(5,5,0)" name="box1"></box>
 		<objectif pos="(100,100,-500)" life="200" color="red"></objectif>
-
+		
 		<starship pos="(100,300,100)" dir="left" camera="relative" focus="true" force="40"></starship>
 		
-        <!--  
+		<!--  
 		<objectif pos="(1000,100,-2000)" life="50/200" color="red"></objectif>
 		-->
 	</scene>
 
 
-
----
+<br>
 # 2. 	Trivial Game
 
 Initial excepted project for the course. Only reacts to the rotation of the detected plate.
 
 
----
+<br>
 # 3.	Image Analysis (not working atm)
 
+<br>
 #### plate
 The augmented reality aspect of this project remains in the possibility to control
 the software with an external object. 
@@ -102,7 +101,7 @@ In option, it also detects two buttons on each side of the plate.
 - left button	 ->  go forward, brake if not visible
 - right button   ->  shoot missiles bigger with the visibility
 
----
+<br>
 #### calibration
 Here you can find and manage image filtering parameters to operate the image analysis.
 It is mainly thresholding of the pixel colours in both RGB and HSV representation.
@@ -113,7 +112,7 @@ It is mainly thresholding of the pixel colours in both RGB and HSV representatio
 - s	-> save current parameters
 - b -> go in 'button detection' mode, to calibrate the button detection
 
----
+<br>
 #### control screen
 When image analysis is enabled and not paused, a control or feedback screen will be 
 displayed in the upper left corner of the window reporting what the software sees.
@@ -124,7 +123,7 @@ displayed in the upper left corner of the window reporting what the software see
 - button circles are red -> not enough detected to count
 
 
----
+<br>
 # 4. 	Contact
 
 Maxime Hulliger, hulliger@epfl.ch
