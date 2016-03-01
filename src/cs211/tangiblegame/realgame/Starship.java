@@ -7,7 +7,7 @@ import cs211.tangiblegame.realgame.Armement.Armed;
 import processing.core.PShape;
 import processing.core.PVector;
 
-//une classe pouvant intervenir dans une collision. ne réagit pas.
+/** STARSHIIIIPPP !!! */
 public class Starship extends Plane implements Armed//Cube
 {
 	public static final float sizeFactor = 15f;
@@ -38,11 +38,6 @@ public class Starship extends Plane implements Armed//Cube
 			super.inertiaMom = new PVector(fact, fact, fact);
 			super.inverseInertiaMom = new PVector(invFact, invFact, invFact);
 		}
-	}
-	
-	public void update() {
-		super.update();
-		//champ.update();
 	}
 
 	public void display() {

@@ -10,38 +10,40 @@ import cs211.tangiblegame.realgame.Armement;
 import cs211.tangiblegame.realgame.Starship;
 import processing.core.PApplet;
 import processing.core.PVector;
-import processing.event.MouseEvent;
 
 public final class PhysicInteraction extends ProMaster {
 	public float forceRatio = 5; //puissance de l'interaction
-	
+
 	public Body focused = null;
 	public Armement armement = null;
-	
+
 	public boolean hasFocused() {
 		return focused != null;
 	}
-	
+
 	public void setFocused(Body focused) {
 		this.focused = focused;
 		armement = focused.getClass() == Starship.class ?
-			((Starship)focused).armement : null;
+				((Starship)focused).armement : null;
 	}
-	
+
 	public void update() {
+		if (app.input.scrollDiff != 0) {
+			forceRatio = map(app.input.scroll, 0, 1, 0.2f, 60);
+			System.out.printf("ratio de force: %.2f\n",forceRatio);
+		}
+		
 		if (focused != null)
 			applyForces();
-		
+
 		if (armement != null) {
 			armement.update();
-			app.imgAnalyser.buttonStateLock.lock();
-			if (app.imgAnalyser.leftButtonVisible) {
-				armement.fire(app.imgAnalyser.leftButtonScore);
-			}
-			app.imgAnalyser.buttonStateLock.unlock();
+			float leftScore = app.imgAnalyser.buttonDetection.leftScore();
+			if (leftScore > 0)
+				armement.fire(leftScore);
 		}
 	}
-	
+
 	public Collider raycast(PVector from, PVector dir) {
 		assert(!dir.equals(zero));
 		Line ray = new Line(from, add(from,dir), true);
@@ -59,7 +61,7 @@ public final class PhysicInteraction extends ProMaster {
 		Projection targetProj = new Line.Projection(0);
 		ArrayList<Collider> candidates = new ArrayList<>();
 		ArrayList<Float> candidatesDist = new ArrayList<>();
-		
+
 		for (Collider c : game.physic.colliders) {
 			if (c.projetteSur(p1).comprend(0)&& c.projetteSur(p2).comprend(0)) {
 				Projection proj = c.projetteSur(ray);
@@ -69,7 +71,7 @@ public final class PhysicInteraction extends ProMaster {
 				}
 			}
 		}
-		
+
 		if (candidates.size() == 0)
 			return null;
 		else if (candidates.size() == 1)
@@ -88,44 +90,57 @@ public final class PhysicInteraction extends ProMaster {
 			return best;
 		}
 	}
-	
+
 	private void applyForces() {
+		// 1. rotation (plate, mouse, horizontal)
 		PVector forceRot = zero.copy();
-		
-		//-- rotation - selon angle de la plaque et sd + souris
-		PVector plateRot = PVector.div(app.imgAnalyser.rotation(), TangibleGame.inclinaisonMax); //sur 1
-		// on adoucit par x -> x ^ 1.75
-		plateRot = new PVector(
-				PApplet.pow(PApplet.abs(plateRot.x), 1.75f) * sgn(plateRot.x), 
-				PApplet.pow(PApplet.abs(plateRot.y), 1.75f) * sgn(plateRot.y),
-				PApplet.pow(PApplet.abs(plateRot.z), 1.75f) * sgn(plateRot.z));
-		forceRot.add( PVector.mult(plateRot,  TangibleGame.inclinaisonMax/4 ) );
-		
-		forceRot.add( PVector.div(forceMouse, 3));
-		forceMouse.set( zero );
-		if (keyDownTourneGauche)	forceRot.z -= 1;
-		if (keyDownTourneDroite)	forceRot.z += 1;
-		
-		PVector f = PVector.mult( forceRot, forceRatio/600_000 );	
-		focused.addForce(focused.absolute(vec(0, 0, -150)), absolute( new PVector(f.y*focused.inertiaMom().y*2/3, f.x*focused.inertiaMom().x), zero, focused.rotation));
-		focused.addForce(focused.absolute(vec(0, 100, 0)), absolute( new PVector(-f.z*focused.inertiaMom().z , 0), zero, focused.rotation));
-		
-		//-- déplacement - selon ws et le bouton droite
-		float forceDepl = 0;
-		if (keyDownAvance)	forceDepl += 1;
-		if (keyDownRecule)	forceDepl -= 1;
-		
-		app.imgAnalyser.buttonStateLock.lock();
-		float rightScore = app.imgAnalyser.rightButtonScore;
-		app.imgAnalyser.buttonStateLock.unlock();
-		
-		if (forceDepl != 0 || rightScore > 0) {
-			focused.avance((forceDepl+rightScore)*100*forceRatio);
+
+		if (app.imgAnalyser.running()) {
+			// rotation selon angle de la plaque
+			PVector plateRot = PVector.div(app.imgAnalyser.rotation(), TangibleGame.inclinaisonMax); //sur 1
+			// on adoucit par x -> x ^ 1.75
+			plateRot = new PVector(
+					PApplet.pow(PApplet.abs(plateRot.x), 1.75f) * sgn(plateRot.x), 
+					PApplet.pow(PApplet.abs(plateRot.y), 1.75f) * sgn(plateRot.y),
+					PApplet.pow(PApplet.abs(plateRot.z), 1.75f) * sgn(plateRot.z));
+			forceRot.add( PVector.mult(plateRot,  TangibleGame.inclinaisonMax/4 ) );
 		}
-			
-		//-- si pas visible et pas debrayé (espace -> non-frein), on freine
+
+		forceRot.add( up(app.input.horizontal) );
+		forceRot.add( mult(app.input.deplMouse, forceRatio/100) );
+		if (!forceRot.equals(zero)) {
+			PVector f = PVector.mult( forceRot, forceRatio/600_000 );
+			if (f.y != 0) {
+				PVector yaw = right(f.y);
+				PVector yawAP = front(150);
+				focused.addForce(focused.absolute(yawAP), 
+						absolute( yaw, zero, focused.rotation));
+			}
+			if (f.x != 0) {
+				PVector pitch = up(f.x);
+				PVector pitchAP = front(150);
+				focused.addForce(focused.absolute(pitchAP), 
+						absolute( pitch, zero, focused.rotation));
+			}
+			if (f.z != 0) {
+				PVector roll = right(f.z);
+				PVector rollAP = up(100);
+				focused.addForce(focused.absolute(rollAP), 
+						absolute( roll, zero, focused.rotation));
+			}
+		}
+
+		// 2. forward
+		float rightScore = app.imgAnalyser.buttonDetection.rightScore();
+		if (app.input.vertical != 0 || rightScore > 0) {
+			System.out.println("vertical: "+app.input.vertical);
+			focused.avance((app.input.vertical+rightScore)*100*forceRatio);
+		}
+
+		// 3. brake
 		if ( rightScore == 0) {
-			if (debraie) {
+			// space -> non-brake
+			if (app.input.spaceDown) {
 				focused.freineDepl(0.001f);
 				focused.freineRot(0.1f);
 			} else
@@ -137,45 +152,12 @@ public final class PhysicInteraction extends ProMaster {
 	}
 
 	//----- gestion evenement
-	
-	private PVector forceMouse = zero.copy();
-	private boolean debraie = false;
-	private boolean keyDownAvance = false;
-	private boolean keyDownRecule = false;
-	private boolean keyDownTourneGauche = false;
-	private boolean keyDownTourneDroite = false;
-	
-	public void mouseDragged() {
-		int diffX = app.mouseX-app.pmouseX;
-		int diffY = app.mouseY-app.pmouseY;
-		forceMouse.add( new PVector(-diffY*forceRatio/50, -diffX*forceRatio/50) );
-	}
-	
+
 	public void keyPressed() {
-		if (app.key == ' ')		debraie = true;
-		if (app.key == 'w') 	keyDownAvance = true;
-		if (app.key == 's') 	keyDownRecule = true;
-		if (app.key == 'a')		keyDownTourneGauche = true;
-		if (app.key == 'd')		keyDownTourneDroite = true;
-		
 		if (armement != null) {
 			if (app.key == 'e')		armement.fire(1);
 			if (app.key >= '1' && app.key <= '5')
 				armement.fireFromSlot(app.key-'1');
 		}
-	}
-	
-	public void keyReleased() {
-		if (app.key == ' ')		debraie = false;
-		if (app.key == 'w') 	keyDownAvance = false;
-		if (app.key == 's') 	keyDownRecule = false;
-		if (app.key == 'a')		keyDownTourneGauche = false;
-		if (app.key == 'd')		keyDownTourneDroite = false;
-	}
-	
-	public void mouseWheel(MouseEvent event) {
-		float delta = - event.getCount(); //delta negatif si vers l'utilisateur
-		forceRatio = PApplet.constrain( forceRatio + 0.05f*delta , 0.2f, 60 );
-		System.out.printf("ratio de force: %.2f\n",forceRatio);
 	}
 }

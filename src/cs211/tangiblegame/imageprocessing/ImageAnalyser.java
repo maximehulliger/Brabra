@@ -15,6 +15,7 @@ import processing.core.PVector;
 import processing.video.*;
 
 public class ImageAnalyser extends ProMaster {
+	///--- parameters
 	public static final float maxAcceptedAngle = 65f/360*PApplet.TWO_PI; //65°
 	public static boolean displayQuadRejectionCause = false;
 	private static final int sleepTime = 200;
@@ -35,24 +36,17 @@ public class ImageAnalyser extends ProMaster {
 	public PImage threshold2g;
 	public PImage sobel;
 	public HoughLine hough;
-	public PImage threshold2Button;
 	public final ReentrantLock quadDetectionLock = new ReentrantLock();
 	public boolean hasFoundQuad = false;
 	public PGraphics quadDetection;
 	
 	//--- button detection
-	public final ReentrantLock buttonStateLock = new ReentrantLock();
-	public boolean displayButtonsState = true;
-	public boolean leftButtonVisible = false;
-	public boolean rightButtonVisible = false;
-	public float leftButtonScore = 0, rightButtonScore = 0;
 	public final ButtonDetection buttonDetection;
-	
 	public void runButtonDetection() {
 		buttonDetection.detect();
 	}
 	
-	//rotation
+	//--- rotation
 	private final ReentrantLock rotationLock = new ReentrantLock();
 	public boolean hasFoundRotation = false;
 	private int rotationAge = 0;
@@ -60,21 +54,19 @@ public class ImageAnalyser extends ProMaster {
 	private PVector lastRotation = new PVector(0,0,0);
 	private PVector gameRotation = new PVector(0,0,0);
 	
-	//"interne" (lulz)
+	//--- "interne" (img / calibration)
 	public PFont standardFont;
-	public float strockWeight;
-	/*pkg*/ final TangibleGame app;
-	/*pkg*/ int inWidth = 0, inHeight = 0;
+	/*pkg*/ float strockWeight;
+	/*pkg*/ int inWidth, inHeight;
 	private boolean newInput = false;
 	private Movie mov = null;
 	private Capture cam = null;
 	
-	public ImageAnalyser(TangibleGame app) {
-		this.app = app;
-		
-		buttonDetection = new ButtonDetection(this);
+	public ImageAnalyser() {
+		app.imgAnalyser = this;
+		buttonDetection = new ButtonDetection();
 		standardFont = app.createFont("Arial", app.height/40f);
-		quadDetection = app.createGraphics(1920, 1080);
+		quadDetection = null;
 		
 		paraMovie = ImageProcessing.paraMovieBase.clone();
 		paraCamera = imgProc.paraCameraBase.clone();
@@ -84,6 +76,26 @@ public class ImageAnalyser extends ProMaster {
 			parametres = paraCamera;
 	}
 	
+	// --- getters ---
+
+	public boolean paused() {
+		return (pausedMov && takeMovie) || (pausedCam && !takeMovie);
+	}
+	
+	public boolean running() {
+		return app.imgAnalysis && !paused();
+	}
+
+	public PVector rotation() {
+		try {
+			rotationLock.lock();
+			return gameRotation.copy();
+		} finally {
+			rotationLock.unlock();
+		}
+	}
+
+	// --- main loop ---
 	public void run() {
 		while (!app.over) {
 			boolean newImage = false;
@@ -162,14 +174,6 @@ public class ImageAnalyser extends ProMaster {
 					if (detectButtonsInt) {
 						buttonDetection.jobOverLock.lock();
 						buttonDetection.jobOverLock.unlock();
-						if (hasFoundRotation) {
-							buttonStateLock.lock();
-							leftButtonVisible = buttonDetection.leftVisible;
-							rightButtonVisible = buttonDetection.rightVisible;
-							leftButtonScore = buttonDetection.leftScore;
-							rightButtonScore = buttonDetection.rightScore;
-							buttonStateLock.unlock();
-						}
 					}
 					imagesLock.lock();
 				} 
@@ -180,7 +184,7 @@ public class ImageAnalyser extends ProMaster {
 					}
 					rotationLock.unlock();
 
-					resetBoutonOutput();
+					buttonDetection.resetOutput();
 				}
 
 				//-- print control img
@@ -210,7 +214,7 @@ public class ImageAnalyser extends ProMaster {
 	private void updateForInput() {
 		if (newInput) {
 			//image size dependant parameters update
-			if (quadDetection.width != inputImg.width || quadDetection.height != inputImg.height) {
+			if (quadDetection == null || quadDetection.width != inputImg.width || quadDetection.height != inputImg.height) {
 				inWidth = inputImg.width;
 				inHeight = inputImg.height;
 				quadDetection = app.createGraphics(inWidth, inHeight);
@@ -242,19 +246,8 @@ public class ImageAnalyser extends ProMaster {
 		inputLock.unlock();
 	}
 	
-	private void resetBoutonOutput() {
-		leftButtonScore = 0;
-		rightButtonScore = 0;
-		leftButtonVisible = false;
-		rightButtonVisible = false;
-	}
-	
-	public boolean paused() {
-		return (pausedMov && takeMovie) || (pausedCam && !takeMovie);
-	}
-	
 	public void play(boolean play) {
-		if (!TangibleGame.imgAnalysis)
+		if (!app.imgAnalysis)
 			return;
 		if (!play && pausedCam && pausedMov)
 			return;
@@ -288,7 +281,7 @@ public class ImageAnalyser extends ProMaster {
 		if (play)
 			newInput = true;
 		else
-			resetBoutonOutput();
+			buttonDetection.resetOutput();
 		
 		inputLock.unlock();
 	}
@@ -344,18 +337,9 @@ public class ImageAnalyser extends ProMaster {
 		play(!paused());
 		inputLock.unlock();
 	}
-
-	public PVector rotation() {
-		try {
-			rotationLock.lock();
-			return gameRotation.copy();
-		} finally {
-			rotationLock.unlock();
-		}
-	}
-
+	
 	public void gui() {
-		if (!paused() && TangibleGame.imgAnalysis) {
+		if (running()) {
 			app.textFont( standardFont );
 			app.textAlign(PApplet.RIGHT, PApplet.BOTTOM);
 			

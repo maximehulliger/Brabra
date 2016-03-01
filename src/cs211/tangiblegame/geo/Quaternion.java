@@ -96,22 +96,26 @@ public class Quaternion {
 	}
 
 	public void addAngularMomentum(PVector dL) {
-		if (ProMaster.isZeroEps(dL, false))
+		/*if (ProMaster.isZeroEps(dL, false))
 			return;
-		PVector rotAxis = rotAxis();
-		if (rotAxis == null)
-			set( rotAxis, dL.mag() );
-		else 
-			set( PVector.add(rotAxis, dL), rotAxis.mag() );
+		*/PVector rotAxis = rotAxis();
+		
+		if (rotAxis == null) {
+			System.out.println("ang mom: from ident");
+			rotAxis = dL;
+		} else {
+			rotAxis = PVector.add(rotAxis, dL);
+		}
+		set( rotAxis, rotAxis.mag() );
 	}
 
 	/** check if rotation is null and if so resets it. */
-	public boolean isZeroEps() {
+	public boolean isZeroEps(boolean clean) {
 		//if (ProMaster.equalEps(PApplet.abs(w), 1)) {
 		if (ProMaster.equalEps(PApplet.abs(w), 1) && ProMaster.isZeroEps(x)
 				&& ProMaster.isZeroEps(y) && ProMaster.isZeroEps(z)) {
-			/*if (!this.equals(identity))
-				reset();*/
+			if (clean && !equals(identity))
+				reset();
 			return true;
 		} else
 			return false;
@@ -226,9 +230,13 @@ public class Quaternion {
 	private Quaternion initFromAxis() {
 		assert( !(rotAxis!=null && rotAxis.equals(ProMaster.zero)) );
 		// if to identity
-		if (validRotAxis && (angle==0 || rotAxis==null))
+		
+		if (validRotAxis && (rotAxis==null || ProMaster.isZeroEps(angle))) {
+			System.out.println("reset.. angle: "+angle);
 			reset();
-		else {
+		} else {
+			System.out.println("dl mag: "+rotAxis.mag());
+			
 			if (!validRotAxis) {
 				rotAxis.normalize();
 				validRotAxis = true;
@@ -256,7 +264,7 @@ public class Quaternion {
 			float halfomega = PApplet.acos(w);
 			float s = PApplet.sin(halfomega);
 			if (ProMaster.isZeroEps(s)) { //no rotation
-				System.out.println("no rot");
+				System.out.println("updateAxis: "+this);
 				angle = 0;
 				rotAxis = null;
 			} else {

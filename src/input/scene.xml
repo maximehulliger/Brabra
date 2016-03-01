@@ -3,17 +3,19 @@
 	<camera displaySkybox="true" mode="not" dist="(200,200,200)"></camera>
 	<physic gravity="0.2" deltaTime="0.7"></physic>
 	<floor pos="zero" color="grass" stroke="green"></floor>
+	
+	
+	
+	<starship pos="(100,100,100)" dir="down" camera="relative" focus="true" force="40"></starship>
+	
+	
+	<!--  
 	<ball pos="(0,5,5)" mass="5" color="red"></ball>
 	<ball pos="(10,5,5)" mass="5" color="red"></ball>
 	<ball pos="(1,20,5)" mass="5" color="red"></ball>
 	<ball pos="(2,5,7)" mass="5" color="red"></ball>
 	
 	
-	
-	<starship pos="(100,100,100)" dir="right" camera="relative" focus="true" force="40"></starship>
-	
-	
-	<!--  
 	camera="relative" 
 	<box pos="(0,5,-5)" mass="5" color="blue"></box>
 	<box pos="(0,40,6)" mass="5" color="red"></box> 

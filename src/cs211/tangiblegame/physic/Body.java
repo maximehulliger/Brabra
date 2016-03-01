@@ -7,12 +7,12 @@ import processing.core.*;
 public class Body extends ProMaster {
 	private static final boolean drawInteraction = true; //forces et impulse
 
-	public final PVector velocity = zero.copy();
 	public final PVector location;
-	public final Quaternion rotationVel = identity.copy();
+	public final PVector velocity = zero.copy();
 	public final Quaternion rotation;
+	public final Quaternion rotationVel = identity.copy();
 	/** Indicate the modification of the body transform during the frame before the update. */
-	public boolean transformChanged = false;
+	public boolean transformChanged = true;
 
 	protected String name = "Body";
 	protected Body parent = null;
@@ -30,7 +30,56 @@ public class Body extends ProMaster {
 	private PVector torques = zero.copy();
 	private boolean transformChangedCurrent = false;
 	
-	// PVector notifiant le body des changements
+	/** create a Body with this location & location. location can be null */
+	public Body(PVector location, Quaternion rotation) {
+		this.location = new BVector(location);
+		this.rotation = new BQuaternion(rotation.copy());
+	}
+
+	/** to react when the object is removed from the scene */
+	public void onDelete() {}
+
+	/** to add force to the body every frame */
+	protected void addForces() {}
+
+	/** to react to a collision */
+	protected void onCollision(Collider col, PVector impact) {}
+
+	// --- update stuff (+transformChanged)
+	
+	/** applique les forces et update l'etat */
+	public void update() {
+		addForces();
+		
+		//1. translation, forces
+		if (!isZeroEps(forces, false)) {
+			PVector acceleration = PVector.mult( forces, inverseMass );
+			velocity.add(PVector.mult(acceleration,Physic.deltaTime));
+		}
+		if (!isZeroEps(velocity, true)) {
+			location.add(PVector.mult(velocity,Physic.deltaTime));
+		}
+		
+		//2. rotation, vitesse angulaire, on prend rotation axis comme L/I
+		if (!isZeroEps(torques, false)) {
+			rotationVel.addAngularMomentum( multMatrix( inverseInertiaMom, torques ) );
+		}
+		if (!rotationVel.isZeroEps(false)) {
+			rotation.rotate( rotationVel );
+		}
+		
+		//check changes
+		transformChanged = transformChangedCurrent;
+		transformChangedCurrent = false;
+		forces = zero.copy();
+		torques = zero.copy();
+		
+		/*System.out.println("---------------");
+		System.out.println("rotation: \nmag: "+rotation.mag()+"\n vec: "+rotation);
+		System.out.println("vitesse Ang.: \nmag: "+angularVelocity.mag()+"\n vec: "+angularVelocity);*/
+	}
+
+	/** PVector notifiant le body des changements */
 	private class BVector extends PVector {
 		private static final long serialVersionUID = 5162673540041216409L;
 		public BVector(PVector v) {
@@ -49,7 +98,7 @@ public class Body extends ProMaster {
 		}
 	}
 	
-	// Quaternion notifiant le body des changements
+	/** Quaternion notifiant le body des changements */
 	private class BQuaternion extends Quaternion {
 		public BQuaternion(Quaternion q) {
 			super((q == null) ? identity : q);
@@ -67,97 +116,10 @@ public class Body extends ProMaster {
 		}
 	}
 	
-	/** create a Body with this location & location. location can be null */
-	public Body(PVector location, Quaternion rotation) {
-		this.location = new BVector(location);
-		this.rotation = new BQuaternion(rotation.copy());
-	}
+	// --- some setters
 
-	// applique les forces et update l'etat (+transformChanged)
-	public void update() {
-		addForces();
-		
-		//1. translation, forces
-		if (!isZeroEps(forces, false)) {
-			PVector acceleration = PVector.mult( forces, inverseMass );
-			velocity.add(PVector.mult(acceleration,Physic.deltaTime));
-		}
-		if (!isZeroEps(velocity, true)) {
-			location.add(PVector.mult(velocity,Physic.deltaTime));
-		}
-		
-		//2. rotation, vitesse angulaire, on prend rotation axis comme L/I
-		if (!isZeroEps(torques, false)) {
-			rotationVel.addAngularMomentum( multMatrix( inverseInertiaMom, torques ) );
-		}
-		rotation.rotate( rotationVel );
-			
-		//check changes
-		transformChanged = transformChangedCurrent;
-		transformChangedCurrent = false;
-		forces = zero.copy();
-		torques = zero.copy();
-		
-		/*System.out.println("---------------");
-		System.out.println("rotation: \nmag: "+rotation.mag()+"\n vec: "+rotation);
-		System.out.println("vitesse Ang.: \nmag: "+angularVelocity.mag()+"\n vec: "+angularVelocity);*/
-	}
-	
-	public void onDelete() {}
-	
-	public void setColor(Color color) {
-		this.color = color;
-	}
-	
-	public PVector inertiaMom() {
-		return inertiaMom.copy();
-	}
-	
-	// name
-	public void setName(String name) {
-		this.name = name;
-	}
-	public Body withName(String name) {
-		setName(name);
-		return this;
-	}
-	public String toString() {
-		return name;
-	}
-	
-	// life management
-	public void setLife(int life, int maxLife) {
-		if (maxLife <= 0) {
-			System.err.println(toString()+" should have positive maxLife");
-			maxLife = 1;
-		}
-		this.maxLife = maxLife;
-		if (life > maxLife) {
-			this.life = maxLife;
-			System.err.println(toString()+" can not have more life than maxLife, setting at "+life());
-		} else {
-			this.life = life;
-		}
-	}
-	public void damage(int damage) {
-		if (maxLife < 0)
-			System.out.println(toString()+" is a poor non-living object !");
-		else if (life < 0)
-			System.out.println(toString()+" is already dead !");
-		else {
-			life -= damage;
-			if (life < 0 )
-				onDeath();
-		}
-	}
-	public String life() {
-		return life+"/"+maxLife;
-	}
-	/** à surcharger pour réagir à la mort par damage(dmg) */
-	protected void onDeath() {}
-	
 	/** set la masse du body. si -1, l'objet aura une mass et un moment d'inertie infini.
-		à surcharger (et appeler) pour set le moment d'inertie. */
+		� surcharger (et appeler) pour set le moment d'inertie. */
 	public void setMass(float mass) {
 		if (mass == -1) {
 			this.mass = -1;
@@ -173,14 +135,69 @@ public class Body extends ProMaster {
 		}
 	}
 	
-	// ajoute de la quantité de mouvement au body à point (absolu).
+	public void setColor(Color color) {
+		this.color = color;
+	}
+	
+	// --- name
+	
+	public void setName(String name) {
+		this.name = name;
+	}
+	
+	public Body withName(String name) {
+		setName(name);
+		return this;
+	}
+	
+	public String toString() {
+		return name;
+	}
+	
+	// --- life
+	
+	/** to react to the death from damages */
+	protected void onDeath() {}
+	
+	public void setLife(int life, int maxLife) {
+		if (maxLife <= 0) {
+			System.err.println(toString()+" should have positive maxLife");
+			maxLife = 1;
+		}
+		this.maxLife = maxLife;
+		if (life > maxLife) {
+			this.life = maxLife;
+			System.err.println(toString()+" can not have more life than maxLife, setting at "+life());
+		} else {
+			this.life = life;
+		}
+	}
+	
+	public void damage(int damage) {
+		if (maxLife < 0)
+			System.out.println(toString()+" is a poor non-living object !");
+		else if (life < 0)
+			System.out.println(toString()+" is already dead !");
+		else {
+			life -= damage;
+			if (life < 0 )
+				onDeath();
+		}
+	}
+	
+	public String life() {
+		return life+"/"+maxLife;
+	}
+
+	//------ Gestion des impulse, forces et torques
+	
+	/** ajoute de la quantité de mouvement au body à point (absolu). */
 	public void applyImpulse(PVector absPos, PVector impulse) {
 		if (drawInteraction) {
 			PVector to = PVector.add(absPos, PVector.mult(impulse, 100));
 			app.stroke(255);
 			app.line(absPos.x, absPos.y, absPos.z, to.x, to.y, to.z);
 		}
-		
 		if (equalsEps(absPos, location)) {
 			velocity.add( PVector.mult(impulse, this.inverseMass) );
 			return;
@@ -196,23 +213,16 @@ public class Body extends ProMaster {
 		PVector relPoint = local(absPos);
 		PVector relImpulse = PVector.sub(local( PVector.add(impulse, absPos)), relPoint);
 		PVector forRot = relPoint.cross(relImpulse);
+		assert(!isZeroEps(forRot, false));
 		rotationVel.addAngularMomentum( multMatrix(inverseInertiaMom, forRot) );
 	}
 	
-	// ajoute de la quantité de mouvement au centre de masse (absolu).
+	/** ajoute de la quantit� de mouvement au centre de masse (absolu). */
 	public void applyImpulse(PVector impulse) {
 		applyImpulse(location, impulse);
 	}
 	
-	// à surcharger pour réagir à une collision
-	protected void onCollision(Collider col, PVector impact) {}
-	
-	//------ Gestion des forces et torques
-	
-	// méthode à surcharger pour appliquer des forces au body
-	protected void addForces() {}
-
-	// permet d'appliquer une force au body à ce point (absolu)
+	/** permet d'appliquer une force au body � ce point (absolu) */
 	public void addForce(PVector absPos, PVector force) {
 		if (drawInteraction) {
 			PVector to = PVector.add(absPos, PVector.mult(force, 0.2f));
@@ -228,14 +238,14 @@ public class Body extends ProMaster {
 		addForce(forceAbs);
 	}
 	
-	// permet d'appliquer une force absolue au centre de masse du body.
+	/** applique une force absolue au centre de masse du body. */
 	public void addForce(PVector force) {	
 		forces.add(force);
 	}
 	
-	//-- méthodes cuites pour ajouter une force
+	// --- cooked methods to apply forces
 	
-	// applique son poids à l'objet
+	/** apply his weight to the object. */
 	public void pese() {
 		if (mass == -1)
 			throw new IllegalArgumentException("un objet de mass infini ne devrait pas peser !");
@@ -252,7 +262,7 @@ public class Body extends ProMaster {
 		freineRot(perte);
 	}
 	
-	// applique une force qui s'oppose à la vitesse. 
+	/** applique une force qui s'oppose � la vitesse. */
 	public void freineDepl(float perte) {
 		if (isZeroEps(velocity, true))
 			return;
@@ -260,14 +270,13 @@ public class Body extends ProMaster {
 	    velocity.mult(1-perte);
 	}
 	
-	// applique une force qui s'oppose à la vitesse angulaire.
+	/** applique une force qui s'oppose � la vitesse angulaire. */
 	public void freineRot(float perte) {
-		if ( !rotationVel.isZeroEps() )
+		if ( !rotationVel.isZeroEps(false) )
 			rotationVel.setAngle(rotationVel.angle() * (1 - perte));
 	}
 	
-	
-	//------ position absolue de points relatifs
+	// --- conversion vector global <-> local
 
 	/**retourne la position de rel, un point relatif au body en absolu*/
 	public PVector absolute(PVector rel) {
@@ -300,10 +309,6 @@ public class Body extends ProMaster {
 	public PVector absUp(float dist) {
 		return absolute(PVector.mult(up, dist), zero, rotation);
 	}
-	
-	/*protected static PVector orientation(PVector front) {
-		return ProMaster.front.cross(front);
-	}*/
 	
 	protected PVector velocityAt(PVector loc) {
 		PVector relVel = velocity.copy();

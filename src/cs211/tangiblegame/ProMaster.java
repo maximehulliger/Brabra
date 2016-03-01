@@ -61,10 +61,11 @@ public abstract class ProMaster {
 	}
 	
 	/** [min, max] => [0, 1] */
-	private static float clamp(float val, float min, float max) {
+	public static float clamp(float val, float min, float max) {
 		return (val - min)/(max - min);
 	}
 	
+	/** [min, max] */
 	public static float random(float min, float max) {
 		return min + (max-min) * random.nextFloat();
 	}
@@ -158,13 +159,25 @@ public abstract class ProMaster {
 	protected static PVector vec(float x, float y, float z) {
 		return new PVector(x, y, z);
 	}
+	
+	protected static PVector vec(float x, float y) {
+		return new PVector(x, y);
+	}
+	
+	protected static PVector up(float lenght) {
+		return mult(up, lenght);
+	}
+	
+	protected static PVector front(float lenght) {
+		return mult(front, lenght);
+	}
+	
+	protected static PVector right(float lenght) {
+		return mult(right, lenght);
+	}
 
 	public static float distSq(PVector p1, PVector p2) {
 		return PVector.sub(p1, p2).magSq();
-	}
-
-	protected void line(PVector v1, PVector v2) {
-		app.line(v1.x,v1.y,v1.z,v2.x,v2.y,v2.z);
 	}
 	
 	protected PVector normalized(PVector p) {
@@ -183,6 +196,10 @@ public abstract class ProMaster {
 	/** retourne un vecteur avec xyz dans [0,1] */
 	public static PVector randomVec() {
 		return new PVector(randomBi(), randomBi(), randomBi());
+	}
+
+	protected void line(PVector v1, PVector v2) {
+		app.line(v1.x,v1.y,v1.z,v2.x,v2.y,v2.z);
 	}
 	
 	// --- general syntactic sugar ---

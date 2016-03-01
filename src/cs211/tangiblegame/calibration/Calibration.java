@@ -90,8 +90,8 @@ public class Calibration extends Interface {
 			}
 			
 			if (buttonCalibrationMode) {
-				if (ia.hasFoundQuad && ia.threshold2Button != null)
-					app.image(ia.threshold2Button, displayWid, 0, displayWid, displayHei);
+				if (ia.hasFoundQuad && ia.buttonDetection.threshold2Button != null)
+					app.image(ia.buttonDetection.threshold2Button, displayWid, 0, displayWid, displayHei);
 				if (!ia.hasFoundQuad)
 					app.text("button detection mode: need to detect the plate. ", displayWid*2, displayHei);
 				else if (ia.paused())

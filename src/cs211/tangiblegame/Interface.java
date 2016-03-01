@@ -4,15 +4,17 @@ import processing.event.MouseEvent;
 
 public abstract class Interface extends ProMaster {
 	
+	/** Init all dynamic stuff */
 	public abstract void init();
 	
+	/** On view change */
 	public abstract void wakeUp();
 	
 	public abstract void draw();
 	
 	public void gui() {}
 	
-	//------- EVENTS
+	// --- EVENTS ---
 	
 	public void mouseDragged() {}
 
@@ -25,4 +27,9 @@ public abstract class Interface extends ProMaster {
 	public void mousePressed() {}
 	
 	public void mouseReleased() {}
+	
+	// --- other ---
+	
+	public String scrollUse() { return null; }
+	
 }

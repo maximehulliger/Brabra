@@ -10,25 +10,27 @@ import org.xml.sax.Attributes;
 import org.xml.sax.helpers.DefaultHandler;
 
 import cs211.tangiblegame.ProMaster;
-import cs211.tangiblegame.TangibleGame;
 import cs211.tangiblegame.geo.Quaternion;
 import cs211.tangiblegame.physic.Body;
 import cs211.tangiblegame.physic.Physic;
 
 public final class XmlLoader extends ProMaster {
-	private static final String filename = TangibleGame.inputPath+"scene.xml";
-	private XMLReader xmlreader;
+	private final String filename;
+	private final XMLReader xmlreader;
 	
 	public XmlLoader() {
+		filename = app.inputPath+"scene.xml";
+		XMLReader xmlreader = null;
 		try {
 			SAXParserFactory factory = SAXParserFactory.newInstance();
 			factory.setNamespaceAware(true);
 		    SAXParser parser = factory.newSAXParser();
-			xmlreader = parser.getXMLReader();
-			xmlreader.setContentHandler(new PrefabHandler());
+		    xmlreader = parser.getXMLReader();
+		    xmlreader.setContentHandler(new PrefabHandler());
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		this.xmlreader = xmlreader;
 	}
 	
 	// load the object from the file at @location
@@ -42,8 +44,7 @@ public final class XmlLoader extends ProMaster {
 	}
 	
 	private class PrefabHandler extends DefaultHandler {
-	
-	    @Override
+		
 	    public void startElement(String namespaceURI, String localName,String qName, Attributes atts) 
 	    		throws SAXException {
 	    	if (localName.equals("scene"))
@@ -100,7 +101,6 @@ public final class XmlLoader extends ProMaster {
 			  	}
 	    	}
 	    }
-	    
 	    /*
 		public void endElement(String uri, String localName, String qName) throws SAXException {}
 		public void characters(char[] ch, int start, int length) {}

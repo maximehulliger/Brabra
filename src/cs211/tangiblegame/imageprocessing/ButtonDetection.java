@@ -19,22 +19,39 @@ public class ButtonDetection extends ProMaster {
 	private static final int overHeadVote = 2500;
 	private static final boolean printButtonScore = false;
 	
-	public float[] paraBoutons;
-	public PImage threshold2Button = null;
-	
-	public final ReentrantLock jobOverLock = new ReentrantLock();
-	public final ReentrantLock outputLock = new ReentrantLock();
 	public final ReentrantLock inputLock = new ReentrantLock();
-	/*pkg*/ boolean leftVisible = false, rightVisible = false;
-	/*pkg*/ float leftScore = 0, rightScore = 0; //[0, 1]
-	private final ImageAnalyser imgAnal;
+	public float[] paraBoutons;
 	private PImage inputImg;
+	
+	public final ReentrantLock outputLock = new ReentrantLock();
+	private float leftScore = -1, rightScore = -1; //[0, 1], -1 si invisible, 0 si presque
+	public final ReentrantLock jobOverLock = new ReentrantLock();
+	public PImage threshold2Button;
+	
 	private PVector[] corners;
 	private List<Integer[]> blobs = null;
 	
-	public ButtonDetection(ImageAnalyser imageAnalyser) {
-		imgAnal = imageAnalyser;
-		paraBoutons = imgAnal.imgProc.paraBoutonsBase.clone();
+	public ButtonDetection() {
+		paraBoutons = app.imgAnalyser.imgProc.paraBoutonsBase.clone();
+	}
+	
+	/** [0, 1], -1 if invisible, 0 if nearly visible */
+	public float rightScore() {
+		try {
+			outputLock.lock();
+			return rightScore;
+		} finally {
+			outputLock.unlock();
+		}
+	}
+	
+	public float leftScore() {
+		try {
+			outputLock.lock();
+			return leftScore;
+		} finally {
+			outputLock.unlock();
+		}
 	}
 	
 	public void setInput(PImage input, PVector[] corners) {
@@ -54,9 +71,9 @@ public class ButtonDetection extends ProMaster {
 					input.noStroke();
 				
 				if (b[3] >= 1)
-					input.fill(ProMaster.colorButtonOk);
+					input.fill(colorButtonOk);
 				else if (b[3] == 0)
-					input.fill(ProMaster.colorButtonRejected);
+					input.fill(colorButtonRejected);
 				
 				
 				input.ellipse(bx, by, rayon, rayon);
@@ -66,10 +83,8 @@ public class ButtonDetection extends ProMaster {
 	
 	public void resetOutput() {
 		outputLock.lock();
-		leftVisible = false;
-		rightVisible = false;
-		leftScore = 0;
-		rightScore = 0;
+		leftScore = -1;
+		rightScore = -1;
 		blobs = null;
 		outputLock.unlock();
 	}
@@ -97,7 +112,7 @@ public class ButtonDetection extends ProMaster {
 		for(int x = 0; x < inputImg.width; x++) {
 			for(int y = 0; y < inputImg.height; y++) {
 				int pixel = ImageProcessing.pixel(threshold2Button, x, y);
-				if (!quad.contains(x, y) || pixel == ProMaster.color0)
+				if (!quad.contains(x, y) || pixel == color0)
 					continue;
 				
 				// on cherche le label minimum autour.
@@ -108,7 +123,7 @@ public class ButtonDetection extends ProMaster {
 					if(!ImageProcessing.isIn(v[0], 0, inputImg.width-1) || !ImageProcessing.isIn(v[1], 0, inputImg.height-1))
 						continue;
 					int pVois = ImageProcessing.pixel(threshold2Button, v[0], v[1]);
-					if ( pVois != ProMaster.color0 ) {
+					if ( pVois != color0 ) {
 						int labVois = labels[v[0]][v[1]];
 						if ( labVois>0 && labVois<minLab )
 							minLab = labVois;
@@ -211,16 +226,10 @@ public class ButtonDetection extends ProMaster {
 		}
 		leftScore = PApplet.map(leftScoreApp, paraBoutons[12], paraBoutons[13], 0, 1);
 		rightScore = PApplet.map(rightScoreApp, paraBoutons[14], paraBoutons[15], 0, 1);
-		leftVisible = leftScore > 0;
-		rightVisible = rightScore > 0;
 		outputLock.unlock();
 		jobOverLock.unlock();
 		if (printButtonScore) {
 			System.out.println("bout: gauche: "+leftScore+", droite: "+rightScore);
 		}
-		
-		imgAnal.imagesLock.lock();
-		imgAnal.threshold2Button = threshold2Button;
-		imgAnal.imagesLock.unlock();
 	}
 }
