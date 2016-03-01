@@ -3,7 +3,6 @@ tmp/
 .settings/
 application.*
 
-lib/
 export.bat
 
 *.dll
