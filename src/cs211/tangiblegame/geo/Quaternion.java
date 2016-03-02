@@ -1,15 +1,14 @@
 package cs211.tangiblegame.geo;
 
 import cs211.tangiblegame.ProMaster;
+import cs211.tangiblegame.TangibleGame;
 import processing.core.PApplet;
 import processing.core.PVector;
 
-public class Quaternion {
-
+public class Quaternion extends ProMaster {
 	public static final Quaternion identity = new Quaternion();
 	public static final Quaternion toTurnAround = new Quaternion(ProMaster.up, PApplet.PI);
 
-	
 	private float w, x, y, z;      	// components of a quaternion
 	private boolean validRotAxis = false;
 	private PVector rotAxis = null;	// lazily updated when rotated, always normalized or null (if valid)
@@ -57,7 +56,9 @@ public class Quaternion {
 	
 	/** Set wxyz of the quaternion and return it. */
 	public Quaternion set(PVector axis, float angle) {
-		this.angle = angle;
+		if (!isConstrained(angle, -pi, pi))
+			System.err.println("angle "+angle+" pas dans [-pi,pi]");
+		this.angle = entrePiEtMoinsPi(angle);
 		this.rotAxis = axis;
 		initFromAxis();
 		return this;
@@ -65,20 +66,23 @@ public class Quaternion {
 
 	/** Set wxyz of the quaternion and return it. */
 	public Quaternion set(Quaternion rot) {
-		return set(rot.w, rot.x, rot.y, rot.z);
+		set(rot.w, rot.x, rot.y, rot.z);
+		if (rot.equals(identity)) {
+			angle = 0;
+			rotAxis = null;
+			validRotAxis = true;
+		}
+		return this;
 	}
 
 	/** set to identity */
 	private Quaternion reset() {
 		set(identity);
-		angle = 0;
-		rotAxis = null;
-		validRotAxis = true;
 		return this;
 	}
 	
 	public Quaternion setAngle(float angle) {
-		this.angle = angle;
+		this.angle = entrePiEtMoinsPi(angle);
 		initFromAxis();
 		return this;
 	}
@@ -96,26 +100,21 @@ public class Quaternion {
 	}
 
 	public void addAngularMomentum(PVector dL) {
-		/*if (ProMaster.isZeroEps(dL, false))
-			return;
-		*/PVector rotAxis = rotAxis();
-		
-		if (rotAxis == null) {
-			System.out.println("ang mom: from ident");
-			rotAxis = dL;
-		} else {
-			rotAxis = PVector.add(rotAxis, dL);
-		}
-		set( rotAxis, rotAxis.mag() );
+		assert (!dL.equals(ProMaster.zero));
+		PVector rotAxis = rotAxis();
+		PVector newRotAxis = (rotAxis == null) ? dL : PVector.add(rotAxis, dL);
+		set( newRotAxis, newRotAxis.mag() );
 	}
 
 	/** check if rotation is null and if so resets it. */
 	public boolean isZeroEps(boolean clean) {
-		//if (ProMaster.equalEps(PApplet.abs(w), 1)) {
 		if (ProMaster.equalEps(PApplet.abs(w), 1) && ProMaster.isZeroEps(x)
 				&& ProMaster.isZeroEps(y) && ProMaster.isZeroEps(z)) {
-			if (clean && !equals(identity))
+			if (clean && !equals(identity)) {
+				if (TangibleGame.verbosity > 4)
+				System.out.println(this+" reset by eps "+equals(identity));
 				reset();
+			} 
 			return true;
 		} else
 			return false;
@@ -149,7 +148,16 @@ public class Quaternion {
 	}
 
 	public String toString() {
-		return "quat: (wxyz:"+w+", "+x+", "+y+", "+z+")";
+		updateAxis();
+		return "quat: (wxyz:"+w+", "+x+", "+y+", "+z+") norm: "+PApplet.sqrt(normSq())+" angle: "+angle;
+	}
+	
+	public String toStringAll() {
+		updateAxis();
+		return    "  quat: (wxyz:"+w+", "+x+", "+y+", "+z+") \n"
+				+ "  norm: "+PApplet.sqrt(normSq())+" age: "+age+"\n"
+				+ "  axis: "+rotAxis+"\n"
+				+ "  angle: "+angle;
 	}
 	
 	public Quaternion rotatedBy(Quaternion r) {
@@ -160,17 +168,13 @@ public class Quaternion {
 		return copy().mult(q);
 	}
 
-	public Quaternion normalized() {
-		return copy().normalize();
-	}
-
 	public Quaternion withOppositeAngle() {
 		return new Quaternion(w, -x, -y, -z).normalize();
 	}
 	
 	/** build a quaternion from a direction vector and return it. */
 	public static Quaternion fromDirection(PVector vDirection) {
-		if (ProMaster.equalsEps(vDirection, ProMaster.behind))
+		if (ProMaster.equalsEps(vDirection, ProMaster.behind, false))
 			return toTurnAround.copy();
 				
 		vDirection.normalize();
@@ -229,30 +233,24 @@ public class Quaternion {
 	/** rotAxis, angle -> wxyz. update wxyz, rot axis if needed */
 	private Quaternion initFromAxis() {
 		assert( !(rotAxis!=null && rotAxis.equals(ProMaster.zero)) );
-		// if to identity
 		
-		if (validRotAxis && (rotAxis==null || ProMaster.isZeroEps(angle))) {
-			System.out.println("reset.. angle: "+angle);
+		// if to identity
+		if (validRotAxis && (rotAxis==null || angle == 0))
 			reset();
-		} else {
-			System.out.println("dl mag: "+rotAxis.mag());
-			
-			if (!validRotAxis) {
-				rotAxis.normalize();
-				validRotAxis = true;
-			}
-			
+		else {
 			float omega = 0.5f * angle; 
 			float s = PApplet.sin(omega);
-			if (PApplet.abs(s) == Float.MIN_VALUE) {
-				System.out.println(" /!\\ hej ! ça se passe dans quaternion !");
-				reset(); // really happens ?
-			} else {
+			if (s == 0)
+				reset();
+			else {
+				// validate rotAxis
+				rotAxis.normalize();
+				validRotAxis = true;
 				set(PApplet.cos(omega),
 					s*rotAxis.x,
 					s*rotAxis.y,
 					s*rotAxis.z);
-				normalize(); //really needed ?
+				normalize();
 			}
 		}
 		return this;
@@ -261,26 +259,29 @@ public class Quaternion {
 	/** wxyz -> rotAxis, angle. update rot axis & angle if needed. */
 	private void updateAxis() {
 		if (!validRotAxis) {
-			float halfomega = PApplet.acos(w);
-			float s = PApplet.sin(halfomega);
-			if (ProMaster.isZeroEps(s)) { //no rotation
-				System.out.println("updateAxis: "+this);
+			if (equals(identity)) {
 				angle = 0;
 				rotAxis = null;
 			} else {
-				float invSinHO = 1/s;
-				angle = halfomega*2;
-				rotAxis = new PVector( x*invSinHO, y*invSinHO, z*invSinHO );
-				rotAxis.normalize();
+				float halfomega = PApplet.acos(w);
+				float s = PApplet.sin(halfomega);
+				if (s == 0) { //no rotation
+					reset();
+				} else {
+					float invSinHO = 1/s;
+					angle = halfomega*2;
+					rotAxis = new PVector( x*invSinHO, y*invSinHO, z*invSinHO );
+					rotAxis.normalize();
+				}
 			}
 			validRotAxis = true;
 		}
 	}
 
 	private Quaternion normalize() {
-		float norm = PApplet.sqrt(w*w + x*x + y*y + z*z);
+		float norm = PApplet.sqrt(normSq());
 		assert (!ProMaster.equalEps(norm, 0));
-		if (!ProMaster.equalEps(norm, 1)){
+		if (norm != 1) {
 			float invNorm = 1f/norm;
 			set(w * invNorm,
 				x * invNorm,
@@ -299,5 +300,9 @@ public class Quaternion {
 				w*q.z + z*q.w - x*q.y + y*q.x);
 		}
 		return this;
+	}
+	
+	private float normSq() {
+		return w*w + x*x + y*y + z*z;
 	}
 }

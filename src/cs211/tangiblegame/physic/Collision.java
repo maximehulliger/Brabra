@@ -15,7 +15,7 @@ public abstract class Collision extends ProMaster {
 	public Collision(Collider collider, Collider obstacle) {
 		this.collider = collider;
 		this.obstacle = obstacle;
-		assert( !collider.affectedByCollision );
+		//assert( !collider.affectedByCollision ); TODO
 	}
 	
 	public abstract void resolve();

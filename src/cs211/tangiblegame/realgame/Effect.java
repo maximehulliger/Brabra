@@ -1,41 +1,50 @@
 package cs211.tangiblegame.realgame;
 
-//import java.util.LinkedList;
-//import java.util.List;
-
-import cs211.tangiblegame.ProMaster;
+import processing.core.PApplet;
 import processing.core.PVector;
+import cs211.tangiblegame.physic.Object;
 
-
-public abstract class Effect extends ProMaster {
-	public PVector location;
+public abstract class Effect extends Object {
 	protected int timeLeft;
 	protected final int lifeTime;
-	
+
+	/** Create an effect at this location. lifetime in frame, -1 -> infinite */
 	public Effect(PVector location, int lifeTime) {
-		this.location = location;
-		timeLeft = lifeTime;
+		super(location);
+		this.timeLeft = lifeTime;
 		this.lifeTime = lifeTime;
 	}
+
+	/** Create an effect at this location. */
+	public Effect(PVector location) {
+		this(location, -1);
+	}
+
+	public abstract void display();
+
+	public void update() {
+		if (--timeLeft == 0) // -1 -> continue
+			app.intRealGame.physic.effectsToRemove.add(this);
+	}
 	
-	// retourne l'avancement entre 0 -> 1;
+	/** Retourne l'avancement entre 0 -> 1. 0 si infini. */
 	protected float etat() {
 		return 1 - ((float)timeLeft)/lifeTime;
 	}
 	
-	// retourne l'avancement de l'explosion en crÃªte; 0 au dÃ©but, 1 au milieu, 0 Ã  la fin
+	/** 
+	 * Retourne l'avancement de l'explosion en crête:
+	 * 0 au début, 1 au milieu, 0 à la fin
+	 */
 	protected float etatCrete() {
 		float t = etat(); //0->2
 		if (t < 0.3f)	return t/0.3f;
 		else 			return (1-t)/0.7f;
 	}
-	
-	public void update() {
-		if (--timeLeft <= 0)
-			app.intRealGame.physic.effectsToRemove.add(this);
+
+	protected static int toFrame(float seconds) {
+		return PApplet.round(seconds * app.frameRate);
 	}
-	
-	public abstract void display();
 	
 	public static class Explosion extends Effect {
 		private float radius;

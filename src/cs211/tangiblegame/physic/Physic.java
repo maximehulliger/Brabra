@@ -9,8 +9,8 @@ import cs211.tangiblegame.realgame.Effect;
 
 public class Physic
 {
-	public static float gravity = 0.8f; //0.7f
-	public static float deltaTime = 1f; //1f
+	public float gravity = 0.8f; //0.7f
+	public float deltaTime = 1f; //1f
 	
 	// les agents B)
 	public ArrayList<Collider> colliders = new ArrayList<>();
@@ -20,15 +20,15 @@ public class Physic
 	public ArrayList<Effect> effectsToRemove = new ArrayList<>();
 	public ArrayList<Effect> effectsToAdd = new ArrayList<>();
 	
+	/** Display all colliders and effects in the scene. */
 	public void displayAll() {
 		for(Collider c : colliders)
 			c.display();
-		for(Effect e : effects) {
+		for(Effect e : effects)
 			e.display();
-		}
 	}
 	
-	/** just... do magic  :D */
+	/** Just... do Magic  :D */
 	public void doMagic() {  
 		//1. on update les acteurs et les effets
 		for (Collider c : colliders)
@@ -54,7 +54,7 @@ public class Physic
 			effectsToAdd.clear();
 		}
 		
-		//2. on dÃ©termine et filtre les collisions pour chaque paire possible (c, o).
+		//2. on détermine et filtre les collisions pour chaque paire possible (c, o).
 		List<Collision> collisions = new LinkedList<>();
 		
 		for (int ic=0; ic<colliders.size(); ic++) {
@@ -87,14 +87,13 @@ public class Physic
 		
 		try {
 			//3. on résout les collisions
-			for (Collision col : collisions) {
+			for (Collision col : collisions)
 				col.resolve();
-			}
 			
 			//4. on applique les collision aux agents (si nécessaire)
-			for (Collision col : collisions) {
+			for (Collision col : collisions)
 				col.apply();
-			}
+
 		} catch (Exception e) {
 			System.err.println("physical error :/");
 			e.printStackTrace();

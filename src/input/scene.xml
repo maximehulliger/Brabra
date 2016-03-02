@@ -2,21 +2,20 @@
 <scene>
 	<camera displaySkybox="true" mode="not" dist="(200,200,200)"></camera>
 	<physic gravity="0.2" deltaTime="0.7"></physic>
+	
 	<floor pos="zero" color="grass" stroke="green"></floor>
 	
-	
-	
-	<starship pos="(100,100,100)" dir="down" camera="relative" focus="true" force="40"></starship>
-	
-	
-	<!--  
 	<ball pos="(0,5,5)" mass="5" color="red"></ball>
 	<ball pos="(10,5,5)" mass="5" color="red"></ball>
 	<ball pos="(1,20,5)" mass="5" color="red"></ball>
 	<ball pos="(2,5,7)" mass="5" color="red"></ball>
 	
 	
-	camera="relative" 
+	<starship pos="(100,100,100)" dir="front" camera="relative" focus="true" force="40"></starship>
+	
+	
+	<!--  
+	
 	<box pos="(0,5,-5)" mass="5" color="blue"></box>
 	<box pos="(0,40,6)" mass="5" color="red"></box> 
 	<box pos="(5,5,0)" name="box1"></box>

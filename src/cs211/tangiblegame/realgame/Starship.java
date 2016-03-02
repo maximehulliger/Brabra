@@ -20,8 +20,8 @@ public class Starship extends Plane implements Armed//Cube
 	
 	public Starship(PVector location) {
 		super(location, new Quaternion(), 200, size);
-		PVector champSize = vec(5000, 5000, 8000);
-		this.champ = new MeteorSpawner(this, vec(0, 0, -champSize.z/6), champSize);
+		//PVector champSize = vec(5000, 5000, 8000);
+		//this.champ = new MeteorSpawner(this, vec(0, 0, -champSize.z/6), champSize);
 		this.armement = new Armement(this, 0, 1, 1);
 		setName("Starship");
 	}
@@ -43,15 +43,10 @@ public class Starship extends Plane implements Armed//Cube
 	public void display() {
 		app.noStroke();
 		//2. le vaisseau (+viseur)
-		app.pushMatrix();
-		translate( location );
-		app.pushMatrix();
-		rotate(rotation);
-		app.fill(50, 100, 125);
+		pushLocal();
 		if (displayViseur) {
 			app.stroke(255, 0, 0, 150);
 			app.line(0, -1, 0, 0, -1, -100000);
-			app.noStroke();
 		}
 		translate( vec(0, -10, 20) );
 		app.shape(starship);

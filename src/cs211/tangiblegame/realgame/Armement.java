@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import cs211.tangiblegame.ProMaster;
+import cs211.tangiblegame.TangibleGame;
 import cs211.tangiblegame.geo.Cube;
 import cs211.tangiblegame.geo.Quaternion;
 import cs211.tangiblegame.geo.Sphere;
@@ -83,18 +84,23 @@ public class Armement extends ProMaster {
 	
 	// tire le premier missile disponible
 	private static final float[] etatThreshold = new float[] { 0, 0.0f, 0.8f };
-	public void fire(float etat) {
-		for (LanceMissile lm : lmissilesByPrioritiy)
-			if (lm.ready() && etat > etatThreshold[lm.tier]) {
-				lm.fire();
-				return;
-			}
-		//System.out.println("rien de prêt, capitaine !");
-	}
-
-	public void fireFromSlot(int idx) {
-		if (idx < lmissiles.size() && idx >= 0)
+	
+	/** idx: -1 -> any, [0-nbSlot] -> that one. etat: filter weapons with etatThreshold. */
+	public void fire(int idx, float etat) {
+		if (idx < 0) { //-2, -1
+			for (LanceMissile lm : lmissilesByPrioritiy) {
+				if (lm.ready() 
+						&& (idx != -2 || etat > etatThreshold[lm.tier]) 
+						&& lm.fire())
+					return;
+				}
+		} else if (idx < lmissiles.size() && idx >= 0)
 			lmissiles.get(idx).fire();
+	}
+	
+	/**  idx: -1 -> any, [0-nbSlot] -> that one. */
+	public void fire(int idx) {
+		fire(idx, 1);
 	}
 
 	public void update() {
@@ -102,11 +108,8 @@ public class Armement extends ProMaster {
 			lm.update();
 	}
 	
-	
-	//affiche l'Ã©tat des missiles dans la gui
+	/** display the state of the missiles in the gui */
 	public void displayGui() {
-		//app.fill(255, 255);
-		//app.tint(255, 255); TODO
 		PVector basGauche = new PVector((app.width-guiWidth)/2, app.height);
 		for(LanceMissile lm : lmissiles) {
 			basGauche = lm.displayGui(basGauche);
@@ -139,14 +142,18 @@ public class Armement extends ProMaster {
 		
 		public boolean ready() { return tempsRestant == 0; }
 
-		public void fire() {
+		/** return true if success. */
+		public boolean fire() {
 			if (tempsRestant > 0) {
 				indicateurErreur = tAffichageErreur;
-				System.out.println("encore "+tempsRestant+" frame(s) !");
+				if (TangibleGame.verbosity > 2)
+					System.out.println("encore "+tempsRestant+" frame(s) !");
+				return false;
 			} else {
 				tempsRestant = tRecharge;
 				Missile m = new Missile(launcher.absolute(loc), launcher.rotation, puissance);
 				ProMaster.app.intRealGame.physic.toAdd.add( m );
+				return true;
 			}
 		}
 
@@ -154,7 +161,7 @@ public class Armement extends ProMaster {
 		public PVector displayGui(PVector basGauche) {
 			app.noStroke();
 			PVector imgDim = new PVector(missileImg.width, missileImg.height);
-			imgDim.mult(tiersRatioSize[tier] * ratioIn[tier] * ratioToImageScale);  //TODO
+			imgDim.mult(tiersRatioSize[tier] * ratioIn[tier] * ratioToImageScale);
 			app.image(missileImg, basGauche.x, basGauche.y-imgDim.y, imgDim.x, imgDim.y);
 			if (tempsRestant > 0) {
 				app.fill(255, 0, 0, 70);

@@ -1,21 +1,14 @@
 package cs211.tangiblegame.physic;
 
-import cs211.tangiblegame.ProMaster;
+import cs211.tangiblegame.Color;
+import cs211.tangiblegame.TangibleGame;
 import cs211.tangiblegame.geo.Quaternion;
 import processing.core.*;
 
-public class Body extends ProMaster {
+public class Body extends Object {
 	private static final boolean drawInteraction = true; //forces et impulse
 
-	public final PVector location;
-	public final PVector velocity = zero.copy();
-	public final Quaternion rotation;
-	public final Quaternion rotationVel = identity.copy();
-	/** Indicate the modification of the body transform during the frame before the update. */
-	public boolean transformChanged = true;
-
-	protected String name = "Body";
-	protected Body parent = null;
+	
 	protected int life = -1;
 	protected int maxLife = -1;
 	protected Color color = Color.basic;
@@ -28,16 +21,12 @@ public class Body extends ProMaster {
 
 	private PVector forces = zero.copy();
 	private PVector torques = zero.copy();
-	private boolean transformChangedCurrent = false;
+	private Runnable addForces = () -> {};
 	
 	/** create a Body with this location & location. location can be null */
 	public Body(PVector location, Quaternion rotation) {
-		this.location = new BVector(location);
-		this.rotation = new BQuaternion(rotation.copy());
+		super(location, rotation);
 	}
-
-	/** to react when the object is removed from the scene */
-	public void onDelete() {}
 
 	/** to add force to the body every frame */
 	protected void addForces() {}
@@ -45,78 +34,37 @@ public class Body extends ProMaster {
 	/** to react to a collision */
 	protected void onCollision(Collider col, PVector impact) {}
 
-	// --- update stuff (+transformChanged)
-	
 	/** applique les forces et update l'etat */
 	public void update() {
 		addForces();
+		addForces.run();
 		
-		//1. translation, forces
-		if (!isZeroEps(forces, false)) {
+		//1. translation
+		if (!forces.equals(zero)) {
 			PVector acceleration = PVector.mult( forces, inverseMass );
-			velocity.add(PVector.mult(acceleration,Physic.deltaTime));
-		}
-		if (!isZeroEps(velocity, true)) {
-			location.add(PVector.mult(velocity,Physic.deltaTime));
+			velocity.add(mult(acceleration,game.physic.deltaTime));
 		}
 		
 		//2. rotation, vitesse angulaire, on prend rotation axis comme L/I
-		if (!isZeroEps(torques, false)) {
-			rotationVel.addAngularMomentum( multMatrix( inverseInertiaMom, torques ) );
-		}
-		if (!rotationVel.isZeroEps(false)) {
-			rotation.rotate( rotationVel );
+		PVector dL = multMatrix( inverseInertiaMom, torques );
+		if (!dL.equals(zero)) {
+			rotationVel.addAngularMomentum( dL );
 		}
 		
-		//check changes
-		transformChanged = transformChangedCurrent;
-		transformChangedCurrent = false;
 		forces = zero.copy();
 		torques = zero.copy();
-		
-		/*System.out.println("---------------");
-		System.out.println("rotation: \nmag: "+rotation.mag()+"\n vec: "+rotation);
-		System.out.println("vitesse Ang.: \nmag: "+angularVelocity.mag()+"\n vec: "+angularVelocity);*/
+		super.update();
 	}
 
-	/** PVector notifiant le body des changements */
-	private class BVector extends PVector {
-		private static final long serialVersionUID = 5162673540041216409L;
-		public BVector(PVector v) {
-			super(v.x,v.y,v.z);
-		}
-		public PVector set(PVector v) {
-			transformChangedCurrent = true;
-			return super.set(v);
-		}
-		public PVector add(PVector v) {
-			if (!v.equals(zero)) {
-				transformChangedCurrent = true;
-				return super.add(v);
-			} else
-				return this;
-		}
-	}
-	
-	/** Quaternion notifiant le body des changements */
-	private class BQuaternion extends Quaternion {
-		public BQuaternion(Quaternion q) {
-			super((q == null) ? identity : q);
-		}
-		public Quaternion set(Quaternion v) {
-			transformChangedCurrent = true;
-			return super.set(v);
-		}
-		public Quaternion rotate(Quaternion r) {
-			if (!r.equals(identity)) {
-				transformChangedCurrent = true;
-				return super.set(r);
-			} else
-				return this;
-		}
-	}
-	
 	// --- some setters
+	
+	public void addApplyForces(Runnable addForce) {
+		final Runnable r = this.addForces;
+		this.addForces = () -> {
+			r.run();
+			addForce.run();
+		};
+	}
 
 	/** set la masse du body. si -1, l'objet aura une mass et un moment d'inertie infini.
 		à surcharger (et appeler) pour set le moment d'inertie. */
@@ -127,7 +75,7 @@ public class Body extends ProMaster {
 			this.inverseMass = 0;
 			this.inverseInertiaMom = zero.copy();
 		} else if (mass <= 0)
-			throw new IllegalArgumentException("mass nÃ©gative ou nulle !");
+			throw new IllegalArgumentException("mass négative ou nulle !");
 		else {
 			this.mass = mass;
 			this.inverseMass = 1/this.mass;
@@ -137,21 +85,6 @@ public class Body extends ProMaster {
 	
 	public void setColor(Color color) {
 		this.color = color;
-	}
-	
-	// --- name
-	
-	public void setName(String name) {
-		this.name = name;
-	}
-	
-	public Body withName(String name) {
-		setName(name);
-		return this;
-	}
-	
-	public String toString() {
-		return name;
 	}
 	
 	// --- life
@@ -172,12 +105,25 @@ public class Body extends ProMaster {
 			this.life = life;
 		}
 	}
+
+	public void setLife(String lifeText) {
+		String[] sub = lifeText.split("/");
+		if (sub.length == 2)
+			setLife(Integer.parseInt(sub[0]),Integer.parseInt(sub[1]));
+		else if (sub.length == 1) {
+			int life = Integer.parseInt(sub[0]);
+			setLife(life, life);
+		} else
+			System.err.println("unsuported life format: \""+lifeText+"\"");
+	}
 	
 	public void damage(int damage) {
 		if (maxLife < 0)
-			System.out.println(toString()+" is a poor non-living object !");
+			if (TangibleGame.verbosity >= 3)
+				System.err.println(this+" is a poor non-living object !");
 		else if (life < 0)
-			System.out.println(toString()+" is already dead !");
+			if (TangibleGame.verbosity >= 4)
+				System.out.println(this+" is already dead !");
 		else {
 			life -= damage;
 			if (life < 0 )
@@ -198,23 +144,24 @@ public class Body extends ProMaster {
 			app.stroke(255);
 			app.line(absPos.x, absPos.y, absPos.z, to.x, to.y, to.z);
 		}
-		if (equalsEps(absPos, location)) {
+		if (equalsEps(absPos, location, false)) {
 			velocity.add( PVector.mult(impulse, this.inverseMass) );
 			return;
+		} else {
+			//pour le deplacement, seulement en absolu
+			PVector toPos = PVector.sub(absPos, location);
+			toPos.normalize();
+			PVector forAbs = PVector.mult(toPos, impulse.dot(toPos));
+			velocity.add( PVector.mult(forAbs, this.inverseMass) );
+			
+			//TODO test impulse contre l'objet
+			//pour la rotation, avec la rotation (pour Ãªtre cohÃ©rant avec le moment d'inertie.)
+			PVector relPoint = local(absPos);
+			PVector relImpulse = sub(local( add(impulse, absPos) ), relPoint);
+			PVector forRot = relPoint.cross(relImpulse);
+			if (!forRot.equals(zero))
+				rotationVel.addAngularMomentum( multMatrix(inverseInertiaMom, forRot) );
 		}
-		
-		//pour le deplacement, seulement en absolu
-		PVector toPos = PVector.sub(absPos, location);
-		toPos.normalize();
-		PVector forAbs = PVector.mult(toPos, impulse.dot(toPos));
-		velocity.add( PVector.mult(forAbs, this.inverseMass) );
-		
-		//pour la rotation, avec la rotation (pour Ãªtre cohÃ©rant avec le moment d'inertie.)
-		PVector relPoint = local(absPos);
-		PVector relImpulse = PVector.sub(local( PVector.add(impulse, absPos)), relPoint);
-		PVector forRot = relPoint.cross(relImpulse);
-		assert(!isZeroEps(forRot, false));
-		rotationVel.addAngularMomentum( multMatrix(inverseInertiaMom, forRot) );
 	}
 	
 	/** ajoute de la quantité de mouvement au centre de masse (absolu). */
@@ -249,7 +196,7 @@ public class Body extends ProMaster {
 	public void pese() {
 		if (mass == -1)
 			throw new IllegalArgumentException("un objet de mass infini ne devrait pas peser !");
-		PVector poids = new PVector(0, -Physic.gravity*mass, 0);
+		PVector poids = new PVector(0, -game.physic.gravity*mass, 0);
 		addForce(poids);
 	}
 	
@@ -274,66 +221,5 @@ public class Body extends ProMaster {
 	public void freineRot(float perte) {
 		if ( !rotationVel.isZeroEps(false) )
 			rotationVel.setAngle(rotationVel.angle() * (1 - perte));
-	}
-	
-	// --- conversion vector global <-> local
-
-	/**retourne la position de rel, un point relatif au body en absolu*/
-	public PVector absolute(PVector rel) {
-		PVector relAbs = absolute(rel, location, rotation);
-		if (parent != null)
-			return parent.absolute(relAbs);
-		else
-			return relAbs;
-	}
-	
-	protected PVector[] absolute(PVector[] rels) {
-		PVector[] ret = new PVector[rels.length];
-		for (int i=0; i<rels.length; i++)
-			ret[i] = absolute(rels[i]);
-		return ret;
-	}
-	protected PVector local(PVector abs) {
-		if (parent != null)
-			return local(parent.local(abs), location, rotation);
-		else
-			return local(abs, location, rotation);
-	}
-	
-	/** return the pos in front of the body at dist from location */
-	public PVector absFront(float dist) {
-		return absolute(PVector.mult(front, dist), zero, rotation);
-	}
-	
-	/** return the pos in front of the body at dist from location */
-	public PVector absUp(float dist) {
-		return absolute(PVector.mult(up, dist), zero, rotation);
-	}
-	
-	protected PVector velocityAt(PVector loc) {
-		PVector relVel = velocity.copy();
-		/*PVector rotVelAxis = rotationVel.rotAxis();
-		if (!isZeroEps( rotationVel.angle ));
-			relVel.add( rotVelAxis.cross(PVector.sub(loc, location)) );*/
-		if (parent != null)
-			return PVector.add( parent.velocityAt(loc), relVel);
-		else
-			return relVel;
-	}
-	
-	protected void pushLocal() {
-		if (parent != null)
-			parent.pushLocal();
-		app.pushMatrix();
-		translate(location);
-		app.pushMatrix();
-		rotate(rotation);
-	}
-	
-	protected void popLocal() {
-		app.popMatrix();
-	    app.popMatrix();
-	    if (parent != null)
-			parent.popLocal();
 	}
 }

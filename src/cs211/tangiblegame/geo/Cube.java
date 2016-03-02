@@ -8,13 +8,13 @@ public class Cube extends PseudoPolyedre {
 	
 	public final PVector size;
 	protected final float[] dim;
-	protected final Plane[] faces;
+	public final Plane[] faces;
 
-	
+	/** Create a cube with arretes of lenght dim. */
 	public Cube(PVector location, Quaternion rotation, float mass, PVector size) {
 	    super(location, rotation, size.mag()/2);
 	    this.size = size;
-	    this.dim = PVector.mult( size, 0.5f).array(); //à partir de l'origine
+	    this.dim = mult(size, 0.5f).array();
 		this.faces = getFaces(size);
 	    updateAbs();
 	    setMass(mass);

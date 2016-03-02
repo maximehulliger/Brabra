@@ -1,6 +1,5 @@
 package cs211.tangiblegame;
 
-import java.util.Arrays;
 import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -12,15 +11,17 @@ import processing.core.PVector;
 
 // Processing master
 public abstract class ProMaster {
-	protected static TangibleGame app;
+	public static TangibleGame app;
 	protected static RealGame game;
 	protected static Random random;
-	private static final Pattern floatPattern = Pattern.compile("[+-]?\\d+[.]?\\d*");
-	private static final Pattern intPattern = Pattern.compile("[+]?\\d+");
+	
+	private static float epsilon = PApplet.EPSILON / 100;
+	protected static final Pattern floatPattern = Pattern.compile("[+-]?\\d+[.]?\\d*");
+	protected static final Pattern intPattern = Pattern.compile("[+]?\\d+");
 	protected static int colorButtonOk, colorButtonRejected, colorQuad;
 	protected static int color0, color255;
 	
-	
+	// some constants
 	public static final PVector zero = new PVector(0, 0, 0);
 	public static final PVector farfarAway = new PVector(Float.MAX_VALUE, Float.MAX_VALUE, Float.MAX_VALUE);
 	public static final PVector left = new PVector(1, 0, 0);
@@ -32,13 +33,14 @@ public abstract class ProMaster {
 	public static final Quaternion identity = new Quaternion();
 	public static final float small = 0.05f;
 	public static final float far = 10_000;
+	public static final float pi = PApplet.PI;
+	
 	
 
 	public static void init(TangibleGame app) {
 		ProMaster.app = app;
 		
 		random = new Random();
-
 		color0 = app.color(0);
 		color255 = app.color(255);
 		colorButtonOk = app.color(0, 255, 0, 150);
@@ -56,12 +58,14 @@ public abstract class ProMaster {
 	}
 	
 	/** [min, max] => [min2, max2] */
-	public static float map(float val, float min, float max, float min2, float max2) {
-		return (clamp(val, min, max)-min)/(max-min)*(max2-min2) + min2;
+	public static float map(float val, float min, float max, float min2, float max2, boolean constrain) {
+		return (clamp(val, min, max, constrain)-min)/(max-min)*(max2-min2) + min2;
 	}
 	
 	/** [min, max] => [0, 1] */
-	public static float clamp(float val, float min, float max) {
+	public static float clamp(float val, float min, float max, boolean constrain) {
+		if (constrain)
+			val = PApplet.constrain(val, min, max);
 		return (val - min)/(max - min);
 	}
 	
@@ -78,7 +82,7 @@ public abstract class ProMaster {
 		return moyenne;
 	}
 
-	// effectue une multiplication slot par slot. (utile pour L = Iw)
+	/** effectue une multiplication slot par slot. (utile pour L = Iw) */
 	public static PVector multMatrix(PVector matriceDiagOnly, PVector vector) {
 		return new PVector(
 				matriceDiagOnly.x * vector.x,
@@ -117,11 +121,6 @@ public abstract class ProMaster {
 		return vec(values[0],values[1],values[2]);
 	}
 	
-	//secondes -> frames
-	public static int toFrame(float seconde) {
-		return TangibleGame.round(seconde * app.frameRate);
-	}
-	
 	// --- EPSILON (small value) ---
 
 	public static boolean isZeroEps(PVector p, boolean clean) {
@@ -143,11 +142,15 @@ public abstract class ProMaster {
 	}
 
 	public static boolean isZeroEps(float f) {
-		return f==0 || isConstrained(f, -TangibleGame.EPSILON, TangibleGame.EPSILON);	
+		return f==0 || isConstrained(f, -epsilon, epsilon);	
 	}
 
-	public static boolean equalsEps(PVector p1, PVector p2) {
-		return isZeroEps( PVector.sub(p1, p2), false );
+	/** return true if close to zero. if clean, set p1 to p2. */
+	public static boolean equalsEps(PVector p1, PVector p2, boolean clean) {
+		boolean isZero = isZeroEps( PVector.sub(p1, p2), false );
+		if (clean && isZero)
+			p1.set(p2);
+		return isZero;
 	}
 	
 	public static boolean equalEps(float f, float other) {
@@ -162,6 +165,11 @@ public abstract class ProMaster {
 	
 	protected static PVector vec(float x, float y) {
 		return new PVector(x, y);
+	}
+	
+	/** return vec(d,d,d) */
+	protected static PVector cube(float d) {
+		return new PVector(d, d, d);
 	}
 	
 	protected static PVector up(float lenght) {
@@ -187,6 +195,10 @@ public abstract class ProMaster {
 	
 	public static PVector add(PVector v1, PVector v2) {
 		return PVector.add(v1, v2);
+	}
+	
+	public static PVector sub(PVector v1, PVector v2) {
+		return PVector.sub(v1, v2);
 	}
 
 	public static PVector mult(PVector v1, float f) {
@@ -259,7 +271,7 @@ public abstract class ProMaster {
 		app.pushMatrix();
 		translate(trans);
 		app.pushMatrix();
-		rotate(rotation);
+		rotateBy(rotation);
 		PVector ret = new PVector( app.modelX(rel.x, rel.y, rel.z), app.modelY(rel.x, rel.y, rel.z), app.modelZ(rel.x, rel.y, rel.z) );
 		app.popMatrix();
 		app.popMatrix();
@@ -274,11 +286,11 @@ public abstract class ProMaster {
 		app.translate(t.x, t.y, t.z);
 	}
 
-	protected static void rotate(Quaternion rotation) {
-		rotate(rotation.rotAxis());
+	protected static void rotateBy(Quaternion rotation) {
+		rotateBy(rotation.rotAxis());
 	}
 
-	protected static void rotate(PVector rotation) {
+	protected static void rotateBy(PVector rotation) {
 		if (rotation == null)
 			return;
 		app.rotate(rotation.mag(), rotation.x, rotation.y, rotation.z);
@@ -286,129 +298,5 @@ public abstract class ProMaster {
 
 	public PVector screenPos(PVector pos3D) {
 		return new PVector( app.screenX(pos3D.x, pos3D.y, pos3D.z), app.screenY(pos3D.x, pos3D.y, pos3D.z) );
-	}
-
-	// --- Couleurs ---
-	
-	public static class Color {
-		public static final Color grey = new Color(150, 150);
-		public static final Color white = new Color(255, 150);
-		public static final Color red = new Color(255, 0, 0, 200);
-		public static final Color green = new Color(0, 255, 0, 200);
-		public static final Color blue = new Color(0, 0, 255, 200);
-		public static final Color grass = new Color(128,200,128);
-		public static final Color yellow = new Color(255,255,0,150, 255);
-		public static final Color pink = new Color(255, 105, 180);
-		public static final Color basic = yellow;
-		
-		private final int[] c;
-		private final int[] s;
-
-		/**
-		 * c,c,c,255; c,c,c,a; r,g,b,255; or r,g,b,a;
-		 * si plus de 4 arguments, le reste set le stroke.
-		 */
-		public Color(int... rgba) {
-			if (rgba.length <= 4) {
-				c = fromUF(rgba);
-				s = null;
-			} else {
-				c = fromUF(Arrays.copyOfRange(rgba, 0, 4));
-				s = fromUF(Arrays.copyOfRange(rgba, 4, rgba.length));
-			}
-		}
-		
-		public Color(String color, String stroke) {
-			Color c = getColor(color);
-			if (c == null) {
-				System.err.println("Color is not set, taking basic");
-				c = basic;
-			}
-			Color s = getColor(stroke);
-			if (s == null) {
-				this.c = c.get();
-				this.s = c.getStroke();
-			} else {
-				this.c = c.get();
-				this.s = s.get();
-			}
-		}
-		
-		/** retourne un clone du tableau de couleur primaire */
-		private int[] get() {
-			return c.clone();
-		}
-		
-		private int[] getStroke() {
-			if (s == null)
-				return null;
-			else
-				return s.clone();
-		}
-
-		/** applique la couleur primaire et le stroke si set */
-		public void fill() {
-			app.fill(c[0], c[1], c[2], c[3]);
-			if (s != null)
-				app.stroke(s[0], s[1], s[2], s[3]);
-			else
-				app.noStroke();
-		}
-
-		private static Color getColor(String color) {
-			if (color == null) {
-				return null;
-			} else if (color.equals("basic")) 
-				return basic;
-			else if (color.equals("grey")) 
-				return grey;
-			else if (color.equals("white")) 
-				return white;
-			else if (color.equals("red")) 
-				return red;
-			else if (color.equals("blue")) 
-				return blue;
-			else if (color.equals("green")) 
-				return green;
-			else if (color.equals("yellow")) 
-				return yellow;
-			else if (color.equals("grass")) 
-				return grass;
-			else if (color.equals("pink"))
-				return pink;
-			else {
-				Matcher matcher = intPattern.matcher(color);
-				int[] values = new int[4];
-				int i=0;
-				for (; i<=3 && matcher.find(); i++) {
-					values[i] = Integer.parseInt(matcher.group());
-				}
-				if (i == 0) {
-					System.out.println("wrong color format for \""+color+"\", taking basic");
-					return basic;
-				} else if (i < 4) {
-					int[] ret = new int[i];
-					System.arraycopy(values, 0, ret, 0, i);
-					values = ret;
-				}
-				return new Color(values);
-			}
-		}
-		
-		private static int[] fromUF(int[] rgba) {
-			switch (rgba.length) {
-			case 1:
-				return new int[] {rgba[0], rgba[0], rgba[0], 255};
-			case 2:
-				return new int[] {rgba[0], rgba[0], rgba[0], rgba[1]};
-			case 3:
-				return new int[] {rgba[0], rgba[1], rgba[2], 255};
-			case 4:
-				return rgba;
-			default:
-				System.err.println("no cool color input: "+rgba);
-				return white.c.clone();
-			}
-		}
 	}
 }

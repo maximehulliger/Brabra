@@ -13,9 +13,11 @@ public class TangibleGame extends PApplet {
 	public enum View {Menu, Calibration, TrivialGame, RealGame}
 
 	//--- parametres
-	private static final int windowSize = 4; //generaly from 2 (640x360) to  6 (1920x1080)
-	public static final float inclinaisonMax = PApplet.PI/5; 
+	public static int verbosity = 3;
+	/** [1-5]: user[1-3], dev[4-5] */
 	public boolean imgAnalysis = false;
+	public static final float inclinaisonMax = PApplet.PI/5;
+	private static final int windowSize = 4; //generaly from 2 (640x360) to  6 (1920x1080)
 	
 	//--- interne
 	public String dataPath;
@@ -26,10 +28,9 @@ public class TangibleGame extends PApplet {
 	public TrivialGame intTrivialGame;
 	public Calibration intCalibration;
 	public Menu intMenu;
-	public Input input = new Input();
+	public Input input;
 	public boolean hasPopup = false;
 	public boolean over = false;
-	
 	
 	//----- setup et boucle d'update (draw)
 	
@@ -39,17 +40,23 @@ public class TangibleGame extends PApplet {
 	
 	public void settings() {
 		size(windowSize*320, windowSize*160, "processing.opengl.PGraphics3D");
-		//surface.setResizable(true);
+		String base = dataPath("").substring(0, dataPath("").lastIndexOf(name)+name.length())+"/bin/";
+		dataPath = base+"data/";
+		inputPath = base+"input/";
+		System.out.println("base path: "+base);
 	}
 	
 	public void setup() {
-		surface.setTitle(name);
-		setPaths();
-		ProMaster.init(this);
-		
+		// processing stuff
+		frameRate(30);
 		float camZ = height / (2*tan(PI*60/360.0f));
-		perspective(PI/3, width/(float)height, camZ/10, camZ*1000);
+		perspective(PI/3, width/(float)height, camZ/100, camZ*1000);
+		//surface.setResizable(true);
+		surface.setTitle(name);
 		
+		// our stuff
+		ProMaster.init(this);
+		input = new Input();
 		imgAnalyser = new ImageAnalyser();
 		if (imgAnalysis) {
 			System.out.println("starting img analysis thread.");
@@ -59,17 +66,23 @@ public class TangibleGame extends PApplet {
 		setView(View.RealGame);
 	}
 
-	private void setPaths() {
-		String base = dataPath("").substring(0, dataPath("").lastIndexOf(name)+name.length())+"/bin/";
-		dataPath = base+"data/";
-		inputPath = base+"input/";
-		System.out.println("base path: "+base);
-	}
-	
 	public void imageProcessing() {
 		imgAnalyser.run();
 	}
 	
+	public void draw() {
+		input.update();
+		currentInterface.draw();
+		
+		//gui
+		camera();
+		hint(PApplet.DISABLE_DEPTH_TEST);
+		if (imgAnalysis && currentInterface!=intCalibration)
+			imgAnalyser.gui();
+		currentInterface.gui();
+		hint(PApplet.ENABLE_DEPTH_TEST);
+	}
+
 	public void setView(View view) {
 		switch (view) {
 		case Menu:
@@ -102,18 +115,6 @@ public class TangibleGame extends PApplet {
 		}
 		currentInterface.wakeUp();
 	}
-	
-	public void draw() {
-		currentInterface.draw();
-		
-		//gui
-		camera();
-		hint(PApplet.DISABLE_DEPTH_TEST);
-		if (imgAnalysis && currentInterface!=intCalibration)
-			imgAnalyser.gui();
-		currentInterface.gui();
-		hint(PApplet.ENABLE_DEPTH_TEST);
-	}
 
 	//-------- Gestion Evenements
 
@@ -136,16 +137,7 @@ public class TangibleGame extends PApplet {
 		
 		input.keyPressed();
 		currentInterface.keyPressed();
-	}  
-	
-	public void dispose() {
-		if (imgAnalyser.takeMovie && imgAnalyser.paused()) {
-			imgAnalyser.play(true);
-		}
-		over = true;
-		System.out.println("bye bye !");
-		//exit();
-	} 
+	}
 
 	public void mouseDragged() {
 		input.mouseDragged();
@@ -169,4 +161,12 @@ public class TangibleGame extends PApplet {
 	public void mouseReleased() {
 		currentInterface.mouseReleased();
 	}
+	
+	public void dispose() {
+		if (imgAnalyser.takeMovie && imgAnalyser.paused())
+			imgAnalyser.play(true);
+		over = true;
+		super.dispose();
+		System.out.println("bye bye !");
+	} 
 }

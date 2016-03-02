@@ -1,6 +1,7 @@
 package cs211.tangiblegame.realgame;
 
 import processing.core.PApplet;
+
 import cs211.tangiblegame.Interface;
 import cs211.tangiblegame.ProMaster;
 import cs211.tangiblegame.physic.Physic;
@@ -9,8 +10,10 @@ import cs211.tangiblegame.realgame.Armement;
 
 public class RealGame extends Interface {
 	public Physic physic;
-	public Camera camera;
 	public PhysicInteraction physicInteraction;
+	public Camera camera;
+	
+	private XMLLoader xmlFile = new XMLLoader();
 	
 	public RealGame() {
 		ProMaster.game = this;
@@ -32,7 +35,7 @@ public class RealGame extends Interface {
 		physic = new Physic();
 		camera = new Camera();
 		physicInteraction = new PhysicInteraction();
-		Prefab.file.load();
+		xmlFile.load();
 	}
 	
 	public void wakeUp() {
@@ -40,30 +43,19 @@ public class RealGame extends Interface {
 		app.imgAnalyser.play(false);
 	}
 	
-	boolean fr = true;
-	
+	// mother method of all life:
 	public void draw() {
-		
 		camera.place();
-			
 		physicInteraction.update();
-		
 		physic.doMagic();
-		
 		physic.displayAll();
 	}
 	
 	public void gui() {
-		if (game.physicInteraction.armement != null)
-			game.physicInteraction.armement.displayGui();
+		game.physicInteraction.gui();
 	}
 		
-
 	//-------- EVENTS
-
-	public void keyPressed() {
-		physicInteraction.keyPressed();
-	}  
 	
 	public void keyReleased() {
 		if (app.key == 'r')

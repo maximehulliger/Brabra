@@ -87,9 +87,9 @@ public class Camera extends ProMaster {
 	
 	public void place() {
 		// 1.update
-		if (toFollow != null && toFollow.transformChanged) {
+		//if (toFollow != null && toFollow.transformChanged) { TODO
 			updateAbs();
-		}
+		//}
 		
 		for (Collider c : game.physic.colliders)
 			if (ProMaster.distSq(focusPoint(), c.location) > distSqBeforeRemove)
