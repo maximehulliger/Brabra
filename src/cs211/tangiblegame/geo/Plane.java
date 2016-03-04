@@ -151,8 +151,8 @@ public class Plane extends PseudoPolyedre {
 
 	//----- private
 
-	//update les coordonnées absolue. (à chaque transform change du parent)
-	protected void updateAbs() {
+	//update les coordonn�es absolue. (à chaque transform change du parent)
+	public void updateAbs() {
 		super.sommets = absolute(natCo);
 
 		v1 = new Line(sommets[0], sommets[1], finite); //sur x

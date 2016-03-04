@@ -1,10 +1,11 @@
 package cs211.tangiblegame.physic;
 
 import cs211.tangiblegame.geo.Line;
+import cs211.tangiblegame.geo.Line.Projection;
 import cs211.tangiblegame.geo.Quaternion;
 import processing.core.*;
 
-/** une classe pouvant entraîner et réagir à une collision.*/
+/** A class able to init and react to a collision. */
 public abstract class Collider extends Body {
 	public final static boolean drawCollider = false;
 	
@@ -29,18 +30,16 @@ public abstract class Collider extends Body {
 	
 	public abstract void display();
 	
-	public abstract Line.Projection projetteSur(Line ligne);
+	public abstract Projection projetteSur(Line ligne);
 	
-	//------ obstacle: 
+	// --- obstacle --- ?
 	
-	// la ligne sur laquelle on va projeter. basé à la surface de l'obstacle
+	//point à la surface du collider le plus dans l'obstacle.
+	//public abstract PVector[] getIntruderPointOver(Line colLine);
+	
+	/** La ligne sur laquelle on va projeter. Bas� � la surface de l'obstacle. */
 	public abstract Line collisionLineFor(PVector p);
 	
-	//projette ce point dans la face la plus proche de l'obstacle. 
+	/** Projette ce point dans la face la plus proche de l'obstacle. */
 	public abstract PVector projette(PVector point);
-
-	/*public boolean hasIntrudersOver(Line colLine) {
-		// TODO Auto-generated method stub
-		return false;
-	}*/
 }

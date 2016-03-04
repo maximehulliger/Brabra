@@ -14,6 +14,7 @@ import processing.core.PApplet;
 import processing.core.PVector;
 import processing.video.*;
 
+/** Maestro Class of the image processing part of the project. */
 public class ImageAnalyser extends ProMaster {
 	///--- parameters
 	public static final float maxAcceptedAngle = 65f/360*PApplet.TWO_PI; //65°
@@ -38,7 +39,7 @@ public class ImageAnalyser extends ProMaster {
 	public HoughLine hough;
 	public final ReentrantLock quadDetectionLock = new ReentrantLock();
 	public boolean hasFoundQuad = false;
-	public PGraphics quadDetection;
+	public PGraphics quadDetection = null;
 	
 	//--- button detection
 	public final ButtonDetection buttonDetection;
@@ -64,16 +65,24 @@ public class ImageAnalyser extends ProMaster {
 	
 	public ImageAnalyser() {
 		app.imgAnalyser = this;
-		buttonDetection = new ButtonDetection();
-		standardFont = app.createFont("Arial", app.height/40f);
-		quadDetection = null;
 		
+		// preloaded pixel int value (to avoid weird processing shit with multiple threads.) loaded by ImageAnalyser
+		ImageProcessing.color0 = app.color(0);
+		ImageProcessing.color255 = app.color(255);
+		ButtonDetection.colorButtonOk = app.color(0, 255, 0, 150);
+		ButtonDetection.colorButtonRejected = app.color(255, 0, 0, 150);
+		HoughLine.colorQuad = app.color(200, 100, 0, 120);
+		
+		// font & parametres
+		standardFont = app.createFont("Arial", app.height/40f);
 		paraMovie = ImageProcessing.paraMovieBase.clone();
 		paraCamera = imgProc.paraCameraBase.clone();
 		if (takeMovie)
 			parametres = paraMovie;
 		else
 			parametres = paraCamera;
+		
+		buttonDetection = new ButtonDetection();
 	}
 	
 	// --- getters ---

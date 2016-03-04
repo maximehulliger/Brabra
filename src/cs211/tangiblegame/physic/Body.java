@@ -1,7 +1,6 @@
 package cs211.tangiblegame.physic;
 
 import cs211.tangiblegame.Color;
-import cs211.tangiblegame.TangibleGame;
 import cs211.tangiblegame.geo.Quaternion;
 import processing.core.*;
 
@@ -17,6 +16,9 @@ public class Body extends Object {
 	protected PVector inertiaMom;
 	protected PVector inverseInertiaMom;
 	protected float restitution = 0.8f; // [0, 1]
+	/** If set to true, the body doesn't interact with others (and others don't). */
+	protected boolean ghost = false;
+	/** If set to false, the body doesn't react to the collision but others do. */
 	protected boolean affectedByCollision = true;
 
 	private PVector forces = zero.copy();
@@ -106,24 +108,11 @@ public class Body extends Object {
 		}
 	}
 
-	public void setLife(String lifeText) {
-		String[] sub = lifeText.split("/");
-		if (sub.length == 2)
-			setLife(Integer.parseInt(sub[0]),Integer.parseInt(sub[1]));
-		else if (sub.length == 1) {
-			int life = Integer.parseInt(sub[0]);
-			setLife(life, life);
-		} else
-			System.err.println("unsuported life format: \""+lifeText+"\"");
-	}
-	
 	public void damage(int damage) {
 		if (maxLife < 0)
-			if (TangibleGame.verbosity >= 3)
-				System.err.println(this+" is a poor non-living object !");
+			game.debug.log(4, this+" is a poor non-living object !");
 		else if (life < 0)
-			if (TangibleGame.verbosity >= 4)
-				System.out.println(this+" is already dead !");
+			game.debug.log(5, this+" is already dead !");
 		else {
 			life -= damage;
 			if (life < 0 )
@@ -204,12 +193,13 @@ public class Body extends Object {
 		addForce( absolute( PVector.mult(front, 150) ) , absFront(force) );
 	}
 	
+	/** applique une force qui s'oppose aux vitesse. perte dans [0,1]. reset selon eps. */
 	public void freine(float perte) {
 		freineDepl(perte);
 		freineRot(perte);
 	}
 	
-	/** applique une force qui s'oppose à la vitesse. */
+	/** applique une force qui s'oppose à la vitesse. perte dans [0,1]. reset selon eps. */
 	public void freineDepl(float perte) {
 		if (isZeroEps(velocity, true))
 			return;
@@ -217,9 +207,9 @@ public class Body extends Object {
 	    velocity.mult(1-perte);
 	}
 	
-	/** applique une force qui s'oppose à la vitesse angulaire. */
+	/** applique une force qui s'oppose à la vitesse angulaire. perte dans [0,1]. reset selon eps. */
 	public void freineRot(float perte) {
-		if ( !rotationVel.isZeroEps(false) )
+		if ( !rotationVel.isZeroEps(true) )
 			rotationVel.setAngle(rotationVel.angle() * (1 - perte));
 	}
 }

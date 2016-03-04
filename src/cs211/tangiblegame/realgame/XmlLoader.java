@@ -4,21 +4,21 @@ package cs211.tangiblegame.realgame;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
+import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
-import org.xml.sax.Attributes;
 import org.xml.sax.helpers.DefaultHandler;
 
+import cs211.tangiblegame.Color;
 import cs211.tangiblegame.ProMaster;
 import cs211.tangiblegame.geo.Quaternion;
 import cs211.tangiblegame.physic.Body;
-import cs211.tangiblegame.physic.Physic;
 
-public final class XmlLoader extends ProMaster {
+public final class XMLLoader extends ProMaster {
 	private final String filename;
 	private final XMLReader xmlreader;
 	
-	public XmlLoader() {
+	public XMLLoader() {
 		filename = app.inputPath+"scene.xml";
 		XMLReader xmlreader = null;
 		try {
@@ -33,12 +33,17 @@ public final class XmlLoader extends ProMaster {
 		this.xmlreader = xmlreader;
 	}
 	
-	// load the object from the file at @location
+	/** 
+	 * load the object from the file at @filename
+	 * supported attributes for objects:
+	 * 	 name, dir, pos, mass, life, color, stroke,
+	 * 	 impulse, focus, force, camera, cameraDist, debug.
+	 *  */
 	public void load() {
 		try {
 			xmlreader.parse(filename);
 		} catch (Exception e) {
-			System.err.println("\nerreur dans scene.xml:");
+			game.debug.err("\nerreur dans scene.xml:");
 			e.printStackTrace();
 		}
 	}
@@ -53,15 +58,19 @@ public final class XmlLoader extends ProMaster {
 	    	else if (localName.equals("camera")) {
 	    		game.camera.set(atts.getValue("mode"),atts.getValue("dist"),null);
 			  	String displaySkybox = atts.getValue("displaySkybox");
-				if (displaySkybox != null)
+			  	String debug = atts.getValue("debug");
+	    		if (displaySkybox != null)
 				  	game.camera.setSkybox(Boolean.parseBoolean(displaySkybox));
+			  	if (debug != null && Boolean.parseBoolean(debug)) {
+			  		game.debug.followed.add(game.camera);
+			  	}
 	    	} else if (localName.equals("physic")) {
 	    		String gravity = atts.getValue("gravity");
 	    		if (gravity != null)
-				  	Physic.gravity = Float.parseFloat(gravity);
+				  	game.physic.gravity = Float.parseFloat(gravity);
 			  	String deltaTime = atts.getValue("deltaTime");
 			  	if (deltaTime != null)
-			  		Physic.deltaTime = Float.parseFloat(deltaTime);
+			  		game.physic.deltaTime = Float.parseFloat(deltaTime);
 	    	} else {
 	    		String pos = atts.getValue("pos");
 	    		String impulse = atts.getValue("impulse");
@@ -74,6 +83,7 @@ public final class XmlLoader extends ProMaster {
 	    		String stroke = atts.getValue("stroke");
 	    		String focus = atts.getValue("focus");
 	    		String dir = atts.getValue("dir");
+	    		String debug = atts.getValue("debug");
 	    			
 	    		Body b = (dir != null) ?
 	    				Prefab.add(localName, vec(pos), Quaternion.fromDirection(vec(dir)))
@@ -90,13 +100,17 @@ public final class XmlLoader extends ProMaster {
 					  	b.setName(name);
 			  		if (life != null)
 			  			setLife(b, life);
-				  	if (camera != null) {
+				  	if (camera != null)
 				  		game.camera.set(camera,cameraDist,b);
-				  	if (focus != null && Boolean.parseBoolean(focus))
-				  		game.physicInteraction.setFocused(b);
+				  	if (focus != null && Boolean.parseBoolean(focus)) {
 				  		String force = atts.getValue("force");
 				  		if (force != null)
-				  			game.physicInteraction.forceRatio = Float.parseFloat(force);
+				  			game.physicInteraction.setFocused(b, Float.parseFloat(force));
+				  		else
+				  			game.physicInteraction.setFocused(b);
+				  	}
+				  	if (debug != null && Boolean.parseBoolean(debug)) {
+				  		game.debug.followed.add(b);
 				  	}
 			  	}
 	    	}
@@ -106,17 +120,16 @@ public final class XmlLoader extends ProMaster {
 		public void characters(char[] ch, int start, int length) {}
 		*/
 	}
-	
 
-	private void setLife(Body alive, String lifeText) {
+	private void setLife(Body b, String lifeText) {
 		String[] sub = lifeText.split("/");
 		if (sub.length == 2)
-			alive.setLife(Integer.parseInt(sub[0]),Integer.parseInt(sub[1]));
+			b.setLife(Integer.parseInt(sub[0]),Integer.parseInt(sub[1]));
 		else if (sub.length == 1) {
 			int life = Integer.parseInt(sub[0]);
-			alive.setLife(life, life);
+			b.setLife(life, life);
 		} else
-			System.out.println("unsuported life format: \""+lifeText+"\"");
-		
+			System.err.println("unsuported life format: \""+lifeText+"\"");
 	}
+	
 }

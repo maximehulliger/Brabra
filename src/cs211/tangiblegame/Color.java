@@ -34,7 +34,10 @@ public class Color extends ProMaster {
 	 * si plus de 4 arguments, le reste set le stroke.
 	 */
 	public Color(int... rgba) {
-		if (rgba.length <= 4) {
+		if (rgba.length == 0) {
+			c = null;
+			s = null;
+		} else if (rgba.length <= 4) {
 			c = fromUF(rgba);
 			s = null;
 		} else {
@@ -71,6 +74,10 @@ public class Color extends ProMaster {
 			app.stroke(s[0], s[1], s[2], s[3]);
 		else
 			app.noStroke();
+	}
+	
+	public static class EmptyColor extends Color {
+		public void fill() {}
 	}
 	
 	/** retourne un clone du tableau de couleur primaire */

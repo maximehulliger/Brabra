@@ -9,12 +9,13 @@ import processing.event.MouseEvent;
 
 
 public class TangibleGame extends PApplet {
-	public static final String name = "Brabra";
 	public enum View {Menu, Calibration, TrivialGame, RealGame}
-
+	public static final String name = "Brabra";
+	public final Debug debug = new Debug();
+	
 	//--- parametres
-	public static int verbosity = 3;
-	/** [1-5]: user[1-3], dev[4-5] */
+	/** [1-5]: user[1-3], dev[4-6] 6: one object debug. atm: 7. */
+	public static final int verbosity = 7;
 	public boolean imgAnalysis = false;
 	public static final float inclinaisonMax = PApplet.PI/5;
 	private static final int windowSize = 4; //generaly from 2 (640x360) to  6 (1920x1080)
@@ -23,7 +24,6 @@ public class TangibleGame extends PApplet {
 	public String dataPath;
 	public String inputPath;
 	public ImageAnalyser imgAnalyser;
-	private Interface currentInterface;
 	public RealGame intRealGame;
 	public TrivialGame intTrivialGame;
 	public Calibration intCalibration;
@@ -31,6 +31,7 @@ public class TangibleGame extends PApplet {
 	public Input input;
 	public boolean hasPopup = false;
 	public boolean over = false;
+	private Interface currentInterface;
 	
 	//----- setup et boucle d'update (draw)
 	
@@ -55,14 +56,14 @@ public class TangibleGame extends PApplet {
 		surface.setTitle(name);
 		
 		// our stuff
-		ProMaster.init(this);
+		ProMaster.app = this;
 		input = new Input();
 		imgAnalyser = new ImageAnalyser();
 		if (imgAnalysis) {
-			System.out.println("starting img analysis thread.");
+			if (verbosity >= 3)
+				System.out.println("starting img analysis thread.");
 			thread("imageProcessing");
 		}
-		
 		setView(View.RealGame);
 	}
 
@@ -119,12 +120,12 @@ public class TangibleGame extends PApplet {
 	//-------- Gestion Evenements
 
 	public void keyPressed() {
-		//intercepte escape
 		if (key == 27 && currentInterface != intMenu) {
+			// on intercepte escape
 			setView(View.Menu);
 			key = 0;
 			return;
-		} else if (key == 'l')	//l -> load parameters
+		} else if (key == 'l')
 			imgAnalyser.imgProc.selectParameters();
 		else if (key == 'q')
 			currentInterface.init();

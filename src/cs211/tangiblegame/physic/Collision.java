@@ -3,7 +3,7 @@ package cs211.tangiblegame.physic;
 import cs211.tangiblegame.ProMaster;
 import processing.core.*;
 
-/** représente une collision avec le point d'impact, la norme et les acteurs*/
+/** Represent a collision with an impact point, a norm & 2 colliders. */
 public abstract class Collision extends ProMaster {
 	protected final Collider collider;
 	protected final Collider obstacle;

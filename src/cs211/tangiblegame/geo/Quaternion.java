@@ -1,7 +1,6 @@
 package cs211.tangiblegame.geo;
 
 import cs211.tangiblegame.ProMaster;
-import cs211.tangiblegame.TangibleGame;
 import processing.core.PApplet;
 import processing.core.PVector;
 
@@ -57,7 +56,7 @@ public class Quaternion extends ProMaster {
 	/** Set wxyz of the quaternion and return it. */
 	public Quaternion set(PVector axis, float angle) {
 		if (!isConstrained(angle, -pi, pi))
-			System.err.println("angle "+angle+" pas dans [-pi,pi]");
+			game.debug.log(3, "quaternion set angle: "+angle+" pas dans [-pi,pi]");
 		this.angle = entrePiEtMoinsPi(angle);
 		this.rotAxis = axis;
 		initFromAxis();
@@ -111,8 +110,7 @@ public class Quaternion extends ProMaster {
 		if (ProMaster.equalEps(PApplet.abs(w), 1) && ProMaster.isZeroEps(x)
 				&& ProMaster.isZeroEps(y) && ProMaster.isZeroEps(z)) {
 			if (clean && !equals(identity)) {
-				if (TangibleGame.verbosity > 4)
-				System.out.println(this+" reset by eps "+equals(identity));
+				app.debug.log(4, this+" reset by eps "+equals(identity)); //TODO: should never be true...
 				reset();
 			} 
 			return true;
@@ -132,10 +130,10 @@ public class Quaternion extends ProMaster {
 		return q;
 	}
 
-	/** return the rot axis * angle or null. */
+	/** return the rot axis or null if identity. */
 	public PVector rotAxis() {
 		updateAxis();
-		return (rotAxis == null) ? null : PVector.mult(rotAxis,angle);
+		return rotAxis;
 	}
 	
 	public float angle() {
@@ -149,7 +147,8 @@ public class Quaternion extends ProMaster {
 
 	public String toString() {
 		updateAxis();
-		return "quat: (wxyz:"+w+", "+x+", "+y+", "+z+") norm: "+PApplet.sqrt(normSq())+" angle: "+angle;
+		//return "quat: (wxyz:"+w+", "+x+", "+y+", "+z+") norm: "+PApplet.sqrt(normSq())+" angle: "+angle;
+		return "quat axis: "+rotAxis+" angle: "+angle*180/pi+"°";
 	}
 	
 	public String toStringAll() {

@@ -3,23 +3,23 @@
 	<camera displaySkybox="true" mode="not" dist="(200,200,200)"></camera>
 	<physic gravity="0.2" deltaTime="0.7"></physic>
 	
-	<floor pos="zero" color="grass" stroke="green"></floor>
 	
-	<ball pos="(0,5,5)" mass="5" color="red"></ball>
-	<ball pos="(10,5,5)" mass="5" color="red"></ball>
-	<ball pos="(1,20,5)" mass="5" color="red"></ball>
-	<ball pos="(2,5,7)" mass="5" color="red"></ball>
-	
-	
-	<starship pos="(100,100,100)" dir="front" camera="relative" focus="true" force="40"></starship>
+	<starship pos="(-20,100,100)" dir="back" camera="not" focus="true" debug="true"></starship>
 	
 	
 	<!--  
-	
+	force="40" 
 	<box pos="(0,5,-5)" mass="5" color="blue"></box>
 	<box pos="(0,40,6)" mass="5" color="red"></box> 
 	<box pos="(5,5,0)" name="box1"></box>
 	<box pos="(0,5,20)"></box>
+	
+	<floor pos="zero" color="grass" stroke="green"></floor>
+	
+	<ball pos="(0,5,5)" mass="5" color="red"></ball>
+	<ball pos="(10,5,5)" mass="5" color="yellow" impulse="(0,5,0)"></ball>
+	<ball pos="(1,20,5)" mass="5" color="red"></ball>
+	<ball pos="(2,5,7)" mass="5" color="blue" impulse="(0,0,-2)"></ball>
 	
 	
 	<objectif pos="(100,100,-500)" life="200" color="red"></objectif>

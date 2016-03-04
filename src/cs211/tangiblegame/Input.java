@@ -7,19 +7,19 @@ import processing.event.MouseEvent;
 public class Input extends ProMaster {
 	public static final int scrollMin = 4, scrollMax = 100, scrollRange = scrollMax - scrollMin;
 	
-	/** in pixel/frame. */
+	/** In pixel/frame. */
 	public final PVector deplMouse = zero.copy();
-	/** true if space is down. */
-	public boolean spaceDown = false;
-	/** input axis (wasd) ~[-1, 1] */
+	/** True if the touch is down. */
+	public boolean spaceDown = false, altDown = false;
+	/** Input axis (wasd) ~[-1, 1] */
 	public float horizontal = 0, vertical = 0;
 	/** [0, 1] */
 	public float scroll = 1f/4;
 	/** [scrollMin, scrollMax] */
 	public int scrollDiff = 0;
-	/** indicate the need to fire during the last frame */
+	/** Indicate the need to fire during the last frame */
 	public boolean fire = false;
-	/** fireSlot [-1-3] -1: any */
+	/** FireSlot [-1-3] -1: any */
 	public int fireSlot = -1;
 	
 	private int scrollAcc = (int)(scrollMax*scroll);
@@ -54,6 +54,7 @@ public class Input extends ProMaster {
 	// --- event gesture ---
 	
 	public void keyPressed() {
+		if (app.key == PApplet.ALT)	altDown = true;
 		if (app.key == ' ')		spaceDown = true;
 		if (app.key == 'w') 	vertical += 1;
 		if (app.key == 's') 	vertical -= 1;
@@ -62,6 +63,7 @@ public class Input extends ProMaster {
 	}
 
 	public void keyReleased() {
+		if (app.key == PApplet.ALT)	altDown = false;
 		if (app.key == ' ')		spaceDown = false;
 		if (app.key == 'w') 	vertical -= 1;
 		if (app.key == 's') 	vertical += 1;

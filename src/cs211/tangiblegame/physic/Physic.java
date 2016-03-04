@@ -4,13 +4,14 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
+import cs211.tangiblegame.ProMaster;
 import cs211.tangiblegame.geo.Sphere;
 import cs211.tangiblegame.realgame.Effect;
 
-public class Physic
+public class Physic extends ProMaster
 {
 	public float gravity = 0.8f; //0.7f
-	public float deltaTime = 1f; //1f
+	public float deltaTime = 1, deltaTimeCopy = deltaTime; //1f
 	
 	// les agents B)
 	public ArrayList<Collider> colliders = new ArrayList<>();
@@ -22,17 +23,16 @@ public class Physic
 	
 	/** Display all colliders and effects in the scene. */
 	public void displayAll() {
-		for(Collider c : colliders)
-			c.display();
-		for(Effect e : effects)
-			e.display();
+		for(Object o : both(colliders, effects))
+			o.display();
 	}
 	
-	/** Just... do Magic  :D */
-	public void doMagic() {  
-		//1. on update les acteurs et les effets
-		for (Collider c : colliders)
-			c.update();
+	/** Update the colliders and effects. */
+	public void updateAll() {
+		for (Object o : both(colliders, effects)) {
+			game.debug.setCurrentWork("physic: updating \""+o+"\"");
+			o.update();
+		}
 		if (toRemove.size() > 0 ) {
 			colliders.removeAll(toRemove);
 			for (Collider c : toRemove)
@@ -43,8 +43,6 @@ public class Physic
 			colliders.addAll(toAdd);
 			toAdd.clear();
 		}
-		for (Effect e : effects)
-			e.update();
 		if (effectsToRemove.size() > 0) {
 			effects.removeAll(effectsToRemove);
 			effectsToRemove.clear();
@@ -53,6 +51,12 @@ public class Physic
 			effects.addAll(effectsToAdd);
 			effectsToAdd.clear();
 		}
+	}
+	
+	/** Just... do Magic  :D */
+	public void doMagic() {
+		//1. on update les acteurs et les effets
+		updateAll();
 		
 		//2. on détermine et filtre les collisions pour chaque paire possible (c, o).
 		List<Collision> collisions = new LinkedList<>();

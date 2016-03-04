@@ -124,7 +124,7 @@ public class Cube extends PseudoPolyedre {
 	}
 	
 	//update les coordonnées absolue. (à chaque transform change du parent)
-	private void updateAbs() {
+	public void updateAbs() {
 		//1. update les plans
 		pushLocal();
 		for (Plane p : faces)

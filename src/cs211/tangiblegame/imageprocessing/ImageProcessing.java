@@ -20,12 +20,15 @@ public final class ImageProcessing extends ProMaster {
 	public static final int nbParaInput = 4;
 	public static final int nbParaBouton = 4;
 	public static final float basicParaMaxValue = 255;
+
+	// preloaded pixel int value (to avoid weird processing shit with multiple threads.) loaded by ImageAnalyser
+	protected static int color0, color255;
 	
 	public static final float[] inputParaMaxValue = {
 		200, //MaxMinVote
 		200, //MaxNeighBour
 		10,  //MaxLineKept
-		1, //MaxSobelThreshold
+		1, 	 //MaxSobelThreshold
 	};
 	
 	public static final float[] buttonParaMaxValue = {
@@ -68,7 +71,7 @@ public final class ImageProcessing extends ProMaster {
 		if (r > 255) r = 255;
 		if (g > 255) g = 255;
 		if (b > 255) b = 255;
-		return /*(0xFFFF_FFFF << 32) +*/ (a << 24) + (r << 16) + (g << 8) + b;
+		return (a << 24) + (r << 16) + (g << 8) + b;
 	}
 
 	static public int rgbColor(int rgb) {
@@ -231,9 +234,8 @@ public final class ImageProcessing extends ProMaster {
 		}
 		return result;
 	}
-	
 
-	// ----- gestion parametres
+	/** Open the parameter file selection dialogue. */
 	public void selectParameters() {
 		try {
 			JFileChooser dialogue = new JFileChooser(new File("."));

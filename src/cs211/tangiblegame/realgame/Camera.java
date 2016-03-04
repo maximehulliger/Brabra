@@ -4,10 +4,12 @@ import processing.core.PShape;
 import processing.core.PVector;
 import cs211.tangiblegame.physic.Body;
 import cs211.tangiblegame.physic.Collider;
+import cs211.tangiblegame.Color;
 import cs211.tangiblegame.ProMaster;
+import cs211.tangiblegame.physic.Object;
 
 //gère la camera, le background et la lumière. 
-public class Camera extends ProMaster {
+public class Camera extends Object {
 	public static final float distSqBeforeRemove = 12_000*12_000; 	//distance du vaisseau avant remove
 	private static final PVector defaultOrientation = vec(0,-1,0); 	//orientation
 	
@@ -34,12 +36,12 @@ public class Camera extends ProMaster {
 	public static PShape skybox;
 	
 	private boolean displaySkybox = false;
-	private boolean pointCentral = true;
-	private boolean drawAxis = true;
+	private boolean displayPointCentral = true;
+	private Color colorPointCentral = Color.get("red");
+	private boolean displayAxis = true;
 	
 	private FollowMode followMode = FollowMode.Not;
-	private Body toFollow = null;
-	private PVector position = distNot;
+	/** The absolute point that looks the camera. */
 	private PVector focus = zero;
 	private PVector orientation = defaultOrientation;
 	
@@ -47,87 +49,97 @@ public class Camera extends ProMaster {
 	private static PVector distStatic = vec(300,300,300);
 	private static PVector distRel = PVector.mult(vec(0, 6, 9), 15f);
 	
+	public Camera() {
+		super(distNot);
+	}
+	
 	public void set(String followMode, String dist, Body toFollow) {
 		if (followMode == null && dist == null && toFollow == null)
 			return;
 		
 		if (toFollow != null) {
-			this.toFollow = toFollow;
+			setParent(toFollow, Parency.FollowPosition);
 			if (followMode != null) {
-				this.followMode = FollowMode.fromString(followMode);
-				displayState();
+				setMode(FollowMode.fromString(followMode));
 			}
+		} else if (followMode != null && dist != null) {
+			PVector newDist = vec(dist);
+			FollowMode mode = FollowMode.fromString(followMode);
+			if (!newDist.equals(getDist(mode))) {
+				setDist(mode, newDist);
+				if (this.followMode == mode)
+					setMode(null);
+				else
+					game.debug.info(2, "camera dist in "+followMode+" mode set at "+dist);
+			}
+			
 		}
-		
-		if (followMode != null && dist != null) {
-			FollowMode oldMode = this.followMode;
-			PVector oldDist = getDist();
-			this.followMode = FollowMode.fromString(followMode);
-			setDist(vec(dist));
-			if (!oldDist.equals(getDist()) && toFollow == null)
-				System.out.println("camera dist in "+followMode+" mode set at "+dist);
-			this.followMode = oldMode;
-		}
-		
-		updateAbs();
 	}
 
 	public void setSkybox(boolean displaySkybox) {
 		this.displaySkybox = displaySkybox;
 	}
 	
+	/** Change the camera mode and location. if mode is null, just updateAbs. display state. */
+	public void setMode(FollowMode mode) {
+		if (mode != null) {
+			this.followMode = mode;
+			this.locationRel.set(getDist(mode));
+		}
+		updateAbs();
+		displayState();
+	}
+	
 	public void nextMode() {
-		if (toFollow != null) {
-			followMode = followMode.next();
-			updateAbs();
-			displayState();
-		} else
-			System.out.println("camera need an object to focus on.");
+		if (parent != null)
+			setMode(followMode.next());
+		else
+			game.debug.msg(3, "Camera need an object to focus on.");
 	}
 	
 	public void place() {
 		// 1.update
-		//if (toFollow != null && toFollow.transformChanged) { TODO
-			updateAbs();
-		//}
+		update();
+		updateAbs();
 		
 		for (Collider c : game.physic.colliders)
-			if (ProMaster.distSq(focusPoint(), c.location) > distSqBeforeRemove)
+			if (ProMaster.distSq(focus, c.location) > distSqBeforeRemove)
 				game.physic.toRemove.add( c );
 		
 		// 2.draw
-		app.camera(position.x, position.y, position.z, 
+		app.camera(location.x, location.y, location.z, 
 				focus.x, focus.y, focus.z, 
 				orientation.x, orientation.y, orientation.z);
 		
+		pushLocal();
 		if (displaySkybox) {
-			app.pushMatrix();
-			if (toFollow != null)
-				translate( toFollow.location  );
 			app.shape(skybox);
-			app.popMatrix();
 		} else {
 			app.background(200);
 			app.ambientLight(255, 255, 255);
 			app.directionalLight(50, 100, 125, 0, -1, 0);
 		}
+		popLocal();
 		
-		if (pointCentral) {
-			app.fill(255, 255, 255, 255);
-			app.point(app.width/2, app.height/2);
-		}
-		
-		if (drawAxis)
-			drawAxis();
+		if (displayAxis)
+			displayAxis();
 		
 		//drawMouseray(50);
 	}
 	
+	public void gui() {
+		if (displayPointCentral) {
+			colorPointCentral.fill();
+			app.point(app.width/2, app.height/2);
+		}
+	}
+	
 	public void displayState() {
 		if (followMode == FollowMode.Not)
-			System.out.println("camera fixed at "+getDist());
+			game.debug.info(2, "camera fixed at "+location);
 		else
-			System.out.println("camera following "+toFollow.toString()+" at "+toFollow.location+" from "+getDist()+" in "+followMode+" mode.");
+			game.debug.info(2, "camera following "+parent+" at "+parent.location
+					+" from +"+locationRel+" in "+followMode+" mode.");
 	}
 	
 	public void drawMouseray(float dist) {
@@ -137,9 +149,9 @@ public class Camera extends ProMaster {
 	    app.fill(0,0,0);
 	    app.sphere(5);
 	    //this finds the position of the mouse in model space
-	    PVector mousePos = absolute(mrel, position, identity);
+	    PVector mousePos = absolute(mrel, location, identity);
 
-	    PVector camToMouse=PVector.sub(mousePos, position);
+	    PVector camToMouse=PVector.sub(mousePos, location);
 
 	    app.stroke(150, 150, 150, 255); //box line colour
 	    line(camToMouse, mousePos);
@@ -155,54 +167,31 @@ public class Camera extends ProMaster {
 		    app.fill(0,255,0);
 		    app.sphere(5);
 	    app.popMatrix();
-	    System.out.println("cam pos: "+position);
+	    System.out.println("cam pos: "+location);
 	    System.out.println("mouse pos: "+mousePos);
 	    System.out.println("cam to mouse: "+camToMouse);
-	    System.out.println("cam to focus: "+PVector.sub(position, focus));
+	    System.out.println("cam to focus: "+PVector.sub(location, focus));
 	}
 
-	private void updateAbs() {
-		orientation = orientation();
-		position = position();
-		focus = focusPoint();
-	}
-
-	private PVector position() {
-		switch(followMode) {
-		case Static:
-			return PVector.add( distStatic, focusPoint() );
-		case Relative:
-			return toFollow.absolute(distRel);
-		default:
-			return distNot;
-		}
-	}
-	
-	private PVector orientation() {
-		if (followMode == FollowMode.Relative)
-			return absolute(Body.down, zero, toFollow.rotation);
-		else
-			return defaultOrientation;
-	}
-	
-	// le point que regarde la camera
-	private PVector focusPoint() {
-		if (toFollow == null)
-			return zero;
-		else {
+	public void updateAbs() {
+		if (parent == null) {
+			assert(followMode == FollowMode.Not);
+		} else if (parent.transformChanged) {
+			orientation = (followMode == FollowMode.Relative) ?
+					parent.orientation() : defaultOrientation;
 			switch(followMode) {
 			case Static:
-				return toFollow.location;
+				focus = parent.location;
 			case Relative:
-				return PVector.add(toFollow.location, toFollow.absUp(60));
+				focus = parent.absUp(60);
 			default:
-				return zero;
+				focus = zero;
 			}
 		}
 	}
-	
-	private void setDist(PVector dist) {
-		switch(followMode) {
+
+	private void setDist(FollowMode mode, PVector dist) {
+		switch(mode) {
 		case Not:
 			distNot = dist;
 			break;
@@ -215,7 +204,7 @@ public class Camera extends ProMaster {
 		}
 	}
 	
-	private PVector getDist() {
+	private PVector getDist(FollowMode mode) {
 		switch(followMode) {
 		case Not:
 			return distNot;
@@ -228,7 +217,7 @@ public class Camera extends ProMaster {
 		}
 	}
 	
-	private void drawAxis() {
+	private void displayAxis() {
 		app.stroke(255, 0, 0);
 		app.line(0, 0, 0, far, 0, 0);
 		app.stroke(0, 255, 0);

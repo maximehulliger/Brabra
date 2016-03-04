@@ -27,7 +27,7 @@ public final class MeteorSpawner extends Effect {
 	public MeteorSpawner(Body parent, PVector location, PVector size) {
 		super(location);
 		spawnCage = new Cube(location, new Quaternion(), -1, size);
-		spawnCage.parent = parent;
+		spawnCage.setParent(parent, Parency.Follow);
 		setNext();
 	}
 	

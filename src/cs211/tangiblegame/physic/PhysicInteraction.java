@@ -8,10 +8,14 @@ import cs211.tangiblegame.TangibleGame;
 import cs211.tangiblegame.geo.Line;
 import cs211.tangiblegame.geo.Line.Projection;
 import cs211.tangiblegame.realgame.Armement;
-import cs211.tangiblegame.realgame.Starship;
+import cs211.tangiblegame.realgame.Armement.Armed;
 import processing.core.PApplet;
 import processing.core.PVector;
 
+/**
+ * Class to enable interaction with the scene's bodies.
+ * Reacts to user input: wasd, space, alt, mouse drag, scroll.
+ */
 public final class PhysicInteraction extends ProMaster {
 	/** Puissance de l'interaction. */
 	private static final float forceMin = 20, forceMax = 100, forceRange = forceMax - forceMin; 
@@ -24,15 +28,41 @@ public final class PhysicInteraction extends ProMaster {
 		return focused != null;
 	}
 
+	/** Set focused. displayState. */
 	public void setFocused(Body focused) {
 		this.focused = focused;
-		armement = focused.getClass() == Starship.class ?
-				((Starship)focused).armement : null;
+		armement = focused instanceof Armed ?
+				((Armed)focused).armement() : null;
+		displayState();
 	}
 	
-	public void setForce(float force) {
-		this.force = PApplet.constrain(force, forceMin, forceMax);
-		System.out.printf("force d'interaction: %.1f\n",force);
+	/** Set focused and force. displayState. */
+	public void setFocused(Body focused, float force) {
+		this.focused = focused;
+		armement = focused instanceof Armed ?
+				((Armed)focused).armement() : null;
+		setForce(force, false);
+		displayState();
+	}
+	
+	/** Set the force of interaction. if displayIfChange & changed, displayState. */
+	public void setForce(float force, boolean displayIfChange) {
+		force = PApplet.constrain(force, forceMin, forceMax);
+		if (force != this.force) {
+			this.force = force;
+			if (displayIfChange)
+				displayState();
+		}
+	}
+	
+	public void displayState() {
+		if (focused == null)
+			game.debug.info(2, "interaction not focused");
+		else {
+			String armed = armement != null ? "armed " : "";
+			game.debug.info(2, "interaction focused on "+armed+"\""+focused+"\" with force = "+force);
+		}
+			
 	}
 	
 	public void update() {
@@ -68,7 +98,8 @@ public final class PhysicInteraction extends ProMaster {
 	private void applyForces() {
 		// 1. rotation (plate, mouse, horizontal)
 		PVector forceRot = zero.copy(); // [pitch, yaw, roll]
-
+		
+		//> from the plate
 		if (app.imgAnalyser.running()) {
 			// rotation selon angle de la plaque
 			PVector plateRot = PVector.div(app.imgAnalyser.rotation(), TangibleGame.inclinaisonMax); //sur 1
@@ -79,24 +110,26 @@ public final class PhysicInteraction extends ProMaster {
 					PApplet.pow(PApplet.abs(plateRot.z), 1.75f) * sgn(plateRot.z));
 			forceRot.add( mult(plateRot,  TangibleGame.inclinaisonMax/4 ) );
 		}
-
+		//> from input (horizon:ad)
 		forceRot.add( front(-app.input.horizontal*force) );
+		//> from mouse drag
 		forceRot.add( vec(-app.input.deplMouse.y*force*0.1f, app.input.deplMouse.x*force*0.1f) );
+		//> apply
+		forceRot = PVector.mult( forceRot, force*game.physic.deltaTime );
 		if (!forceRot.equals(zero)) {
-			PVector f = PVector.mult( forceRot, force/app.frameRate );
 			PVector frontAP = front(150);
-			if (f.x != 0) {
-				PVector pitch = up(f.x);
+			if (forceRot.x != 0) {
+				PVector pitch = up(forceRot.x);
 				focused.addForce(focused.absolute(frontAP), 
 						absolute( pitch, zero, focused.rotation));
 			}
-			if (f.y != 0) {
-				PVector yaw = right(f.y);
+			if (forceRot.y != 0) {
+				PVector yaw = right(forceRot.y);
 				focused.addForce(focused.absolute(frontAP), 
 						absolute( yaw, zero, focused.rotation));
 			}
-			if (f.z != 0) {
-				PVector roll = right(f.z*3/2);
+			if (forceRot.z != 0) {
+				PVector roll = right(forceRot.z*3/2);
 				PVector rollAP = up(100);
 				focused.addForce(focused.absolute(rollAP), 
 						absolute( roll, zero, focused.rotation));
@@ -106,7 +139,7 @@ public final class PhysicInteraction extends ProMaster {
 		// 2. forward
 		float rightScore = max(0, app.imgAnalyser.buttonDetection.rightScore());
 		if (app.input.vertical != 0 || rightScore > 0) {
-			focused.avance((app.input.vertical+rightScore)*force*300/app.frameRate);
+			focused.avance((app.input.vertical+rightScore)*force*300*game.physic.deltaTime);
 		}
 
 		// 3. brake
@@ -115,7 +148,9 @@ public final class PhysicInteraction extends ProMaster {
 			if (app.input.spaceDown) {
 				focused.freineDepl(0.001f);
 				focused.freineRot(0.1f);
-			} else
+			} else if (app.input.altDown)
+				focused.freine(0.30f);
+			else
 				focused.freine(0.15f);
 		} else {
 			focused.freineDepl(0.1f);

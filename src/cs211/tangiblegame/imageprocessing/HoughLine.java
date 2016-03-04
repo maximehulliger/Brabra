@@ -18,6 +18,10 @@ public class HoughLine extends ProMaster {
 	public static int neighbourhood = 38; // size of the region we search for a local maximum
 	public static int maxKeptLines = 6;
 
+	// preloaded pixel int value (to avoid weird processing shit with multiple threads.) loaded by ImageAnalyser
+	protected static int colorQuad;
+		
+	
 	private PApplet app;
 	private PImage edgeImg;
 	private int phiDim;
@@ -151,7 +155,7 @@ public class HoughLine extends ProMaster {
 	public void drawQuad(PGraphics pg) {
 		if (quad != null) {
 			// Choose a random, semi-transparent colour
-			pg.fill(ImageProcessing.colorQuad);
+			pg.fill(colorQuad);
 			pg.quad(quad[0].x, quad[0].y,
 					quad[1].x, quad[1].y,
 					quad[2].x, quad[2].y,

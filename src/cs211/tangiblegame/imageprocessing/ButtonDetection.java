@@ -19,6 +19,10 @@ public class ButtonDetection extends ProMaster {
 	private static final int overHeadVote = 2500;
 	private static final boolean printButtonScore = false;
 	
+	// preloaded pixel int value (to avoid weird processing shit with multiple threads.) loaded by ImageAnalyser
+	protected static int colorButtonOk, colorButtonRejected;
+	
+	
 	public final ReentrantLock inputLock = new ReentrantLock();
 	public float[] paraBoutons;
 	private PImage inputImg;
@@ -112,7 +116,7 @@ public class ButtonDetection extends ProMaster {
 		for(int x = 0; x < inputImg.width; x++) {
 			for(int y = 0; y < inputImg.height; y++) {
 				int pixel = ImageProcessing.pixel(threshold2Button, x, y);
-				if (!quad.contains(x, y) || pixel == color0)
+				if (!quad.contains(x, y) || pixel == ImageProcessing.color0)
 					continue;
 				
 				// on cherche le label minimum autour.
@@ -123,7 +127,7 @@ public class ButtonDetection extends ProMaster {
 					if(!ImageProcessing.isIn(v[0], 0, inputImg.width-1) || !ImageProcessing.isIn(v[1], 0, inputImg.height-1))
 						continue;
 					int pVois = ImageProcessing.pixel(threshold2Button, v[0], v[1]);
-					if ( pVois != color0 ) {
+					if ( pVois != ImageProcessing.color0 ) {
 						int labVois = labels[v[0]][v[1]];
 						if ( labVois>0 && labVois<minLab )
 							minLab = labVois;
