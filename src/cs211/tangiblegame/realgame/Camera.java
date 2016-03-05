@@ -51,6 +51,7 @@ public class Camera extends Object {
 	
 	public Camera() {
 		super(distNot);
+		setName("Camera");
 	}
 	
 	public void set(String followMode, String dist, Body toFollow) {
@@ -72,7 +73,6 @@ public class Camera extends Object {
 				else
 					game.debug.info(2, "camera dist in "+followMode+" mode set at "+dist);
 			}
-			
 		}
 	}
 
@@ -98,6 +98,8 @@ public class Camera extends Object {
 	}
 	
 	public void place() {
+		game.debug.setCurrentWork("camera");
+		
 		// 1.update
 		update();
 		updateAbs();

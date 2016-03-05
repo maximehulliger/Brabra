@@ -66,6 +66,8 @@ public final class PhysicInteraction extends ProMaster {
 	}
 	
 	public void update() {
+		game.debug.setCurrentWork("interaction");
+		
 		// force change
 		if (app.input.scrollDiff != 0) {
 			force = PApplet.constrain(
@@ -144,14 +146,14 @@ public final class PhysicInteraction extends ProMaster {
 
 		// 3. brake
 		if ( rightScore == 0) {
-			// space -> non-brake
-			if (app.input.spaceDown) {
+			// space -> non-brake, alt -> brake
+			if (app.input.altDown)
+				focused.freine(0.30f);
+			else if (app.input.spaceDown) {
 				focused.freineDepl(0.001f);
 				focused.freineRot(0.1f);
-			} else if (app.input.altDown)
+			} else
 				focused.freine(0.30f);
-			else
-				focused.freine(0.15f);
 		} else {
 			focused.freineDepl(0.1f);
 			focused.freineRot(0.15f);

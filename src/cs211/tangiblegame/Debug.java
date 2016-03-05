@@ -22,12 +22,14 @@ public class Debug {
 	
 	/** Interface to be able to be followed by the debugger. */
 	public static interface Debugable {
-		/** Return a state update with presentation (what speaks ?) or null if no update since last frame. */
+		/** Return a state update with presentation (what speaks ?. on first line) or null if no update since last frame. */
 		public abstract String getStateUpdate();
 	}
 	
 	/** To display info on the followed objects and update noprint score. */
 	public void update() {
+		setCurrentWork("debug followed");
+		
 		// no print count
 		if (noPrintFrame)
 			frameWithoutPrintCount++;
@@ -47,9 +49,9 @@ public class Debug {
 
 	// --- Standard debug: print function ---
 	
-	/** Log the debug msg in a nice way :) */
+	/** Log the debug msg in a dev way (red). */
 	public void log(String s) {
-		print(Integer.MAX_VALUE, s, "log", debugLine, false);
+		print(Integer.MAX_VALUE, s, "log", debugLine, true);
 	}
 	
 	/** Log the debug msg in a nice way if interesting enough. */
@@ -95,8 +97,8 @@ public class Debug {
 				frameWithoutPrintCount = 0;
 				System.out.println("---- from "+work+frameCount+":");
 			}
-			String out = (verbMin == Integer.MAX_VALUE ? "_" : verbMin)+"! "+ msgType+": "
-					+ (s.contains("\n") ? "\n"+line+s.replaceAll("\n", "\n"+line) : s);
+			String out = (verbMin == Integer.MAX_VALUE ? "_" : verbMin)
+					+ "! " + msgType + ": " + s.replaceAll("\n", "\n"+line);
 			if (error)
 				System.err.println(out);
 			else

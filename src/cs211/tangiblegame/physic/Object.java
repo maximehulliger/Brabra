@@ -1,5 +1,8 @@
 package cs211.tangiblegame.physic;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import cs211.tangiblegame.Debug.Debugable;
 import cs211.tangiblegame.ProMaster;
 import cs211.tangiblegame.geo.Quaternion;
@@ -19,6 +22,7 @@ public class Object extends ProMaster implements Debugable {
 				return Follow;
 		}
 	}
+	
 	/** Position relative to the parent. */
 	public final PVector locationRel;
 	/** Absolute position. Equals location if no parents. */
@@ -30,12 +34,17 @@ public class Object extends ProMaster implements Debugable {
 	public final Quaternion rotationVel = identity.copy();
 	/** Indicate the modification of the body transform during the frame before the update. */
 	public boolean transformChanged = false, locationChanged = false, locationRelChanged = false, rotationChanged = false;
+	/** flag used during the main update loop. */
+	public boolean updated = false;
 	
 	protected Object parent = null;
+	protected final List<Object> children = new ArrayList<>();
 	protected String name = "MyObject";
-	private boolean rotationChangedCurrent = false, locationChangedCurrent = false, locationRelChangedCurrent = false;
 	
 	private Parency parency = Parency.None;
+	private boolean rotationChangedCurrent = false, locationChangedCurrent = false, locationRelChangedCurrent = false;
+	/** Indicates if the object was moving last frame. */
+	private boolean notMoving = true, notRotating = true;
 	/** Matrice représentant les transformation jusqu'à cet objet (lazy). */
 	private PMatrix matrix = null;
 	private boolean matrixValid = false;
@@ -64,7 +73,7 @@ public class Object extends ProMaster implements Debugable {
 	/** To react when the object is removed from the scene. */
 	public void onDelete() {}
 	
-	// --- some setters ---
+	// --- some getters / setters ---
 
 	public void setName(String name) {
 		this.name = name;
@@ -79,14 +88,25 @@ public class Object extends ProMaster implements Debugable {
 		return name;
 	}
 	
+	public boolean hasParent() {
+		return parent != null;
+	}
+	
 	public void setParent(Object parent, Parency parency) {
 		if (parent == null || parency == Parency.None) {
+			if (hasParent())
+				parent.children.remove(this);
 			this.parent = null;
 			this.parency = Parency.None;
 		} else {
 			this.parent = parent;
 			this.parency = parency;
+			parent.children.add(this);
 		}
+	}
+	
+	public Object parent() {
+		return parent;
 	}
 	
 	// --- update stuff (+transformChanged) ---
@@ -103,19 +123,31 @@ public class Object extends ProMaster implements Debugable {
 		boolean velZero = velocity.equals(zero);
 		boolean velZeroEps = isZeroEps(velocity, true);
 		if (!velZeroEps) {
+			if (notMoving) {
+				game.debug.log(6, this+" started moving.");
+				notMoving = false;
+			}
 			PVector depl = velocity;
 			locationRel.add( depl );
 			location.set(absolute(zero));
-		} else if (!velZero && velZeroEps)
-			game.debug.log(6, "\""+this+"\" stopped moving.");
+		} else if (!notMoving) {
+			game.debug.log(6, this+" stopped moving.");
+			notMoving = true;
+		}
 			
 		//2. rotation
 		boolean rotZero = rotationVel.equals(identity);
 		boolean rotZeroEps = rotationVel.isZeroEps(true);
-		if (!rotZeroEps)
+		if (!rotZeroEps) {
+			if (notRotating) {
+				game.debug.log(6, this+" started rotating.");
+				notRotating = false;
+			}
 			rotation.rotate( rotationVel );
-		else if (!rotZero && rotZeroEps)
-			game.debug.log(6, "\""+this+"\" stopped rotating.");
+		} else if (!notRotating) {
+			game.debug.log(6, this+" stopped rotating.");
+			notRotating = true;
+		}
 		
 		// just to be sure :p
 		if (game.physic.deltaTime == 0) {
@@ -135,35 +167,31 @@ public class Object extends ProMaster implements Debugable {
 		if (transformChanged)
 			matrixValid = false;
 	}
+	
+	/** return the presentation of the object with the name in evidence and the parent if exists. */
+	public String presentation() {
+		return "> "+this+" <" + (parent==null ? "" : " (on \""+parent+"\")");
+	}
 
 	public String getStateUpdate() {
 		if (transformChanged) {
-			final String headStart = "--- ", headEnd = " ---\n";
-			final String presentation = "\""+this+"\""
-					+ (parent==null ? "" : " (on \""+parent+"\")")+" ";
+			final String headStart = "", headEnd = " --- \n";
+			final String presentation = presentation()+" ";
 			final String moveType = (locationChanged?"abs":"")
 					+ (locationChanged && locationRelChanged ? " + " : "")
 					+ (locationRelChanged?"rel":"");
 			final String transType = (rotationChanged ? "rot + " : "") + moveType;
-			final String locStr = locationChanged || locationRelChanged
-					? "location: "+location
+			final String changeName = ((locationChanged || locationRelChanged) && rotationChanged ?
+					"transforms("+transType+") changed" :
+						(locationChanged || locationRelChanged ? "location("+moveType+") changed"
+								: "rotation changed"));
+			final String changeStr = 
+					(locationChanged || locationRelChanged ? "location: "+location : "")
 					+ (parent==null ? "" : "\nlocationRel: "+locationRel)
 					+ (velocity.equals(zero) ? "" : "\nvitesse: "+velocity+" -> "+velocity.mag()+" unit/frame.") 
-					: "";
-			final String rotStr = 
-					"rotation: "+rotation
-					+ (rotationVel.isZeroEps(false) 
-							? "" : "\nvitesse Ang.: "+rotationVel);
-			if ((locationChanged || locationRelChanged) && rotationChanged)
-				return headStart+presentation+"transforms("+transType+") changed"+headEnd
-					+ locStr+"\n"
-					+ rotStr;
-			else if (locationChanged || locationRelChanged) {
-				return headStart+presentation+"location("+moveType+") changed"+headEnd
-					+ locStr;
-			} else //rotation changed
-				return headStart+presentation+"rotation changed"+headEnd
-					+ rotStr;
+					+ (rotationChanged ? "\nrotation: "+rotation : "")
+					+ (rotationVel.isZeroEps(false)	? "" : "\nvitesse Ang.: "+rotationVel);
+			return headStart + presentation + " " + changeName + headEnd + changeStr;
 		} else
 			return null;
 	}
@@ -237,6 +265,7 @@ public class Object extends ProMaster implements Debugable {
 			return super.set(v);
 		}
 	}
+	
 	/** retourne l'orientation locale (parent pas pris en compte) */
 	public PVector orientation() {
 		return absolute(down, zero, rotation);

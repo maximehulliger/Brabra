@@ -23,16 +23,27 @@ public class Physic extends ProMaster
 	
 	/** Display all colliders and effects in the scene. */
 	public void displayAll() {
+		game.debug.setCurrentWork("display objects");
 		for(Object o : both(colliders, effects))
 			o.display();
 	}
 	
-	/** Update the colliders and effects. */
+	/** Update the colliders and effects (parents first). */
 	public void updateAll() {
+		for (Object o : both(colliders, effects))
+			o.updated = false;
 		for (Object o : both(colliders, effects)) {
-			game.debug.setCurrentWork("physic: updating \""+o+"\"");
-			o.update();
+			if (!o.updated) {
+				if (o.hasParent() && !o.parent().updated)
+					o.parent().update();
+				else {
+					game.debug.setCurrentWork("physic: updating \""+o+"\"");
+					o.update();
+					o.updated = true;
+				}
+			}
 		}
+		
 		if (toRemove.size() > 0 ) {
 			colliders.removeAll(toRemove);
 			for (Collider c : toRemove)
@@ -55,9 +66,11 @@ public class Physic extends ProMaster
 	
 	/** Just... do Magic  :D */
 	public void doMagic() {
+		game.debug.setCurrentWork("objects update");
 		//1. on update les acteurs et les effets
 		updateAll();
 		
+		game.debug.setCurrentWork("physic magic");
 		//2. on détermine et filtre les collisions pour chaque paire possible (c, o).
 		List<Collision> collisions = new LinkedList<>();
 		
@@ -99,7 +112,7 @@ public class Physic extends ProMaster
 				col.apply();
 
 		} catch (Exception e) {
-			System.err.println("physical error :/");
+			game.debug.err("physical error :/");
 			e.printStackTrace();
 		}
 	}

@@ -158,7 +158,7 @@ public class Body extends Object {
 		applyImpulse(location, impulse);
 	}
 	
-	/** permet d'appliquer une force au body à ce point (absolu) */
+	/** permet d'appliquer une force au body à ce point (absolu). force should be mult my physic.deltaTime. */
 	public void addForce(PVector absPos, PVector force) {
 		if (drawInteraction) {
 			PVector to = PVector.add(absPos, PVector.mult(force, 0.2f));
@@ -174,7 +174,7 @@ public class Body extends Object {
 		addForce(forceAbs);
 	}
 	
-	/** applique une force absolue au centre de masse du body. */
+	/** applique une force absolue au centre de masse du body. force should be mult my physic.deltaTime. */
 	public void addForce(PVector force) {	
 		forces.add(force);
 	}

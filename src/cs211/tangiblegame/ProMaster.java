@@ -22,13 +22,15 @@ public abstract class ProMaster extends Master {
 	
 	public static final PVector zero = new PVector(0, 0, 0);
 	public static final PVector farfarAway = new PVector(Float.MAX_VALUE, Float.MAX_VALUE, Float.MAX_VALUE);
+	public static final String[] directions = new String[] {
+			"front", "behind", "up", "down", "right", "left" };
 	public static final PVector left = new PVector(1, 0, 0);
 	public static final PVector right = new PVector(-1, 0, 0);
 	public static final PVector up = new PVector(0, 1, 0);
 	public static final PVector down = new PVector(0, -1, 0);
 	public static final PVector front = new PVector(0, 0, -1);
 	public static final PVector behind = new PVector(0, 0, 1);
-	public static final Quaternion identity = new Quaternion();
+	public static final Quaternion identity = Quaternion.identity;
 	public static final float small = 0.05f;
 	public static final float far = 10_000;
 	public static final float pi = PApplet.PI;
@@ -148,7 +150,7 @@ public abstract class ProMaster extends Master {
 				matriceDiag.z * vector.z );
 	}
 
-	/** retourne un vecteur avec xyz dans [0,1] */
+	/** retourne un vecteur avec xyz dans [-1,1] */
 	protected static PVector randomVec() {
 		return vec(randomBi(), randomBi(), randomBi());
 	}
@@ -188,7 +190,7 @@ public abstract class ProMaster extends Master {
 	}
 	
 	/** Return true if f1 is nearly equal to f2. */
-	public static boolean equalEps(float f1, float f2) {
+	public static boolean equalsEps(float f1, float f2) {
 		return isZeroEps(f1 - f2);
 	}
 	

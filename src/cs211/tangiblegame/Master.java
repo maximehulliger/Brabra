@@ -1,6 +1,7 @@
 package cs211.tangiblegame;
 
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Random;
 import java.util.regex.Pattern;
 
@@ -15,6 +16,8 @@ public class Master {
 	protected static final Pattern floatPattern = Pattern.compile("[+-]?\\d+[.]?\\d*");
 	protected static final Pattern intPattern = Pattern.compile("[+]?\\d+");
 	protected static final Random random = new Random();
+	protected static final Debug debug = new Debug();
+	protected static final Map<String, String> env = System.getenv();
 	
 	// --- General mastery ---
 	
@@ -43,12 +46,12 @@ public class Master {
 	}
 	
 	/** To iterate over all of those */
-	public static <T> Iterable<T> both(Iterable<? extends T> first, Iterable<? extends T> second) {
+	public static <T> AllOfIter<T> both(Iterable<? extends T> first, Iterable<? extends T> second) {
 		return new AllOfIter<T>(first, second);
 	}
 
 	/** Collection whose iterator iterates over all those collections */
-	private static class AllOfIter<T>  implements Iterable<T>, Iterator<T> {
+	public static class AllOfIter<T>  implements Iterable<T>, Iterator<T> {
 		private int nextItem = 1;
 		private Iterable<? extends T>[] items;
 		private Iterator<? extends T> currentIter;
@@ -137,24 +140,21 @@ public class Master {
 		return v>=min && v<=max;
 	}
 	
+	/** clear the console except if in Eclipse (set by the 'export' environment variable). */
 	public final static void clearConsole() {
-	    try {
-	    	String inEclipseStr = System.getProperty("runInEclipse");	//TODO get argument
-	    	//boolean inEclipse = "true".equalsIgnoreCase(inEclipseStr); //str==null -> false
-	    	/*if (!inEclipse)
-	    		System.out.println("yeaag");
-	    	if (inEclipseStr==null)
-	    		System.out.println("nooo");*/
-	    	if (inEclipseStr != null && !Boolean.parseBoolean(inEclipseStr)) {
-		    	final String os = System.getProperty("os.name");
-		        if (os.contains("Windows"))
-		            Runtime.getRuntime().exec("cls");
-		        else
-		            Runtime.getRuntime().exec("clear");
-	    	} /*else
-	    		System.out.println("not in eclise");*/
-	    } catch (final Exception e) {
-	        e.printStackTrace();
-	    }
+		if (env.containsKey("export")) {
+			try {
+				boolean inEclipse = "false".equalsIgnoreCase( env.get("export") );
+				if (!inEclipse) {
+					final String os = System.getProperty("os.name");
+					if (os.contains("Windows"))
+						Runtime.getRuntime().exec("cls");
+					else
+						Runtime.getRuntime().exec("clear");
+				}
+			} catch (final Exception e) {
+				e.printStackTrace();
+			}
+		}
 	}
 }

@@ -36,7 +36,7 @@ public class RealGame extends Interface {
 
 	public void init() {
 		clearConsole();
-		debug.msg(0, "loading scene");
+		debug.info(0, "loading scene");
 		physic = new Physic();
 		camera = new Camera();
 		physicInteraction = new PhysicInteraction();
@@ -46,24 +46,15 @@ public class RealGame extends Interface {
 	public void wakeUp() {
 		app.imgAnalyser.detectButtons = true;
 		app.imgAnalyser.play(false);
-		//physic.updateAll();
 	}
 	
 	// mother method of all life:
 	public void draw() {
-		debug.setCurrentWork("camera");
 		camera.place();
-		//if (!paused) {
-		debug.setCurrentWork("interaction");
 		physicInteraction.update();
-		debug.setCurrentWork("physic");
 		physic.doMagic();
-		//}
-		debug.setCurrentWork("display all");
 		physic.displayAll();
-		debug.setCurrentWork("debug followed");
 		debug.update();
-		
 	}
 	
 	public void gui() {
