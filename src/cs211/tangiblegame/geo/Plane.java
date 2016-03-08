@@ -5,18 +5,18 @@ import cs211.tangiblegame.physic.Collider;
 import cs211.tangiblegame.physic.PseudoPolyedre;
 import processing.core.*;
 
-/** un plan caracterisé par 3 points. peut être fini*/
+/** A plane characterized by 3 points. Default norm is up. Can be finite or infinite. */
 public class Plane extends PseudoPolyedre {
 	private final PVector size; //x et z
 	private final PVector[] natCo; 	//native relative coordonates (4 points)
 	private final boolean finite;
 
-	// updaté quand transformChanged
+	// update quand transformChanged
 	public Line normale;
 	private Line v1; //sur x
 	private Line v2; //sur z
 
-	/** crée un plan de taille size2d (x,z) */
+	/** Create a plan of size size2d (x,z). */
 	public Plane(PVector loc, Quaternion rot, float mass, PVector size2d) {
 		super( loc, rot, size2d.mag()/2 );
 		this.size = size2d;
@@ -26,7 +26,7 @@ public class Plane extends PseudoPolyedre {
 		setMass(mass);
 	}
 
-	/** crée un plan infini */
+	/** Create an infinite plan. */
 	public Plane(PVector loc, Quaternion rot) {
 		super( loc, rot, Float.MAX_VALUE );
 		this.size = null;
@@ -36,10 +36,11 @@ public class Plane extends PseudoPolyedre {
 		setMass(-1);
 	}
 
-	//retourne un point appartenant au plan fini
+	/** Retourne un point appartenant au plan. le plan doit �tre fini. */
 	public PVector randomPoint() {
 		if (!finite)
-			throw new IllegalArgumentException("aïe !!");
+			throw new IllegalArgumentException(
+					"are you sure that do you want a random point in an infinite plane ?");
 		float a = random.nextFloat() * size.x;
 		float b = random.nextFloat() * size.z;
 		PVector ret = v1.base.copy();
@@ -131,7 +132,7 @@ public class Plane extends PseudoPolyedre {
 			return farfarAway;
 		PVector proj = PVector.mult( v1.norm, size.x/2 * -sgn(v1.norm.dot(normale)) );
 		proj.add( PVector.mult( v2.norm, size.z/2 * -sgn(v2.norm.dot(normale))) );
-		proj.add(location);
+		proj.add(locationAbs);
 		return proj;
 	}
 

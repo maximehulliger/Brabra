@@ -20,11 +20,9 @@ public abstract class Effect extends Object {
 		this(location, -1);
 	}
 
-	public abstract void display();
-
 	public void update() {
 		if (--timeLeft == 0) // -1 -> continue
-			app.intRealGame.physic.effectsToRemove.add(this);
+			game.physic.effectsToRemove.add(this);
 	}
 	
 	/** Retourne l'avancement entre 0 -> 1. 0 si infini. */
@@ -57,13 +55,13 @@ public abstract class Effect extends Object {
 		private PVector randomPos() {
 			PVector pos = new PVector(random.nextFloat(), random.nextFloat(), random.nextFloat());
 			pos.mult( radius * etatCrete() );
-			return PVector.add(location, pos);
+			return PVector.add(locationAbs, pos);
 		}
 		
 		public void update() {
 			super.update();
 			for (int i=0; i<5; i++)
-				app.intRealGame.physic.effectsToAdd.add( new Bulbe(randomPos()) );
+				game.physic.effectsToAdd.add( new Bulbe(randomPos()) );
 		}
 		
 		//affiche l'onde de choc
@@ -84,11 +82,10 @@ public abstract class Effect extends Object {
 			}
 			
 			public void display() {
-				app.pushMatrix();
-				app.translate(location.x, location.y, location.z);
+				pushLocal();
 				app.fill(color, 150);
 				app.sphere(radius*etatCrete());
-				app.popMatrix();
+				popLocal();
 			}
 			
 		}

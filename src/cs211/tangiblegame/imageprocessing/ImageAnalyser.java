@@ -92,7 +92,7 @@ public class ImageAnalyser extends ProMaster {
 	}
 	
 	public boolean running() {
-		return app.imgAnalysis && !paused();
+		return app.hasImgAnalysis() && !paused();
 	}
 
 	public PVector rotation() {
@@ -106,7 +106,7 @@ public class ImageAnalyser extends ProMaster {
 
 	// --- main loop ---
 	public void run() {
-		while (!app.over) {
+		while (!app.isOver()) {
 			boolean newImage = false;
 			boolean once = false;
 			inputLock.lock();
@@ -256,31 +256,29 @@ public class ImageAnalyser extends ProMaster {
 	}
 	
 	public void play(boolean play) {
-		if (!app.imgAnalysis)
-			return;
-		if (!play && pausedCam && pausedMov)
+		if (!app.hasImgAnalysis() || (!play && pausedCam && pausedMov))
 			return;
 		
 		inputLock.lock();
 		
 		//video input initialisation (at first run)
-		if (takeMovie && mov == null) {
-			mov = new Movie(app, "testvideo.mp4");
-			mov.loop();
-			parametres = paraMovie;
-		} else if (!takeMovie && cam == null) {
-			takeCameraInput(idxCamera);
-			parametres = paraCamera;
-		}
-		
-		if (takeMovie) {
-			if (pausedMov == play && mov != null) {
+		if (takeMovie) { 
+			if (mov == null) {
+				mov = new Movie(app, "testvideo.mp4");
+				mov.loop();
+				parametres = paraMovie;
+			}
+			if (pausedMov == play) {
 				if (play) 	mov.play();
 				else 		mov.pause();
 				pausedMov = !play;
 			}
 		} else {
-			if (pausedCam == play && cam != null) {
+			if (cam == null) {
+				takeCameraInput(idxCamera);
+				parametres = paraCamera;
+			}
+			if (pausedCam == play) {
 				if (play) 	cam.start();
 				else		cam.stop();
 				pausedCam = !play;
@@ -289,10 +287,15 @@ public class ImageAnalyser extends ProMaster {
 		
 		if (play)
 			newInput = true;
-		else
-			buttonDetection.resetOutput();
-		
+		resetOutput();
 		inputLock.unlock();
+	}
+	
+	private void resetOutput() {
+		gameRotation = zero.copy();
+		hasFoundQuad = false;
+		quadDetection = null;
+		buttonDetection.resetOutput();
 	}
 
 	public void playOrPause() {
@@ -333,14 +336,10 @@ public class ImageAnalyser extends ProMaster {
 		takeMovie = !takeMovie;
 		if (takeMovie) {
 			parametres = paraMovie;
+			if (!pausedCam) cam.stop();
+			else 			cam.start();
 		} else {
 			parametres = paraCamera;
-		}
-		
-		if (takeMovie) {
-			if (!pausedCam) cam.stop();
-		} else {
-			if (!pausedCam) cam.start();
 		}
 		newInput = true;
 		play(!paused());

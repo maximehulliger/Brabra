@@ -11,7 +11,7 @@ import cs211.tangiblegame.realgame.Effect;
 public class Physic extends ProMaster
 {
 	public float gravity = 0.8f; //0.7f
-	public float deltaTime = 1, deltaTimeCopy = deltaTime; //1f
+	public boolean paused = false;
 	
 	// les agents B)
 	public ArrayList<Collider> colliders = new ArrayList<>();

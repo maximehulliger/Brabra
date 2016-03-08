@@ -23,7 +23,7 @@ public class Body extends Object {
 
 	private PVector forces = zero.copy();
 	private PVector torques = zero.copy();
-	private Runnable addForces = () -> {};
+	private Runnable addForces = null;
 	
 	/** create a Body with this location & location. location can be null */
 	public Body(PVector location, Quaternion rotation) {
@@ -39,18 +39,19 @@ public class Body extends Object {
 	/** applique les forces et update l'etat */
 	public void update() {
 		addForces();
-		addForces.run();
+		if (addForces != null)
+			addForces.run();
 		
 		//1. translation
 		if (!forces.equals(zero)) {
 			PVector acceleration = PVector.mult( forces, inverseMass );
-			velocity.add(mult(acceleration,game.physic.deltaTime));
+			velocityRel.add( acceleration );
 		}
 		
 		//2. rotation, vitesse angulaire, on prend rotation axis comme L/I
 		PVector dL = multMatrix( inverseInertiaMom, torques );
 		if (!dL.equals(zero)) {
-			rotationVel.addAngularMomentum( dL );
+			rotationRelVel.addAngularMomentum( dL );
 		}
 		
 		forces = zero.copy();
@@ -62,10 +63,8 @@ public class Body extends Object {
 	
 	public void addApplyForces(Runnable addForce) {
 		final Runnable r = this.addForces;
-		this.addForces = () -> {
-			r.run();
-			addForce.run();
-		};
+		this.addForces = this.addForces == null ?
+				addForce : () -> { r.run(); addForce.run(); };
 	}
 
 	/** set la masse du body. si -1, l'objet aura une mass et un moment d'inertie infini.
@@ -133,15 +132,15 @@ public class Body extends Object {
 			app.stroke(255);
 			app.line(absPos.x, absPos.y, absPos.z, to.x, to.y, to.z);
 		}
-		if (equalsEps(absPos, location, false)) {
-			velocity.add( PVector.mult(impulse, this.inverseMass) );
+		if (equalsEps(absPos, locationAbs, false)) {
+			velocityRel.add( PVector.mult(impulse, this.inverseMass) );
 			return;
 		} else {
 			//pour le deplacement, seulement en absolu
-			PVector toPos = PVector.sub(absPos, location);
+			PVector toPos = PVector.sub(absPos, locationAbs);
 			toPos.normalize();
 			PVector forAbs = PVector.mult(toPos, impulse.dot(toPos));
-			velocity.add( PVector.mult(forAbs, this.inverseMass) );
+			velocityRel.add( PVector.mult(forAbs, this.inverseMass) );
 			
 			//TODO test impulse contre l'objet
 			//pour la rotation, avec la rotation (pour Ãªtre cohÃ©rant avec le moment d'inertie.)
@@ -149,13 +148,13 @@ public class Body extends Object {
 			PVector relImpulse = sub(local( add(impulse, absPos) ), relPoint);
 			PVector forRot = relPoint.cross(relImpulse);
 			if (!forRot.equals(zero))
-				rotationVel.addAngularMomentum( multMatrix(inverseInertiaMom, forRot) );
+				rotationRelVel.addAngularMomentum( multMatrix(inverseInertiaMom, forRot) );
 		}
 	}
 	
 	/** ajoute de la quantité de mouvement au centre de masse (absolu). */
 	public void applyImpulse(PVector impulse) {
-		applyImpulse(location, impulse);
+		applyImpulse(locationAbs, impulse);
 	}
 	
 	/** permet d'appliquer une force au body à ce point (absolu). force should be mult my physic.deltaTime. */
@@ -166,7 +165,7 @@ public class Body extends Object {
 			app.line(absPos.x, absPos.y, absPos.z, to.x, to.y, to.z);
 		}
 			
-		PVector rel = PVector.sub(absPos, location);
+		PVector rel = PVector.sub(absPos, locationAbs);
 		torques.add( rel.cross(force) );
 		
 		rel.normalize();
@@ -201,15 +200,15 @@ public class Body extends Object {
 	
 	/** applique une force qui s'oppose à la vitesse. perte dans [0,1]. reset selon eps. */
 	public void freineDepl(float perte) {
-		if (isZeroEps(velocity, true))
+		if (isZeroEps(velocityRel, true))
 			return;
 		//le frottement, frein. s'oppose Ã  la vitesse :
-	    velocity.mult(1-perte);
+	    velocityRel.mult(1-perte);
 	}
 	
 	/** applique une force qui s'oppose à la vitesse angulaire. perte dans [0,1]. reset selon eps. */
 	public void freineRot(float perte) {
-		if ( !rotationVel.isZeroEps(true) )
-			rotationVel.setAngle(rotationVel.angle() * (1 - perte));
+		if ( !rotationRelVel.isZeroEps(true) )
+			rotationRelVel.setAngle(rotationRelVel.angle() * (1 - perte));
 	}
 }

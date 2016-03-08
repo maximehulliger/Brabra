@@ -16,22 +16,21 @@ public class RealGame extends Interface {
 	public GameDebug debug = new GameDebug();
 	
 	private XMLLoader xmlFile = new XMLLoader();
-	private boolean paused = false;
 	
 	public RealGame() {
 		ProMaster.game = this;
-		Armement.missileImg = app.loadImage(app.dataPath+"missile.jpg");
+		Armement.missileImg = app.loadImage("missile.jpg");
 		int[] pixels = Armement.missileImg.pixels;
 		for (int i=0; i<pixels.length; i++)
 			if (pixels[i] == app.color(0))
 				pixels[i] = app.color(0, 0);
 		
-		MeteorSpawner.meteor = app.loadShape(app.dataPath+"asteroid.obj");
-		Camera.skybox = app.loadShape(app.dataPath+"skybox.obj");
+		MeteorSpawner.meteor = app.loadShape("asteroid.obj");
+		Camera.skybox = app.loadShape("skybox.obj");
 		Camera.skybox.scale(10000);
-		Starship.starship = app.loadShape(app.dataPath+"starship.obj");
+		Starship.starship = app.loadShape("starship.obj");
 		Starship.starship.scale( Starship.sizeFactor );
-		Armement.missile = app.loadShape(app.dataPath+"rocket.obj");
+		Armement.missile = app.loadShape("rocket.obj");
 	}
 
 	public void init() {
@@ -71,15 +70,8 @@ public class RealGame extends Interface {
 		if (app.keyCode == PApplet.TAB)
 			camera.nextMode();
 		if (app.key == 'p') {
-			paused = !paused;
-			if (paused) {
-				physic.deltaTimeCopy = physic.deltaTime;
-				physic.deltaTime = 0;
-				debug.msg(1, "paused :)");
-			} else {
-				physic.deltaTime = physic.deltaTimeCopy;
-				debug.msg(1, "play !");
-			}
+			physic.paused = ! physic.paused;
+			debug.msg(1, physic.paused ? "paused :)" : "play !");
 		}
 	}
 }

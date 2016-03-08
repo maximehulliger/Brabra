@@ -1,5 +1,7 @@
 package cs211.tangiblegame;
 
+import java.awt.MouseInfo;
+import java.awt.Point;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Random;
@@ -43,6 +45,18 @@ public class Master {
 	/** [min, max] */
 	protected static float random(float min, float max) {
 		return min + (max-min) * random.nextFloat();
+	}
+	
+	/** Return the current mouse location in absolute (from the screen). */
+	public static Point mouseLoc() {
+		return MouseInfo.getPointerInfo().getLocation();
+	}
+	
+	/** Execute the function in another thread and return the thread. */
+	public static Thread launch(Runnable function) {
+		Thread t = new Thread(function);
+		t.start();
+		return t;
 	}
 	
 	/** To iterate over all of those */

@@ -63,7 +63,7 @@ public class Cube extends PseudoPolyedre {
 		PVector proj = zero.copy();
 		for (int i=0; i<3; i++)
 			proj.add( PVector.mult( faces[i*2].normale.norm, dim[i] * sgn(faces[i*2].normale.norm.dot(cNorm))) );
-		proj.add(location);
+		proj.add(locationAbs);
 		return proj;
 	}
 	
@@ -76,7 +76,7 @@ public class Cube extends PseudoPolyedre {
 	}
 	
 	public Plane[] plansSeparationFor(PVector colliderLocation) {
-		PVector rel = PVector.sub(colliderLocation, location);
+		PVector rel = PVector.sub(colliderLocation, locationAbs);
 		Plane[] ret = new Plane[3];
 		for (int i=0; i<3; i++) {
 			if (rel.dot(faces[i*2].normale.norm) > 0)
@@ -103,7 +103,7 @@ public class Cube extends PseudoPolyedre {
 	}
 	
 	public Projection projetteSur(Line ligne) {
-	  float mid = ligne.projectionFactor(this.location);
+	  float mid = ligne.projectionFactor(locationAbs);
 	  float proj = PApplet.abs(projetteSur(ligne.norm));
 	  return new Projection(mid-proj, mid+proj);
 	}

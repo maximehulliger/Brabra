@@ -9,59 +9,64 @@ import cs211.tangiblegame.geo.Quaternion;
 import processing.core.PMatrix;
 import processing.core.PVector;
 
-/** A movable object (with transform). */
+/** A movable object with transforms (location, rotation, parent), velocity and rotational velocity. */
 public class Object extends ProMaster implements Debugable {
-	public enum Parency { 
-		None, Follow, FollowPosition, FollowRotation;
-		public static Parency fromString(String f) {
-			if (f.equals("position"))
-				return FollowPosition;
-			else if (f.equals("none"))
-				return None;
+	/** 
+	 * ParentRelationship define some ways to get in local space (via pushLocal()). <p>
+	 * Full: this will follow the parent (with the parent loc & rot). <p>
+	 * Relative: this will follow relatively the parent absolute loc (ignore parent final rotation). <p>
+	 * StaticRot: this will follow statically the parent absolute loc and apply (after) rotate.
+	 **/
+	public enum ParentRelationship {
+		Full, Static, StaticRot;
+		public static ParentRelationship fromString(String f) {
+			if (f!=null && f.equals("static"))
+				return Static;
+			else if (f!=null && f.equals("staticRot"))
+				return StaticRot;
 			else 
-				return Follow;
+				return Full;
 		}
 	}
 	
 	/** Position relative to the parent. */
 	public final PVector locationRel;
 	/** Absolute position. Equals location if no parents. */
-	public final PVector location;
+	public final PVector locationAbs;
 	/** Velocity relative to the parent. */
-	public final PVector velocity = zero.copy();
+	public final PVector velocityRel = zero.copy();
 	/** Rotation relative to the parent. */
-	public final Quaternion rotation;
-	public final Quaternion rotationVel = identity.copy();
+	public final Quaternion rotationRel;
+	public final Quaternion rotationRelVel = identity.copy();
 	/** Indicate the modification of the body transform during the frame before the update. */
-	public boolean transformChanged = false, locationChanged = false, locationRelChanged = false, rotationChanged = false;
+	public boolean transformChanged = false, locationAbsChanged = false, locationRelChanged = false, rotationChanged = false;
 	/** flag used during the main update loop. */
-	public boolean updated = false;
+	/*pkg*/boolean updated = false;
 	
-	protected Object parent = null;
-	protected final List<Object> children = new ArrayList<>();
-	protected String name = "MyObject";
-	
-	private Parency parency = Parency.None;
-	private boolean rotationChangedCurrent = false, locationChangedCurrent = false, locationRelChangedCurrent = false;
+	private Object parent = null;
+	private ParentRelationship parentRel = ParentRelationship.Full;
+	private final List<Object> children = new ArrayList<>();
+	private String name = "MyObject";
+	private boolean rotationChangedCurrent = true, locationAbsChangedCurrent = true, locationRelChangedCurrent = true;
 	/** Indicates if the object was moving last frame. */
-	private boolean notMoving = true, notRotating = true;
+	private boolean moving = false, rotating = false;
 	/** Matrice représentant les transformation jusqu'à cet objet (lazy). */
 	private PMatrix matrix = null;
 	private boolean matrixValid = false;
 	
 	/** Create a Body with this location & rotation. rotation can be null. */
 	public Object(PVector locationRel, Quaternion rotation) {
-		this.locationRel = new UVector(locationRel, () -> {locationRelChangedCurrent = true;});
-		this.rotation = new UQuaternion(rotation, () -> {rotationChangedCurrent = true;});
-		this.location = new UVector(locationRel, () -> {
-			locationChangedCurrent = true;
+		this.locationRel = new NVector(locationRel, () -> {locationRelChangedCurrent = true;});
+		this.rotationRel = new Quaternion.NQuaternion(rotation, () -> {rotationChangedCurrent = true;});
+		this.locationAbs = new NVector(locationRel, () -> {
+			locationAbsChangedCurrent = true;
 			game.debug.err("modification of absolute location not yet supported.");
 			});
 	}
 	
 	/** Create a Body with this location & no initial rotation. */
 	public Object(PVector location) {
-		this(location, null);
+		this(location, identity);
 	}
 
 	/** To display the object. */
@@ -91,22 +96,53 @@ public class Object extends ProMaster implements Debugable {
 	public boolean hasParent() {
 		return parent != null;
 	}
-	
-	public void setParent(Object parent, Parency parency) {
-		if (parent == null || parency == Parency.None) {
-			if (hasParent())
-				parent.children.remove(this);
-			this.parent = null;
-			this.parency = Parency.None;
-		} else {
-			this.parent = parent;
-			this.parency = parency;
+
+	/** 
+	 * Set the parent object of this object. This will now follow the parent and 
+	 * apply this loc and rot (depending on parentRel) to get in local space. 
+	 * set parentRel to Full. parent can be null.
+	 **/
+	public void setParent(Object newParent) {
+		if (newParent == this)
+			throw new IllegalArgumentException("Un objet ne sera pas son propre parent !");
+		if (isRelated(newParent))
+			throw new IllegalArgumentException("Object: new parent already related !");
+		if (hasParent())
+			parent.children.remove(this);
+		parentRel = ParentRelationship.Full;
+		parent = newParent;
+		if (hasParent())
 			parent.children.add(this);
-		}
+	}
+	
+	/** 
+	 * Set the transform/push relationship from this with his parent (parent null -> root).
+	 * see ParentRelationship for more.
+	 **/
+	public void setParentRel(ParentRelationship rel) {
+		this.parentRel = rel;
 	}
 	
 	public Object parent() {
 		return parent;
+	}
+	
+	/** Return true if this has a parentRel link with other */
+	public boolean isRelated(Object other) {
+		if (other == this)
+			throw new IllegalArgumentException("Object: isRelated called on himself !");
+		return other != null && (isChildren(other) || other.isChildren(this));
+	}
+	
+	/** Return true if this is a children of other. */
+	public boolean isChildren(Object parent) {
+		Object p = this.parent();
+		while (p != null) {
+			if (p == parent)
+				return true;
+			p = p.parent;
+		}
+		return false;
 	}
 	
 	// --- update stuff (+transformChanged) ---
@@ -119,164 +155,90 @@ public class Object extends ProMaster implements Debugable {
 	 * 	Overriden to update abs after transformChanged.
 	 * */
 	public void update() {
-		//1. movement
-		boolean velZero = velocity.equals(zero);
-		boolean velZeroEps = isZeroEps(velocity, true);
-		if (!velZeroEps) {
-			if (notMoving) {
-				game.debug.log(6, this+" started moving.");
-				notMoving = false;
+		if (!game.physic.paused) {
+			//1. movement
+			boolean velZero = velocityRel.equals(zero);
+			boolean velZeroEps = velZero || isZeroEps(velocityRel, true);
+			if (!velZeroEps) {
+				if (!moving) {
+					game.debug.log(6, this+" started moving.");
+					moving = true;
+				}
+				PVector depl = velocityRel;
+				locationRel.add( depl );
+				locationAbs.set(absolute(zero));
+			} else if (moving) {
+				game.debug.log(6, this+" stopped moving.");
+				moving = false;
 			}
-			PVector depl = velocity;
-			locationRel.add( depl );
-			location.set(absolute(zero));
-		} else if (!notMoving) {
-			game.debug.log(6, this+" stopped moving.");
-			notMoving = true;
-		}
-			
-		//2. rotation
-		boolean rotZero = rotationVel.equals(identity);
-		boolean rotZeroEps = rotationVel.isZeroEps(true);
-		if (!rotZeroEps) {
-			if (notRotating) {
-				game.debug.log(6, this+" started rotating.");
-				notRotating = false;
+				
+			//2. rotation
+			boolean rotZero = rotationRelVel.isIdentity();
+			boolean rotZeroEps = rotZero || rotationRelVel.isZeroEps(true);
+			if (!rotZeroEps) {
+				if (!rotating) {
+					game.debug.log(6, this+" started rotating.");
+					rotating = true;
+				}
+				rotationRel.rotate( rotationRelVel );
+			} else if (rotating) {
+				game.debug.log(6, this+" stopped rotating.");
+				rotating = false;
 			}
-			rotation.rotate( rotationVel );
-		} else if (!notRotating) {
-			game.debug.log(6, this+" stopped rotating.");
-			notRotating = true;
-		}
-		
-		// just to be sure :p
-		if (game.physic.deltaTime == 0) {
-			assert(velZero);
-			assert(rotZero);
 		}
 		
 		//3. check changes
-		locationChanged = locationChangedCurrent;
+		locationAbsChanged = locationAbsChangedCurrent;
 		locationRelChanged = locationRelChangedCurrent;
 		rotationChanged = rotationChangedCurrent;
-		locationChangedCurrent = false;
+		locationAbsChangedCurrent = false;
 		locationRelChangedCurrent = false;
 		rotationChangedCurrent = false;
 		
-		transformChanged = locationRelChanged || rotationChanged || locationChanged;
+		transformChanged = locationRelChanged || rotationChanged || locationAbsChanged;
 		if (transformChanged)
 			matrixValid = false;
 	}
 	
 	/** return the presentation of the object with the name in evidence and the parent if exists. */
 	public String presentation() {
-		return "> "+this+" <" + (parent==null ? "" : " (on \""+parent+"\")");
+		return "> "+this+" <" + (!hasParent() ? "" : " (on \""+parent+"\")");
 	}
 
 	public String getStateUpdate() {
 		if (transformChanged) {
-			final String headStart = "", headEnd = " --- \n";
+			final String headStart = "", headEnd = " ---";
 			final String presentation = presentation()+" ";
-			final String moveType = (locationChanged?"abs":"")
-					+ (locationChanged && locationRelChanged ? " + " : "")
+			final String moveType = (locationAbsChanged?"abs":"")
+					+ (locationAbsChanged && locationRelChanged ? " + " : "")
 					+ (locationRelChanged?"rel":"");
 			final String transType = (rotationChanged ? "rot + " : "") + moveType;
-			final String changeName = ((locationChanged || locationRelChanged) && rotationChanged ?
+			final String changeName = ((locationAbsChanged || locationRelChanged) && rotationChanged ?
 					"transforms("+transType+") changed" :
-						(locationChanged || locationRelChanged ? "location("+moveType+") changed"
+						(locationAbsChanged || locationRelChanged ? "location("+moveType+") changed"
 								: "rotation changed"));
 			final String changeStr = 
-					(locationChanged || locationRelChanged ? "location: "+location : "")
-					+ (parent==null ? "" : "\nlocationRel: "+locationRel)
-					+ (velocity.equals(zero) ? "" : "\nvitesse: "+velocity+" -> "+velocity.mag()+" unit/frame.") 
-					+ (rotationChanged ? "\nrotation: "+rotation : "")
-					+ (rotationVel.isZeroEps(false)	? "" : "\nvitesse Ang.: "+rotationVel);
+					(locationAbsChanged || locationRelChanged ? "\nlocation: "+locationAbs : "")
+					+ (!hasParent() ? "" : "\nlocationRel: "+locationRel)
+					+ (velocityRel.equals(zero) ? "" : "\nvitesse rel: "+velocityRel+" -> "+velocityRel.mag()+" unit/frame.") 
+					+ (rotationChanged ? "\nrotation rel: "+rotationRel : "")
+					+ (rotationRelVel.isZeroEps(false)	? "" : "\nvitesse Ang.: "+rotationRelVel);
 			return headStart + presentation + " " + changeName + headEnd + changeStr;
 		} else
 			return null;
 	}
 	
-	/** PVector notifiant le body des changements (mais refuse les modification impures). */
-	private class UVector extends PVector {
-		private static final long serialVersionUID = 5162673540041216409L;
-		private static final String errMsg = "don't touch my transform that way";
-		private final Runnable onChange;
-		
-		public UVector(PVector v, Runnable onChange) {
-			super(v.x,v.y,v.z);
-			onChange.run();
-			this.onChange = onChange;
-		}
-
-		public PVector set(PVector v) {
-			v = super.set(v);
-			onChange.run();
-			return v;
-		}
-		
-		public PVector set(float[] source) {
-			PVector v = super.set(source);
-			onChange.run();
-			return v;
-		}
-
-		public PVector set(float x, float y, float z) {
-			PVector v = super.set(x,y,z);
-			onChange.run();
-			return v;
-		}
-
-		public PVector set(float x, float y) {
-			PVector v = super.set(x,y);
-			onChange.run();
-			return v;
-		}
-		
-		public PVector add(PVector v) {
-			v = super.add(v);
-			onChange.run();
-			return v;
-		}
-		
-		public PVector sub(PVector v) {
-			v = super.sub(v);
-			onChange.run();
-			return v;
-		}
-		
-		public PVector mult(float f) { throw new IllegalArgumentException(errMsg); }
-		public PVector div(float f) { throw new IllegalArgumentException(errMsg); }
-		public PVector limit(float f) { throw new IllegalArgumentException(errMsg); }
-		public PVector setMag(float f) { throw new IllegalArgumentException(errMsg); }
-		public PVector normalize() { throw new IllegalArgumentException(errMsg); }
-	}
-	
-	/** Quaternion notifiant le body des changements. */
-	private class UQuaternion extends Quaternion {
-		private final Runnable onChange;
-		
-		public UQuaternion(Quaternion q, Runnable onChange) {
-			super((q == null) ? identity : q);
-			this.onChange = onChange;
-		}
-		
-		public Quaternion set(Quaternion v) {
-			onChange.run();
-			return super.set(v);
-		}
-	}
-	
 	/** retourne l'orientation locale (parent pas pris en compte) */
 	public PVector orientation() {
-		return absolute(down, zero, rotation);
+		return absolute(down, zero, rotationRel);
 	}
 	
 	// --- conversion vector global <-> local ---
 
 	/** Retourne la position de rel, un point relatif au body en absolu. */
 	public PVector absolute(PVector rel) {
-		PVector relAbs = absolute(rel, locationRel, rotation);
-		if (parent != null)
+		PVector relAbs = absolute(rel, locationRel, rotationRel);
+		if (hasParent())
 			return parent.absolute(relAbs);
 		else
 			return relAbs;
@@ -289,61 +251,68 @@ public class Object extends ProMaster implements Debugable {
 		return ret;
 	}
 	protected PVector local(PVector abs) {
-		if (parent != null)
-			return local(parent.local(abs), locationRel, rotation);
+		if (hasParent())
+			return local(parent.local(abs), locationRel, rotationRel);
 		else
-			return local(abs, locationRel, rotation);
+			return local(abs, locationRel, rotationRel);
 	}
 	
 	/** return the pos in front of the body at dist from location */
 	public PVector absFront(float dist) {
-		return absolute(front(dist), zero, rotation);
+		return absolute(front(dist), zero, rotationRel);
 	}
 	
 	/** Return the pos in front of the body at dist from location. */
 	public PVector absUp(float dist) {
-		return absolute(up(dist), zero, rotation);
+		return absolute(up(dist), zero, rotationRel);
 	}
 	
 	protected PVector velocityAt(PVector loc) {
-		PVector relVel = velocity.copy();
+		PVector relVel = velocityRel.copy();
 		/*PVector rotVelAxis = rotationVel.rotAxis();
 		if (!isZeroEps( rotationVel.angle ));
 			relVel.add( rotVelAxis.cross(PVector.sub(loc, location)) );*/
-		if (parent != null)
+		if (hasParent())
 			return PVector.add( parent.velocityAt(loc), relVel);
 		else
 			return relVel;
 	}
 	
+	/** push local to the children depending on the parent relationship. */
 	protected void pushLocal() {
-		if (matrixValid && parency == Parency.Follow) {
-			app.applyMatrix(matrix);
-			app.pushMatrix();
-		} else if (parency != Parency.None) {
-			boolean translate = parency != Parency.FollowRotation;
-			boolean rotate = parency != Parency.FollowPosition;
-			if (matrixValid && translate && rotate) {
+		assert (parent != this);
+		// first push the parent.
+		if (hasParent())
+			parent.pushLocal();
+		// then the current object
+		switch (parentRel) {
+		case Full:
+			if (matrixValid) {
 				app.applyMatrix(matrix);
 				app.pushMatrix();
 			} else {
-				if (parent != null)
-					parent.pushLocal();
-				if (translate)
-					translate(locationRel);
-				if (rotate)
-					rotateBy(rotation);
+				translate(locationRel);
+				rotateBy(rotationRel);
 				app.pushMatrix();
 				matrix = app.getMatrix();
-				
 				matrixValid = true;
 			}
+			break;
+		case Static: //TODO
+			rotateBy(rotationRel);
+			app.pushMatrix();
+			break;
+		case StaticRot: //TODO
+			translate(locationRel);
+			app.pushMatrix();
+			break;
 		}
 	}
 	
 	protected void popLocal() {
-		if (parency != Parency.None) {
-			app.popMatrix();
+		app.popMatrix();
+		if (hasParent()) {
+			parent.popLocal();
 		}
 	}
 }

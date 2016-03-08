@@ -30,7 +30,8 @@ public abstract class Collision extends ProMaster {
 		if (relVdotN > 0) //vitesse dans la même direction que la normale -> pas géré (ignoré)
 			return;
 		
-		collider.location.add(correction);
+		// TODO: should be loc abs
+		collider.locationAbs.add(correction);
 		
 		if (relVdotN == 0) //vitesse nulle ou perpendiculaire à la normale -> aucun effet
 			return;	

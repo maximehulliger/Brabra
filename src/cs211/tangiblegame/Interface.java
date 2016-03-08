@@ -4,14 +4,19 @@ import processing.event.MouseEvent;
 
 public abstract class Interface extends ProMaster {
 	
-	/** Init all dynamic stuff */
+	/** Initialize all dynamic stuff */
 	public abstract void init();
 	
-	/** On view change */
-	public abstract void wakeUp();
+	/** On view change, when this interface is set. */
+	public void onShow() {}
+
+	/** On view change, when another interface is set. */
+	public void onHide() {}
 	
+	/** To draw and update. */
 	public abstract void draw();
 	
+	/** To draw gui (depth already ignored). */
 	public void gui() {}
 	
 	// --- EVENTS ---
@@ -30,6 +35,7 @@ public abstract class Interface extends ProMaster {
 	
 	// --- other ---
 	
+	/** Return the name of the parameters changed by scroll. If null scroll isn't used. */
 	public String scrollUse() { return null; }
 	
 }

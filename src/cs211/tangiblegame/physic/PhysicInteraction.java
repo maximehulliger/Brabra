@@ -24,10 +24,6 @@ public final class PhysicInteraction extends ProMaster {
 	private Body focused = null;
 	private Armement armement = null;
 
-	public boolean hasFocused() {
-		return focused != null;
-	}
-
 	/** Set focused. displayState. */
 	public void setFocused(Body focused) {
 		this.focused = focused;
@@ -56,13 +52,15 @@ public final class PhysicInteraction extends ProMaster {
 	}
 	
 	public void displayState() {
-		if (focused == null)
-			game.debug.info(2, "interaction not focused");
-		else {
+		if (hasFocused()) {
 			String armed = armement != null ? "armed " : "";
 			game.debug.info(2, "interaction focused on "+armed+"\""+focused+"\" with force = "+force);
-		}
-			
+		} else
+			game.debug.info(2, "interaction not focused");
+	}
+
+	public boolean hasFocused() {
+		return focused != null;
 	}
 	
 	public void update() {
@@ -76,7 +74,7 @@ public final class PhysicInteraction extends ProMaster {
 			System.out.printf("force d'interaction: %.1f\n",force);
 		}
 		
-		if (focused != null)
+		if (hasFocused() && !game.physic.paused)
 			applyForces();
 
 		// fire if needed
@@ -117,31 +115,30 @@ public final class PhysicInteraction extends ProMaster {
 		//> from mouse drag
 		forceRot.add( vec(-app.input.deplMouse.y*force*0.1f, app.input.deplMouse.x*force*0.1f) );
 		//> apply
-		forceRot = PVector.mult( forceRot, force*game.physic.deltaTime );
 		if (!forceRot.equals(zero)) {
 			PVector frontAP = front(150);
 			if (forceRot.x != 0) {
 				PVector pitch = up(forceRot.x);
 				focused.addForce(focused.absolute(frontAP), 
-						absolute( pitch, zero, focused.rotation));
+						absolute( pitch, zero, focused.rotationRel));
 			}
 			if (forceRot.y != 0) {
 				PVector yaw = right(forceRot.y);
 				focused.addForce(focused.absolute(frontAP), 
-						absolute( yaw, zero, focused.rotation));
+						absolute( yaw, zero, focused.rotationRel));
 			}
 			if (forceRot.z != 0) {
 				PVector roll = right(forceRot.z*3/2);
 				PVector rollAP = up(100);
 				focused.addForce(focused.absolute(rollAP), 
-						absolute( roll, zero, focused.rotation));
+						absolute( roll, zero, focused.rotationRel));
 			}
 		}
 
 		// 2. forward
 		float rightScore = max(0, app.imgAnalyser.buttonDetection.rightScore());
 		if (app.input.vertical != 0 || rightScore > 0) {
-			focused.avance((app.input.vertical+rightScore)*force*300*game.physic.deltaTime);
+			focused.avance((app.input.vertical+rightScore)*force);
 		}
 
 		// 3. brake

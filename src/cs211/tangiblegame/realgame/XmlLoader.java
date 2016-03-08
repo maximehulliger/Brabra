@@ -9,6 +9,8 @@ import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.DefaultHandler;
 
+import cs211.tangiblegame.physic.Object;
+import cs211.tangiblegame.physic.Object.ParentRelationship;
 import cs211.tangiblegame.Color;
 import cs211.tangiblegame.ProMaster;
 import cs211.tangiblegame.geo.Quaternion;
@@ -19,7 +21,7 @@ public final class XMLLoader extends ProMaster {
 	private final XMLReader xmlreader;
 	
 	public XMLLoader() {
-		filename = app.inputPath+"scene.xml";
+		filename = app.inputPath()+"scene.xml";
 		XMLReader xmlreader = null;
 		try {
 			SAXParserFactory factory = SAXParserFactory.newInstance();
@@ -36,7 +38,7 @@ public final class XMLLoader extends ProMaster {
 	/** 
 	 * load the object from the file at @filename
 	 * supported attributes for objects:
-	 * 	 name, dir, pos, mass, life, color, stroke,
+	 * 	 name, dir, pos, parency, mass, life, color, stroke,
 	 * 	 impulse, focus, force, camera, cameraDist, debug.
 	 *  */
 	public void load() {
@@ -49,13 +51,23 @@ public final class XMLLoader extends ProMaster {
 	}
 	
 	private class PrefabHandler extends DefaultHandler {
+		private Object parent = null;
+		private int nullBodyParentCount = 0;
 		
 	    public void startElement(String namespaceURI, String localName,String qName, Attributes atts) 
 	    		throws SAXException {
 	    	if (localName.equals("scene"))
 	    		return;
-	    	
-	    	else if (localName.equals("camera")) {
+	    	else if (localName.equals("physic")) {
+	    		String gravity = atts.getValue("gravity");
+	    		if (gravity != null)
+				  	game.physic.gravity = Float.parseFloat(gravity);
+			  	String paused = atts.getValue("paused");
+			  	if (paused != null)
+			  		game.physic.paused = Boolean.parseBoolean(paused);
+	    	} else if (localName.equals("camera")) {
+	    		game.camera.setParent(parent);
+    			parent = game.camera;
 	    		game.camera.set(atts.getValue("mode"),atts.getValue("dist"),null);
 			  	String displaySkybox = atts.getValue("displaySkybox");
 			  	String debug = atts.getValue("debug");
@@ -64,13 +76,6 @@ public final class XMLLoader extends ProMaster {
 			  	if (debug != null && Boolean.parseBoolean(debug)) {
 			  		game.debug.followed.add(game.camera);
 			  	}
-	    	} else if (localName.equals("physic")) {
-	    		String gravity = atts.getValue("gravity");
-	    		if (gravity != null)
-				  	game.physic.gravity = Float.parseFloat(gravity);
-			  	String deltaTime = atts.getValue("deltaTime");
-			  	if (deltaTime != null)
-			  		game.physic.deltaTime = Float.parseFloat(deltaTime);
 	    	} else {
 	    		String pos = atts.getValue("pos");
 	    		String impulse = atts.getValue("impulse");
@@ -90,7 +95,7 @@ public final class XMLLoader extends ProMaster {
 	    				: Prefab.add(localName, vec(pos));
 	    				
 	    		if (b != null) {
-			  		if (color != null)
+	    			if (color != null)
 			  			b.setColor( new Color(color, stroke) );
 			  		if (impulse != null)
 					  	b.applyImpulse(vec(impulse));
@@ -112,13 +117,31 @@ public final class XMLLoader extends ProMaster {
 				  	if (debug != null && Boolean.parseBoolean(debug)) {
 				  		game.debug.followed.add(b);
 				  	}
-			  	}
+				  	if (parent != null) {
+				  		String parentRel = atts.getValue("parentRel");
+			    		b.setParentRel(ParentRelationship.fromString(parentRel));
+			    		b.setParent(parent);
+				  	}
+				  	parent = b;
+			  	} else
+			  		nullBodyParentCount++;
 	    	}
 	    }
-	    /*
-		public void endElement(String uri, String localName, String qName) throws SAXException {}
-		public void characters(char[] ch, int start, int length) {}
-		*/
+	    
+		public void endElement(String uri, String localName, String qName) 
+				throws SAXException {
+			if (localName.equals("scene") || localName.equals("physic"))
+	    		return;
+	    	else {
+	    		if (nullBodyParentCount <= 0) {
+	    			parent = parent.parent();
+	    		} else {
+	    			nullBodyParentCount--;
+	    		}
+	    	}
+		}
+		
+		//public void characters(char[] ch, int start, int length) {}
 	}
 
 	private void setLife(Body b, String lifeText) {

@@ -48,7 +48,7 @@ public class Prefab extends ProMaster {
 		if (b == null)
 			return null;
 		else {
-			b.rotation.set(rotation);
+			b.rotationRel.set(rotation);
 			return b;
 		}
 	}

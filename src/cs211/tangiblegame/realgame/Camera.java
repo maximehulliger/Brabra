@@ -59,10 +59,8 @@ public class Camera extends Object {
 			return;
 		
 		if (toFollow != null) {
-			setParent(toFollow, Parency.FollowPosition);
-			if (followMode != null) {
-				setMode(FollowMode.fromString(followMode));
-			}
+			setParent(toFollow);
+			setParentRel(ParentRelationship.fromString(followMode));
 		} else if (followMode != null && dist != null) {
 			PVector newDist = vec(dist);
 			FollowMode mode = FollowMode.fromString(followMode);
@@ -74,6 +72,11 @@ public class Camera extends Object {
 					game.debug.info(2, "camera dist in "+followMode+" mode set at "+dist);
 			}
 		}
+	}
+	
+	public void setParent(Object parent) {
+		super.setParent(parent);
+		setParentRel(ParentRelationship.Static);
 	}
 
 	public void setSkybox(boolean displaySkybox) {
@@ -91,7 +94,7 @@ public class Camera extends Object {
 	}
 	
 	public void nextMode() {
-		if (parent != null)
+		if (hasParent())
 			setMode(followMode.next());
 		else
 			game.debug.msg(3, "Camera need an object to focus on.");
@@ -105,11 +108,11 @@ public class Camera extends Object {
 		updateAbs();
 		
 		for (Collider c : game.physic.colliders)
-			if (ProMaster.distSq(focus, c.location) > distSqBeforeRemove)
+			if (ProMaster.distSq(focus, c.locationAbs) > distSqBeforeRemove)
 				game.physic.toRemove.add( c );
 		
 		// 2.draw
-		app.camera(location.x, location.y, location.z, 
+		app.camera(locationAbs.x, locationAbs.y, locationAbs.z, 
 				focus.x, focus.y, focus.z, 
 				orientation.x, orientation.y, orientation.z);
 		
@@ -138,9 +141,9 @@ public class Camera extends Object {
 	
 	public void displayState() {
 		if (followMode == FollowMode.Not)
-			game.debug.info(2, "camera fixed at "+location);
+			game.debug.info(2, "camera fixed at "+locationAbs);
 		else
-			game.debug.info(2, "camera following "+parent+" at "+parent.location
+			game.debug.info(2, "camera following "+parent()+" at "+parent().locationAbs
 					+" from +"+locationRel+" in "+followMode+" mode.");
 	}
 	
@@ -151,9 +154,9 @@ public class Camera extends Object {
 	    app.fill(0,0,0);
 	    app.sphere(5);
 	    //this finds the position of the mouse in model space
-	    PVector mousePos = absolute(mrel, location, identity);
+	    PVector mousePos = absolute(mrel, locationAbs, identity);
 
-	    PVector camToMouse=PVector.sub(mousePos, location);
+	    PVector camToMouse=PVector.sub(mousePos, locationAbs);
 
 	    app.stroke(150, 150, 150, 255); //box line colour
 	    line(camToMouse, mousePos);
@@ -169,23 +172,23 @@ public class Camera extends Object {
 		    app.fill(0,255,0);
 		    app.sphere(5);
 	    app.popMatrix();
-	    System.out.println("cam pos: "+location);
+	    System.out.println("cam pos: "+locationAbs);
 	    System.out.println("mouse pos: "+mousePos);
 	    System.out.println("cam to mouse: "+camToMouse);
-	    System.out.println("cam to focus: "+PVector.sub(location, focus));
+	    System.out.println("cam to focus: "+PVector.sub(locationAbs, focus));
 	}
 
 	public void updateAbs() {
-		if (parent == null) {
+		if (!hasParent()) {
 			assert(followMode == FollowMode.Not);
-		} else if (parent.transformChanged) {
+		} else if (parent().transformChanged) {
 			orientation = (followMode == FollowMode.Relative) ?
-					parent.orientation() : defaultOrientation;
+					parent().orientation() : defaultOrientation;
 			switch(followMode) {
 			case Static:
-				focus = parent.location;
+				focus = parent().locationAbs;
 			case Relative:
-				focus = parent.absUp(60);
+				focus = parent().absUp(60);
 			default:
 				focus = zero;
 			}

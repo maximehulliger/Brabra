@@ -5,8 +5,9 @@ import processing.core.PApplet;
 import processing.core.PVector;
 
 public class Quaternion extends ProMaster {
-	public static final Quaternion identity = new Quaternion();
-	public static final Quaternion toTurnAround = new Quaternion(ProMaster.up, PApplet.PI);
+	public static final Quaternion identity = new NQuaternion(new Quaternion(), 
+			() -> { throw new IllegalArgumentException("pas touche à l'identity /!\\"); });
+	public static final Quaternion toTurnAround = new Quaternion(up, PApplet.PI);
 
 	private float w, x, y, z;      	// components of a quaternion
 	private boolean validRotAxis = false;
@@ -18,8 +19,10 @@ public class Quaternion extends ProMaster {
 
 	public Quaternion(float w, float x, float y, float z) {
 		set(w, x, y, z);
-		if (equals(identity))
+		if (isIdentity())
 			validRotAxis = true;
+		if (!equalsEps(1, normSq()))
+			normalize();
 	}
 
 	public Quaternion() {
@@ -68,7 +71,7 @@ public class Quaternion extends ProMaster {
 	/** Set wxyz of the quaternion and return it. */
 	public Quaternion set(Quaternion rot) {
 		set(rot.w, rot.x, rot.y, rot.z);
-		if (rot.equals(identity)) {
+		if (rot.isIdentity()) {
 			angle = 0;
 			rotAxis = null;
 			validRotAxis = true;
@@ -90,7 +93,7 @@ public class Quaternion extends ProMaster {
 	
 	/** Mult/turn the quaternion and return it. */
 	public Quaternion rotate(Quaternion r) {
-		if (!r.equals(identity)) {
+		if (!r.isIdentity()) {
 			mult(r);
 			if (++age >= manucureAge) {
 				normalize();
@@ -101,21 +104,37 @@ public class Quaternion extends ProMaster {
 	}
 
 	public void addAngularMomentum(PVector dL) {
-		assert (!dL.equals(ProMaster.zero));
+		assert (!dL.equals(zero));
 		PVector rotAxis = rotAxis();
 		PVector newRotAxis = (rotAxis == null) ? dL : PVector.add(rotAxis, dL);
 		set( newRotAxis, newRotAxis.mag() );
 	}
 
-	/** check if rotation is null and if so resets it. */
-	public boolean isZeroEps(boolean clean) {
-		if (ProMaster.equalsEps(PApplet.abs(w), 1) && ProMaster.isZeroEps(x)
-				&& ProMaster.isZeroEps(y) && ProMaster.isZeroEps(z)) {
-			if (clean && !equals(identity))
-				reset();
+	/** Check if this (wxyz) nearly equals other and if so & clean set it to other. */
+	public boolean equalsEps(Quaternion other, boolean clean) {
+		if (equalsEps(w, other.w) && equalsEps(x, other.x) && 
+				equalsEps(y, other.y) && equalsEps(z, other.z)) {
+			if (clean && !equals(other))
+				set(other);
 			return true;
 		} else
 			return false;
+	}
+
+	/** Check if this (axis & angle) nearly equals other and if so & clean set it to other. */
+	public boolean equalsEpsAxis(Quaternion other, boolean clean) {
+		if (equalsEps(rotAxis(), other.rotAxis(), clean) && 
+				equalsEps(angle(), other.angle())) {
+			if (clean && !equals(other))
+				set(other);
+			return true;
+		} else
+			return false;
+	}
+
+	/** Check if rotation is null and if so & clean reset it. */
+	public boolean isZeroEps(boolean clean) {
+		return equalsEps(identity, clean);
 	}
 	
 	// --- immutable stuff ---
@@ -147,14 +166,28 @@ public class Quaternion extends ProMaster {
 		return (rotAxis == null) ? 0 : angle;
 	}
 	
+	public boolean isIdentity() {
+		boolean wxyzNull = w == 1 && x == 0 && y == 0 && z == 0;
+		return wxyzNull;
+	}
+	
 	public boolean equals(Object other) {
 		if (other == null) return false;
 	    if (other == this) return true;
 	    return (other instanceof Quaternion) 
 	    		? equals((Quaternion)other) : false;
 	}
-	
+
 	public boolean equals(Quaternion other) {
+		boolean ret = equalsWXYZ(other);
+		return ret;
+	}
+
+	public boolean equalsAxis(Quaternion other) {
+		return rotAxis() == other.rotAxis() && angle() == other.angle();
+	}
+	
+	public boolean equalsWXYZ(Quaternion other) {
 		return other.w == w && other.x == x && other.y == y && other.z == z;
 	}
 
@@ -163,21 +196,24 @@ public class Quaternion extends ProMaster {
 	}
 	
 	public String toString() {
-		updateAxis();
-		boolean id = equals(identity);
-		if (id)
-			assert (rotAxis == null && angle == 0);
-		if (rotAxis == null || angle == 0)
-			assert(id);
-		
-		//return "quat: (wxyz:"+w+", "+x+", "+y+", "+z+") norm: "+PApplet.sqrt(normSq())+" angle: "+angle;
-		return "quat "+ (id ? "identity" : "axis: "+rotAxis+" angle: "+angle*180/pi+"°");
+		if (app.debug.testMode) 
+			return toStringAll();
+		else{
+			updateAxis();
+			boolean id = isIdentity();
+			
+			assert((rotAxis == null || angle == 0) == id);
+			assert((rotAxis == null) == (angle == 0));
+				
+			//return "quat: (wxyz:"+w+", "+x+", "+y+", "+z+") norm: "+PApplet.sqrt(normSq())+" angle: "+angle;
+			return "quat "+ (id ? "identity" : "axis: "+rotAxis+" angle: "+angle*180/pi+"°");
+		}
 	}
 	
 	public String toStringAll() {
 		updateAxis();
 		return    "  quat: (wxyz:"+w+", "+x+", "+y+", "+z+") \n"
-				+ "  norm: "+PApplet.sqrt(normSq())+" age: "+age+"\n"
+				+ "  norm: "+PApplet.sqrt(normSq())+" age: "+age+" valitRotAxis: "+validRotAxis+"\n"
 				+ "  axis: "+rotAxis+"\n"
 				+ "  angle: "+angle;
 	}
@@ -200,16 +236,18 @@ public class Quaternion extends ProMaster {
 	
 	/** build a quaternion from a direction vector and return it. */
 	public static Quaternion fromDirection(PVector vDirection) {
-		if (ProMaster.equalsEps(vDirection, ProMaster.behind, false))
+		if (equalsEps(vDirection, behind, false))
 			return toTurnAround.copy();
+		else if (equalsEps(vDirection, front, false))
+			return identity.copy();
 				
 		vDirection.normalize();
 		PVector up = ProMaster.up.copy();
         // setup basis vectors describing the rotation given the input vector and assuming an initial up direction.
 		PVector vRight = up.cross(vDirection);    
 		up = vDirection.cross(vRight);	// The actual up vector
-        if (up.equals(ProMaster.zero)) {
-        	up = ProMaster.up.copy();
+        if (up.equals(zero)) {
+        	up = up.copy();
         }
         
         float in = 1.0f + vRight.x + up.y + vDirection.z;
@@ -258,7 +296,7 @@ public class Quaternion extends ProMaster {
 
 	/** rotAxis, angle -> wxyz. update wxyz, rot axis if needed (!validRotAxis) */
 	public Quaternion initFromAxis() {
-		assert( !(rotAxis!=null && rotAxis.equals(ProMaster.zero)) );
+		assert( !(rotAxis!=null && rotAxis.equals(zero)) );
 		
 		// if to identity
 		if (validRotAxis && (rotAxis==null || angle == 0))
@@ -285,13 +323,13 @@ public class Quaternion extends ProMaster {
 	/** wxyz -> rotAxis, angle. update rot axis & angle if needed (!validRotAxis). set validRotAxis to true. */
 	public void updateAxis() {
 		if (!validRotAxis) {
-			if (equals(identity)) {
+			if (equalsWXYZ(identity)) {
 				angle = 0;
 				rotAxis = null;
 			} else {
 				float halfomega = PApplet.acos(w);
 				float s = PApplet.sin(halfomega);
-				if (s == 0) { //no rotation
+				if (halfomega == 0 || s == 0) { //no rotation
 					reset();
 				} else {
 					float invSinHO = 1/s;
@@ -306,7 +344,7 @@ public class Quaternion extends ProMaster {
 
 	private Quaternion normalize() {
 		float norm = PApplet.sqrt(normSq());
-		assert (!ProMaster.equalsEps(norm, 0));
+		assert (!equalsEps(norm, 0));
 		if (norm != 1) {
 			float invNorm = 1f/norm;
 			set(w * invNorm,
@@ -319,7 +357,7 @@ public class Quaternion extends ProMaster {
 	
 	// mult by a normalized quaternion
 	private Quaternion mult(Quaternion q) {
-		if (!q.equals(identity)) {
+		if (!q.isIdentity()) {
 			set(w*q.w - x*q.x - y*q.y - z*q.z,
 				w*q.x + x*q.w - y*q.z + z*q.y,
 				w*q.y + y*q.w - z*q.x + x*q.z,
@@ -330,5 +368,22 @@ public class Quaternion extends ProMaster {
 	
 	private float normSq() {
 		return w*w + x*x + y*y + z*z;
+	}
+	
+	/** Quaternion notifying on change (after change. not on creation). */
+	public static class NQuaternion extends Quaternion {
+		private final Runnable onChange;
+		
+		public NQuaternion(Quaternion q, Runnable onChange) {
+			super(q);
+			this.onChange = onChange;
+		}
+		
+		public Quaternion set(float w, float x, float y, float z) {
+			super.set(w,x,y,z);
+			if (onChange != null)
+				onChange.run();
+			return this;
+		}
 	}
 }

@@ -1,131 +1,244 @@
 package cs211.tangiblegame;
 
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
+import java.awt.Insets;
+import javafx.application.Platform;
+import processing.core.*;
+import processing.event.MouseEvent;
+
+import cs211.gui.ToolWindow;
 import cs211.tangiblegame.calibration.Calibration;
 import cs211.tangiblegame.imageprocessing.ImageAnalyser;
 import cs211.tangiblegame.realgame.RealGame;
 import cs211.tangiblegame.trivial.TrivialGame;
-import processing.core.*;
-import processing.event.MouseEvent;
 
 
 public class TangibleGame extends PApplet {
-	public enum View {Menu, Calibration, TrivialGame, RealGame}
+	public enum View {Menu, Calibration, TrivialGame, RealGame, None}
 	public static final String name = "Brabra";
-	public final Debug debug = new Debug();
 	
 	//--- parametres
 	/** [1-6]: user[1-3], dev[4-6] 6: one object debug. atm: 7. */
 	public static final int verbosity = 7;
-	public boolean imgAnalysis = false;
+	/** Max tilt in radians that will be taken in account for the plate (detection) */
 	public static final float inclinaisonMax = PApplet.PI/5;
+	/** Main window size. */
+	public final int width = 1080, height = 720;
+	/** Indicates if this should be activated on start. */
+	protected boolean imgAnalysis = false, toolWindow = false;
 	
-	//--- interne
-	public String dataPath;
-	public String inputPath;
+	//--- public
+	public final Debug debug = new Debug();
 	public ImageAnalyser imgAnalyser;
-	public RealGame intRealGame;
-	public TrivialGame intTrivialGame;
-	public Calibration intCalibration;
-	public Menu intMenu;
 	public Input input;
-	public boolean hasPopup = false;
-	public boolean over = false;
-	private Interface currentInterface;
+	public ToolWindow fxApp;
+	public PVector windowLoc;
+		
+	//--- interne
+	private String basePath;
+	private boolean imgAnalysisStarted = false, fxAppStarted = false;
+	private Interface currentInterface, intMenu, intRealGame, intTrivialGame, intCalibration, intNone;
+	private boolean over = false;
 	
-	//----- setup et boucle d'update (draw)
+	// --- setup and life cycle (draw, dispose) ---
 	
 	public static void main(String args[]) {
-		PApplet.main(new String[] { cs211.tangiblegame.TangibleGame.class.getName() });
+		TangibleGame me = new TangibleGame();
+		String[] sketchArgs = {"--location="+(int)me.windowLoc.x+","+(int)me.windowLoc.y, TangibleGame.class.getName()};
+		PApplet.runSketch( sketchArgs, me );
+	}
+	
+	public TangibleGame() {
+		GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
+		windowLoc = new PVector((gd.getDisplayMode().getWidth() - width) / 2,
+       			(gd.getDisplayMode().getHeight() - height) / 3);
+		if (toolWindow)
+			 windowLoc.x += ToolWindow.width/2;
 	}
 	
 	public void settings() {
-		size(1080, 720, "processing.opengl.PGraphics3D");
-		String base = dataPath("").substring(0, dataPath("").lastIndexOf(name)+name.length())+"/bin/";
-		dataPath = base+"data/";
-		inputPath = base+"input/";
-		debug.info(2, "base path: "+base+" in "+System.getProperty("os.name"));
+		size(width, height, "processing.opengl.PGraphics3D");
+		String dataPath = dataPath("");
+		basePath = (dataPath.substring(0, dataPath.lastIndexOf(name)+name.length())+"/bin/").replace('\\', '/');
+		debug.info(2, "base path: "+basePath+" in "+System.getProperty("os.name"));
 	}
-	
+
 	public void setup() {
-		// processing stuff
+		// 1. processing stuff.
 		frameRate(30);
 		float camZ = height / (2*tan(PI*60/360.0f));
 		perspective(PI/3, width/(float)height, camZ/100, camZ*1000);
 		surface.setTitle(name);
-		surface.setResizable(false);
+		// enable the frame and correct windowLoc.
+		frame.pack();
 		
-		// our stuff
-		ProMaster.app = this;
-		input = new Input();
-		imgAnalyser = new ImageAnalyser();
-		if (imgAnalysis) {
-			if (verbosity >= 3)
-				System.out.println("starting img analysis thread.");
-			thread("imageProcessing");
-		}
+        Insets insets = frame.getInsets();
+        windowLoc.sub(insets.left, insets.top);
+		
+        // 2. our stuff
+		setupGame();
 		setView(View.RealGame);
+		// show second window if needed
+		setToolWindow(toolWindow);
 	}
 
-	public void imageProcessing() {
-		imgAnalyser.run();
+	/** setup all our stuff. */
+	protected void setupGame() {
+		ProMaster.app = this;
+		ToolWindow.app = this;
+		input = new Input();
+		setImgAnalysis(imgAnalysis);
+		setToolWindow(toolWindow);
 	}
 	
 	public void draw() {
+		// input + current interface
 		input.update();
 		currentInterface.draw();
-		
-		//gui
-		camera();
+		// gui
 		hint(PApplet.DISABLE_DEPTH_TEST);
+		camera();
 		if (imgAnalysis && currentInterface!=intCalibration)
 			imgAnalyser.gui();
 		currentInterface.gui();
 		hint(PApplet.ENABLE_DEPTH_TEST);
+		// debug
+		debug.update();
 	}
 
+	public void dispose() {
+		debug.setCurrentWork("quiting");
+		over = true;
+		if (fxApp != null)
+			Platform.exit();
+		super.dispose();
+		System.out.println("bye bye !");
+	}
+	
+	// --- getters ---
+	
+	public String inputPath() {
+		return dataPathTo("input");
+	}
+	
+	public String dataPath() {
+		return dataPathTo("data");
+	}
+	
+	public String dataPathTo(String ext) {
+		return basePath+ext+"/";
+	}
+
+	public boolean hasToolWindow() {
+		return toolWindow;
+	}
+	
+	public boolean hasImgAnalysis() {
+		return imgAnalysis;
+	}
+	
+	public boolean isOver() {
+		return over;
+	}
+	
+	// --- file loading ---
+	
+	public PShape loadShape(String filename) {
+		return super.loadShape(dataPath()+filename);
+	}
+	
+	public PImage loadImage(String file) {
+		boolean abs = file.startsWith("C:") || file.startsWith("/");
+		return super.loadImage(abs ? file : dataPath()+file);
+	}
+	
+	// --- setters ---
+
+	public void setVisible(boolean visible) {
+		surface.setVisible(visible);
+		if (toolWindow)
+			fxApp.setVisible(visible);
+		if (imgAnalysis && !imgAnalyser.running()) {
+			imgAnalyser.play(false);
+		}
+	}
+	
+	/** Activate or deactivate (hide) the tool window. Initialize it (fxApp) if needed. */
+	public void setToolWindow(boolean hasToolWindow) {
+		System.out.println("previous window state: "+toolWindow);
+		toolWindow = hasToolWindow;
+		if (!fxAppStarted && hasToolWindow) {
+			fxAppStarted = true;
+			debug.info(3, "starting tool window thread.");
+			Master.launch(() -> {ToolWindow.run(this);} );
+		} else if (fxAppStarted) {
+			Platform.runLater(() -> fxApp.setVisible(hasToolWindow));
+		}
+	}
+	
+	/** Activate or deactivate the image analysis. Initialize it (imgAnalyser) if needed. */
+	public void setImgAnalysis(boolean hasImgAnalysis) {
+		imgAnalysis = hasImgAnalysis;
+		if (imgAnalyser == null)
+			imgAnalyser = new ImageAnalyser();
+		if (imgAnalysisStarted && hasImgAnalysis) {
+			debug.info(3, "starting img analysis thread.");
+			Master.launch(() -> {imgAnalyser.run();} );
+		}
+	}
+	
+	/** Change the current view of the app. */
 	public void setView(View view) {
 		switch (view) {
 		case Menu:
-			if (intMenu == null) {
+			if (intMenu == null)
 				intMenu = new Menu();
-			}
-			currentInterface = intMenu;
-			break;
+			setInterface(intMenu);
+			return;
 		case Calibration:
 			if (intCalibration == null) {
 				intCalibration = new Calibration();
 				intCalibration.init();
 			}
-			currentInterface = intCalibration;
-			break;
+			setInterface(intCalibration);
+			return;
 		case RealGame:
 			if (intRealGame == null) {
 				intRealGame = new RealGame();
 				intRealGame.init();
 			}
-			currentInterface = intRealGame;
-			break;
+			setInterface(intRealGame);
+			return;
 		case TrivialGame:
 			if (intTrivialGame == null) {
 				intTrivialGame = new TrivialGame();
 				intTrivialGame.init();
 			}
-			currentInterface = intTrivialGame;
-			break;
+			setInterface(intTrivialGame);
+			return;
+		case None:
+			if (intNone == null) 
+				intNone = new Interface() {
+					public void init() {background(0);}
+					public void draw() {}
+				};
+			setInterface(intNone);
+			return;
 		}
-		currentInterface.wakeUp();
 	}
 
 	//-------- Gestion Evenements
 
 	public void keyPressed() {
-		if (key == 27 && currentInterface != intMenu) {
-			// on intercepte escape
-			setView(View.Menu);
-			key = 0;
-			return;
+		if (key == 27) {
+			key = 0; // on intercepte escape
+			if (currentInterface != intMenu)
+				setView(View.Menu);
+			else
+				exit();
 		} else if (key == 'l')
-			imgAnalyser.imgProc.selectParameters();
+			debug.log("parameters loading still to implement");//imgAnalyser.imgProc.selectParameters(); TODO
 		else if (key == 'q')
 			currentInterface.init();
 		else if (key == 'Q')
@@ -134,6 +247,8 @@ public class TangibleGame extends PApplet {
 			imgAnalyser.playOrPause();
 		else if (key=='i')
 			imgAnalyser.changeInput();
+		else if (key=='h')
+			setToolWindow(!toolWindow);
 		
 		input.keyPressed();
 		currentInterface.keyPressed();
@@ -162,11 +277,16 @@ public class TangibleGame extends PApplet {
 		currentInterface.mouseReleased();
 	}
 	
-	public void dispose() {
-		if (imgAnalyser.takeMovie && imgAnalyser.paused())
-			imgAnalyser.play(true);
-		over = true;
-		super.dispose();
-		System.out.println("bye bye !");
-	} 
+	public void mouseMoved() {
+	}
+	
+	// --- private stuff -> KEEP OUT ---
+	
+	private void setInterface(Interface view) {
+		if (currentInterface != null)
+			currentInterface.onHide();
+		currentInterface = view;
+		view.onShow();
+	}
+
 }

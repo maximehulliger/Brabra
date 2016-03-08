@@ -116,7 +116,7 @@ public class Armement extends ProMaster {
 		}
 	}
 
-	public class LanceMissile {
+	public class LanceMissile extends ProMaster {
 		private final static int tAffichageErreur = 15;
 		private final PVector loc;
 		private final int tier;
@@ -151,8 +151,8 @@ public class Armement extends ProMaster {
 				return false;
 			} else {
 				tempsRestant = tRecharge;
-				Missile m = new Missile(launcher.absolute(loc), launcher.rotation, puissance);
-				ProMaster.app.intRealGame.physic.toAdd.add( m );
+				Missile m = new Missile(launcher.absolute(loc), launcher.rotationRel, puissance);
+				game.physic.toAdd.add( m );
 				return true;
 			}
 		}
@@ -184,14 +184,9 @@ public class Armement extends ProMaster {
 				super(location, rotation, puissance, 
 						vec( tiersRatioSize[tier]*2*ratioSizeMissile, tiersRatioSize[tier]*2*ratioSizeMissile, tiersRatioSize[tier]*7*ratioSizeMissile) );
 				assert(tier > 0);
-				velocity.set(launcher.velocity);
+				velocityRel.set(launcher.velocityRel);
 			}
 			
-			public void update() {
-				super.update();
-
-			}
-	
 			public void display() {
 				pushLocal();
 				app.scale( tiersRatioSize[tier] * ratioSizeMissile );
@@ -220,8 +215,8 @@ public class Armement extends ProMaster {
 			}
 	
 			public void onCollision(Collider col, PVector impact) {
-				app.intRealGame.physic.toRemove.add( this );
-				app.intRealGame.physic.effectsToAdd.add( new Effect.Explosion( impact, 30 ) );
+				game.physic.toRemove.add( this );
+				game.physic.effectsToAdd.add( new Effect.Explosion( impact, 30 ) );
 	
 				//réaction objectif
 				if (col instanceof Objectif) {
@@ -231,7 +226,7 @@ public class Armement extends ProMaster {
 		}
 	}
 	
-	// une sphère à détruire
+	/** A sphere to destroy. */
 	public static class Objectif extends Sphere {
 		
 		public Objectif(PVector location) {
@@ -251,13 +246,9 @@ public class Armement extends ProMaster {
 		public void addForces() {
 			freine(0.07f);
 		}
-
-		public void damage(int damage) {
-			life -= damage;
-			if (life < 0) {
-				app.intRealGame.physic.toRemove.add(this);
-				System.out.println("détruit !");
-			}
+		
+		public void onDeath() {
+			game.debug.msg(2, this+" destroyed");
 		}
 	}
 }

@@ -1,4 +1,5 @@
 ﻿```sh
+
 ============================================  
 =  ______           _                 _    =  
 =  | ___ \         | |               | |   =  
@@ -12,28 +13,29 @@
 
 
 #	Brabra !
-
 This augmented reality project was initially developed for the course
 CS-211 "Introduction to visual computing" given in 2014-2015 at EPFL.
 
 ###### Featuring:
-- Processing 3, Java 8 and probably Scala soon
+- Processing 3, Java 8, Java FX and ready for Scala
 - 3D interactive physic simulation
 - A starship shooting missiles
 - Dynamic scene initialization
 - Image analysis for quad detection (bugged for now)
 
+*For developers, see also the [readmeDev](readmeDev.md) file.*
 
 <br>
-# 1.	Real Game
 
+# 1.	Real Game
 The key interface of the project :D
 
 - *q*, *r*     ->  restart the game
 - <_tab_>	   ->  change the camera mode
 
 <br>
-#### focused object
+
+#### Focused object
 You can focus your interaction on an object or body. 
 
 - *e*        ->  shoot the biggest ready missile (if available)
@@ -44,6 +46,7 @@ You can focus your interaction on an object or body.
 - scroll wheel 	->  change the interaction force
 
 <br>
+
 #### Camera
 The camera can work in several modes and follow a particular object.
 
@@ -52,6 +55,7 @@ modes: ***fixed, static, relative***.
 each mode has his own distance from the looked point.
 
 <br>
+
 #### Scene initialization
 You will find an input file "Brabra/bin/input/scene.xml" to configure the initialization 
 of the scene's objects and parameters (camera, physic). To reload the file, restart the game with *q* or *r*.
@@ -80,18 +84,15 @@ file example with all supported attributes:
 		-->
 	</scene>
 
-
 <br>
-# 2. 	Trivial Game
 
+# 2. 	Trivial Game
 Initial excepted project for the course. Only reacts to the rotation of the detected plate.
 
-
 <br>
+
 # 3.	Image Analysis (not working atm)
-
-<br>
-#### plate
+#### Plate
 The augmented reality aspect of this project remains in the possibility to control
 the software with an external object. 
 We want to detect a plate or quad with a particular colour (example: see "plate exemple.jpg"). Once calibrated, the software will compute the rotation of the plate relative of the camera.
@@ -102,7 +103,8 @@ In option, it also detects two buttons on each side of the plate.
 - right button   ->  shoot missiles bigger with the visibility
 
 <br>
-#### calibration
+
+#### Calibration
 Here you can find and manage image filtering parameters to operate the image analysis.
 It is mainly thresholding of the pixel colours in both RGB and HSV representation.
 
@@ -113,7 +115,8 @@ It is mainly thresholding of the pixel colours in both RGB and HSV representatio
 - b -> go in 'button detection' mode, to calibrate the button detection
 
 <br>
-#### control screen
+
+#### Control screen
 When image analysis is enabled and not paused, a control or feedback screen will be 
 displayed in the upper left corner of the window reporting what the software sees.
 
@@ -122,8 +125,10 @@ displayed in the upper left corner of the window reporting what the software see
 			(max 65°, happens too when the quad is wrongly detected.)
 - button circles are red -> not enough detected to count
 
+<br>
+
+# 4. 	Contact
 
 <br>
-# 4. 	Contact
 
 Maxime Hulliger, hulliger@epfl.ch

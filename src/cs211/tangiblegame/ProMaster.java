@@ -13,7 +13,7 @@ import processing.core.PVector;
  * Free to use once extended :) 
  * */
 public abstract class ProMaster extends Master {
-	private static final float epsilon = PApplet.EPSILON / 100;
+	protected static final float epsilon = PApplet.EPSILON / 100;
 	
 	protected static TangibleGame app;
 	protected static RealGame game;
@@ -56,8 +56,19 @@ public abstract class ProMaster extends Master {
 		return pp.normalize();
 	}
 	
-	public static PVector add(PVector v1, PVector v2) {
-		return PVector.add(v1, v2);
+	/** Add dome vectors. */
+	public static PVector add(PVector... v) {
+		if (v.length <= 1)
+			throw new IllegalArgumentException("add at least 2 vectors !");
+		else if (v.length == 2)
+			return PVector.add(v[0], v[1]);
+		else {
+			PVector ret = zero.copy();
+			for (PVector vec : v)
+				ret.add(vec);
+			return ret;
+		}
+			
 	}
 	
 	public static PVector sub(PVector v1, PVector v2) {
@@ -150,9 +161,33 @@ public abstract class ProMaster extends Master {
 				matriceDiag.z * vector.z );
 	}
 
-	/** retourne un vecteur avec xyz dans [-1,1] */
-	protected static PVector randomVec() {
-		return vec(randomBi(), randomBi(), randomBi());
+	/** retourne un vecteur avec xyz dans [-norm,norm] */
+	protected static PVector randomVec(float norm) {
+		return vec(random(-norm, norm), random(-norm, norm), random(-norm, norm));
+	}
+	
+	/** PVector notifying on change (after change. not on creation). */
+	public class NVector extends PVector {
+		private static final long serialVersionUID = 5162673540041216409L;
+		private final Runnable onChange;
+		
+		public NVector(PVector v, Runnable onChange) { 
+			super(v.x,v.y,v.z); 
+			this.onChange = onChange; 
+		}
+
+		// first apply, then notify
+		public PVector set(PVector v) { v = super.set(v); onChange.run(); return v; }
+		public PVector set(float[] source) { PVector v = super.set(source); onChange.run(); return v; }
+		public PVector set(float x, float y, float z) { PVector v = super.set(x,y,z); onChange.run(); return v; }
+		public PVector set(float x, float y) { PVector v = super.set(x,y); onChange.run(); return v; }
+		public PVector add(PVector v) { v = super.add(v); onChange.run(); return v; }
+		public PVector sub(PVector v) { v = super.sub(v); onChange.run(); return v; }
+		public PVector mult(float f) { PVector v = super.mult(f); onChange.run(); return v; }
+		public PVector div(float f) { PVector v = super.mult(f); onChange.run(); return v; }
+		public PVector limit(float f) { PVector v = super.mult(f); onChange.run(); return v; }
+		public PVector setMag(float f) { PVector v = super.mult(f); onChange.run(); return v; }
+		public PVector normalize() { PVector v = super.normalize(); onChange.run(); return v; }
 	}
 
 	// --- EPSILON (small value) ---
@@ -195,42 +230,42 @@ public abstract class ProMaster extends Master {
 	}
 	
 	// --- Transformations (location, rotation) ---
-	
-	protected static PVector model(PVector rel) {
-		return new PVector( app.modelX(rel.x, rel.y, rel.z), app.modelY(rel.x, rel.y, rel.z), app.modelZ(rel.x, rel.y, rel.z) );
-	}
-	
-	protected static PVector absolute(PVector rel, PVector trans, Quaternion rotation) {
-		app.pushMatrix();
-		if (!rotation.equals(identity))
+
+	protected static synchronized PVector absolute(PVector rel, PVector trans, Quaternion rotation) {
+		boolean rotNull = rotation.equals(identity);
+		boolean transNull = trans.equals(zero);
+		if (!rotNull || !transNull)
+			app.pushMatrix();
+		if (!rotNull)
 			rotateBy(rotation);
-		if (!trans.equals(zero))
+		if (!transNull)
 			translate(trans);
 		PVector ret = model(rel);
-		app.popMatrix();
+		if (!rotNull || !transNull)
+			app.popMatrix();
 		return ret;
 	}
 
-	protected static PVector local(PVector abs, PVector trans, Quaternion rotation) {
-		return absolute( PVector.sub(abs, trans), zero, rotation.withOppositeAngle());
-	}
-
-	protected static void translate(PVector t) {
+	protected static synchronized void translate(PVector t) {
 		app.translate(t.x, t.y, t.z);
 	}
 
 	protected static void rotateBy(Quaternion rotation) {
-		rotateBy(rotation.rotAxis());
+		rotateBy(rotation.rotAxis(), rotation.angle());
 	}
 
-	protected static void rotateBy(PVector rotation) {
-		if (rotation == null)
+	protected static synchronized void rotateBy(PVector rotAxis, float angle) {
+		if (rotAxis == null)
 			return;
-		app.rotate(rotation.mag(), rotation.x, rotation.y, rotation.z);
+		app.rotate(angle, rotAxis.x, rotAxis.y, rotAxis.z);
 	}
 
-	protected static PVector screenPos(PVector pos3D) {
+	protected static synchronized PVector screenPos(PVector pos3D) {
 		return new PVector( app.screenX(pos3D.x, pos3D.y, pos3D.z), app.screenY(pos3D.x, pos3D.y, pos3D.z) );
+	}
+
+	protected static PVector local(PVector abs, PVector trans, Quaternion rotation) {
+		return absolute( PVector.sub(abs, trans), zero, rotation.withOppositeAngle());
 	}
 
 	protected static PVector[] absolute(PVector[] v, PVector trans, Quaternion rotation) {
@@ -238,5 +273,9 @@ public abstract class ProMaster extends Master {
 		for (int i=0; i<v.length; i++)
 			ret[i] = absolute(v[i], trans, rotation);
 		return ret;
+	}
+
+	private static synchronized PVector model(PVector rel) {
+		return new PVector( app.modelX(rel.x, rel.y, rel.z), app.modelY(rel.x, rel.y, rel.z), app.modelZ(rel.x, rel.y, rel.z) );
 	}
 }

@@ -17,7 +17,7 @@ public class CollisionPPolyedre extends Collision {
 			return;
 		
 		//vecteurs relatifs normalisé
-		PVector p1Top2 = PVector.sub( p2.location, p1.location ); //TODO normale d'une face !
+		PVector p1Top2 = PVector.sub( p2.locationAbs, p1.locationAbs ); //TODO normale d'une face !
 		p1Top2.normalize();
 		PVector p2Top1 = PVector.mult( p1Top2, -1 );
 		

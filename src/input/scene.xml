@@ -1,14 +1,15 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
 <scene>
-	<camera displaySkybox="true" mode="not" dist="(200,200,200)" debug="true"></camera>
+	<camera displaySkybox="true" mode="not" dist="(200,200,200)" debug="false"></camera>
 	<physic gravity="0.2" deltaTime="0.7"></physic>
 	
 	
-	<starship pos="zero" dir="back" camera="not" focus="true" debug="true"></starship>
+	<starship pos="zero" dir="back" camera="not" focus="true" debug="false"></starship>
 	
 	
 	<!--  
 	force="40" (-20,100,100)
+	
 	<box pos="(0,5,-5)" mass="5" color="blue"></box>
 	<box pos="(0,40,6)" mass="5" color="red"></box> 
 	<box pos="(5,5,0)" name="box1"></box>

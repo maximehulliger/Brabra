@@ -3,13 +3,10 @@ package cs211.tangiblegame.realgame;
 import cs211.tangiblegame.geo.Cube;
 import cs211.tangiblegame.geo.Quaternion;
 import cs211.tangiblegame.geo.Sphere;
-import cs211.tangiblegame.physic.Body;
 import processing.core.PShape;
 import processing.core.PVector;
 
-/**
- * fais apparaitre des météorites aléatoirement dans une box
- */
+/** Pop meteors randomly in a box (in front of the parent). */
 public final class MeteorSpawner extends Effect {
 	public static PShape meteor;
 	private static final int nbMeteorMax = 60;
@@ -24,10 +21,9 @@ public final class MeteorSpawner extends Effect {
 	private int randomMeteorCounter = 0;
 	private int nextPopTime;
 	
-	public MeteorSpawner(Body parent, PVector location, PVector size) {
+	public MeteorSpawner(PVector location, PVector size) {
 		super(location);
 		spawnCage = new Cube(location, new Quaternion(), -1, size);
-		spawnCage.setParent(parent, Parency.Follow);
 		setNext();
 	}
 	
@@ -38,11 +34,6 @@ public final class MeteorSpawner extends Effect {
 			setNext();
 		}
 	}
-
-	public void display() {
-		// TODO Auto-generated method stub
-		
-	}
 	
 	public void popMeteor() {
 		if (nbMeteor < nbMeteorMax) {
@@ -50,13 +41,13 @@ public final class MeteorSpawner extends Effect {
 			PVector startPos = spawnCage.faces[idxStartFace].randomPoint();
 			PVector goal;
 			if (randomMeteorCounter++ >= ratioRandomToPlayer) { //temps de viser le joueur
-				goal = parent.location;
+				goal = parent().locationAbs;
 				randomMeteorCounter = 0;
 			} else {
 				int toOtherSideIdx = (idxStartFace%2 == 0 ? 1 : -1);
 				goal = spawnCage.faces[idxStartFace + toOtherSideIdx].randomPoint();
 			}
-			app.intRealGame.physic.toAdd.add( new Meteor(startPos, goal) );
+			game.physic.toAdd.add( new Meteor(startPos, goal) );
 			nbMeteor++;
 		}
 	}
@@ -75,8 +66,8 @@ public final class MeteorSpawner extends Effect {
 			radius = minRadius + tailleRatio * (maxRadius - minRadius);
 			
 			float speed = minSpeed + random.nextFloat() * (maxSpeed - minSpeed);
-			velocity.set( PVector.sub(goal, startPos).setMag(speed) );
-			rotationVel.set( randomVec(), speed*random.nextFloat()/30 );
+			velocityRel.set( PVector.sub(goal, startPos).setMag(speed) );
+			rotationRelVel.set( randomVec(1), speed*random.nextFloat()/30 );
 		}
 		
 		public void onDelete() {

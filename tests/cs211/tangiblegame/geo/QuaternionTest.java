@@ -9,59 +9,69 @@ import org.junit.Before;
 import org.junit.Test;
 
 import cs211.tangiblegame.ProMaster;
+import cs211.tangiblegame.ProTest;
 import cs211.tangiblegame.geo.Quaternion;
 import processing.core.PVector;
 
-public class QuaternionTest extends Quaternion {
-	final List<Quaternion> sample1 = new ArrayList<>();
-	final List<Quaternion> sample2 = new ArrayList<>();
+public class QuaternionTest extends ProTest {
+	private final static List<Quaternion> dirSample = new ArrayList<>();
+	
+	private int iter = 0;
+	
+	// Before before & once only
+	static {
+		for (String dir : ProMaster.directions)
+			dirSample.add(Quaternion.fromDirection(vec(dir)));
+	}
 	
 	@Before
 	public void setUp() throws Exception {
-		for (String dir : ProMaster.directions)
-			sample1.add(Quaternion.fromDirection(vec(dir)));
+		iter = 0;
 	}
 
 	@Test
-	public void test() {
-		for (Quaternion q : sample1) {
-			assertEquals(q, new Quaternion(q.rotAxis(), q.angle()));
+	public void testDirection() {
+		for (Quaternion q : dirSample) {
+			iter++;
+			assertEqualsEps("at iter "+iter, q, new Quaternion(q.rotAxis(), q.angle()));
 		}
 	}
 
 	@Test
 	public void updateTest() {
-		for (Quaternion q : sample1) {
+		for (Quaternion q : dirSample) {
+			iter++;
+			assertTrue(q.equalsAxis( q.copy().initFromAxis() ));
 			float angle = q.angle();
 			PVector rotAxis = q.rotAxis();
 			q.updateAxis();
-			assertEquals(q, new Quaternion(rotAxis, angle));
+			assertEqualsEps("at iter "+iter, q, new Quaternion(rotAxis, angle));
 		}
 	}
 
 	@Test
 	public void randomTest() {
-		final float epsilon = 0;//0.00_001f;
 		final int sampleSize = 50;
 		// rotAxis -> wxyz -> rotAxis
 		for (int i=0; i < sampleSize; i++) {
-			Quaternion q1 = new Quaternion(randomVec(), random(-pi, pi));
+			Quaternion q1 = new Quaternion(randomVec(1), random(-pi, pi));
 			float angle = q1.angle();
 			PVector rotAxis = q1.rotAxis();
 			q1.updateAxis();
-			assertEquals(angle, q1.angle(), epsilon);
-			assertEquals(rotAxis, q1.rotAxis());
-			assertEquals(q1, new Quaternion(rotAxis, angle));
+			assertEquals("at iter "+i, angle, q1.angle(), epsilon);
+			assertEqualsEps("at iter "+i, rotAxis, q1.rotAxis());
+			assertEqualsEps("at iter "+i, q1, new Quaternion(rotAxis, angle));
 		}
+		
 		// rotAxis -> wxyz -> rotAxis
 		for (int i=0; i < sampleSize; i++) {
-			Quaternion q1 = new Quaternion(randomVec(), random(-pi, pi));
+			Quaternion q1 = new Quaternion(randomVec(1), random(-pi, pi));
 			float angle = q1.angle();
 			PVector rotAxis = q1.rotAxis();
 			q1.updateAxis();
-			assertEquals(angle, q1.angle(), epsilon);
-			assertEquals(rotAxis, q1.rotAxis());
-			assertEquals(q1, new Quaternion(rotAxis, angle));
+			assertEquals("at iter "+i, angle, q1.angle(), epsilon);
+			assertEquals("at iter "+i, rotAxis, q1.rotAxis());
+			assertEquals("at iter "+i, q1, new Quaternion(rotAxis, angle));
 		}
 	}
 }
