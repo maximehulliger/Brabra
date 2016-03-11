@@ -7,12 +7,15 @@ import processing.core.*;
 /** une sphere. */
 public class Sphere extends Collider {
 	public float radius;
-	
-	public Sphere(PVector location, float mass, float radius) {
-		super(location, new Quaternion(), radius);
+
+	public Sphere(PVector location, Quaternion rotation, float radius) {
+		super(location, rotation, radius);
 	  	this.radius = radius;
-	  	setMass(mass);
 	  	setName("Ball");
+	}
+
+	public Sphere(PVector location, float radius) {
+		this(location, identity, radius);
 	}
 	
 	public void setMass(float mass) {

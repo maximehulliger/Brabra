@@ -175,7 +175,7 @@ public final class PhysicInteraction extends ProMaster {
 		ArrayList<Collider> candidates = new ArrayList<>();
 		ArrayList<Float> candidatesDist = new ArrayList<>();
 
-		for (Collider c : game.physic.colliders) {
+		for (Collider c : game.physic.activeColliders()) {
 			if (c.projetteSur(p1).comprend(0)&& c.projetteSur(p2).comprend(0)) {
 				Projection proj = c.projetteSur(ray);
 				if (proj.intersectionne(targetProj)) {

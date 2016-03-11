@@ -22,7 +22,7 @@ public abstract class Effect extends Object {
 
 	public void update() {
 		if (--timeLeft == 0) // -1 -> continue
-			game.physic.effectsToRemove.add(this);
+			game.physic.remove(this);
 	}
 	
 	/** Retourne l'avancement entre 0 -> 1. 0 si infini. */
@@ -61,7 +61,7 @@ public abstract class Effect extends Object {
 		public void update() {
 			super.update();
 			for (int i=0; i<5; i++)
-				game.physic.effectsToAdd.add( new Bulbe(randomPos()) );
+				game.physic.add( new Bulbe(randomPos()) );
 		}
 		
 		//affiche l'onde de choc

@@ -73,13 +73,6 @@ public class Plane extends PseudoPolyedre {
 		return proj;
 	}
 
-	public void update() {
-		super.update();
-		if (transformChanged) {
-			updateAbs();
-		}
-	}
-
 	public void display() {
 		pushLocal();
 		if (finite) {
@@ -129,7 +122,7 @@ public class Plane extends PseudoPolyedre {
 	//retourne le point qui est le plus contre cette normale (par rapport au centre)
 	public PVector pointContre(PVector normale) {
 		if (!finite)
-			return farfarAway;
+			return vec(Float.MAX_VALUE, Float.MAX_VALUE, Float.MAX_VALUE);
 		PVector proj = PVector.mult( v1.norm, size.x/2 * -sgn(v1.norm.dot(normale)) );
 		proj.add( PVector.mult( v2.norm, size.z/2 * -sgn(v2.norm.dot(normale))) );
 		proj.add(locationAbs);
@@ -154,6 +147,7 @@ public class Plane extends PseudoPolyedre {
 
 	//update les coordonnées absolue. (Ã  chaque transform change du parent)
 	public void updateAbs() {
+		super.updateAbs();
 		super.sommets = absolute(natCo);
 
 		v1 = new Line(sommets[0], sommets[1], finite); //sur x

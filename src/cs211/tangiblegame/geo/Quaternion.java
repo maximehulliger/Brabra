@@ -369,21 +369,4 @@ public class Quaternion extends ProMaster {
 	private float normSq() {
 		return w*w + x*x + y*y + z*z;
 	}
-	
-	/** Quaternion notifying on change (after change. not on creation). */
-	public static class NQuaternion extends Quaternion {
-		private final Runnable onChange;
-		
-		public NQuaternion(Quaternion q, Runnable onChange) {
-			super(q);
-			this.onChange = onChange;
-		}
-		
-		public Quaternion set(float w, float x, float y, float z) {
-			super.set(w,x,y,z);
-			if (onChange != null)
-				onChange.run();
-			return this;
-		}
-	}
 }

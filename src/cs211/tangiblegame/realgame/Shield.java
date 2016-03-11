@@ -6,7 +6,7 @@ import cs211.tangiblegame.geo.Ellipsoide;
 public class Shield extends Ellipsoide {
 
 	public Shield(PVector location, PVector rayons) {
-		super(location, -1, rayons);
+		super(location, identity, rayons);
 	}
 	
 	public void display() {

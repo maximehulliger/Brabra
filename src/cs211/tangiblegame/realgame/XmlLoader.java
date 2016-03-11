@@ -90,8 +90,8 @@ public final class XMLLoader extends ProMaster {
 	    		String dir = atts.getValue("dir");
 	    		String debug = atts.getValue("debug");
 	    			
-	    		Body b = (dir != null) ?
-	    				Prefab.add(localName, vec(pos), Quaternion.fromDirection(vec(dir)))
+	    		Body b = (dir != null)
+	    				? Prefab.add(localName, vec(pos), Quaternion.fromDirection(vec(dir)))
 	    				: Prefab.add(localName, vec(pos));
 	    				
 	    		if (b != null) {
@@ -105,9 +105,9 @@ public final class XMLLoader extends ProMaster {
 					  	b.setName(name);
 			  		if (life != null)
 			  			setLife(b, life);
-				  	if (camera != null)
+				  	if (camera != null) {
 				  		game.camera.set(camera,cameraDist,b);
-				  	if (focus != null && Boolean.parseBoolean(focus)) {
+				  	} if (focus != null && Boolean.parseBoolean(focus)) {
 				  		String force = atts.getValue("force");
 				  		if (force != null)
 				  			game.physicInteraction.setFocused(b, Float.parseFloat(force));

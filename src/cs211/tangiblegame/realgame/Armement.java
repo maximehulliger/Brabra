@@ -151,8 +151,8 @@ public class Armement extends ProMaster {
 				return false;
 			} else {
 				tempsRestant = tRecharge;
-				Missile m = new Missile(launcher.absolute(loc), launcher.rotationRel, puissance);
-				game.physic.toAdd.add( m );
+				Missile m = new Missile(launcher.absolute(loc), launcher.rotation(), puissance);
+				game.physic.add( m );
 				return true;
 			}
 		}
@@ -181,10 +181,12 @@ public class Armement extends ProMaster {
 		public class Missile extends Cube {
 			
 			public Missile(PVector location, Quaternion rotation, int puissance) {
-				super(location, rotation, puissance, 
-						vec( tiersRatioSize[tier]*2*ratioSizeMissile, tiersRatioSize[tier]*2*ratioSizeMissile, tiersRatioSize[tier]*7*ratioSizeMissile) );
+				super(location, rotation, vec( tiersRatioSize[tier]*2*ratioSizeMissile, 
+						tiersRatioSize[tier]*2*ratioSizeMissile, 
+						tiersRatioSize[tier]*7*ratioSizeMissile) );
+				setMass(puissance);
 				assert(tier > 0);
-				velocityRel.set(launcher.velocityRel);
+				velocityRel.set(launcher.velocity()); //TODO velocity Abs
 			}
 			
 			public void display() {
@@ -215,8 +217,8 @@ public class Armement extends ProMaster {
 			}
 	
 			public void onCollision(Collider col, PVector impact) {
-				game.physic.toRemove.add( this );
-				game.physic.effectsToAdd.add( new Effect.Explosion( impact, 30 ) );
+				game.physic.remove( this );
+				game.physic.add( new Effect.Explosion( impact, 30 ) );
 	
 				//réaction objectif
 				if (col instanceof Objectif) {
@@ -229,8 +231,9 @@ public class Armement extends ProMaster {
 	/** A sphere to destroy. */
 	public static class Objectif extends Sphere {
 		
-		public Objectif(PVector location) {
-			super(location, 30, 50);
+		public Objectif(PVector location, Quaternion rotation) {
+			super(location, rotation, 50);
+			setMass(30);
 			setName("Objectif");
 		}
 		

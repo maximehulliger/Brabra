@@ -11,13 +11,12 @@ public class Cube extends PseudoPolyedre {
 	public final Plane[] faces;
 
 	/** Create a cube with arretes of lenght dim. */
-	public Cube(PVector location, Quaternion rotation, float mass, PVector size) {
+	public Cube(PVector location, Quaternion rotation, PVector size) {
 	    super(location, rotation, size.mag()/2);
 	    this.size = size;
 	    this.dim = mult(size, 0.5f).array();
 		this.faces = getFaces(size);
 	    updateAbs();
-	    setMass(mass);
 	    setName("Cube");
 	}
 
@@ -41,12 +40,6 @@ public class Cube extends PseudoPolyedre {
 					1/inertiaMom.y,
 					1/inertiaMom.z );
 		}
-	}
-	
-	public void update() {
-		super.update();
-		if (transformChanged)
-			updateAbs();
 	}
 	
 	public boolean isIn(PVector abs) {
@@ -125,6 +118,7 @@ public class Cube extends PseudoPolyedre {
 	
 	//update les coordonnées absolue. (à chaque transform change du parent)
 	public void updateAbs() {
+		super.updateAbs();
 		//1. update les plans
 		pushLocal();
 		for (Plane p : faces)

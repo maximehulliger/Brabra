@@ -1,7 +1,6 @@
 package cs211.tangiblegame.realgame;
 
 import cs211.tangiblegame.geo.Cube;
-import cs211.tangiblegame.geo.Quaternion;
 import cs211.tangiblegame.geo.Sphere;
 import processing.core.PShape;
 import processing.core.PVector;
@@ -23,7 +22,7 @@ public final class MeteorSpawner extends Effect {
 	
 	public MeteorSpawner(PVector location, PVector size) {
 		super(location);
-		spawnCage = new Cube(location, new Quaternion(), -1, size);
+		spawnCage = new Cube(location, identity, size);
 		setNext();
 	}
 	
@@ -41,13 +40,13 @@ public final class MeteorSpawner extends Effect {
 			PVector startPos = spawnCage.faces[idxStartFace].randomPoint();
 			PVector goal;
 			if (randomMeteorCounter++ >= ratioRandomToPlayer) { //temps de viser le joueur
-				goal = parent().locationAbs;
+				goal = parent().location();
 				randomMeteorCounter = 0;
 			} else {
 				int toOtherSideIdx = (idxStartFace%2 == 0 ? 1 : -1);
 				goal = spawnCage.faces[idxStartFace + toOtherSideIdx].randomPoint();
 			}
-			game.physic.toAdd.add( new Meteor(startPos, goal) );
+			game.physic.add( new Meteor(startPos, goal) );
 			nbMeteor++;
 		}
 	}
@@ -59,7 +58,7 @@ public final class MeteorSpawner extends Effect {
 	private class Meteor extends Sphere {
 
 		public Meteor(PVector startPos, PVector goal) {
-			super(startPos, -1, -1);
+			super(startPos, identity, -1);
 			
 			float tailleRatio = random.nextFloat();
 			setMass(minMass + tailleRatio * (maxMass - minMass));

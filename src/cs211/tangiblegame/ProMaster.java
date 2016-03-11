@@ -20,20 +20,22 @@ public abstract class ProMaster extends Master {
 	
 	// --- some constants ---
 	
-	public static final PVector zero = new PVector(0, 0, 0);
-	public static final PVector farfarAway = new PVector(Float.MAX_VALUE, Float.MAX_VALUE, Float.MAX_VALUE);
-	public static final String[] directions = new String[] {
+	protected static final PVector zero = new PVector(0, 0, 0);
+	protected static final String[] directions = new String[] {
 			"front", "behind", "up", "down", "right", "left" };
-	public static final PVector left = new PVector(1, 0, 0);
-	public static final PVector right = new PVector(-1, 0, 0);
-	public static final PVector up = new PVector(0, 1, 0);
-	public static final PVector down = new PVector(0, -1, 0);
-	public static final PVector front = new PVector(0, 0, -1);
-	public static final PVector behind = new PVector(0, 0, 1);
-	public static final Quaternion identity = Quaternion.identity;
-	public static final float small = 0.05f;
-	public static final float far = 10_000;
-	public static final float pi = PApplet.PI;
+	protected static final PVector left = new PVector(1, 0, 0);
+	protected static final PVector right = new PVector(-1, 0, 0);
+	protected static final PVector up = new PVector(0, 1, 0);
+	protected static final PVector down = new PVector(0, -1, 0);
+	protected static final PVector front = new PVector(0, 0, -1);
+	protected static final PVector behind = new PVector(0, 0, 1);
+	protected static final Quaternion identity = Quaternion.identity;
+	protected static final float small = 0.05f;
+	protected static final float far = 10_000;
+	protected static final float pi = PApplet.PI;
+	protected static final float halfPi = PApplet.HALF_PI;
+	protected static final float twoPi = PApplet.TWO_PI;
+	
 	
 	// --- General syntactic sugar ---
 	
@@ -166,29 +168,121 @@ public abstract class ProMaster extends Master {
 		return vec(random(-norm, norm), random(-norm, norm), random(-norm, norm));
 	}
 	
-	/** PVector notifying on change (after change. not on creation). */
-	public class NVector extends PVector {
+	// --- Notifying/observable classes with update (state flag per frame) ---
+	
+	public interface Notifying {
+		/** Set the method executed when the value changes. */
+		public void setOnChange(Runnable onChange);
+		/** Update the changed value (to changedCurrent & set changedCurrent to false). */
+		public void update();
+		/** Return true if the value changed during the last frame. */
+		public boolean hasChanged();
+		/** Return true if the value changed after the last call of hasChangedCurrent. */
+		public boolean hasChangedCurrent();
+	}
+	
+	/** PVector notifying on change (after changes. not on creation). With a change flag.  */
+	public class NVector extends PVector implements Notifying {
 		private static final long serialVersionUID = 5162673540041216409L;
-		private final Runnable onChange;
+		private Runnable onChange;
+		private boolean changedCurrent = false, changed = false, changedCurrentCan = false;
 		
 		public NVector(PVector v, Runnable onChange) { 
 			super(v.x,v.y,v.z); 
-			this.onChange = onChange; 
+			setOnChange(onChange); 
 		}
 
-		// first apply, then notify
-		public PVector set(PVector v) { v = super.set(v); onChange.run(); return v; }
-		public PVector set(float[] source) { PVector v = super.set(source); onChange.run(); return v; }
-		public PVector set(float x, float y, float z) { PVector v = super.set(x,y,z); onChange.run(); return v; }
-		public PVector set(float x, float y) { PVector v = super.set(x,y); onChange.run(); return v; }
-		public PVector add(PVector v) { v = super.add(v); onChange.run(); return v; }
-		public PVector sub(PVector v) { v = super.sub(v); onChange.run(); return v; }
-		public PVector mult(float f) { PVector v = super.mult(f); onChange.run(); return v; }
-		public PVector div(float f) { PVector v = super.mult(f); onChange.run(); return v; }
-		public PVector limit(float f) { PVector v = super.mult(f); onChange.run(); return v; }
-		public PVector setMag(float f) { PVector v = super.mult(f); onChange.run(); return v; }
-		public PVector normalize() { PVector v = super.normalize(); onChange.run(); return v; }
+		public NVector(PVector v) { 
+			this(v, null);
+		}
+		
+		public void setOnChange(Runnable onChange) {
+			this.onChange = onChange;
+		}
+		
+		public void update() {
+			changed = changedCurrent;
+			changedCurrent = false;
+		}
+
+		public boolean hasChanged() {
+			return changed;
+		}
+		
+		public boolean hasChangedCurrent() {
+			boolean ret = changedCurrentCan;
+			changedCurrentCan = false;
+			return ret;
+		}
+		
+		// first apply, set changed to true, then notify.
+		public PVector set(PVector v) { v = super.set(v); onCh(); return v; }
+		public PVector set(float[] source) { PVector v = super.set(source); onCh(); return v; }
+		public PVector set(float x, float y, float z) { PVector v = super.set(x,y,z); onCh(); return v; }
+		public PVector set(float x, float y) { PVector v = super.set(x,y); onCh(); return v; }
+		public PVector add(PVector v) { v = super.add(v); onCh(); return v; }
+		public PVector sub(PVector v) { v = super.sub(v); onCh(); return v; }
+		public PVector mult(float f) { PVector v = super.mult(f); onCh(); return v; }
+		public PVector div(float f) { PVector v = super.mult(f); onCh(); return v; }
+		public PVector limit(float f) { PVector v = super.mult(f); onCh(); return v; }
+		public PVector setMag(float f) { PVector v = super.mult(f); onCh(); return v; }
+		public PVector normalize() { PVector v = super.normalize(); onCh(); return v; }
+		
+		private void onCh() {
+			changedCurrent=true;
+			changedCurrentCan = true;
+			if (onChange != null)
+				onChange.run();
+		}
 	}
+	
+
+	/** Quaternion notifying on change (after change. not on creation). */
+	public static class NQuaternion extends Quaternion {
+		private Runnable onChange;
+		private boolean changed = false, changedCurrent = false,changedCurrentCan = false;
+
+		public NQuaternion(Quaternion q, Runnable onChange) {
+			super(q);
+			setOnChange(onChange);
+		}
+
+		public NQuaternion(Quaternion q) {
+			this(q, null);
+		}
+
+		public void setOnChange(Runnable onChange) {
+			this.onChange = onChange;
+		}
+		
+		public void update() {
+			changed = changedCurrent;
+			changedCurrent = false;
+		}
+
+		public boolean hasChanged() {
+			return changed;
+		}
+
+		public boolean hasChangedCurrent() {
+			boolean ret = changedCurrentCan;
+			changedCurrentCan = false;
+			return ret;
+		}
+		
+		public Quaternion set(float w, float x, float y, float z) {
+			super.set(w,x,y,z);
+			if (onChange != null)
+				onChange.run();
+			changedCurrentCan = true;
+			changedCurrent = true;
+			return this;
+		}
+	}
+	
+	/*public class Flag implements Notifying {
+		
+	}*/
 
 	// --- EPSILON (small value) ---
 
@@ -275,7 +369,7 @@ public abstract class ProMaster extends Master {
 		return ret;
 	}
 
-	private static synchronized PVector model(PVector rel) {
+	protected static synchronized PVector model(PVector rel) {
 		return new PVector( app.modelX(rel.x, rel.y, rel.z), app.modelY(rel.x, rel.y, rel.z), app.modelZ(rel.x, rel.y, rel.z) );
 	}
 }

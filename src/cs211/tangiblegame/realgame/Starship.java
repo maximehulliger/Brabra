@@ -18,8 +18,8 @@ public class Starship extends Plane implements Armed//Cube
 	public Armement armement;
 	public static PShape starship;
 	
-	public Starship(PVector location) {
-		super(location, new Quaternion(), 200, size);
+	public Starship(PVector location, Quaternion rotation) {
+		super(location, rotation, 200, size);
 		//PVector champSize = vec(5000, 5000, 8000);
 		//this.champ = new MeteorSpawner(this, vec(0, 0, -champSize.z/6), champSize);
 		this.armement = new Armement(this, 0, 1, 1);

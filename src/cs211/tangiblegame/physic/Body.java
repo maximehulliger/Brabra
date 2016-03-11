@@ -4,10 +4,14 @@ import cs211.tangiblegame.Color;
 import cs211.tangiblegame.geo.Quaternion;
 import processing.core.*;
 
+/** 
+ * An object obeying to the laws of physics. 
+ * It has a mass and a moment of inertia (angular mass). 
+ * You can apply forces and impulse
+ **/
 public class Body extends Object {
 	private static final boolean drawInteraction = true; //forces et impulse
 
-	
 	protected int life = -1;
 	protected int maxLife = -1;
 	protected Color color = Color.basic;
@@ -62,9 +66,9 @@ public class Body extends Object {
 	// --- some setters
 	
 	public void addApplyForces(Runnable addForce) {
-		final Runnable r = this.addForces;
+		final Runnable oldAddForce = this.addForces;
 		this.addForces = this.addForces == null ?
-				addForce : () -> { r.run(); addForce.run(); };
+				addForce : () -> { oldAddForce.run(); addForce.run(); };
 	}
 
 	/** set la masse du body. si -1, l'objet aura une mass et un moment d'inertie infini.

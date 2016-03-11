@@ -10,7 +10,7 @@ import processing.core.PVector;
 
 public class ProTest extends ProMaster {
 	
-	public static void initApp() {
+	protected static void initApp() {
 		if (ProMaster.app == null) {
 			TestTangibleGame testApp = new TestTangibleGame();
 			app = testApp;
@@ -39,17 +39,17 @@ public class ProTest extends ProMaster {
 		}
 	}
 
-	public static void assertEqualsEps(String msg, Quaternion q1, Quaternion q2) {
+	protected static void assertEqualsEps(String msg, Quaternion q1, Quaternion q2) {
 		if (!q1.equalsEps(q2, false))
 			assertEquals(msg, q1, q2);
 	}
 
-	public static void assertEqualsEpsAxis(String msg, Quaternion q1, Quaternion q2) {
+	protected static void assertEqualsEpsAxis(String msg, Quaternion q1, Quaternion q2) {
 		if (!q1.equalsEpsAxis(q2, false))
 			assertEquals(msg, q1, q2);
 	}
 
-	public static void assertEqualsEps(String msg, PVector p1, PVector p2) {
+	protected static void assertEqualsEps(String msg, PVector p1, PVector p2) {
 		if (!equalsEps(p1, p2, false))
 			assertEquals(msg, p1, p2);
 	}

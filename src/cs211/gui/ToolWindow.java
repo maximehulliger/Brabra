@@ -40,9 +40,11 @@ public class ToolWindow extends Application {
         btn.setText("Say 'Hello World'");
         btn.setOnAction(e -> app.debug.msg(0, "Hello World !", "tool window"));
         stage.addEventFilter(KeyEvent.KEY_PRESSED, e -> {
-              if(e.getCode()==KeyCode.F4 && e.isAltDown()) {
+              if(e.getCode() == KeyCode.F4 && e.isAltDown()) {
                   e.consume();
                   app.exit();
+              } else if (e.getCode() == KeyCode.H) {
+            	  app.setToolWindow(!visible);
               }
         });
         root.getChildren().add(btn);

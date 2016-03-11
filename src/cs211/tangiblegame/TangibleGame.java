@@ -13,7 +13,6 @@ import cs211.tangiblegame.imageprocessing.ImageAnalyser;
 import cs211.tangiblegame.realgame.RealGame;
 import cs211.tangiblegame.trivial.TrivialGame;
 
-
 public class TangibleGame extends PApplet {
 	public enum View {Menu, Calibration, TrivialGame, RealGame, None}
 	public static final String name = "Brabra";
@@ -105,6 +104,7 @@ public class TangibleGame extends PApplet {
 		hint(PApplet.ENABLE_DEPTH_TEST);
 		// debug
 		debug.update();
+		
 	}
 
 	public void dispose() {
@@ -166,7 +166,6 @@ public class TangibleGame extends PApplet {
 	
 	/** Activate or deactivate (hide) the tool window. Initialize it (fxApp) if needed. */
 	public void setToolWindow(boolean hasToolWindow) {
-		System.out.println("previous window state: "+toolWindow);
 		toolWindow = hasToolWindow;
 		if (!fxAppStarted && hasToolWindow) {
 			fxAppStarted = true;

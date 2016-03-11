@@ -8,8 +8,8 @@ public class Ellipsoide extends Sphere {
 	
 	private final PVector r;
 	
-	public Ellipsoide(PVector location, float mass, PVector rayons) {
-		super(location, mass, PApplet.max(rayons.array()));
+	public Ellipsoide(PVector location, Quaternion rotation, PVector rayons) {
+		super(location, rotation, PApplet.max(rayons.array()));
 		this.r = rayons.copy();
 		setMyMass();
 	}

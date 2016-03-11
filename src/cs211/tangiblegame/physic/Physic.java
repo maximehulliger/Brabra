@@ -1,12 +1,10 @@
 package cs211.tangiblegame.physic;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
-
+import java.util.stream.Collectors;
+import java.util.ArrayList;
 import cs211.tangiblegame.ProMaster;
 import cs211.tangiblegame.geo.Sphere;
-import cs211.tangiblegame.realgame.Effect;
 
 public class Physic extends ProMaster
 {
@@ -14,25 +12,45 @@ public class Physic extends ProMaster
 	public boolean paused = false;
 	
 	// les agents B)
-	public ArrayList<Collider> colliders = new ArrayList<>();
-	public ArrayList<Collider> toRemove = new ArrayList<>();
-	public ArrayList<Collider> toAdd = new ArrayList<>();
-	public ArrayList<Effect> effects = new ArrayList<>();
-	public ArrayList<Effect> effectsToRemove = new ArrayList<>();
-	public ArrayList<Effect> effectsToAdd = new ArrayList<>();
+	private List<Object> objects = new ArrayList<Object>();
+	private List<Collider> colliders = new ArrayList<Collider>();
+	private List<Object> toRemove = new ArrayList<Object>();
+	private List<Object> toAdd = new ArrayList<Object>();
+	private int errCount = 0;
 	
-	/** Display all colliders and effects in the scene. */
-	public void displayAll() {
-		game.debug.setCurrentWork("display objects");
-		for(Object o : both(colliders, effects))
-			o.display();
+	// --- getters / modifiers
+
+	/** Return all the objects in the scene. */
+	public List<Object> objects() {
+		return objects;
+	}
+	
+	/** Return all the colliders in the scene. */
+	public List<Collider> colliders() {
+		return colliders;
+	}
+	
+	public List<Collider> activeColliders() {
+		return colliders.stream().filter(c -> !c.ghost).collect(Collectors.toList());
+	}
+	
+	/** Add an object to the scene (on next update). */
+	public void add(Object o) {
+		toAdd.add(o);
+	}
+	
+	/** Remove an object from the scene (on next update). */
+	public void remove(Object o) {
+		toRemove.add(o);
 	}
 	
 	/** Update the colliders and effects (parents first). */
 	public void updateAll() {
-		for (Object o : both(colliders, effects))
+		game.debug.setCurrentWork("objects update");
+		updateObjectLists();
+		for (Object o : objects)
 			o.updated = false;
-		for (Object o : both(colliders, effects)) {
+		for (Object o : objects) {
 			if (!o.updated) {
 				if (o.hasParent() && !o.parent().updated)
 					o.parent().update();
@@ -43,43 +61,24 @@ public class Physic extends ProMaster
 				}
 			}
 		}
-		
-		if (toRemove.size() > 0 ) {
-			colliders.removeAll(toRemove);
-			for (Collider c : toRemove)
-				c.onDelete();
-			toRemove.clear();
-		}
-		if (toAdd.size() > 0) {
-			colliders.addAll(toAdd);
-			toAdd.clear();
-		}
-		if (effectsToRemove.size() > 0) {
-			effects.removeAll(effectsToRemove);
-			effectsToRemove.clear();
-		}
-		if (effectsToAdd.size() > 0) {
-			effects.addAll(effectsToAdd);
-			effectsToAdd.clear();
-		}
+		updateObjectLists();
+	}
+
+	/** Display all colliders and effects in the scene. */
+	public void displayAll() {
+		game.debug.setCurrentWork("display objects");
+		for(Object o : objects)
+			o.display();
 	}
 	
 	/** Just... do Magic  :D */
 	public void doMagic() {
-		game.debug.setCurrentWork("objects update");
-		//1. on update les acteurs et les effets
-		updateAll();
-		
 		game.debug.setCurrentWork("physic magic");
-		//2. on détermine et filtre les collisions pour chaque paire possible (c, o).
-		List<Collision> collisions = new LinkedList<>();
-		
-		for (int ic=0; ic<colliders.size(); ic++) {
-			Collider c = colliders.get(ic);
-			for (int io=ic+1; io<colliders.size(); io++) {
-				Collider o = colliders.get(io);
-				
-				if ( (o.affectedByCollision || c.affectedByCollision) && (o.doCollideFast(c) && c.doCollideFast(o)) ) {
+		try {
+			//2. on détermine et filtre les collisions pour chaque paire possible (c, o).
+			List<Collision> collisions = new ArrayList<>();
+			forAllPairs(activeColliders(), (c,o)-> {
+				if ( (o.affectedByCollision || c.affectedByCollision) && !c.isRelated(o) && (o.doCollideFast(c) && c.doCollideFast(o)) ) {
 					Collision col = null;
 					if (c.affectedByCollision && c instanceof Sphere)
 						col = new CollisionSphere((Sphere)c, o);
@@ -99,10 +98,8 @@ public class Physic extends ProMaster
 						throw new IllegalArgumentException("collider inconnu !");
 					collisions.add( col );
 		    	}
-		  	}
-		}
+			});
 		
-		try {
 			//3. on résout les collisions
 			for (Collision col : collisions)
 				col.resolve();
@@ -114,6 +111,28 @@ public class Physic extends ProMaster
 		} catch (Exception e) {
 			game.debug.err("physical error :/");
 			e.printStackTrace();
+			if (++errCount >= 3) {
+				paused = true;
+				game.debug.msg(2, "physic paused (after 3 errors)");
+			}
+		}
+	}
+	
+	/** Effectively remove / add objects to the lists. */
+	private void updateObjectLists() {
+		if (toRemove.size() > 0) {
+			objects.removeAll(toRemove);
+			colliders.removeAll(toRemove);
+			toRemove.forEach(o -> o.onDelete());
+			toRemove.clear();
+		}
+		if (toAdd.size() > 0) {
+			objects.addAll(toAdd);
+			toAdd.forEach(o -> {
+				if (o instanceof Collider)
+					colliders.add((Collider)o);
+			});
+			toAdd.clear();
 		}
 	}
 }

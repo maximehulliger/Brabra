@@ -24,9 +24,12 @@ public class Debug {
 	
 	
 	/** Interface to be able to be followed by the debugger. */
-	public static interface Debugable {
-		/** Return a state update with presentation (what speaks ?. on first line) or null if no update since last frame. */
+	public interface Debugable {
+		/** Return a state update with presentation & update (what speaks ?. on first line) or "" if no update since last frame. */
 		public abstract String getStateUpdate();
+		
+		/** Return true if the state of the object changed during last frame. */
+		public abstract boolean stateChanged();
 	}
 	
 	/** To display info on the followed objects and update noprint score. */
@@ -96,7 +99,7 @@ public class Debug {
 	}
 	
 	private void print(int verbMin, String s, String msgType, String line, boolean error) {
-		if (!testMode && s != null && TangibleGame.verbosity >= verbMin) {
+		if (!testMode && !s.equals("") && TangibleGame.verbosity >= verbMin) {
 			if (noPrint) {
 				noPrint = false;
 				noPrintFrame = false;

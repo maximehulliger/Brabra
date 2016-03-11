@@ -40,6 +40,7 @@ public class RealGame extends Interface {
 		camera = new Camera();
 		physicInteraction = new PhysicInteraction();
 		xmlFile.load();
+		debug.followed.add(camera);
 	}
 	
 	public void wakeUp() {
@@ -49,8 +50,9 @@ public class RealGame extends Interface {
 	
 	// mother method of all life:
 	public void draw() {
-		camera.place();
+		physic.updateAll();
 		physicInteraction.update();
+		camera.place();
 		physic.doMagic();
 		physic.displayAll();
 		debug.update();

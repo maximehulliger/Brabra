@@ -2,9 +2,11 @@ package cs211.tangiblegame;
 
 import java.awt.MouseInfo;
 import java.awt.Point;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Random;
+import java.util.function.BiConsumer;
 import java.util.regex.Pattern;
 
 import processing.core.PApplet;
@@ -22,6 +24,14 @@ public class Master {
 	protected static final Map<String, String> env = System.getenv();
 	
 	// --- General mastery ---
+	
+	protected static void println(Object s) {
+		System.out.println(s);
+	}
+	
+	protected static void println(float[] array) {
+		println(Arrays.toString(array));
+	}
 	
 	/** angle en radian => [-pi, pi] */
 	protected static float entrePiEtMoinsPi(float a) {
@@ -57,6 +67,23 @@ public class Master {
 		Thread t = new Thread(function);
 		t.start();
 		return t;
+	}
+
+	public static <T> void forAllPairs(Iterable<T> col, BiConsumer<T,T> fun) {
+		Iterator<T> it1 = col.iterator();
+		while (it1.hasNext()) {
+			T o1 = it1.next();
+			boolean atSelf = false;
+			Iterator<T> it2 = col.iterator();
+			while (it1.hasNext() && !atSelf) {
+				T o2 = it2.next();
+				if (o1 == o2) {
+					atSelf = true;
+				} else {
+					fun.accept(o1,o2);
+				}
+			}
+		}
 	}
 	
 	/** To iterate over all of those */
