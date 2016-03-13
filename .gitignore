@@ -10,6 +10,7 @@ export.bat
 *.pydevproject
 *.tmp
 *.bak
+*.log
 *.swp
 *~.nib
 .project

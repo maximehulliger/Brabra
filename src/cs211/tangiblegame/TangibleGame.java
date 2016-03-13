@@ -18,8 +18,10 @@ public class TangibleGame extends PApplet {
 	public static final String name = "Brabra";
 	
 	//--- parametres
-	/** [1-6]: user[1-3], dev[4-6] 6: one object debug. atm: 7. */
-	public static final int verbosity = 7;
+	/** [1-6]: user[1-3], dev[4-verbMax]. atm: verbMax. */
+	public static final int verbosity = 6;
+	/** Verbosity for one object debug. */
+	public static final int verbMax = 6;
 	/** Max tilt in radians that will be taken in account for the plate (detection) */
 	public static final float inclinaisonMax = PApplet.PI/5;
 	/** Main window size. */
@@ -39,6 +41,7 @@ public class TangibleGame extends PApplet {
 	private boolean imgAnalysisStarted = false, fxAppStarted = false;
 	private Interface currentInterface, intMenu, intRealGame, intTrivialGame, intCalibration, intNone;
 	private boolean over = false;
+	private boolean focusGainedEventWaiting = false;
 	
 	// --- setup and life cycle (draw, dispose) ---
 	
@@ -104,7 +107,6 @@ public class TangibleGame extends PApplet {
 		hint(PApplet.ENABLE_DEPTH_TEST);
 		// debug
 		debug.update();
-		
 	}
 
 	public void dispose() {
@@ -279,6 +281,18 @@ public class TangibleGame extends PApplet {
 	public void mouseMoved() {
 	}
 	
+	public void focusLost() {
+		if (currentInterface != null)
+			currentInterface.onFocusChange(false);
+	}
+	
+	public void focusGained() {
+		if (currentInterface != null)
+			currentInterface.onFocusChange(true);
+		else
+			focusGainedEventWaiting = true;
+	}
+	
 	// --- private stuff -> KEEP OUT ---
 	
 	private void setInterface(Interface view) {
@@ -286,6 +300,8 @@ public class TangibleGame extends PApplet {
 			currentInterface.onHide();
 		currentInterface = view;
 		view.onShow();
+		if (focusGainedEventWaiting)
+			currentInterface.onFocusChange(true);
 	}
 
 }

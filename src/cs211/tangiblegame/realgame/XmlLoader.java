@@ -62,12 +62,11 @@ public final class XMLLoader extends ProMaster {
 	    		String gravity = atts.getValue("gravity");
 	    		if (gravity != null)
 				  	game.physic.gravity = Float.parseFloat(gravity);
-			  	String paused = atts.getValue("paused");
-			  	if (paused != null)
-			  		game.physic.paused = Boolean.parseBoolean(paused);
+			  	String running = atts.getValue("running");
+			  	if (running != null)
+			  		game.physic.running = Boolean.parseBoolean(running);
 	    	} else if (localName.equals("camera")) {
-	    		game.camera.setParent(parent);
-    			parent = game.camera;
+	    		parent = game.camera;
 	    		game.camera.set(atts.getValue("mode"),atts.getValue("dist"),null);
 			  	String displaySkybox = atts.getValue("displaySkybox");
 			  	String debug = atts.getValue("debug");
@@ -97,8 +96,6 @@ public final class XMLLoader extends ProMaster {
 	    		if (b != null) {
 	    			if (color != null)
 			  			b.setColor( new Color(color, stroke) );
-			  		if (impulse != null)
-					  	b.applyImpulse(vec(impulse));
 			  		if (mass != null)
 					  	b.setMass(Float.parseFloat(mass));
 			  		if (name != null)
@@ -107,7 +104,15 @@ public final class XMLLoader extends ProMaster {
 			  			setLife(b, life);
 				  	if (camera != null) {
 				  		game.camera.set(camera,cameraDist,b);
-				  	} if (focus != null && Boolean.parseBoolean(focus)) {
+				  	}
+				  	if (parent != null) {
+				  		String parentRel = atts.getValue("parentRel");
+			    		b.setParentRel(ParentRelationship.fromString(parentRel));
+			    		b.setParent(parent);
+				  	}
+				  	if (impulse != null)
+					  	b.applyImpulse(vec(impulse));
+			  		if (focus != null && Boolean.parseBoolean(focus)) {
 				  		String force = atts.getValue("force");
 				  		if (force != null)
 				  			game.physicInteraction.setFocused(b, Float.parseFloat(force));
@@ -116,11 +121,6 @@ public final class XMLLoader extends ProMaster {
 				  	}
 				  	if (debug != null && Boolean.parseBoolean(debug)) {
 				  		game.debug.followed.add(b);
-				  	}
-				  	if (parent != null) {
-				  		String parentRel = atts.getValue("parentRel");
-			    		b.setParentRel(ParentRelationship.fromString(parentRel));
-			    		b.setParent(parent);
 				  	}
 				  	parent = b;
 			  	} else

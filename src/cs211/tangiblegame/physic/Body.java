@@ -7,7 +7,9 @@ import processing.core.*;
 /** 
  * An object obeying to the laws of physics. 
  * It has a mass and a moment of inertia (angular mass). 
- * You can apply forces and impulse
+ * You can apply forces and impulse to it to
+ * move it through velocity and rotation velocity (both relative for the moment).
+ * TODO: If has a parent, apply it to the parent.
  **/
 public class Body extends Object {
 	private static final boolean drawInteraction = true; //forces et impulse
@@ -15,6 +17,7 @@ public class Body extends Object {
 	protected int life = -1;
 	protected int maxLife = -1;
 	protected Color color = Color.basic;
+	/** Mass of the body. -1 for infinite or bigger than 0 (never equals 0).*/
 	protected float mass = -1;
 	protected float inverseMass = 0;
 	protected PVector inertiaMom;
@@ -71,16 +74,25 @@ public class Body extends Object {
 				addForce : () -> { oldAddForce.run(); addForce.run(); };
 	}
 
-	/** set la masse du body. si -1, l'objet aura une mass et un moment d'inertie infini.
-		à surcharger (et appeler) pour set le moment d'inertie. */
+	/** 
+	 * 	Set the body mass. 
+	 * 	If mass is -1, the body will have an infinite mass and inertia moment 
+	 * 	and won't be affected by collisions (but others will).
+	 * 	If mass is 0, the body becomes a ghost (with infinite mass -> same as -1) 
+	 * 	and don't react to physic (nor with others).
+	 *	Should be overload (and called) to set the inertia moment (depending on the shape). 
+	 **/
 	public void setMass(float mass) {
 		if (mass == -1) {
 			this.mass = -1;
 			this.affectedByCollision = false;
 			this.inverseMass = 0;
 			this.inverseInertiaMom = zero.copy();
-		} else if (mass <= 0)
-			throw new IllegalArgumentException("mass négative ou nulle !");
+		} else if (mass == 0) {
+			setMass(-1);
+			ghost = true;
+		} else if (mass < 0)
+			throw new IllegalArgumentException("negative mass !");
 		else {
 			this.mass = mass;
 			this.inverseMass = 1/this.mass;
@@ -187,7 +199,8 @@ public class Body extends Object {
 	/** apply his weight to the object. */
 	public void pese() {
 		if (mass == -1)
-			throw new IllegalArgumentException("un objet de mass infini ne devrait pas peser !");
+			//throw new IllegalArgumentException("un objet de mass infini ne devrait pas peser !"); now tolerated :)
+			return;
 		PVector poids = new PVector(0, -game.physic.gravity*mass, 0);
 		addForce(poids);
 	}

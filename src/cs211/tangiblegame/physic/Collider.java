@@ -22,8 +22,6 @@ public abstract class Collider extends Body {
 	}
 	
 	public boolean doCollideFast(Collider c) {
-		boolean parency = (hasParent() && parent() == c || c.parent() == this || (parent() == c.parent()));
-		assert (!parency);
 		boolean contactEnveloppe = PVector.sub(this.locationAbs, c.locationAbs).magSq() < sq(this.radiusEnveloppe + c.radiusEnveloppe);
 		return contactEnveloppe;
 	}

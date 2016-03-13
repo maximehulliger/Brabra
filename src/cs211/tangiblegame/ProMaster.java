@@ -177,15 +177,17 @@ public abstract class ProMaster extends Master {
 		public void update();
 		/** Return true if the value changed during the last frame. */
 		public boolean hasChanged();
-		/** Return true if the value changed after the last call of hasChangedCurrent. */
+		/** Return true if the value changed during the current frame. */
 		public boolean hasChangedCurrent();
+		/** Reset the flags to false */
+		public void reset();
 	}
 	
 	/** PVector notifying on change (after changes. not on creation). With a change flag.  */
 	public class NVector extends PVector implements Notifying {
 		private static final long serialVersionUID = 5162673540041216409L;
 		private Runnable onChange;
-		private boolean changedCurrent = false, changed = false, changedCurrentCan = false;
+		private boolean changedCurrent = false, changed = false;
 		
 		public NVector(PVector v, Runnable onChange) { 
 			super(v.x,v.y,v.z); 
@@ -210,9 +212,11 @@ public abstract class ProMaster extends Master {
 		}
 		
 		public boolean hasChangedCurrent() {
-			boolean ret = changedCurrentCan;
-			changedCurrentCan = false;
-			return ret;
+			return changedCurrent;
+		}
+		
+		public void reset() {
+			changed = changedCurrent = false;
 		}
 		
 		// first apply, set changed to true, then notify.
@@ -230,7 +234,6 @@ public abstract class ProMaster extends Master {
 		
 		private void onCh() {
 			changedCurrent=true;
-			changedCurrentCan = true;
 			if (onChange != null)
 				onChange.run();
 		}
@@ -238,9 +241,9 @@ public abstract class ProMaster extends Master {
 	
 
 	/** Quaternion notifying on change (after change. not on creation). */
-	public static class NQuaternion extends Quaternion {
+	public static class NQuaternion extends Quaternion implements Notifying {
 		private Runnable onChange;
-		private boolean changed = false, changedCurrent = false,changedCurrentCan = false;
+		private boolean changed = false, changedCurrent = false;
 
 		public NQuaternion(Quaternion q, Runnable onChange) {
 			super(q);
@@ -265,16 +268,17 @@ public abstract class ProMaster extends Master {
 		}
 
 		public boolean hasChangedCurrent() {
-			boolean ret = changedCurrentCan;
-			changedCurrentCan = false;
-			return ret;
+			return changedCurrent;
+		}
+
+		public void reset() {
+			changed = changedCurrent = false;
 		}
 		
 		public Quaternion set(float w, float x, float y, float z) {
 			super.set(w,x,y,z);
 			if (onChange != null)
 				onChange.run();
-			changedCurrentCan = true;
 			changedCurrent = true;
 			return this;
 		}

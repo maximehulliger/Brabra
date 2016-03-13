@@ -33,6 +33,8 @@ public abstract class Interface extends ProMaster {
 	
 	public void mouseReleased() {}
 	
+	public void onFocusChange(boolean focused) {}
+	
 	// --- other ---
 	
 	/** Return the name of the parameters changed by scroll. If null scroll isn't used. */

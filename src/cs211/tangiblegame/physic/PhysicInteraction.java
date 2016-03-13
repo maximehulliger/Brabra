@@ -20,7 +20,8 @@ public final class PhysicInteraction extends ProMaster {
 	/** Puissance de l'interaction. */
 	private static final float forceMin = 20, forceMax = 100, forceRange = forceMax - forceMin; 
 	
-	private float force = 40;
+	private float force = 40, ratioTrans = 10, ratioRot = 0.001f;
+	private float forceTrans = force*ratioTrans, forceRot = force*ratioRot;
 	private Body focused = null;
 	private Armement armement = null;
 
@@ -63,6 +64,7 @@ public final class PhysicInteraction extends ProMaster {
 		return focused != null;
 	}
 	
+	/** Update interaction & apply forces. */
 	public void update() {
 		game.debug.setCurrentWork("interaction");
 		
@@ -74,7 +76,7 @@ public final class PhysicInteraction extends ProMaster {
 			System.out.printf("force d'interaction: %.1f\n",force);
 		}
 		
-		if (hasFocused() && !game.physic.paused)
+		if (hasFocused() && game.physic.running)
 			applyForces();
 
 		// fire if needed
@@ -91,6 +93,7 @@ public final class PhysicInteraction extends ProMaster {
 	}
 	
 	public void gui() {
+		game.debug.setCurrentWork("interaction gui");
 		if (armement != null)
 			armement.displayGui();
 	}
@@ -118,17 +121,17 @@ public final class PhysicInteraction extends ProMaster {
 		if (!forceRot.equals(zero)) {
 			PVector frontAP = front(150);
 			if (forceRot.x != 0) {
-				PVector pitch = up(forceRot.x);
+				PVector pitch = up(forceRot.x * this.forceRot);
 				focused.addForce(focused.absolute(frontAP), 
 						absolute( pitch, zero, focused.rotationRel));
 			}
 			if (forceRot.y != 0) {
-				PVector yaw = right(forceRot.y);
+				PVector yaw = right(forceRot.y * this.forceRot);
 				focused.addForce(focused.absolute(frontAP), 
 						absolute( yaw, zero, focused.rotationRel));
 			}
 			if (forceRot.z != 0) {
-				PVector roll = right(forceRot.z*3/2);
+				PVector roll = right(forceRot.z * 3/2 * this.forceRot);
 				PVector rollAP = up(100);
 				focused.addForce(focused.absolute(rollAP), 
 						absolute( roll, zero, focused.rotationRel));
@@ -138,7 +141,7 @@ public final class PhysicInteraction extends ProMaster {
 		// 2. forward
 		float rightScore = max(0, app.imgAnalyser.buttonDetection.rightScore());
 		if (app.input.vertical != 0 || rightScore > 0) {
-			focused.avance((app.input.vertical+rightScore)*force);
+			focused.avance((app.input.vertical+rightScore) * forceTrans);
 		}
 
 		// 3. brake

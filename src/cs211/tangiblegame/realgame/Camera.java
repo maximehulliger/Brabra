@@ -7,7 +7,10 @@ import cs211.tangiblegame.Color;
 import cs211.tangiblegame.ProMaster;
 import cs211.tangiblegame.physic.Object;
 
-//gère la camera, le background et la lumière. 
+/** 
+ * Class dealing with the camera, background and light. (+removal of far objects)
+ * Default mode is Not.
+ **/ 
 public class Camera extends Object {
 	public static final float distSqBeforeRemove = 12_000*12_000; 	//distance du vaisseau avant remove
 	private static final PVector defaultOrientation = vec(0,-1,0); 	//orientation
@@ -41,30 +44,35 @@ public class Camera extends Object {
 	
 	private FollowMode followMode = FollowMode.Not;
 	/** The absolute point that looks the camera. */
-	private final NVector focus = new NVector(zero);
-	private final NVector orientation = new NVector(defaultOrientation);
+	private final PVector focus = new NVector(zero);
+	private final PVector orientation = new NVector(defaultOrientation);
 	
-	private final PVector distNot = vec(100,100,100);
+	private final PVector distNot = cube(100);
 	private final PVector distStatic = cube(300);
 	private final PVector distRel = mult(vec(0, 6, 9), 15f);
-	private boolean stateChanged = true, stateChangedCurrent = false;
-	private boolean absValid = true;
+	private boolean stateChanged = false, stateChangedCurrent = false;
+	private boolean absValid = true; //as super( distNot );
 	
+	/** Creates a new camera and add it to the physic objects. */
 	public Camera() {
-		super(zero);
+		super( cube(100) );
 		setName("Camera");
+		game.physic.add( this );
 	}
 	
 	public void update() {
-		super.update();
 		stateChanged = stateChangedCurrent;
 		stateChangedCurrent = false;
+		super.update();
+	}
+
+	public boolean absValid() {
+		return absValid && super.absValid();
 	}
 	
 	public void set(String followMode, String dist, Body toFollow) {
 		if (followMode == null && dist == null && toFollow == null)
 			return;
-		
 		if (toFollow != null) {
 			setParent(toFollow);
 			stateChangedCurrent = true;
@@ -76,16 +84,9 @@ public class Camera extends Object {
 			if (!newDist.equals(getDist(mode))) {
 				setDist(mode, newDist);
 				if (this.followMode == mode)
-					setMode(mode);
-				else
-					game.debug.info(2, "camera dist in "+followMode+" mode set at "+dist);
+					setMode(mode); //to update
 			}
 		}
-	}
-	
-	public void setParent(Object parent) {
-		super.setParent(parent);
-		setParentRel(ParentRelationship.Static);
 	}
 
 	public void setSkybox(boolean displaySkybox) {
@@ -103,11 +104,11 @@ public class Camera extends Object {
 			break;
 		default:
 			setParentRel(ParentRelationship.Static);
+			break;
 		}
 		locationRel.set(getDist(mode));
 		stateChangedCurrent = true;
 		absValid = false;
-		updateAbs();
 		displayState();
 	}
 	
@@ -120,6 +121,7 @@ public class Camera extends Object {
 	
 	public void place() {
 		game.debug.setCurrentWork("camera");
+		updateAbs();
 		
 		// we remove the objects too far away.
 		game.physic.objects().forEach(o -> {
@@ -132,13 +134,14 @@ public class Camera extends Object {
 		app.camera(locationAbs.x, locationAbs.y, locationAbs.z, 
 				focus.x, focus.y, focus.z, 
 				orientation.x, orientation.y, orientation.z);
-		app.directionalLight(50, 100, 125, 0, -1, 0);
-		app.ambientLight(255, 255, 255);
 		
 		if (displaySkybox) {
 			pushLocal();
 			app.shape(skybox);
 			popLocal();
+		} else {
+			//app.directionalLight(50, 100, 125, 0, -1, 0);
+			app.ambientLight(255, 255, 255);
 		}
 		
 		if (displayAxis)
@@ -155,24 +158,30 @@ public class Camera extends Object {
 	}
 	
 	public void displayState() {
-		game.debug.info(2, getState());
+		updateAbs();
+		game.debug.info(2, presentation()+" "+state());
 	}
 	
-	private String getState() {
-		return presentation()+(followMode == FollowMode.Not
-			? "fixed at "+locationAbs
-			: "following "+parent()+" at "+parent().location()
-					+" from +"+locationRel+" in "+followMode+" mode.")
+	private String state() {
+		return (followMode == FollowMode.Not ? "fixed at "+locationAbs
+				: "at "+parent().location()+" from +"+locationRel+" in "+followMode+" mode.")
 				+ " orientation: "+orientation;
 	}
 	
 	public String getStateUpdate() {
-		return super.getStateUpdate()+(stateChanged 
-				? getState()+"\n" : "");
+		boolean sSC = super.stateChanged();
+		return (sSC ? super.getStateUpdate() : "")
+				+(sSC && stateChanged ? "\n" : "")
+				+(stateChanged ? state() : "");
 	}
 	
 	public boolean stateChanged() {
-		return stateChanged || transformChanged();
+		return stateChanged || super.stateChanged();
+	}
+	
+	public void setParent(Object p) {
+		super.setParent(p);
+		setParentRel(ParentRelationship.Static);
 	}
 	
 	public void drawMouseray(float dist) { //TODO
@@ -206,9 +215,9 @@ public class Camera extends Object {
 	    System.out.println("cam to focus: "+PVector.sub(locationAbs, focus));
 	}
 
-	public void updateAbs() {
-		super.updateAbs();
-		if (!absValid) {
+	public boolean updateAbs() {
+		boolean sUpdated = super.updateAbs();
+		if (!absValid || sUpdated) {
 			// get new values.
 			PVector newFocus;
 			PVector newOrientation;
@@ -223,7 +232,6 @@ public class Camera extends Object {
 				newOrientation = parent().orientation();
 				break;
 			default: //Not
-				assert(!hasParent());
 				newFocus = zero;
 				newOrientation = defaultOrientation;
 				break;
@@ -236,7 +244,9 @@ public class Camera extends Object {
 			if (!focus.equals(newFocus))
 				focus.set(newFocus);
 			absValid = true;
-		}
+			return true;
+		} else
+			return false;
 	}
 
 	private void setDist(FollowMode mode, PVector dist) {
@@ -259,7 +269,7 @@ public class Camera extends Object {
 			return distStatic;
 		case Relative:
 			return distRel;
-			default:
+		default:
 			return distNot;
 		}
 	}

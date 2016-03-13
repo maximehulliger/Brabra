@@ -1,18 +1,16 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
 <scene>
-	<camera displaySkybox="true" mode="not" dist="(200,200,200)" debug="true"></camera>
-	<physic gravity="0.2" deltaTime="0.7"></physic>
+	<physic gravity="0.2" deltaTime="0.7" running="true"></physic>
 	
-	
-	<starship pos="zero" dir="back" camera="not" focus="true" debug="false">
-		<ball pos="(0,40,0)" mass="5" color="red"></ball> 
+	<starship pos="zero" dir="front" focus="true" camera="not" debug="true">
+		
 	</starship>
-	
+	<camera displaySkybox="true" mode="not" dist="(100,100,100)" debug="true"></camera>
+	<ball pos="(0,40,0)" mass="0" color="red"></ball> 
 	
 	
 	<!--  
-	force="40" (-20,100,100)
-	
+	force="40" (-20,100,100) 
 	<box pos="(0,5,-5)" mass="5" color="blue"></box>
 	<box pos="(5,5,0)" name="box1"></box>
 	<box pos="(0,5,20)"></box>

@@ -11,6 +11,7 @@ public class Debug {
 	private static final String msgLine = " ( ";
 	
 	private String work = TangibleGame.name+" initialization";
+	private String lastWork = null, lastLastWork = null;
 	private int frameWithoutPrintCount = 0;
 	/** during actual work. */
 	private static boolean noPrint = true;
@@ -27,7 +28,6 @@ public class Debug {
 	public interface Debugable {
 		/** Return a state update with presentation & update (what speaks ?. on first line) or "" if no update since last frame. */
 		public abstract String getStateUpdate();
-		
 		/** Return true if the state of the object changed during last frame. */
 		public abstract boolean stateChanged();
 	}
@@ -44,7 +44,8 @@ public class Debug {
 		
 		// print update state of all followed
 		for (Debugable o : followed)
-			print(3, o.getStateUpdate(), "state update", debugLine, false);
+			if (o.stateChanged())
+				print(3, o.getStateUpdate(), "state update", debugLine, false);
 	}
 
 	/** Set the work name that will we displayed */
@@ -95,25 +96,29 @@ public class Debug {
 
 	/** Print a friendly message if interesting enough.  */
 	public void err(String s) {
-		print(Integer.MAX_VALUE, s, "err", debugLine, false);
+		print(Integer.MIN_VALUE, s, "err", debugLine, true);
 	}
 	
 	private void print(int verbMin, String s, String msgType, String line, boolean error) {
 		if (!testMode && !s.equals("") && TangibleGame.verbosity >= verbMin) {
 			if (noPrint) {
-				noPrint = false;
-				noPrintFrame = false;
-				String frameCount;
-				if (frameWithoutPrintCount == 0)
-					frameCount = "";
-				else if (frameWithoutPrintCount == 1)
-					frameCount = " (1 frame since last msg)";
-				else 
-					frameCount = " ("+frameWithoutPrintCount+" frames since last msg)";
-				frameWithoutPrintCount = 0;
-				System.out.println("---- from "+work+frameCount+":");
+				if (verbMin < TangibleGame.verbMax && !work.equals(lastWork) && !work.equals(lastLastWork)) {
+					final String frameCount;
+					if (frameWithoutPrintCount == 0)
+						frameCount = "";
+					else if (frameWithoutPrintCount == 1)
+						frameCount = " (1 frame since last msg)";
+					else 
+						frameCount = " ("+frameWithoutPrintCount+" frames since last msg)";
+					System.out.println("---- from "+work+frameCount+":");
+					lastLastWork = lastWork;
+					lastWork = work;
+				}
 			}
-			String out = (verbMin == Integer.MIN_VALUE ? "_" : verbMin)
+			noPrint = false;
+			noPrintFrame = false;
+			frameWithoutPrintCount = 0;
+			final String out = (verbMin == Integer.MIN_VALUE ? "-" : verbMin)
 					+ "! " + msgType + ": " + s.replaceAll("\n", "\n"+line);
 			if (error)
 				System.err.println(out);

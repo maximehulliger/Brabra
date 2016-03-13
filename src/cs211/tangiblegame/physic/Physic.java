@@ -9,7 +9,7 @@ import cs211.tangiblegame.geo.Sphere;
 public class Physic extends ProMaster
 {
 	public float gravity = 0.8f; //0.7f
-	public boolean paused = false;
+	public boolean running = true;
 	
 	// les agents B)
 	private List<Object> objects = new ArrayList<Object>();
@@ -34,6 +34,10 @@ public class Physic extends ProMaster
 		return colliders.stream().filter(c -> !c.ghost).collect(Collectors.toList());
 	}
 	
+	public String state() {
+		return running ? "running !" : "paused :)";
+	}
+	
 	/** Add an object to the scene (on next update). */
 	public void add(Object o) {
 		toAdd.add(o);
@@ -48,20 +52,14 @@ public class Physic extends ProMaster
 	public void updateAll() {
 		game.debug.setCurrentWork("objects update");
 		updateObjectLists();
-		for (Object o : objects)
-			o.updated = false;
-		for (Object o : objects) {
-			if (!o.updated) {
-				if (o.hasParent() && !o.parent().updated)
-					o.parent().update();
-				else {
-					game.debug.setCurrentWork("physic: updating \""+o+"\"");
+		if (running) {
+			for (Object o : objects)
+				o.updated = false;
+			for (Object o : objects)
+				if (!o.updated)
 					o.update();
-					o.updated = true;
-				}
-			}
+			updateObjectLists();
 		}
-		updateObjectLists();
 	}
 
 	/** Display all colliders and effects in the scene. */
@@ -71,7 +69,7 @@ public class Physic extends ProMaster
 			o.display();
 	}
 	
-	/** Just... do Magic  :D */
+	/** Just... do Magic  :D <p>Actually resolve collisions. */
 	public void doMagic() {
 		game.debug.setCurrentWork("physic magic");
 		try {
@@ -112,8 +110,8 @@ public class Physic extends ProMaster
 			game.debug.err("physical error :/");
 			e.printStackTrace();
 			if (++errCount >= 3) {
-				paused = true;
-				game.debug.msg(2, "physic paused (after 3 errors)");
+				running = false;
+				game.debug.msg(1, "physic paused (after 3 errors)");
 			}
 		}
 	}

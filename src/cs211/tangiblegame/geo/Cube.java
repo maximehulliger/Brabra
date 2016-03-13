@@ -16,7 +16,6 @@ public class Cube extends PseudoPolyedre {
 	    this.size = size;
 	    this.dim = mult(size, 0.5f).array();
 		this.faces = getFaces(size);
-	    updateAbs();
 	    setName("Cube");
 	}
 
@@ -55,7 +54,7 @@ public class Cube extends PseudoPolyedre {
 		PVector cNorm = PVector.mult(normale, -1);
 		PVector proj = zero.copy();
 		for (int i=0; i<3; i++)
-			proj.add( PVector.mult( faces[i*2].normale.norm, dim[i] * sgn(faces[i*2].normale.norm.dot(cNorm))) );
+			proj.add( PVector.mult( faces[i*2].normale().norm, dim[i] * sgn(faces[i*2].normale().norm.dot(cNorm))) );
 		proj.add(locationAbs);
 		return proj;
 	}
@@ -63,7 +62,7 @@ public class Cube extends PseudoPolyedre {
 	public float projetteSur(PVector normale) {
 		float proj = 0;
 		for (int i=0; i<3; i++) {
-			proj += dim[i] * faces[i*2].normale.norm.dot(normale);
+			proj += dim[i] * faces[i*2].normale().norm.dot(normale);
 		}
 		return proj;
 	}
@@ -72,7 +71,7 @@ public class Cube extends PseudoPolyedre {
 		PVector rel = PVector.sub(colliderLocation, locationAbs);
 		Plane[] ret = new Plane[3];
 		for (int i=0; i<3; i++) {
-			if (rel.dot(faces[i*2].normale.norm) > 0)
+			if (rel.dot(faces[i*2].normale().norm) > 0)
 				ret[i] = faces[i*2];
 			else
 				ret[i] = faces[i*2+1];
@@ -117,20 +116,24 @@ public class Cube extends PseudoPolyedre {
 	}
 	
 	//update les coordonnées absolue. (à chaque transform change du parent)
-	public void updateAbs() {
-		super.updateAbs();
-		//1. update les plans
-		pushLocal();
-		for (Plane p : faces)
-			p.updateAbs();
-		popLocal();
-	  	//2. les sommets
-	  	//super.sommets = absolute(natSommets);
-	  	//3. les axes
-	  	/*axes = new PVector[] {
-				absolute(left, zero, rotation),
-				absolute(up, zero, rotation),
-				absolute(front, zero, rotation) };*/
+	public boolean updateAbs() {
+		boolean sUpdated = super.updateAbs();
+		if (sUpdated) {
+			//1. update les plans
+			pushLocal();
+			for (Plane p : faces)
+				p.updateAbs();
+			popLocal();
+		  	//2. les sommets
+		  	//super.sommets = absolute(natSommets);
+		  	//3. les axes
+		  	/*axes = new PVector[] {
+					absolute(left, zero, rotation),
+					absolute(up, zero, rotation),
+					absolute(front, zero, rotation) };*/
+			return true;
+		} else
+			return false;
 	}
 	
 	//-- static:

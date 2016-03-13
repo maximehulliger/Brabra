@@ -12,7 +12,7 @@ public class Plane extends PseudoPolyedre {
 	private final boolean finite;
 
 	// update quand transformChanged
-	public Line normale;
+	private Line normale;
 	private Line v1; //sur x
 	private Line v2; //sur z
 
@@ -22,7 +22,6 @@ public class Plane extends PseudoPolyedre {
 		this.size = size2d;
 		this.natCo = getNatCo(size2d);
 		this.finite = true;
-		updateAbs();
 		setMass(mass);
 	}
 
@@ -36,8 +35,15 @@ public class Plane extends PseudoPolyedre {
 		setMass(-1);
 	}
 
+	/** Return the normal of the plane (starting in the plane). */
+	public Line normale() {
+		updateAbs();
+		return normale;
+	}
+
 	/** Retourne un point appartenant au plan. le plan doit être fini. */
 	public PVector randomPoint() {
+		updateAbs();
 		if (!finite)
 			throw new IllegalArgumentException(
 					"are you sure that do you want a random point in an infinite plane ?");
@@ -48,7 +54,7 @@ public class Plane extends PseudoPolyedre {
 		ret.add( PVector.mult(v2.norm, b) );
 		return ret;
 	}
-
+	
 	//------ surcharge:
 
 	public void setMass(float mass) {
@@ -67,6 +73,7 @@ public class Plane extends PseudoPolyedre {
 	}
 
 	public float projetteSur(PVector normale) {
+		updateAbs();
 		float proj = 0;
 		proj += v1.norm.dot(normale) * size.x/2;
 		proj += v2.norm.dot(normale) * size.z/2;
@@ -75,11 +82,10 @@ public class Plane extends PseudoPolyedre {
 
 	public void display() {
 		pushLocal();
+		color.fill();
 		if (finite) {
-			color.fill();
 			displayPlane(v2.vectorMag, v1.vectorMag);
 		} else {
-			color.fill();
 			displayPlane(far*2, far*2);
 		}
 		popLocal();
@@ -100,29 +106,33 @@ public class Plane extends PseudoPolyedre {
 
 	public Line collisionLineFor(PVector p) {
 		if (isFacing(p))
-			return normale;
+			return normale();
 		else
 			return new Line(projette(p), p, false);
 	}
 
 	public boolean isIn(PVector abs) {
+		updateAbs();
 		return isFacing(abs) && normale.projectionFactor(abs)<0;
 	}
 
 	public PVector projette(PVector point) {
+		updateAbs();
 		PVector proj1 = v1.projette(point);
 		PVector proj2 = v2.projetteLocal(point);
 		return PVector.add(proj1, proj2);
 	}
 
 	public boolean doCollideFast(Collider c) {
+		updateAbs();
 		return c.projetteSur(normale).comprend(0) && (!finite || super.doCollideFast(c));
 	}
 
 	//retourne le point qui est le plus contre cette normale (par rapport au centre)
 	public PVector pointContre(PVector normale) {
 		if (!finite)
-			return vec(Float.MAX_VALUE, Float.MAX_VALUE, Float.MAX_VALUE);
+			return vec(Float.MAX_VALUE, Float.MAX_VALUE, Float.MAX_VALUE); //TODO
+		updateAbs();
 		PVector proj = PVector.mult( v1.norm, size.x/2 * -sgn(v1.norm.dot(normale)) );
 		proj.add( PVector.mult( v2.norm, size.z/2 * -sgn(v2.norm.dot(normale))) );
 		proj.add(locationAbs);
@@ -130,6 +140,7 @@ public class Plane extends PseudoPolyedre {
 	}
 
 	public Projection projetteSur(Line ligne) {
+		updateAbs();
 		if (ligne == normale)
 			return new Projection(0, 0);
 		else if (finite)
@@ -140,30 +151,35 @@ public class Plane extends PseudoPolyedre {
 	}
 
 	public Plane[] plansSeparationFor(PVector colliderLocation) {
+		updateAbs();
 		return new Plane[] {this};
+	}
+
+	public boolean updateAbs() {
+		boolean sUpdated = super.updateAbs();
+		if (sUpdated) {
+			super.sommets = absolute(natCo);
+	
+			v1 = new Line(sommets[0], sommets[1], finite); //sur x
+			v2 = new Line(sommets[0], sommets[2], finite); //sur z
+	
+			PVector norm = v2.norm.cross(v1.norm);
+			norm.normalize(); // ? plus besoin
+			normale = new Line(sommets[0], PVector.add( sommets[0], norm ), false);
+	
+			super.arretes = new Line[] {
+					v1, v2,
+					new Line(sommets[1], sommets[3], true),
+					new Line(sommets[2], sommets[3], true)};
+			return true;
+		} else
+			return false;
 	}
 
 	//----- private
 
-	//update les coordonnées absolue. (Ã  chaque transform change du parent)
-	public void updateAbs() {
-		super.updateAbs();
-		super.sommets = absolute(natCo);
-
-		v1 = new Line(sommets[0], sommets[1], finite); //sur x
-		v2 = new Line(sommets[0], sommets[2], finite); //sur z
-
-		PVector norm = v2.norm.cross(v1.norm);
-		norm.normalize(); // ? plus besoin
-		normale = new Line(sommets[0], PVector.add( sommets[0], norm ), false);
-
-		super.arretes = new Line[] {
-				v1, v2,
-				new Line(sommets[1], sommets[3], true),
-				new Line(sommets[2], sommets[3], true)};
-	}
-
 	private boolean isFacing(PVector p) {
+		updateAbs();
 		return !finite || (v1.isFacing(p) && v2.isFacing(p));
 	}
 

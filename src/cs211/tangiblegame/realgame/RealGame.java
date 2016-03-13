@@ -16,6 +16,7 @@ public class RealGame extends Interface {
 	public GameDebug debug = new GameDebug();
 	
 	private XMLLoader xmlFile = new XMLLoader();
+	private boolean playOnFocus;
 	
 	public RealGame() {
 		ProMaster.game = this;
@@ -37,10 +38,10 @@ public class RealGame extends Interface {
 		clearConsole();
 		debug.info(0, "loading scene");
 		physic = new Physic();
+		playOnFocus = physic.running;
 		camera = new Camera();
 		physicInteraction = new PhysicInteraction();
 		xmlFile.load();
-		debug.followed.add(camera);
 	}
 	
 	public void wakeUp() {
@@ -50,30 +51,51 @@ public class RealGame extends Interface {
 	
 	// mother method of all life:
 	public void draw() {
-		physic.updateAll();
 		physicInteraction.update();
-		camera.place();
-		physic.doMagic();
-		physic.displayAll();
+		physic.updateAll();
 		debug.update();
+		physic.doMagic();
+		camera.place();
+		physic.displayAll();
 	}
 	
 	public void gui() {
 		game.physicInteraction.gui();
+		game.debug.setCurrentWork("user events");
 	}
 		
 	// --- events ---
 	
+	public void keyPressed() {
+		if (app.key == 'r') {
+			init();
+			physic.running = false;
+		}
+	}
+	
 	public void keyReleased() {
 		if (app.key == 'r')
-			init();
+			physic.running = true;
 		else if (app.key == 'c')
 			camera.displayState();
 		if (app.keyCode == PApplet.TAB)
 			camera.nextMode();
 		if (app.key == 'p') {
-			physic.paused = ! physic.paused;
-			debug.msg(1, physic.paused ? "paused :)" : "play !");
+			physic.running = !physic.running;
+			debug.msg(1, "physic " + physic.state());
 		}
+	}
+	
+	public void onFocusChange(boolean focused) {
+		 if (focused && !physic.running) {
+			 physic.running = playOnFocus;
+			 //debug.msg(1, "physic " + physic.state());
+		 } else if (!focused) {
+			 playOnFocus = physic.running;
+			 if (physic.running){
+				 physic.running = false;
+				 //debug.msg(1, "physic " + physic.state());
+			 }
+		 }
 	}
 }
