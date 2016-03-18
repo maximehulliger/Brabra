@@ -1,6 +1,8 @@
 package cs211.tangiblegame.realgame;
 
 
+import java.util.Stack;
+
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
@@ -11,6 +13,7 @@ import org.xml.sax.helpers.DefaultHandler;
 
 import cs211.tangiblegame.physic.Object;
 import cs211.tangiblegame.physic.Object.ParentRelationship;
+import cs211.tangiblegame.realgame.Camera.FollowMode;
 import cs211.tangiblegame.Color;
 import cs211.tangiblegame.ProMaster;
 import cs211.tangiblegame.geo.Quaternion;
@@ -51,8 +54,7 @@ public final class XMLLoader extends ProMaster {
 	}
 	
 	private class PrefabHandler extends DefaultHandler {
-		private Object parent = null;
-		private int nullBodyParentCount = 0;
+		private Stack<Object> parentStack = new Stack<>();
 		
 	    public void startElement(String namespaceURI, String localName,String qName, Attributes atts) 
 	    		throws SAXException {
@@ -65,66 +67,77 @@ public final class XMLLoader extends ProMaster {
 			  	String running = atts.getValue("running");
 			  	if (running != null)
 			  		game.physic.running = Boolean.parseBoolean(running);
-	    	} else if (localName.equals("camera")) {
-	    		parent = game.camera;
-	    		game.camera.set(atts.getValue("mode"),atts.getValue("dist"),null);
-			  	String displaySkybox = atts.getValue("displaySkybox");
-			  	String debug = atts.getValue("debug");
-	    		if (displaySkybox != null)
-				  	game.camera.setSkybox(Boolean.parseBoolean(displaySkybox));
-			  	if (debug != null && Boolean.parseBoolean(debug)) {
-			  		game.debug.followed.add(game.camera);
-			  	}
 	    	} else {
-	    		String pos = atts.getValue("pos");
-	    		String impulse = atts.getValue("impulse");
-	    		String camera = atts.getValue("camera");
-	    		String cameraDist = atts.getValue("cameraDist");
-	    		String mass = atts.getValue("mass");
-	    		String name = atts.getValue("name");
-	    		String life = atts.getValue("life");
-	    		String color = atts.getValue("color");
-	    		String stroke = atts.getValue("stroke");
-	    		String focus = atts.getValue("focus");
-	    		String dir = atts.getValue("dir");
+	    		// new object into scene: camera or prefab.
+	    		Object newObj;
+	    		// first set the parent
+	    		Object newParent = parentStack.empty() ? null : parentStack.peek();
+	    		
+	    		if (localName.equals("camera")) {
+	    			if (newParent != null)
+	    				game.camera.setParent(newParent);
+	    			String mode = atts.getValue("mode");
+	    			if (mode != null) {
+		    			String dist = atts.getValue("dist");
+		    			if (dist == null)
+		    				game.debug.err("for camera: dist should be set with mode. ignoring mode.");
+		    			else 
+		    				game.camera.setDist(FollowMode.fromString(mode), vec(dist));
+		    		}
+				  	String displaySkybox = atts.getValue("displaySkybox");
+		    		if (displaySkybox != null)
+					  	game.camera.setSkybox(Boolean.parseBoolean(displaySkybox));
+				  	newObj = game.camera;
+	    		} else {
+	    			String pos = atts.getValue("pos");
+	    			String dir = atts.getValue("dir");
+	    			Body newBody = Prefab.add(localName, vec(pos), 
+	    					dir != null ? Quaternion.fromDirection(vec(dir)) : identity);
+
+					if (newBody != null) {
+						if (newParent != null) {
+							newBody.setParent(newParent);
+							String parentRel = atts.getValue("parentRel");
+							newBody.setParentRel(ParentRelationship.fromString(parentRel));
+						}
+						String color = atts.getValue("color");
+						if (color != null) {
+							String stroke = atts.getValue("stroke");
+							newBody.setColor( new Color(color, stroke) );
+						}
+						String mass = atts.getValue("mass");
+						if (mass != null)
+							newBody.setMass(Float.parseFloat(mass));
+						String name = atts.getValue("name");
+						if (name != null)
+							newBody.setName(name);
+						String life = atts.getValue("life");
+						if (life != null)
+							setLife(newBody, life);
+						String cameraMode = atts.getValue("camera");
+						if (cameraMode != null) {
+							String cameraDist = atts.getValue("cameraDist");
+							game.camera.set(newBody, cameraMode, cameraDist);
+						}
+						String impulse = atts.getValue("impulse");
+						if (impulse != null)
+							newBody.applyImpulse(vec(impulse));
+						String focus = atts.getValue("focus");
+						if (focus != null && Boolean.parseBoolean(focus)) {
+							String force = atts.getValue("force");
+							if (force != null)
+								game.physicInteraction.setFocused(newBody, Float.parseFloat(force));
+							else
+								game.physicInteraction.setFocused(newBody);
+						}
+					}
+					newObj = newBody;
+	    		}
+				parentStack.push(newObj);
 	    		String debug = atts.getValue("debug");
-	    			
-	    		Body b = (dir != null)
-	    				? Prefab.add(localName, vec(pos), Quaternion.fromDirection(vec(dir)))
-	    				: Prefab.add(localName, vec(pos));
-	    				
-	    		if (b != null) {
-	    			if (color != null)
-			  			b.setColor( new Color(color, stroke) );
-			  		if (mass != null)
-					  	b.setMass(Float.parseFloat(mass));
-			  		if (name != null)
-					  	b.setName(name);
-			  		if (life != null)
-			  			setLife(b, life);
-				  	if (camera != null) {
-				  		game.camera.set(camera,cameraDist,b);
-				  	}
-				  	if (parent != null) {
-				  		String parentRel = atts.getValue("parentRel");
-			    		b.setParentRel(ParentRelationship.fromString(parentRel));
-			    		b.setParent(parent);
-				  	}
-				  	if (impulse != null)
-					  	b.applyImpulse(vec(impulse));
-			  		if (focus != null && Boolean.parseBoolean(focus)) {
-				  		String force = atts.getValue("force");
-				  		if (force != null)
-				  			game.physicInteraction.setFocused(b, Float.parseFloat(force));
-				  		else
-				  			game.physicInteraction.setFocused(b);
-				  	}
-				  	if (debug != null && Boolean.parseBoolean(debug)) {
-				  		game.debug.followed.add(b);
-				  	}
-				  	parent = b;
-			  	} else
-			  		nullBodyParentCount++;
+			  	if (debug != null && Boolean.parseBoolean(debug)) {
+			  		game.debug.followed.add(newObj);
+			  	}
 	    	}
 	    }
 	    
@@ -133,15 +146,9 @@ public final class XMLLoader extends ProMaster {
 			if (localName.equals("scene") || localName.equals("physic"))
 	    		return;
 	    	else {
-	    		if (nullBodyParentCount <= 0) {
-	    			parent = parent.parent();
-	    		} else {
-	    			nullBodyParentCount--;
-	    		}
+	    		parentStack.pop();
 	    	}
 		}
-		
-		//public void characters(char[] ch, int start, int length) {}
 	}
 
 	private void setLife(Body b, String lifeText) {

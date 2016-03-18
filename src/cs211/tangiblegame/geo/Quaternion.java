@@ -61,7 +61,7 @@ public class Quaternion extends ProMaster {
 	/** Set wxyz of the quaternion and return it. */
 	public Quaternion set(PVector axis, float angle) {
 		if (!isConstrained(angle, -pi, pi))
-			game.debug.log(3, "quaternion set angle: "+angle+" pas dans [-pi,pi]");
+			game.debug.log(4, "quaternion set angle: "+angle+" pas dans [-pi,pi]");
 		this.angle = entrePiEtMoinsPi(angle);
 		this.rotAxis = axis;
 		initFromAxis();
@@ -105,7 +105,7 @@ public class Quaternion extends ProMaster {
 
 	public void addAngularMomentum(PVector dL) {
 		assert (!dL.equals(zero));
-		PVector rotAxis = rotAxis();
+		PVector rotAxis = rotAxisAngle();
 		PVector newRotAxis = (rotAxis == null) ? dL : PVector.add(rotAxis, dL);
 		set( newRotAxis, newRotAxis.mag() );
 	}
@@ -123,7 +123,7 @@ public class Quaternion extends ProMaster {
 
 	/** Check if this (axis & angle) nearly equals other and if so & clean set it to other. */
 	public boolean equalsEpsAxis(Quaternion other, boolean clean) {
-		if (equalsEps(rotAxis(), other.rotAxis(), clean) && 
+		if (equalsEps(rotAxis(), other.rotAxis(), false) && 
 				equalsEps(angle(), other.angle())) {
 			if (clean && !equals(other))
 				set(other);
@@ -134,7 +134,7 @@ public class Quaternion extends ProMaster {
 
 	/** Check if rotation is null and if so & clean reset it. */
 	public boolean isZeroEps(boolean clean) {
-		return equalsEps(identity, clean);
+		return equalsEpsAxis(identity, clean);
 	}
 	
 	// --- immutable stuff ---

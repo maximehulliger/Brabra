@@ -69,8 +69,8 @@ public class TangibleGame extends PApplet {
 	public void setup() {
 		// 1. processing stuff.
 		frameRate(30);
-		float camZ = height / (2*tan(PI*60/360.0f));
-		perspective(PI/3, width/(float)height, camZ/100, camZ*1000);
+		//float camZ = height / (2*tan(PI*60/360.0f));
+		perspective(PI/3, width/(float)height, 1, ProMaster.far);
 		surface.setTitle(name);
 		// enable the frame and correct windowLoc.
 		frame.pack();

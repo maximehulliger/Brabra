@@ -20,7 +20,7 @@ public final class PhysicInteraction extends ProMaster {
 	/** Puissance de l'interaction. */
 	private static final float forceMin = 20, forceMax = 100, forceRange = forceMax - forceMin; 
 	
-	private float force = 40, ratioTrans = 10, ratioRot = 0.001f;
+	private float force = 40, ratioTrans = 10, ratioRot = 0.01f;
 	private float forceTrans = force*ratioTrans, forceRot = force*ratioRot;
 	private Body focused = null;
 	private Armement armement = null;
@@ -101,6 +101,7 @@ public final class PhysicInteraction extends ProMaster {
 	private void applyForces() {
 		// 1. rotation (plate, mouse, horizontal)
 		PVector forceRot = zero.copy(); // [pitch, yaw, roll]
+		focused.updateAbs();
 		
 		//> from the plate
 		if (app.imgAnalyser.running()) {
@@ -122,19 +123,16 @@ public final class PhysicInteraction extends ProMaster {
 			PVector frontAP = front(150);
 			if (forceRot.x != 0) {
 				PVector pitch = up(forceRot.x * this.forceRot);
-				focused.addForce(focused.absolute(frontAP), 
-						absolute( pitch, zero, focused.rotationRel));
+				focused.addForce(focused.absolute(frontAP), focused.absDir(pitch));
 			}
 			if (forceRot.y != 0) {
 				PVector yaw = right(forceRot.y * this.forceRot);
-				focused.addForce(focused.absolute(frontAP), 
-						absolute( yaw, zero, focused.rotationRel));
+				focused.addForce(focused.absolute(frontAP), focused.absDir(yaw));
 			}
 			if (forceRot.z != 0) {
 				PVector roll = right(forceRot.z * 3/2 * this.forceRot);
 				PVector rollAP = up(100);
-				focused.addForce(focused.absolute(rollAP), 
-						absolute( roll, zero, focused.rotationRel));
+				focused.addForce(focused.absolute(rollAP), focused.absDir(roll));
 			}
 		}
 
@@ -145,18 +143,19 @@ public final class PhysicInteraction extends ProMaster {
 		}
 
 		// 3. brake
-		if ( rightScore == 0) {
-			// space -> non-brake, alt -> brake
-			if (app.input.altDown)
-				focused.freine(0.30f);
-			else if (app.input.spaceDown) {
-				focused.freineDepl(0.001f);
-				focused.freineRot(0.1f);
-			} else
-				focused.freine(0.30f);
-		} else {
+		if ( rightScore > 0) {
+			// if the buttons are detected
 			focused.freineDepl(0.1f);
 			focused.freineRot(0.15f);
+		} else {
+			// keyboard: alt -> brake, space -> non-brake
+			if (app.input.altDown)
+				focused.freine(0.35f);
+			else if (app.input.spaceDown) {
+				focused.freineDepl(0.001f);
+				focused.freineRot(0.01f);
+			} else
+				focused.freine(0.1f);
 		}
 	}
 

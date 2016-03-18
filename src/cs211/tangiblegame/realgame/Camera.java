@@ -13,10 +13,10 @@ import cs211.tangiblegame.physic.Object;
  **/ 
 public class Camera extends Object {
 	public static final float distSqBeforeRemove = 12_000*12_000; 	//distance du vaisseau avant remove
-	private static final PVector defaultOrientation = vec(0,-1,0); 	//orientation
+	private static final PVector defaultOrientation = y(-1); 	//orientation
 	
 	public enum FollowMode {
-		Not, Static, Relative;
+		Not, Static, Full;
 		public FollowMode next() {
 	        return values()[(this.ordinal()+1) % values().length];
 	    }
@@ -24,12 +24,12 @@ public class Camera extends Object {
 		public static FollowMode fromString(String f) {
 			if (f.equals("static"))
 				return FollowMode.Static;
-			else if (f.equals("relative"))
-				return FollowMode.Relative;
-			else if (f.equals("fixed") || f.equals("not"))
+			else if (f.equals("full") || f.equals("relative"))
+				return FollowMode.Full;
+			else if (f.equals("fixed") || f.equals("not") || f.equals("none"))
 				return FollowMode.Not;
 			else {
-				System.err.println("mode pour camera inconu : \""+f+"\"\n");
+				game.debug.err("camera mode unknown: \""+f+"\", taking Not");
 				return FollowMode.Not;
 			}
 		}
@@ -37,83 +37,112 @@ public class Camera extends Object {
 	
 	public static PShape skybox;
 	
-	private boolean displaySkybox = false;
+	private boolean displaySkybox = true;
 	private boolean displayPointCentral = true;
 	private Color colorPointCentral = Color.get("red");
 	private boolean displayAxis = true;
 	
 	private FollowMode followMode = FollowMode.Not;
 	/** The absolute point that looks the camera. */
-	private final PVector focus = new NVector(zero);
-	private final PVector orientation = new NVector(defaultOrientation);
+	private final PVector focus = zero.copy();
+	private final PVector orientation = defaultOrientation.copy();
 	
 	private final PVector distNot = cube(100);
 	private final PVector distStatic = cube(300);
-	private final PVector distRel = mult(vec(0, 6, 9), 15f);
+	private final PVector distFull = mult(vec(0, 6, 9), 15f);
 	private boolean stateChanged = false, stateChangedCurrent = false;
-	private boolean absValid = true; //as super( distNot );
+	private boolean absValid = false;
 	
 	/** Creates a new camera and add it to the physic objects. */
 	public Camera() {
 		super( cube(100) );
 		setName("Camera");
-		game.physic.add( this );
+		game.physic.addNow( this );
 	}
 	
-	public void update() {
-		stateChanged = stateChangedCurrent;
-		stateChangedCurrent = false;
-		super.update();
+	public boolean update() {
+		if (super.update()) {
+			stateChanged = stateChangedCurrent;
+			stateChangedCurrent = false;
+			return true;
+		} else
+			return false;
 	}
 
-	public boolean absValid() {
+	protected boolean absValid() {
 		return absValid && super.absValid();
 	}
 	
-	public void set(String followMode, String dist, Body toFollow) {
-		if (followMode == null && dist == null && toFollow == null)
-			return;
-		if (toFollow != null) {
-			setParent(toFollow);
-			stateChangedCurrent = true;
-			absValid = false;
-		} 
-		if (followMode != null && dist != null) {
-			PVector newDist = vec(dist);
-			FollowMode mode = FollowMode.fromString(followMode);
-			if (!newDist.equals(getDist(mode))) {
-				setDist(mode, newDist);
-				if (this.followMode == mode)
-					setMode(mode); //to update
+	public void set(Body toFollow, String followMode, String dist) {
+		assert(toFollow != null && followMode != null);
+		// 1. get follow mode
+		FollowMode mode = FollowMode.fromString(followMode);
+		
+		// 2. update dist if set
+		if (dist != null)
+			setDist(mode, vec(dist));
+		
+		// 3. apply
+		setParent(toFollow);
+		setMode(mode);
+	}
+
+	public void setDist(FollowMode mode, PVector dist) {
+		if ( !dist.equals(getDist(mode)) ) {
+			switch(mode) {
+			case Not:
+				distNot.set(dist);
+				break;
+			case Static:
+				distStatic.set(dist);
+				break;
+			case Full:
+				distFull.set(dist);
+				break;
+			}
+			if (mode == followMode) {
+				absValid = false;
+				stateChangedCurrent = true;
 			}
 		}
 	}
-
+	
 	public void setSkybox(boolean displaySkybox) {
 		this.displaySkybox = displaySkybox;
+		game.debug.info(3, (displaySkybox ? "with" : "without")+" skybox.");
+	}
+	
+	/** To let parentRel be consistent with followMode. */
+	public void setParentRel(ParentRelationship rel) {
+		switch (followMode) {
+		case Not:
+			super.setParentRel(ParentRelationship.None);
+			break;
+		case Full:
+			super.setParentRel(ParentRelationship.Full);
+			break;
+		default: // Static
+			super.setParentRel(ParentRelationship.Static);
+			break;
+		}
 	}
 	
 	/** Change the camera mode and location. display state. */
 	public void setMode(FollowMode mode) {
-		if (mode == followMode)
-			assert(!locationRel.equals(getDist(mode))); //only called on changes
-		followMode = mode;
-		switch (followMode) {
-		case Not:
-			setParentRel(ParentRelationship.None);
-			break;
-		default:
-			setParentRel(ParentRelationship.Static);
-			break;
+		if (mode == followMode && absValid)
+			assert(locationRel.equals(getDist(mode))); //should already be set
+		else {
+			followMode = mode;
+			setParentRel(null);
+			locationRel.set(getDist(mode));
+			stateChangedCurrent = true;
+			absValid = false;
+			displayState();
 		}
-		locationRel.set(getDist(mode));
-		stateChangedCurrent = true;
-		absValid = false;
-		displayState();
 	}
 	
 	public void nextMode() {
-		if (hasParent())
+		if (parent() != null)
 			setMode(followMode.next());
 		else
 			game.debug.msg(3, "Camera need an object to focus on.");
@@ -136,9 +165,10 @@ public class Camera extends Object {
 				orientation.x, orientation.y, orientation.z);
 		
 		if (displaySkybox) {
-			pushLocal();
-			app.shape(skybox);
-			popLocal();
+			app.pushMatrix();
+				translate(locationAbs);
+				app.shape(skybox);
+			app.popMatrix();
 		} else {
 			//app.directionalLight(50, 100, 125, 0, -1, 0);
 			app.ambientLight(255, 255, 255);
@@ -158,14 +188,14 @@ public class Camera extends Object {
 	}
 	
 	public void displayState() {
-		updateAbs();
-		game.debug.info(2, presentation()+" "+state());
+		game.debug.info(2, presentation()+" "+state()+state(true,true,true,true));
 	}
 	
-	private String state() {
+	protected String state() {
+		updateAbs();
 		return (followMode == FollowMode.Not ? "fixed at "+locationAbs
 				: "at "+parent().location()+" from +"+locationRel+" in "+followMode+" mode.")
-				+ " orientation: "+orientation;
+				+ " looking at "+focus+" orientation: "+orientation;
 	}
 	
 	public String getStateUpdate() {
@@ -179,12 +209,16 @@ public class Camera extends Object {
 		return stateChanged || super.stateChanged();
 	}
 	
-	public void setParent(Object p) {
-		super.setParent(p);
-		setParentRel(ParentRelationship.Static);
+	public boolean setParent(Object p) {
+		if (super.setParent(p)) {
+			stateChangedCurrent = true;
+			absValid = false;
+			return true;
+		} else
+			return false;
 	}
 	
-	public void drawMouseray(float dist) { //TODO
+	/*public void drawMouseray(float dist) { //TODO
 		float focal = 10;
 	    PVector mrel = new PVector(-(app.mouseX-app.width/2)/focal, -(app.mouseY-app.height/2)/focal, -focal);
 	    
@@ -213,7 +247,7 @@ public class Camera extends Object {
 	    System.out.println("mouse pos: "+mousePos);
 	    System.out.println("cam to mouse: "+camToMouse);
 	    System.out.println("cam to focus: "+PVector.sub(locationAbs, focus));
-	}
+	}*/
 
 	public boolean updateAbs() {
 		boolean sUpdated = super.updateAbs();
@@ -227,9 +261,9 @@ public class Camera extends Object {
 				newFocus = parent().location();
 				newOrientation = defaultOrientation;
 				break;
-			case Relative:
-				newFocus = parent().absUp(60);
-				newOrientation = parent().orientation();
+			case Full:
+				newFocus = parent().absolute(up(60));
+				newOrientation = orientation();
 				break;
 			default: //Not
 				newFocus = zero;
@@ -249,26 +283,12 @@ public class Camera extends Object {
 			return false;
 	}
 
-	private void setDist(FollowMode mode, PVector dist) {
-		switch(mode) {
-		case Not:
-			distNot.set(dist);
-			break;
-		case Static:
-			distStatic.set(dist);
-			break;
-		case Relative:
-			distRel.set(dist);
-			break;
-		}
-	}
-	
 	private PVector getDist(FollowMode mode) {
 		switch(followMode) {
 		case Static:
 			return distStatic;
-		case Relative:
-			return distRel;
+		case Full:
+			return distFull;
 		default:
 			return distNot;
 		}
@@ -276,10 +296,10 @@ public class Camera extends Object {
 	
 	private void displayAxis() {
 		app.stroke(255, 0, 0);
-		app.line(0, 0, 0, far, 0, 0);
+		line(zero, x(far));
 		app.stroke(0, 255, 0);
-		app.line(0, 0, 0, 0, far, 0);
+		line(zero, y(far));
 		app.stroke(0, 0, 255);
-		app.line(0, 0, 0, 0, 0, far);
+		line(zero, z(far));
 	}
 }

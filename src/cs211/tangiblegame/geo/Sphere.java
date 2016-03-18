@@ -37,15 +37,15 @@ public class Sphere extends Collider {
 	
 	public PVector[] getIntruderPointOver(Line colLine) {
 		PVector[] candidates = new PVector[2];
-		candidates[0] = PVector.add( locationAbs, PVector.mult(colLine.norm, radius));
-		candidates[1] = PVector.sub( locationAbs, PVector.mult(colLine.norm, radius));
+		candidates[0] = PVector.add( location(), PVector.mult(colLine.norm, radius));
+		candidates[1] = PVector.sub( location(), PVector.mult(colLine.norm, radius));
 		return colLine.intruders(candidates);
 	}
 	
 	public PVector projette(PVector point) {
-		PVector v = PVector.sub( point, locationAbs );
+		PVector v = PVector.sub( point, location() );
 		v.setMag(radius);
-		return PVector.add( v, locationAbs );
+		return PVector.add( v, location() );
 	}
 	
 	public void display() {

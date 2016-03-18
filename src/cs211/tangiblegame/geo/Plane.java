@@ -7,22 +7,23 @@ import processing.core.*;
 
 /** A plane characterized by 3 points. Default norm is up. Can be finite or infinite. */
 public class Plane extends PseudoPolyedre {
+	
 	private final PVector size; //x et z
 	private final PVector[] natCo; 	//native relative coordonates (4 points)
 	private final boolean finite;
 
-	// update quand transformChanged
+	// absolute variables:
 	private Line normale;
 	private Line v1; //sur x
 	private Line v2; //sur z
 
-	/** Create a plan of size size2d (x,z). */
-	public Plane(PVector loc, Quaternion rot, float mass, PVector size2d) {
+	/** Create a plan (quad) of size size2d (x,z). */
+	public Plane(PVector loc, Quaternion rot, PVector size2d) {
 		super( loc, rot, size2d.mag()/2 );
 		this.size = size2d;
 		this.natCo = getNatCo(size2d);
 		this.finite = true;
-		setMass(mass);
+		setName("Quad");
 	}
 
 	/** Create an infinite plan. */
@@ -31,8 +32,7 @@ public class Plane extends PseudoPolyedre {
 		this.size = null;
 		this.natCo = getNatCo(new PVector(1, 0, 1));
 		this.finite = false;
-		updateAbs();
-		setMass(-1);
+		setName("Plane");
 	}
 
 	/** Return the normal of the plane (starting in the plane). */
@@ -47,19 +47,18 @@ public class Plane extends PseudoPolyedre {
 		if (!finite)
 			throw new IllegalArgumentException(
 					"are you sure that do you want a random point in an infinite plane ?");
-		float a = random.nextFloat() * size.x;
-		float b = random.nextFloat() * size.z;
-		PVector ret = v1.base.copy();
-		ret.add( PVector.mult(v1.norm, a) );
-		ret.add( PVector.mult(v2.norm, b) );
-		return ret;
+		return add(v1.base.copy(),
+				mult(v1.norm, random.nextFloat() * size.x),
+				PVector.mult(v2.norm, random.nextFloat() * size.z));
 	}
 	
 	//------ surcharge:
 
 	public void setMass(float mass) {
 		super.setMass(mass);
-		if (inverseMass > 0) {
+		if (!finite && !ghost && mass!=-1)
+			throw new IllegalArgumentException("An infinite plane without an infinite mass is a bad idea :/");
+		if (mass!=-1 && inverseMass > 0) {
 			float fact = mass/12;
 			super.inertiaMom = new PVector(
 					fact*sq(size.z), 
@@ -74,34 +73,21 @@ public class Plane extends PseudoPolyedre {
 
 	public float projetteSur(PVector normale) {
 		updateAbs();
-		float proj = 0;
-		proj += v1.norm.dot(normale) * size.x/2;
-		proj += v2.norm.dot(normale) * size.z/2;
-		return proj;
+		return v1.norm.dot(normale)*size.x/2 + v2.norm.dot(normale)*size.z/2;
 	}
 
 	public void display() {
 		pushLocal();
 		color.fill();
-		if (finite) {
-			displayPlane(v2.vectorMag, v1.vectorMag);
-		} else {
-			displayPlane(far*2, far*2);
-		}
-		popLocal();
-	}
-	
-	private void displayPlane(float magX, float magZ) {
-		float x = magX/2;
-		float z = magZ/2;
+		float x = finite ? v1.vectorMag/2 : far;
+		float z = finite ? v2.vectorMag/2 : far;
 		app.beginShape(PApplet.QUADS);
-		{
-		    app.vertex(-x,0,-z);
-		    app.vertex(x,0,-z);
-		    app.vertex(x,0,z);
-		    app.vertex(-x,0,z);
-		}
+	    app.vertex(-x,0,-z);
+	    app.vertex(x,0,-z);
+	    app.vertex(x,0,z);
+	    app.vertex(-x,0,z);
 		app.endShape();
+		popLocal();
 	}
 
 	public Line collisionLineFor(PVector p) {
@@ -118,9 +104,7 @@ public class Plane extends PseudoPolyedre {
 
 	public PVector projette(PVector point) {
 		updateAbs();
-		PVector proj1 = v1.projette(point);
-		PVector proj2 = v2.projetteLocal(point);
-		return PVector.add(proj1, proj2);
+		return add( v1.projette(point) , v2.projetteLocal(point) );
 	}
 
 	public boolean doCollideFast(Collider c) {
@@ -142,12 +126,12 @@ public class Plane extends PseudoPolyedre {
 	public Projection projetteSur(Line ligne) {
 		updateAbs();
 		if (ligne == normale)
-			return new Projection(0, 0);
+			throw new IllegalArgumentException("why projecting a plane on himself ??");
+			//return new Projection(0, 0);
 		else if (finite)
 			return ligne.projette( sommets );
 		else
 			return new Projection(Float.MIN_VALUE, Float.MAX_VALUE);
-		//throw new IllegalArgumentException("infinite plane projected !!");
 	}
 
 	public Plane[] plansSeparationFor(PVector colliderLocation) {
@@ -156,8 +140,7 @@ public class Plane extends PseudoPolyedre {
 	}
 
 	public boolean updateAbs() {
-		boolean sUpdated = super.updateAbs();
-		if (sUpdated) {
+		if (super.updateAbs()) {
 			super.sommets = absolute(natCo);
 	
 			v1 = new Line(sommets[0], sommets[1], finite); //sur x

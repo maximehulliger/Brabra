@@ -15,6 +15,7 @@ import processing.core.PShape;
 import processing.core.PVector;
 
 public class Armement extends ProMaster {
+	
 	private static final int guiWidth = 400;
 	private static final float ratioSizeMissile = 1f;
 	private static final float ratioTRechargeMissile = 0.7f;
@@ -24,13 +25,16 @@ public class Armement extends ProMaster {
 	private static final float[] tiersRatioSize = new float[] { 1, 8, 12.5f };
 	private static final float[] tiersPuissance = new float[] { 10, 50, 200 };
 	private static final float[] tiersTRecharge = new float[] { 3, 15, 30 };
+	/** Threshold for the button input to fire a tier of weapon. */
+	private static final float[] etatThreshold = new float[] { 0, 0, 0.8f };
 	
 	public static PShape missile;
 	public static PImage missileImg;
+	
 	private final List<LanceMissile> lmissiles = new ArrayList<Armement.LanceMissile>(5);
 	private final List<LanceMissile> lmissilesByPrioritiy = new ArrayList<Armement.LanceMissile>(5);
-	private float ratioToImageScale;
 	private final Collider launcher;
+	private float ratioToImageScale;
 	private float[] ratioIn;
 	
 	public interface Armed {
@@ -81,9 +85,6 @@ public class Armement extends ProMaster {
 			lmissilesByPrioritiy.add( offset + 1, rightSmallMissLaunch);
 		}
 	}
-	
-	// tire le premier missile disponible
-	private static final float[] etatThreshold = new float[] { 0, 0.0f, 0.8f };
 	
 	/** idx: -1 -> any, [0-nbSlot] -> that one. etat: filter weapons with etatThreshold. */
 	public void fire(int idx, float etat) {
@@ -157,7 +158,7 @@ public class Armement extends ProMaster {
 			}
 		}
 
-		//retourne le nouveau point bas gauche
+		/** Retourne le nouveau point bas gauche. */
 		public PVector displayGui(PVector basGauche) {
 			app.noStroke();
 			PVector imgDim = new PVector(missileImg.width, missileImg.height);
@@ -184,6 +185,7 @@ public class Armement extends ProMaster {
 				super(location, rotation, vec( tiersRatioSize[tier]*2*ratioSizeMissile, 
 						tiersRatioSize[tier]*2*ratioSizeMissile, 
 						tiersRatioSize[tier]*7*ratioSizeMissile) );
+				setName("Missile");
 				setMass(puissance);
 				assert(tier > 0);
 				velocityRel.set(launcher.velocity()); //TODO velocity Abs

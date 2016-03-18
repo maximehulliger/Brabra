@@ -6,30 +6,34 @@ import cs211.tangiblegame.TangibleGame;
 import cs211.tangiblegame.ProMaster;
 import processing.core.*;
 
-/** une ligne caracterisée soit par 2 points (soit par 1 point et une direction, à venir peut être). peut être fini.*/
+/** A line characterized by 2 points (or 1 point and 1 vector). Can be finite.*/
 public final class Line extends ProMaster {
-	public final PVector base;   	//a
-	public final PVector vector;	//a->b
+	/** a. */
+	public final PVector base;
+	/** a -> b. */
+	public final PVector vector;
 	public final float vectorMag;
+	/** Direction normalized. */
 	public final PVector norm;
+	/** Indicate if finite (segment, a->b) or infinite (line, -->a->b-->) */
 	public final boolean finite;
 
-	//prend 2 points pour former une ligne de a au b. peut être finit.
-	public Line(PVector base, PVector b, boolean finite) {
+	/** Take 2 points to form a line from a to b. can be finite. */
+	public Line(PVector a, PVector b, boolean finite) {
 		this.finite = finite;
-		this.base = base;
-		this.vector = PVector.sub(b, base);
+		this.base = a;
+		this.vector = PVector.sub(b, a);
 		this.vectorMag = vector.mag();
 		norm = vector.copy();
 		norm.normalize();
 	}
 
-	// retourne la projection du point sur la ligne.
+	/** retourne la projection du point sur la ligne. */
 	public PVector projette(PVector p) {
 		return PVector.add( base, projetteLocal(p));
 	}
 
-	// retourne la projection du point par rapport � la base de la ligne
+	/** retourne la projection du point par rapport � la base de la ligne */
 	public PVector projetteLocal(PVector p) {
 		if (!finite)
 			return PVector.mult(norm, projectionFactor(p));
@@ -37,7 +41,7 @@ public final class Line extends ProMaster {
 			return PVector.mult(norm, TangibleGame.constrain(projectionFactor(p), 0, vectorMag));
 	}
 
-	// retourne le facteur de projection du point relativement � la norme
+	/** retourne le facteur de projection du point relativement � la norme */
 	public float projectionFactor(PVector p) {
 		return PVector.sub( p, base ).dot(norm);
 	}
@@ -48,7 +52,7 @@ public final class Line extends ProMaster {
 		return 0 <= pf;// && pf <= vectorMag;
 	}
 
-	// projette les points sur la ligne
+	/** projette les points sur la ligne */
 	public Projection projette(PVector[] points) {
 		if (points.length == 0) {
 			System.out.println("projette sans points !");
@@ -64,7 +68,7 @@ public final class Line extends ProMaster {
 		return new Projection(min, max);
 	}
 
-	// retourne un tableau des points étant projeté sous la ligne.
+	/** retourne un array des canditats projet� sous la ligne. */
 	public PVector[] intruders(PVector[] candidates) {
 		ArrayList<PVector> intruders = new ArrayList<>();
 		for (PVector cand : candidates) {
@@ -81,7 +85,7 @@ public final class Line extends ProMaster {
 	public static class Projection {
 		public final float de,  a;
 
-		//projection non nulle sur une droite quelconque. 'de' est toujours plus petit ou égal à 'a'.
+		/** projection non nulle sur une droite quelconque. 'de' est toujours plus petit ou égal à 'a'. */
 		public Projection(float de, float a) {
 			if (de > a)
 				throw new IllegalArgumentException("projection invalide de "+de+" à "+a+" !");
@@ -104,6 +108,5 @@ public final class Line extends ProMaster {
 		public boolean comprend(float proj) {
 			return de<=proj && proj<=a;
 		}
-
 	}
 }

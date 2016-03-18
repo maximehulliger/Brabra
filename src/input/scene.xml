@@ -2,20 +2,22 @@
 <scene>
 	<physic gravity="0.2" deltaTime="0.7" running="true"></physic>
 	
-	<starship pos="zero" dir="front" focus="true" camera="not" debug="true">
-		
-	</starship>
-	<camera displaySkybox="true" mode="not" dist="(100,100,100)" debug="true"></camera>
-	<ball pos="(0,40,0)" mass="0" color="red"></ball> 
+	<camera displaySkybox="true" mode="not" dist="(50,50,200)" debug="true">
+		<box pos="(0,0,-400)" mass="0" color="yellow"></box>
+	</camera>
+	<box pos="(0,0,0)" name="box1" debug="true" mass="0"></box>
 	
+	<starship pos="zero" focus="true" force="72" camera="not" debug="true">
+		<ball pos="(-20,0,0)" name="blue ball" mass="0" color="blue" debug="true">
+			<ball pos="(0,40,0)" name="upper ball" mass="0" color="red" debug="true"></ball> 
+		</ball>
+	</starship>
 	
 	<!--  
 	force="40" (-20,100,100) 
-	<box pos="(0,5,-5)" mass="5" color="blue"></box>
+	
 	<box pos="(5,5,0)" name="box1"></box>
 	<box pos="(0,5,20)"></box>
-	
-	<floor pos="zero" color="grass" stroke="green"></floor>
 	
 	<ball pos="(0,5,5)" mass="5" color="red"></ball>
 	<ball pos="(10,5,5)" mass="5" color="yellow" impulse="(0,5,0)"></ball>

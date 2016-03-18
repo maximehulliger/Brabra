@@ -13,7 +13,7 @@ import processing.core.PVector;
  * Free to use once extended :) 
  * */
 public abstract class ProMaster extends Master {
-	protected static final float epsilon = PApplet.EPSILON / 100;
+	protected static final float epsilon = 1E-5f;
 	
 	protected static TangibleGame app;
 	protected static RealGame game;
@@ -69,8 +69,7 @@ public abstract class ProMaster extends Master {
 			for (PVector vec : v)
 				ret.add(vec);
 			return ret;
-		}
-			
+		}	
 	}
 	
 	public static PVector sub(PVector v1, PVector v2) {
@@ -91,6 +90,18 @@ public abstract class ProMaster extends Master {
 	
 	protected static PVector right(float lenght) { 
 		return mult(right, lenght); 
+	}
+
+	protected static PVector x(float lenght) { 
+		return vec(lenght,0,0); 
+	}
+	
+	protected static PVector y(float lenght) { 
+		return vec(0,lenght,0); 
+	}
+	
+	protected static PVector z(float lenght) { 
+		return vec(0,0,lenght); 
 	}
 
 	// --- PVector help methods ---
@@ -316,10 +327,16 @@ public abstract class ProMaster extends Master {
 
 	/** return true if close to zero. if clean, set p1 to p2. */
 	protected static boolean equalsEps(PVector p1, PVector p2, boolean clean) {
-		boolean isZero = isZeroEps( PVector.sub(p1, p2), false );
-		if (clean && isZero)
-			p1.set(p2);
-		return isZero;
+		if (p1 == p2)
+			return true;
+		else if (p1==null || p2==null)
+			return false;
+		else {
+			boolean isZero = isZeroEps( PVector.sub(p1, p2), false );
+			if (clean && isZero)
+				p1.set(p2);
+			return isZero;
+		}
 	}
 	
 	/** Return true if f1 is nearly equal to f2. */
@@ -329,19 +346,26 @@ public abstract class ProMaster extends Master {
 	
 	// --- Transformations (location, rotation) ---
 
+	/** Return the absolute location of rel (translated & rotated, from reseted matrix)*/
 	protected static synchronized PVector absolute(PVector rel, PVector trans, Quaternion rotation) {
 		boolean rotNull = rotation.equals(identity);
 		boolean transNull = trans.equals(zero);
-		if (!rotNull || !transNull)
+		if (rotNull && transNull)
+			return rel;
+		else if (rotNull)
+			return add( rel, trans );
+		else {
 			app.pushMatrix();
-		if (!rotNull)
-			rotateBy(rotation);
-		if (!transNull)
-			translate(trans);
-		PVector ret = model(rel);
-		if (!rotNull || !transNull)
-			app.popMatrix();
-		return ret;
+			app.resetMatrix();
+			if (!transNull)
+				translate(trans);
+			if (!rotNull)
+				rotateBy(rotation);
+			PVector ret = model(rel);
+			if (!rotNull || !transNull)
+				app.popMatrix();
+			return ret;
+		}
 	}
 
 	protected static synchronized void translate(PVector t) {

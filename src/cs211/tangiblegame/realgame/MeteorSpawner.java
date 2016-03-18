@@ -26,12 +26,16 @@ public final class MeteorSpawner extends Effect {
 		setNext();
 	}
 	
-	public void update() {
-		spawnCage.update();
-		if (--nextPopTime < 0) {
-			popMeteor();
-			setNext();
-		}
+	public boolean update() {
+		if (super.update()) {
+			spawnCage.update();
+			if (--nextPopTime < 0) {
+				popMeteor();
+				setNext();
+			}
+			return true;
+		} else
+			return false;
 	}
 	
 	public void popMeteor() {

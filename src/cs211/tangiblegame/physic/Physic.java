@@ -42,6 +42,13 @@ public class Physic extends ProMaster
 	public void add(Object o) {
 		toAdd.add(o);
 	}
+
+	/** Add an object immediately into the scene. */
+	public void addNow(Object o) {
+		objects.add(o);
+		if (o instanceof Collider)
+			colliders.add((Collider)o);
+	}
 	
 	/** Remove an object from the scene (on next update). */
 	public void remove(Object o) {
@@ -125,11 +132,7 @@ public class Physic extends ProMaster
 			toRemove.clear();
 		}
 		if (toAdd.size() > 0) {
-			objects.addAll(toAdd);
-			toAdd.forEach(o -> {
-				if (o instanceof Collider)
-					colliders.add((Collider)o);
-			});
+			toAdd.forEach(o->addNow(o));
 			toAdd.clear();
 		}
 	}

@@ -32,7 +32,7 @@ public class Body extends Object {
 	private PVector torques = zero.copy();
 	private Runnable addForces = null;
 	
-	/** create a Body with this location & location. location can be null */
+	/** create a Body with this location & location and infinite mass. rotation can be null */
 	public Body(PVector location, Quaternion rotation) {
 		super(location, rotation);
 	}
@@ -43,27 +43,32 @@ public class Body extends Object {
 	/** to react to a collision */
 	protected void onCollision(Collider col, PVector impact) {}
 
-	/** applique les forces et update l'etat */
-	public void update() {
-		addForces();
-		if (addForces != null)
-			addForces.run();
-		
-		//1. translation
-		if (!forces.equals(zero)) {
+	/** applique les forces et update l'etat. return true if this was updated. */
+	public boolean update() {
+		if (!updated) {
+			addForces();
+			if (addForces != null)
+				addForces.run();
+			
+			//1. translation
 			PVector acceleration = PVector.mult( forces, inverseMass );
-			velocityRel.add( acceleration );
-		}
-		
-		//2. rotation, vitesse angulaire, on prend rotation axis comme L/I
-		PVector dL = multMatrix( inverseInertiaMom, torques );
-		if (!dL.equals(zero)) {
-			rotationRelVel.addAngularMomentum( dL );
-		}
-		
-		forces = zero.copy();
-		torques = zero.copy();
-		super.update();
+			if (!acceleration.equals(zero)) {
+				velocityRel.add( acceleration );
+			}
+			
+			//2. rotation, vitesse angulaire, on prend rotation axis comme L/I
+			PVector dL = multMatrix( torques, inverseInertiaMom );
+			if (!dL.equals(zero)) {
+				rotationRelVel.addAngularMomentum( dL );
+			}
+			
+			forces.set(zero);
+			torques.set(zero);
+			boolean pu = super.update();
+			assert(pu);
+			return true;
+		} else
+			return false;
 	}
 
 	// --- some setters
@@ -95,8 +100,9 @@ public class Body extends Object {
 			throw new IllegalArgumentException("negative mass !");
 		else {
 			this.mass = mass;
-			this.inverseMass = 1/this.mass;
+			this.inverseMass = 1/mass;
 			this.affectedByCollision = true;
+			this.inverseInertiaMom = zero.copy();
 		}
 	}
 	
@@ -141,57 +147,71 @@ public class Body extends Object {
 
 	//------ Gestion des impulse, forces et torques
 	
-	/** ajoute de la quantité de mouvement au body à point (absolu). */
+	/** Add momentum to the body at this point (absolu). */
 	public void applyImpulse(PVector absPos, PVector impulse) {
+		assert(!impulse.equals(zero));
 		if (drawInteraction) {
-			PVector to = PVector.add(absPos, PVector.mult(impulse, 100));
 			app.stroke(255);
-			app.line(absPos.x, absPos.y, absPos.z, to.x, to.y, to.z);
+			line(absPos, add(absPos, mult(impulse, 100)));
 		}
-		if (equalsEps(absPos, locationAbs, false)) {
-			velocityRel.add( PVector.mult(impulse, this.inverseMass) );
-			return;
-		} else {
-			//pour le deplacement, seulement en absolu
-			PVector toPos = PVector.sub(absPos, locationAbs);
-			toPos.normalize();
-			PVector forAbs = PVector.mult(toPos, impulse.dot(toPos));
-			velocityRel.add( PVector.mult(forAbs, this.inverseMass) );
-			
-			//TODO test impulse contre l'objet
-			//pour la rotation, avec la rotation (pour être cohérant avec le moment d'inertie.)
-			PVector relPoint = local(absPos);
-			PVector relImpulse = sub(local( add(impulse, absPos) ), relPoint);
-			PVector forRot = relPoint.cross(relImpulse);
-			if (!forRot.equals(zero))
-				rotationRelVel.addAngularMomentum( multMatrix(inverseInertiaMom, forRot) );
-		}
-	}
-	
-	/** ajoute de la quantit� de mouvement au centre de masse (absolu). */
-	public void applyImpulse(PVector impulse) {
-		applyImpulse(locationAbs, impulse);
-	}
-	
-	/** permet d'appliquer une force au body � ce point (absolu). force should be mult my physic.deltaTime. */
-	public void addForce(PVector absPos, PVector force) {
-		if (drawInteraction) {
-			PVector to = PVector.add(absPos, PVector.mult(force, 0.2f));
-			app.stroke(255);
-			app.line(absPos.x, absPos.y, absPos.z, to.x, to.y, to.z);
-		}
-			
-		PVector rel = PVector.sub(absPos, locationAbs);
-		torques.add( rel.cross(force) );
 		
-		rel.normalize();
-		PVector forceAbs = PVector.mult(rel, force.dot(rel));
-		addForce(forceAbs);
+		PVector rel = PVector.sub(absPos, locationAbs);
+		if (isZeroEps(rel.cross(impulse), false)) {
+			// if the impulse is against (or on) the mass center -> just translation
+			velocityRel.add( mult(impulse, this.inverseMass) );
+		} else {
+			// for translation, just in absolute
+			PVector relN = rel.normalize(new PVector());
+			PVector dVel = mult(relN, impulse.dot(relN)*this.inverseMass);
+			if (!dVel.equals(zero))
+				velocityRel.add( dVel );
+			// for rotation, we want to stay coherent with inertia moment. (before static now full)
+			rel = local(absPos);
+			PVector relImpulse = sub(local( add(impulse, absPos) ), rel);
+			PVector dL = multMatrix(inverseInertiaMom, rel.cross(relImpulse));
+			if (!dL.equals(zero))
+				rotationRelVel.addAngularMomentum( dL );
+		}
 	}
 	
-	/** applique une force absolue au centre de masse du body. force should be mult my physic.deltaTime. */
+	/** Add linear momentum to the body (absolu). */
+	public void applyImpulse(PVector impulse) {
+		applyImpulse(location(), impulse);
+	}
+	
+	/** Apply a force on the body at this point (absolu). */
+	public void addForce(PVector absPos, PVector force) {
+		assert(!force.equals(zero));
+		if (drawInteraction) {
+			app.stroke(255);
+			line(absPos, add(absPos, mult(force, 0.2f)));
+		}
+			
+		PVector rel = PVector.sub(absPos, location());
+		if (isZeroEps(rel.cross(force), false)) {
+			// if the force is against (or on) the mass center -> just translation
+			addForce( force );
+		} else {
+			// for translation, just in absolute
+			PVector relN = rel.normalize(new PVector());
+			addForce( mult(relN, force.dot(relN)) );
+			// for rotation, we want to stay coherent with inertia moment.
+			rel = local(absPos);
+			PVector relForce = sub(local( add(force, absPos) ), rel);
+			addTorque( rel.cross(relForce) );
+		}
+	}
+
+	/** Apply a force on the body at the mass center (absolu). */
 	public void addForce(PVector force) {	
-		forces.add(force);
+		if (!force.equals(zero))
+			forces.add(force);
+	}
+
+	/** Apply a torque (rotational force) on the body (absolu). */
+	public void addTorque(PVector torque) {	
+		if (!torque.equals(zero))
+			torques.add(torque);
 	}
 	
 	// --- cooked methods to apply forces
@@ -201,12 +221,12 @@ public class Body extends Object {
 		if (mass == -1)
 			//throw new IllegalArgumentException("un objet de mass infini ne devrait pas peser !"); now tolerated :)
 			return;
-		PVector poids = new PVector(0, -game.physic.gravity*mass, 0);
-		addForce(poids);
+		addForce( up(-game.physic.gravity*mass) );
 	}
 	
 	public void avance(float force) {
-		addForce( absolute( PVector.mult(front, 150) ) , absFront(force) );
+		//addForce( absolute(front(150)), absDir(front(force)) );
+		addForce( absDir(front(force)) );
 	}
 	
 	/** applique une force qui s'oppose aux vitesse. perte dans [0,1]. reset selon eps. */

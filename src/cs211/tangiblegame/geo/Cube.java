@@ -49,7 +49,6 @@ public class Cube extends PseudoPolyedre {
 		return true;
 	}
 	
-	//retourne le point qui est le plus contre cette normale (par rapport au centre)
 	public PVector pointContre(PVector normale) {
 		PVector cNorm = PVector.mult(normale, -1);
 		PVector proj = zero.copy();
@@ -115,16 +114,12 @@ public class Cube extends PseudoPolyedre {
 		return bestProj;
 	}
 	
-	//update les coordonnées absolue. (à chaque transform change du parent)
 	public boolean updateAbs() {
-		boolean sUpdated = super.updateAbs();
-		if (sUpdated) {
+		if (super.updateAbs()) {
 			//1. update les plans
-			pushLocal();
 			for (Plane p : faces)
 				p.updateAbs();
-			popLocal();
-		  	//2. les sommets
+			//2. les sommets
 		  	//super.sommets = absolute(natSommets);
 		  	//3. les axes
 		  	/*axes = new PVector[] {
@@ -136,46 +131,24 @@ public class Cube extends PseudoPolyedre {
 			return false;
 	}
 	
-	//-- static:
-	
-	private static Plane[] getFaces(PVector size) {
+	private Plane[] getFaces(PVector size) {
 	    Plane[] faces =  new Plane[6];
-	    PVector[] facesLoc = getFacesLoc(size);
-	    Quaternion[] facesRot = getFacesRot();
-	    PVector[] facesSize = getFacesSize(size);
-	    for (int i=0; i<6; i++)
-	      faces[i] = new Plane(facesLoc[i], facesRot[i], -1, facesSize[i]);
-	    return faces;
-	}
-
-	private static PVector[] getFacesLoc(PVector size) {
-	    return new PVector[] {
-	    	new PVector(size.x/2, 0, 0), new PVector(-size.x/2, 0, 0), 	//gauche,  droite  (x)
-	    	new PVector(0, size.y/2, 0), new PVector(0, -size.y/2, 0), 	//dessus, dessous  (y)
-	  	    new PVector(0, 0, size.z/2), new PVector(0, 0, -size.z/2)};	//devant, derriere (z)
-	}
-	
-	private static Quaternion[] getFacesRot() {
-		return new Quaternion[] {
+	    PVector[] facesLoc = new PVector[] {
+		    	new PVector(size.x/2, 0, 0), new PVector(-size.x/2, 0, 0), 	//gauche,  droite  (x)
+		    	new PVector(0, size.y/2, 0), new PVector(0, -size.y/2, 0), 	//dessus, dessous  (y)
+		  	    new PVector(0, 0, size.z/2), new PVector(0, 0, -size.z/2)};	//devant, derriere (z)
+	    Quaternion[] facesRot = new Quaternion[] {
 				Quaternion.fromDirection(left), Quaternion.fromDirection(right),
 				Quaternion.fromDirection(up), Quaternion.fromDirection(down),
-				Quaternion.fromDirection(front), Quaternion.fromDirection(behind),
-				};
-	    /*
-	    float hpi = PApplet.HALF_PI;
-		float pi = PApplet.PI;
-		return new PVector[] {
-	    	new PVector(0, 0, -hpi), new PVector(0, 0, hpi), 	//gauche,  droite  (x)
-	    	new PVector(0, 0, 0), new PVector(0, 0, pi), 		//dessus, dessous  (y)
-	  	    new PVector(hpi, 0, 0), new PVector(-hpi, 0, 0)};	//devant, derriere (z)
-		*/
-		
-	}
-	
-	private static PVector[] getFacesSize(PVector size) {
-		return new PVector[] {
-	    	new PVector(size.y, 0, size.z), new PVector(size.y, 0, size.z), 	//gauche,  droite  (x)
-	    	new PVector(size.x, 0, size.z), new PVector(size.x, 0, size.z), 	//dessus, dessous  (y)
-	  	    new PVector(size.x, 0, size.y), new PVector(size.x, 0, size.y)};	//devant, derriere (z)
+				Quaternion.fromDirection(front), Quaternion.fromDirection(behind)};
+	    PVector[] facesSize = new PVector[] {
+		    	new PVector(size.y, 0, size.z), new PVector(size.y, 0, size.z), 	//gauche,  droite  (x)
+		    	new PVector(size.x, 0, size.z), new PVector(size.x, 0, size.z), 	//dessus, dessous  (y)
+		  	    new PVector(size.x, 0, size.y), new PVector(size.x, 0, size.y)};	//devant, derriere (z)
+	    for (int i=0; i<6; i++) {
+	    	faces[i] = new Plane(facesLoc[i], facesRot[i], facesSize[i]);
+	    	faces[i].setParent(this);
+	    }
+	    return faces;
 	}
 }

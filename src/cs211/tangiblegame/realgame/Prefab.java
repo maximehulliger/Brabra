@@ -33,15 +33,7 @@ public class Prefab extends ProMaster {
 			System.err.println("\""+name+"\" unknown, ignoring.");
 			return null;
 		}
-		game.physic.add( col );
+		game.physic.addNow( col );
 		return col;
-	}
-	
-	/**
-	 *	add a new object to the physic from the name. supported names:
-	 *	box, ball, floor, starship, objectif.
-	 */
-	public static Body add(String name, PVector location) {
-		return add(name, location, identity);
 	}
 }
