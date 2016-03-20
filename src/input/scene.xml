@@ -14,7 +14,11 @@
 		<ball pos="(-30,0,0)" name="blue ball" color="blue" mass="0" debug="false">
 			<ball pos="(0,40,0)" name="upper ball" color="red" mass="0" debug="false"></ball> 
 		</ball>
-		<weaponry></weaponry>
+		<weaponry>
+			<missile_launcher pos="(30,-10,0)" tier="2" upgrade="0.8"></missile_launcher>
+			<missile_launcher pos="(0,-15,0)" tier="3" upgrade="1.5"></missile_launcher>
+			<missile_launcher pos="(-30,-10,0)" tier="2" upgrade="0.8"></missile_launcher>
+		</weaponry>
 	</starship>
 	
 	<!--  
