@@ -3,6 +3,7 @@ package cs211.tangiblegame.calibration;
 import processing.core.PApplet;
 import processing.core.PFont;
 import cs211.tangiblegame.Interface;
+import cs211.tangiblegame.TangibleGame;
 import cs211.tangiblegame.imageprocessing.ImageAnalyser;
 import cs211.tangiblegame.imageprocessing.ImageProcessing;
 import cs211.tangiblegame.calibration.HScrollbar;
@@ -28,7 +29,7 @@ public class Calibration extends Interface {
 	public Calibration() {
 		ia = app.imgAnalyser;
 		fontLabel = app.createFont("Arial", 18, true);
-		fontImages = app.createFont("Arial", (app.height - 275)/17, true);
+		fontImages = app.createFont("Arial", (TangibleGame.height - 275)/17, true);
 	}
 
 	public void init() {
@@ -60,11 +61,11 @@ public class Calibration extends Interface {
 		
 		int i = 0;
 		for (; i<ImageProcessing.nbParaBase; i++) {
-			bar[i] = new HScrollbar(app, 0, app.height-caraBarsHeight+20*i, app.width, 20, 
+			bar[i] = new HScrollbar(app, 0, TangibleGame.height-caraBarsHeight+20*i, TangibleGame.width, 20, 
 					currentPara[i], ImageProcessing.basicParaMaxValue);
 		}
 		for (; i<ImageProcessing.nbParaBase+specialParaEtatMax.length; i++) {
-			bar[i] = new HScrollbar(app, 0, app.height-caraBarsHeight+20*i, app.width, 20, 
+			bar[i] = new HScrollbar(app, 0, TangibleGame.height-caraBarsHeight+20*i, TangibleGame.width, 20, 
 					currentPara[i], specialParaEtatMax[i-ImageProcessing.nbParaBase]);
 		}
 	}
@@ -74,8 +75,8 @@ public class Calibration extends Interface {
 		app.fill(255, 255);
 		ia.imagesLock.lock();
 		if (ia.inputImg != null) {
-			int displayWid = app.width/3 + 1;
-			int displayHei = app.height - caraBarsHeight - 75;
+			int displayWid = TangibleGame.width/3 + 1;
+			int displayHei = TangibleGame.height - caraBarsHeight - 75;
 			
 			ia.quadDetectionLock.lock();
 			app.image(ia.quadDetection, 0, 0, displayWid, displayHei);
@@ -113,7 +114,7 @@ public class Calibration extends Interface {
 		for (int i=0; i<currentPara.length; i++) {
 			bar[i].update();
 			bar[i].display();
-			app.text(currentInfo[i], 30,app.height-caraBarsHeight+17+20*i);
+			app.text(currentInfo[i], 30,TangibleGame.height-caraBarsHeight+17+20*i);
 		}
 	}
 	

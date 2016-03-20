@@ -1,27 +1,31 @@
 package cs211.tangiblegame.physic;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import cs211.tangiblegame.Color;
+import cs211.tangiblegame.geo.Line;
 import cs211.tangiblegame.geo.Quaternion;
 import processing.core.*;
 
 /** 
  * An object obeying to the laws of physics. 
  * It has a mass and a moment of inertia (angular mass). 
- * You can apply forces and impulse to it to
- * move it through velocity and rotation velocity (both relative for the moment).
+ * You can apply forces and impulse (interactions) to it to
+ * move it through velocity and rotation velocity (both relative to the parent).
  * TODO: If has a parent, apply it to the parent.
  **/
 public class Body extends Object {
-	private static final boolean drawInteraction = true; //forces et impulse
-
+	private static final boolean displayInteractions = true; //forces et impulse
+	private static final Color interactionColor = new Color("white", true);
 	protected int life = -1;
 	protected int maxLife = -1;
 	protected Color color = Color.basic;
 	/** Mass of the body. -1 for infinite or bigger than 0 (never equals 0).*/
 	protected float mass = -1;
 	protected float inverseMass = 0;
-	protected PVector inertiaMom;
-	protected PVector inverseInertiaMom;
+	protected PVector inertiaMom = cube(Float.POSITIVE_INFINITY);
+	protected PVector inverseInertiaMom = zero.copy();
 	protected float restitution = 0.8f; // [0, 1]
 	/** If set to true, the body doesn't interact with others (and others don't). */
 	protected boolean ghost = false;
@@ -31,6 +35,8 @@ public class Body extends Object {
 	private PVector forces = zero.copy();
 	private PVector torques = zero.copy();
 	private Runnable addForces = null;
+	private List<Line> interactionsRel = new ArrayList<>();
+	
 	
 	/** create a Body with this location & location and infinite mass. rotation can be null */
 	public Body(PVector location, Quaternion rotation) {
@@ -69,6 +75,21 @@ public class Body extends Object {
 			return true;
 		} else
 			return false;
+	}
+	
+	/** Display the interactions... maybe. In local space (should be call after pushLocal()). */
+	protected void displayInteractionMaybe() {
+		if (displayInteractions) {
+			for (Line l : interactionsRel) {
+				l.display(interactionColor);
+			}
+			interactionsRel.clear();
+		}
+	}
+	
+	public void onDelete() {
+		game.debug.log(6, this+" deleted.");
+		super.onDelete();
 	}
 
 	// --- some setters
@@ -117,9 +138,15 @@ public class Body extends Object {
 	
 	public void setLife(int life, int maxLife) {
 		if (maxLife <= 0) {
-			System.err.println(toString()+" should have positive maxLife");
+			debug.err(toString()+" should have a positive maxLife, set to 1 (0 is dead).");
 			maxLife = 1;
 		}
+		if (life < 0) {
+			debug.err(toString()+" should have a positive life, killing him...");
+			life = 0;
+			onDeath();
+		}
+			
 		this.maxLife = maxLife;
 		if (life > maxLife) {
 			this.life = maxLife;
@@ -132,12 +159,14 @@ public class Body extends Object {
 	public void damage(int damage) {
 		if (maxLife < 0)
 			game.debug.log(4, this+" is a poor non-living object !");
-		else if (life < 0)
+		else if (life == 0)
 			game.debug.log(5, this+" is already dead !");
 		else {
 			life -= damage;
-			if (life < 0 )
+			if (life <= 0 ) {
+				life = 0;
 				onDeath();
+			}
 		}
 	}
 	
@@ -147,71 +176,85 @@ public class Body extends Object {
 
 	//------ Gestion des impulse, forces et torques
 	
-	/** Add momentum to the body at this point (absolu). */
-	public void applyImpulse(PVector absPos, PVector impulse) {
-		assert(!impulse.equals(zero));
-		if (drawInteraction) {
-			app.stroke(255);
-			line(absPos, add(absPos, mult(impulse, 100)));
-		}
-		
-		PVector rel = PVector.sub(absPos, locationAbs);
-		if (isZeroEps(rel.cross(impulse), false)) {
+	/** Add momentum to the body at this point (absolute). */
+	public void applyImpulse(PVector posAbs, PVector impulseAbs) {
+		assert(!impulseAbs.equals(zero));
+		// in local space
+		PVector posLoc = local(posAbs);
+		PVector impulseLoc = localDir(impulseAbs);
+		interactionsRel.add(new Line(relative(posAbs), relative(add(posAbs, mult(impulseAbs, 4))), true));
+				
+		if (isZeroEps(posLoc, false) || isZeroEps(posLoc.cross(impulseLoc), false)) {
 			// if the impulse is against (or on) the mass center -> just translation
-			velocityRel.add( mult(impulse, this.inverseMass) );
+			velocityRel.add( mult(impulseLoc, this.inverseMass) );
 		} else {
+			PVector posLocN = posLoc.normalize(new PVector());
 			// for translation, just in absolute
-			PVector relN = rel.normalize(new PVector());
-			PVector dVel = mult(relN, impulse.dot(relN)*this.inverseMass);
+			PVector dVel = mult(posLocN, impulseLoc.dot(posLocN)*this.inverseMass);
 			if (!dVel.equals(zero))
 				velocityRel.add( dVel );
-			// for rotation, we want to stay coherent with inertia moment. (before static now full)
-			rel = local(absPos);
-			PVector relImpulse = sub(local( add(impulse, absPos) ), rel);
-			PVector dL = multMatrix(inverseInertiaMom, rel.cross(relImpulse));
+			// for rotation, we want to stay coherent with inertia moment.
+			PVector dL = multMatrix(inverseInertiaMom, posLoc.cross(impulseLoc));
 			if (!dL.equals(zero))
 				rotationRelVel.addAngularMomentum( dL );
 		}
 	}
 	
-	/** Add linear momentum to the body (absolu). */
-	public void applyImpulse(PVector impulse) {
-		applyImpulse(location(), impulse);
+	/** Add linear momentum to the body (absolute). */
+	public void applyImpulse(PVector impulseAbs) {
+		applyImpulse(location(), impulseAbs);
+	}
+
+	/** Apply a force on the body at this point (absolu). */
+	public void applyForce(PVector posAbs, PVector forceAbs) {
+		applyForceLoc(local(posAbs), localDir(forceAbs));
 	}
 	
-	/** Apply a force on the body at this point (absolu). */
-	public void addForce(PVector absPos, PVector force) {
-		assert(!force.equals(zero));
-		if (drawInteraction) {
-			app.stroke(255);
-			line(absPos, add(absPos, mult(force, 0.2f)));
-		}
-			
-		PVector rel = PVector.sub(absPos, location());
-		if (isZeroEps(rel.cross(force), false)) {
+	/** Apply a force on the body at this point (in this object's space). */
+	public void applyForceRel(PVector posRel, PVector forceRel) {
+		applyForceLoc(localFromRel(posRel), localDirFromRel(forceRel));
+	}
+
+	/** Add a pure translation force on the body at the mass center (from absolute). */
+	public void applyForce(PVector forceAbs) {
+		applyForceLoc(localDir(forceAbs));
+	}
+
+	/** Add a pure translation force on the body at the mass center (from relative). */
+	public void applyForceRel(PVector forceRel) {
+		applyForceLoc(localDirFromRel(forceRel));
+	}
+
+	/** Main methods to add a force. we work in local space. */
+	private void applyForceLoc(PVector posLoc, PVector forceLoc) {
+		assert(!forceLoc.equals(zero));
+		interactionsRel.add(new Line(relativeFromLocal(posLoc), relativeFromLocal(add(posLoc, mult(forceLoc, 4))), true));
+		if (isZeroEps(posLoc, false) || isZeroEps(posLoc.cross(forceLoc), false)) {
 			// if the force is against (or on) the mass center -> just translation
-			addForce( force );
+			applyForceLoc( forceLoc );
 		} else {
+			PVector posLocN = posLoc.normalize(new PVector());
 			// for translation, just in absolute
-			PVector relN = rel.normalize(new PVector());
-			addForce( mult(relN, force.dot(relN)) );
+			float forceFactor = forceLoc.dot(posLocN);
+			if (forceFactor != 0)
+				applyForceLoc( mult(posLocN, forceFactor) );
 			// for rotation, we want to stay coherent with inertia moment.
-			rel = local(absPos);
-			PVector relForce = sub(local( add(force, absPos) ), rel);
-			addTorque( rel.cross(relForce) );
+			applyTorqueLoc( posLoc.cross(forceLoc) );
 		}
 	}
 
-	/** Apply a force on the body at the mass center (absolu). */
-	public void addForce(PVector force) {	
-		if (!force.equals(zero))
-			forces.add(force);
+	/** add a pure translation force on the body at the mass center (from parent space). */
+	private void applyForceLoc(PVector forceLoc) {
+		assert(!forceLoc.equals(zero));
+		if (!forceLoc.equals(zero))
+			forces.add(forceLoc);
 	}
 
-	/** Apply a torque (rotational force) on the body (absolu). */
-	public void addTorque(PVector torque) {	
-		if (!torque.equals(zero))
-			torques.add(torque);
+	/** add a torque (rotational force) on the body (from parent space). */
+	private void applyTorqueLoc(PVector torqueLoc) {
+		assert(!torqueLoc.equals(zero));
+		if (!torqueLoc.equals(zero))
+			torques.add(torqueLoc);
 	}
 	
 	// --- cooked methods to apply forces
@@ -221,12 +264,12 @@ public class Body extends Object {
 		if (mass == -1)
 			//throw new IllegalArgumentException("un objet de mass infini ne devrait pas peser !"); now tolerated :)
 			return;
-		addForce( up(-game.physic.gravity*mass) );
+		applyForce( up(-game.physic.gravity*mass) );
 	}
 	
-	public void avance(float force) {
-		//addForce( absolute(front(150)), absDir(front(force)) );
-		addForce( absDir(front(force)) );
+	public void avance(float forceFront) {
+		assert(forceFront != 0);
+		applyForceRel( front(forceFront) );
 	}
 	
 	/** applique une force qui s'oppose aux vitesse. perte dans [0,1]. reset selon eps. */

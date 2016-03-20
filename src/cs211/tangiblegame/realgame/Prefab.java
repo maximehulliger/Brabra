@@ -26,7 +26,7 @@ public class Prefab extends ProMaster {
 		} else if (name.equals("floor"))
 			col = new Plane(location, rotation).withName("Floor");
 		else if (name.equals("objectif"))
-			col = new Armement.Objectif(location, rotation);
+			col = new Weaponry.Objectif(location, rotation);
 		else if (name.equals("starship"))
 			col = new Starship(location, rotation);
 		else {

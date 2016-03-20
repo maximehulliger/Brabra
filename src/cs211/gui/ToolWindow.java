@@ -50,7 +50,7 @@ public class ToolWindow extends Application {
         root.getChildren().add(btn);
         
         setStageLoc();
-    	stage.setScene(new Scene(root, width, app.height));
+    	stage.setScene(new Scene(root, width, TangibleGame.height));
         stage.setOnCloseRequest(e -> app.exit());
         
         app.debug.info(3, "tool window ready");

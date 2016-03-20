@@ -50,11 +50,17 @@ public class Sphere extends Collider {
 	
 	public void display() {
 		pushLocal();
-		color.fill();
-		app.sphere(radius);
+		if (!displayColliderMaybe()) {
+			color.fill();
+			displayCollider();
+		}
 		popLocal();
 	}
-	
+
+	public void displayCollider() {
+		app.sphere(radius);
+	}
+
 	public Line collisionLineFor(PVector p) {
 		//on prend le vecteur this->c. la ligne part du perimetre à c.
 		PVector sc = PVector.sub(p, locationAbs);

@@ -2,28 +2,43 @@ package cs211.tangiblegame.geo;
 
 import cs211.tangiblegame.geo.Line.Projection;
 import cs211.tangiblegame.physic.PseudoPolyedre;
+import cs211.tangiblegame.physic.Object;
 import processing.core.*;
 
 public class Cube extends PseudoPolyedre {
 	
+	/** Total size (local). */
 	public final PVector size;
-	protected final float[] dim;
+	/** Size / 2. */
+	public final PVector dim;
 	public final Plane[] faces;
+	/** Vertices relative to the object. */
+	private final PVector[] verticesRel;
+	/** Edges relative to the object. */
+	private final Line[] edgesRel;
 
 	/** Create a cube with arretes of lenght dim. */
 	public Cube(PVector location, Quaternion rotation, PVector size) {
 	    super(location, rotation, size.mag()/2);
+	    super.setName("Cube");
 	    this.size = size;
-	    this.dim = mult(size, 0.5f).array();
-		this.faces = getFaces(size);
-	    setName("Cube");
+	    this.dim = mult(size, 0.5f);
+		this.faces = getFaces(size, this);
+		this.verticesRel = verticesRel(dim);
+	    this.edgesRel = edgesRel(verticesRel);
 	}
 
 	public void display() {
 		pushLocal();
-		color.fill();
-		app.box(size.x, size.y, size.z);
+		if (!displayColliderMaybe()) {
+			color.fill();
+			displayCollider();
+		}
 		popLocal();
+	}
+	
+	public void displayCollider() {
+		app.box(size.x, size.y, size.z);
 	}
 
 	public void setMass(float mass) {
@@ -40,11 +55,25 @@ public class Cube extends PseudoPolyedre {
 					1/inertiaMom.z );
 		}
 	}
+
+	public boolean updateAbs() {
+		if (super.updateAbs()) {
+			// for Cube
+			for (Plane p : faces)
+				p.updateAbs();
+			// for polyhedron
+		  	super.setAbs(absolute(verticesRel), absolute(edgesRel));
+			return true;
+		} else
+			return false;
+	}
+	
+	// --- from PseudoPolyedre ---
 	
 	public boolean isIn(PVector abs) {
 		float[] loc = local(abs).array();
 		for (int i=0; i<3; i++)
-			if (PApplet.abs(loc[i]) >= dim[0])
+			if (PApplet.abs(loc[i]) >= dim.array()[0])
 				return false;
 		return true;
 	}
@@ -53,7 +82,7 @@ public class Cube extends PseudoPolyedre {
 		PVector cNorm = PVector.mult(normale, -1);
 		PVector proj = zero.copy();
 		for (int i=0; i<3; i++)
-			proj.add( PVector.mult( faces[i*2].normale().norm, dim[i] * sgn(faces[i*2].normale().norm.dot(cNorm))) );
+			proj.add( PVector.mult( faces[i*2].normale().norm, dim.array()[i] * sgn(faces[i*2].normale().norm.dot(cNorm))) );
 		proj.add(locationAbs);
 		return proj;
 	}
@@ -61,7 +90,7 @@ public class Cube extends PseudoPolyedre {
 	public float projetteSur(PVector normale) {
 		float proj = 0;
 		for (int i=0; i<3; i++) {
-			proj += dim[i] * faces[i*2].normale().norm.dot(normale);
+			proj += dim.array()[i] * faces[i*2].normale().norm.dot(normale);
 		}
 		return proj;
 	}
@@ -70,10 +99,8 @@ public class Cube extends PseudoPolyedre {
 		PVector rel = PVector.sub(colliderLocation, locationAbs);
 		Plane[] ret = new Plane[3];
 		for (int i=0; i<3; i++) {
-			if (rel.dot(faces[i*2].normale().norm) > 0)
-				ret[i] = faces[i*2];
-			else
-				ret[i] = faces[i*2+1];
+			ret[i] = rel.dot(faces[i*2].normale().norm) > 0
+				? faces[i*2] : faces[i*2+1];
 		}
 		return ret;
 	}
@@ -100,6 +127,7 @@ public class Cube extends PseudoPolyedre {
 	}
 	
 	public PVector projette(PVector point) {
+		updateAbs();
 		float bestSqDist = Float.MAX_VALUE;
 		PVector bestProj = null;
 		for (Plane p : faces) {
@@ -110,28 +138,46 @@ public class Cube extends PseudoPolyedre {
 				bestProj = proj;
 			}
 		}
-		assert(bestProj != null);
+		//assert(bestProj != null);
+		if (bestProj == null) {
+			bestSqDist = Float.MAX_VALUE;
+			bestProj = null;
+			for (Plane p : faces) {
+				PVector proj = p.projette(point);
+				float distSq = distSq(proj, point);
+				if (distSq < bestSqDist) {
+					bestSqDist = distSq;
+					bestProj = proj;
+				}
+			}
+		}
 		return bestProj;
 	}
 	
-	public boolean updateAbs() {
-		if (super.updateAbs()) {
-			//1. update les plans
-			for (Plane p : faces)
-				p.updateAbs();
-			//2. les sommets
-		  	//super.sommets = absolute(natSommets);
-		  	//3. les axes
-		  	/*axes = new PVector[] {
-					absolute(left, zero, rotation),
-					absolute(up, zero, rotation),
-					absolute(front, zero, rotation) };*/
-			return true;
-		} else
-			return false;
+	// --- private stuff ---
+	
+	private static PVector[] verticesRel(PVector dim) {
+		return new PVector[] {
+				new PVector(dim.x, dim.y, dim.z), new PVector(-dim.x, -dim.y, -dim.z), 	//+++
+				new PVector(dim.x, dim.y, -dim.z), new PVector(-dim.x, -dim.y, dim.z), 	//++-
+				new PVector(dim.x, -dim.y, dim.z), new PVector(-dim.x, dim.y, -dim.z),	//+-+
+				new PVector(dim.x, -dim.y, -dim.z), new PVector(-dim.x, dim.y, dim.z)};	//+--
 	}
 	
-	private Plane[] getFaces(PVector size) {
+	private static Line[] edgesRel(PVector[] verRel) {
+		return new Line[] {
+				// -x -> x
+				new Line(verRel[1], verRel[6], true), new Line(verRel[3], verRel[4], true),
+				new Line(verRel[5], verRel[2], true), new Line(verRel[7], verRel[0], true),
+				// -y -> y
+				new Line(verRel[1], verRel[5], true), new Line(verRel[3], verRel[7], true),
+				new Line(verRel[4], verRel[0], true), new Line(verRel[6], verRel[2], true),
+				// -z -> z
+				new Line(verRel[1], verRel[3], true), new Line(verRel[2], verRel[0], true),
+				new Line(verRel[5], verRel[7], true), new Line(verRel[6], verRel[4], true)};
+	}
+	
+	private static Plane[] getFaces(PVector size, Object forMe) {
 	    Plane[] faces =  new Plane[6];
 	    PVector[] facesLoc = new PVector[] {
 		    	new PVector(size.x/2, 0, 0), new PVector(-size.x/2, 0, 0), 	//gauche,  droite  (x)
@@ -147,7 +193,7 @@ public class Cube extends PseudoPolyedre {
 		  	    new PVector(size.x, 0, size.y), new PVector(size.x, 0, size.y)};	//devant, derriere (z)
 	    for (int i=0; i<6; i++) {
 	    	faces[i] = new Plane(facesLoc[i], facesRot[i], facesSize[i]);
-	    	faces[i].setParent(this);
+	    	faces[i].setParent(forMe);
 	    }
 	    return faces;
 	}

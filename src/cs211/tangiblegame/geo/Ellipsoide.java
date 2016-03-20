@@ -27,10 +27,16 @@ public class Ellipsoide extends Sphere {
 
 	public void display() {
 		pushLocal();
-		color.fill();
+		if (!displayColliderMaybe()) {
+			color.fill();
+			displayCollider();
+		}
+		popLocal();
+	}
+	
+	public void displayCollider() {
 		app.scale(r.x, r.y, r.z);
 		app.sphere(1);
-		popLocal();
 	}
 
 	public Projection projetteSur(Line ligne) {

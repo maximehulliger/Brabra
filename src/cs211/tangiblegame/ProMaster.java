@@ -38,9 +38,22 @@ public abstract class ProMaster extends Master {
 	
 	
 	// --- General syntactic sugar ---
-	
+
 	protected void line(PVector v1, PVector v2) {
 		app.line(v1.x,v1.y,v1.z,v2.x,v2.y,v2.z);
+	}
+
+	protected void line(PVector v1, PVector v2, Color color) {
+		color.fill();
+		line(v1, v2);
+	}
+	
+	protected void sphere(PVector pos, float radius, Color color) {
+		app.pushMatrix();
+		translate(pos);
+		color.fill();
+		app.sphere(radius);
+		app.popMatrix();
 	}
 
 	// --- PVector syntactic sugar ---
@@ -80,16 +93,28 @@ public abstract class ProMaster extends Master {
 		return PVector.mult(v1, f);
 	}
 
-	protected static PVector up(float lenght) { 
-		return mult(up, lenght); 
-	}
-	
 	protected static PVector front(float lenght) { 
 		return mult(front, lenght); 
 	}
 	
+	protected static PVector behind(float lenght) { 
+		return mult(behind, lenght); 
+	}
+	
+	protected static PVector up(float lenght) { 
+		return mult(up, lenght); 
+	}
+
+	protected static PVector down(float lenght) { 
+		return mult(down, lenght); 
+	}
+	
 	protected static PVector right(float lenght) { 
 		return mult(right, lenght); 
+	}
+
+	protected static PVector left(float lenght) { 
+		return mult(left, lenght); 
 	}
 
 	protected static PVector x(float lenght) { 
@@ -103,6 +128,18 @@ public abstract class ProMaster extends Master {
 	protected static PVector z(float lenght) { 
 		return vec(0,0,lenght); 
 	}
+
+	protected static PVector yawAxis(float lenght) { 
+		return y(lenght); 
+	}
+	
+	protected static PVector pitchAxis(float lenght) { 
+		return x(lenght); 
+	}
+	
+	protected static PVector rollAxis(float lenght) { 
+		return z(lenght);
+	}	
 
 	// --- PVector help methods ---
 
@@ -312,7 +349,6 @@ public abstract class ProMaster extends Master {
 				return true;
 			} else
 				return p.equals(zero);
-			
 			/*if (p.x != 0 && isZeroEps(p.x)) p.x = 0;
 			if (p.y != 0 && isZeroEps(p.y)) p.y = 0;
 			if (p.z != 0 && isZeroEps(p.z)) p.z = 0;*/
@@ -362,8 +398,7 @@ public abstract class ProMaster extends Master {
 			if (!rotNull)
 				rotateBy(rotation);
 			PVector ret = model(rel);
-			if (!rotNull || !transNull)
-				app.popMatrix();
+			app.popMatrix();
 			return ret;
 		}
 	}
@@ -386,7 +421,7 @@ public abstract class ProMaster extends Master {
 		return new PVector( app.screenX(pos3D.x, pos3D.y, pos3D.z), app.screenY(pos3D.x, pos3D.y, pos3D.z) );
 	}
 
-	protected static PVector local(PVector abs, PVector trans, Quaternion rotation) {
+	protected static PVector relative(PVector abs, PVector trans, Quaternion rotation) {
 		return absolute( PVector.sub(abs, trans), zero, rotation.withOppositeAngle());
 	}
 

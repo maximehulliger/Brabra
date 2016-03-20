@@ -19,13 +19,13 @@ public class TangibleGame extends PApplet {
 	
 	//--- parametres
 	/** [1-6]: user[1-3], dev[4-verbMax]. atm: verbMax. */
-	public static final int verbosity = 6;
+	public static int verbosity = 6;
 	/** Verbosity for one object debug. */
 	public static final int verbMax = 6;
 	/** Max tilt in radians that will be taken in account for the plate (detection) */
 	public static final float inclinaisonMax = PApplet.PI/5;
 	/** Main window size. */
-	public final int width = 1080, height = 720;
+	public static final int width = 1080, height = 720;
 	/** Indicates if this should be activated on start. */
 	protected boolean imgAnalysis = false, toolWindow = false;
 	
@@ -104,6 +104,7 @@ public class TangibleGame extends PApplet {
 		if (imgAnalysis && currentInterface!=intCalibration)
 			imgAnalyser.gui();
 		currentInterface.gui();
+		input.gui();
 		hint(PApplet.ENABLE_DEPTH_TEST);
 		// debug
 		debug.update();
@@ -142,6 +143,10 @@ public class TangibleGame extends PApplet {
 	
 	public boolean isOver() {
 		return over;
+	}
+	
+	public boolean useDrag() { 
+		return currentInterface.useDrag();
 	}
 	
 	// --- file loading ---
@@ -271,10 +276,12 @@ public class TangibleGame extends PApplet {
 	}
 
 	public void mousePressed() {
+		input.mousePressed();
 		currentInterface.mousePressed();
 	}
 	
 	public void mouseReleased() {
+		input.mouseReleased();
 		currentInterface.mouseReleased();
 	}
 	

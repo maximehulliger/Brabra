@@ -7,7 +7,7 @@ import processing.core.PVector;
 
 /** Pop meteors randomly in a box (in front of the parent). */
 public final class MeteorSpawner extends Effect {
-	public static PShape meteor;
+	
 	private static final int nbMeteorMax = 60;
 	private static final int ratioRandomToPlayer = 10; //nb de météorite tirée aléatoirement pour une contre le joueur.
 	private static final int minPopTime = 15, maxPopTime = 60;
@@ -15,6 +15,7 @@ public final class MeteorSpawner extends Effect {
 	private static final float minMass = 2, maxMass = 30;
 	private static final float minRadius = 1, maxRadius = 120;
 	
+	private static PShape meteor;
 	private Cube spawnCage;
 	private int nbMeteor = 0;
 	private int randomMeteorCounter = 0;
@@ -24,6 +25,10 @@ public final class MeteorSpawner extends Effect {
 		super(location);
 		spawnCage = new Cube(location, identity, size);
 		setNext();
+		// load resources
+		if (meteor==null) {
+			meteor = app.loadShape("asteroid.obj");
+		}
 	}
 	
 	public boolean update() {
@@ -79,13 +84,11 @@ public final class MeteorSpawner extends Effect {
 		
 		public void display() {
 			pushLocal();
-			app.scale(radius);
-			app.shape(meteor);
-			popLocal();
-			if (drawCollider) {
-				app.fill(255, 0, 0, 100);
-				super.display();
+			if (!displayColliderMaybe()) {
+				app.scale(radius);
+				app.shape(meteor);
 			}
+			popLocal();
 		}
 	}
 }

@@ -3,6 +3,7 @@ package cs211.tangiblegame.trivial;
 import java.util.ArrayList;
 
 import cs211.tangiblegame.ProMaster;
+import cs211.tangiblegame.TangibleGame;
 import processing.core.PApplet;
 import processing.core.PShape;
 import processing.core.PVector;
@@ -24,10 +25,10 @@ public class Cylinders extends ProMaster {
 		//on trouve la position sur l'ecran (en pixel) de l'extrêmité du terrain
 		PVector pos3DCoin = new PVector(tTer.x/2, 0, tTer.z/2);
 		PVector pos2DCoin = new PVector( app.screenX(pos3DCoin.x, pos3DCoin.y, pos3DCoin.z), app.screenY(pos3DCoin.x, pos3DCoin.y, pos3DCoin.z) );
-		PVector CentreToCoin2D = new PVector( pos2DCoin.x - app.width/2, pos2DCoin.y - app.height/2 );
+		PVector CentreToCoin2D = new PVector( pos2DCoin.x - TangibleGame.width/2, pos2DCoin.y - TangibleGame.height/2 );
 		//on trouve l'échelle du terrain sur l'écran (par rapport au centre de l'écran)
 		PVector echelle = new PVector( tTer.x*1.05f/CentreToCoin2D.x, -tTer.z*1.065f/CentreToCoin2D.y );
-		PVector newCylinderPos = new PVector( (app.mouseX - app.width/2)*echelle.x , 0, (app.mouseY - app.height/2)*echelle.y );
+		PVector newCylinderPos = new PVector( (app.mouseX - TangibleGame.width/2)*echelle.x , 0, (app.mouseY - TangibleGame.height/2)*echelle.y );
 
 		//on l'ajoute uniquement s'il est sur le terrain
 		if (standInTerrain2D(newCylinderPos))

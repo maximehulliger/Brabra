@@ -7,7 +7,6 @@ import cs211.tangiblegame.Interface;
 import cs211.tangiblegame.ProMaster;
 import cs211.tangiblegame.physic.Physic;
 import cs211.tangiblegame.physic.PhysicInteraction;
-import cs211.tangiblegame.realgame.Armement;
 
 public class RealGame extends Interface {
 	
@@ -21,16 +20,6 @@ public class RealGame extends Interface {
 	
 	public RealGame() {
 		ProMaster.game = this;
-		Armement.missileImg = app.loadImage("missile.jpg");
-		int[] pixels = Armement.missileImg.pixels;
-		for (int i=0; i<pixels.length; i++)
-			if (pixels[i] == app.color(0))
-				pixels[i] = app.color(0, 0);
-		
-		MeteorSpawner.meteor = app.loadShape("asteroid.obj");
-		Camera.skybox = app.loadShape("skybox.obj");
-		Camera.skybox.scale(10000);
-		Armement.missile = app.loadShape("rocket.obj");
 	}
 
 	public void init() {
@@ -51,10 +40,10 @@ public class RealGame extends Interface {
 	
 	// mother method of all life:
 	public void draw() {
+		camera.place();
 		physicInteraction.update();
 		physic.updateAll();
 		physic.doMagic();
-		camera.place();
 		physic.displayAll();
 		if (physic.running)
 			debug.update();

@@ -7,8 +7,8 @@ import cs211.tangiblegame.ProMaster;
 import cs211.tangiblegame.TangibleGame;
 import cs211.tangiblegame.geo.Line;
 import cs211.tangiblegame.geo.Line.Projection;
-import cs211.tangiblegame.realgame.Armement;
-import cs211.tangiblegame.realgame.Armement.Armed;
+import cs211.tangiblegame.realgame.Weaponry;
+import cs211.tangiblegame.realgame.Weaponry.Armed;
 import processing.core.PApplet;
 import processing.core.PVector;
 
@@ -20,10 +20,10 @@ public final class PhysicInteraction extends ProMaster {
 	/** Puissance de l'interaction. */
 	private static final float forceMin = 20, forceMax = 100, forceRange = forceMax - forceMin; 
 	
-	private float force = 40, ratioTrans = 10, ratioRot = 0.01f;
+	private float force = 40, ratioTrans = 10, ratioRot = 0.004f;
 	private float forceTrans = force*ratioTrans, forceRot = force*ratioRot;
 	private Body focused = null;
-	private Armement armement = null;
+	private Weaponry armement = null;
 
 	/** Set focused. displayState. */
 	public void setFocused(Body focused) {
@@ -73,7 +73,7 @@ public final class PhysicInteraction extends ProMaster {
 			force = PApplet.constrain(
 					force + app.input.scrollDiff*forceRange/Input.scrollRange,
 					forceMin, forceMax);
-			System.out.printf("force d'interaction: %.1f\n",force);
+			game.debug.msg(1, String.format("force d'interaction: %.1f\n",force));
 		}
 		
 		if (hasFocused() && game.physic.running)
@@ -101,8 +101,6 @@ public final class PhysicInteraction extends ProMaster {
 	private void applyForces() {
 		// 1. rotation (plate, mouse, horizontal)
 		PVector forceRot = zero.copy(); // [pitch, yaw, roll]
-		focused.updateAbs();
-		
 		//> from the plate
 		if (app.imgAnalyser.running()) {
 			// rotation selon angle de la plaque
@@ -114,32 +112,30 @@ public final class PhysicInteraction extends ProMaster {
 					PApplet.pow(PApplet.abs(plateRot.z), 1.75f) * sgn(plateRot.z));
 			forceRot.add( mult(plateRot,  TangibleGame.inclinaisonMax/4 ) );
 		}
-		//> from input (horizon:ad)
-		forceRot.add( front(-app.input.horizontal*force) );
-		//> from mouse drag
-		forceRot.add( vec(-app.input.deplMouse.y*force*0.1f, app.input.deplMouse.x*force*0.1f) );
-		//> apply
-		if (!forceRot.equals(zero)) {
+		//> add from input (horizon:ad)
+		forceRot.add( yawAxis(app.input.horizontal*120) );
+		//> add from mouse drag
+		forceRot.add( pitchAxis(app.input.mouseDrag().y * -1f) );
+		forceRot.add( rollAxis(app.input.mouseDrag().x * 1f) );
+		//> apply force rot: up (pitch, roll)
+		if (forceRot.x != 0 || forceRot.z != 0) {
+			PVector upAP = up(100);
+			PVector forceRel = zero.copy();
+			forceRel.add( front(forceRot.x * this.forceRot * 3/2) );
+			forceRel.add( right(forceRot.z * this.forceRot * 3/2) );
+			focused.applyForce(focused.absolute(upAP), focused.absoluteDir(forceRel));
+		}
+		//> apply force rot: front (yaw)
+		if (forceRot.y != 0) {
 			PVector frontAP = front(150);
-			if (forceRot.x != 0) {
-				PVector pitch = up(forceRot.x * this.forceRot);
-				focused.addForce(focused.absolute(frontAP), focused.absDir(pitch));
-			}
-			if (forceRot.y != 0) {
-				PVector yaw = right(forceRot.y * this.forceRot);
-				focused.addForce(focused.absolute(frontAP), focused.absDir(yaw));
-			}
-			if (forceRot.z != 0) {
-				PVector roll = right(forceRot.z * 3/2 * this.forceRot);
-				PVector rollAP = up(100);
-				focused.addForce(focused.absolute(rollAP), focused.absDir(roll));
-			}
+			PVector frontForceRel = right(forceRot.y * this.forceRot);
+			focused.applyForce(focused.absolute(frontAP), focused.absoluteDir(frontForceRel));
 		}
 
 		// 2. forward
 		float rightScore = max(0, app.imgAnalyser.buttonDetection.rightScore());
 		if (app.input.vertical != 0 || rightScore > 0) {
-			focused.avance((app.input.vertical+rightScore) * forceTrans);
+			focused.applyForceRel(front(150), front((app.input.vertical+rightScore) * forceTrans));
 		}
 
 		// 3. brake
@@ -182,7 +178,7 @@ public final class PhysicInteraction extends ProMaster {
 				Projection proj = c.projetteSur(ray);
 				if (proj.intersectionne(targetProj)) {
 					candidates.add(c);
-					candidatesDist.add(proj.de);
+					candidatesDist.add(proj.from);
 				}
 			}
 		}

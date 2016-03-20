@@ -5,22 +5,27 @@ import processing.core.PVector;
 import cs211.tangiblegame.physic.Body;
 import cs211.tangiblegame.Color;
 import cs211.tangiblegame.ProMaster;
+import cs211.tangiblegame.TangibleGame;
 import cs211.tangiblegame.physic.Object;
 
 /** 
- * Class dealing with the camera, background and light. (+removal of far objects)
- * Default mode is Not.
+ * Class dealing with the camera, background and light (+removal of far objects). 
+ * Default mode is Not (see FollowMode for more).
+ * If the camera is placed before objects update, 
+ * the camera position will be 1 frame late from the objects in scene. 
  **/ 
 public class Camera extends Object {
-	public static final float distSqBeforeRemove = 12_000*12_000; 	//distance du vaisseau avant remove
-	private static final PVector defaultOrientation = y(-1); 	//orientation
-	
+	/** 
+	 * All the modes for the camera. <p>
+	 * Not: fixed at distNot, looking at zero. <p>
+	 * Static: follow the parent in static mode. <p>
+	 * Full: follow the parent in full mode.
+	 **/
 	public enum FollowMode {
 		Not, Static, Full;
 		public FollowMode next() {
 	        return values()[(this.ordinal()+1) % values().length];
 	    }
-		
 		public static FollowMode fromString(String f) {
 			if (f.equals("static"))
 				return FollowMode.Static;
@@ -35,29 +40,39 @@ public class Camera extends Object {
 		}
 	}
 	
-	public static PShape skybox;
+	/** Distance from camera before remove. */
+	private static final float distSqBeforeRemove = far*far;
+	private static final PVector defaultOrientation = y(-1);
+	private static final Color 
+			xColor = new Color("red", true), 
+			yColor = new Color("green", true), 
+			zColor = new Color("blue", true),
+			pointCentralColor = new Color("red", true);
+	private static PShape skybox;
 	
 	private boolean displaySkybox = true;
 	private boolean displayPointCentral = true;
-	private Color colorPointCentral = Color.get("red");
 	private boolean displayAxis = true;
 	
 	private FollowMode followMode = FollowMode.Not;
 	/** The absolute point that looks the camera. */
 	private final PVector focus = zero.copy();
 	private final PVector orientation = defaultOrientation.copy();
-	
-	private final PVector distNot = cube(100);
+	private final PVector distNot = cube(300);
 	private final PVector distStatic = cube(300);
-	private final PVector distFull = mult(vec(0, 6, 9), 15f);
+	private final PVector distFull = add(up(90), behind(135));
 	private boolean stateChanged = false, stateChangedCurrent = false;
 	private boolean absValid = false;
 	
 	/** Creates a new camera and add it to the physic objects. */
 	public Camera() {
-		super( cube(100) );
+		super(cube(100));
 		setName("Camera");
-		game.physic.addNow( this );
+		game.physic.addNow(this);
+		if (skybox == null) {
+			skybox = app.loadShape("skybox.obj");
+			skybox.scale(far/90);
+		}
 	}
 	
 	public boolean update() {
@@ -77,11 +92,9 @@ public class Camera extends Object {
 		assert(toFollow != null && followMode != null);
 		// 1. get follow mode
 		FollowMode mode = FollowMode.fromString(followMode);
-		
 		// 2. update dist if set
 		if (dist != null)
 			setDist(mode, vec(dist));
-		
 		// 3. apply
 		setParent(toFollow);
 		setMode(mode);
@@ -158,12 +171,11 @@ public class Camera extends Object {
 				game.physic.remove(o);
 		});
 		
-		// draw basic stuff
+		// draw all the stuff
 		app.background(200);
 		app.camera(locationAbs.x, locationAbs.y, locationAbs.z, 
 				focus.x, focus.y, focus.z, 
 				orientation.x, orientation.y, orientation.z);
-		
 		if (displaySkybox) {
 			app.pushMatrix();
 				translate(locationAbs);
@@ -182,8 +194,8 @@ public class Camera extends Object {
 	
 	public void gui() {
 		if (displayPointCentral) {
-			colorPointCentral.fill();
-			app.point(app.width/2, app.height/2);
+			pointCentralColor.fill();
+			app.point(TangibleGame.width/2, TangibleGame.height/2);
 		}
 	}
 	
@@ -249,7 +261,7 @@ public class Camera extends Object {
 	    System.out.println("cam to focus: "+PVector.sub(locationAbs, focus));
 	}*/
 
-	public boolean updateAbs() {
+	protected boolean updateAbs() {
 		boolean sUpdated = super.updateAbs();
 		if (!absValid || sUpdated) {
 			// get new values.
@@ -295,11 +307,8 @@ public class Camera extends Object {
 	}
 	
 	private void displayAxis() {
-		app.stroke(255, 0, 0);
-		line(zero, x(far));
-		app.stroke(0, 255, 0);
-		line(zero, y(far));
-		app.stroke(0, 0, 255);
-		line(zero, z(far));
+		line(zero, x(far), xColor);
+		line(zero, y(far), yColor);
+		line(zero, z(far), zColor);
 	}
 }

@@ -38,6 +38,12 @@ public abstract class Interface extends ProMaster {
 	// --- other ---
 	
 	/** Return the name of the parameters changed by scroll. If null scroll isn't used. */
-	public String scrollUse() { return null; }
+	public String scrollUse() { 
+		return null; 
+	}
 	
+	/** Return true if this interface uses the mouse drag to operate. */
+	public boolean useDrag() { 
+		return false;
+	}
 }

@@ -1,16 +1,20 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
 <scene>
 	<physic gravity="0.2" deltaTime="0.7" running="true"></physic>
+	<general verbosity="max" displayAllColliders="false"></general>
 	
-	<camera displaySkybox="true" mode="not" dist="(50,50,200)" debug="true">
+	<camera displaySkybox="true" mode="not" dist="(300,300,300)" debug="false">
 		<box pos="(0,0,-400)" mass="0" color="yellow"></box>
 	</camera>
-	<box pos="(0,0,0)" name="box1" debug="true" mass="0"></box>
 	
-	<starship pos="zero" focus="true" force="72" camera="not" debug="true">
-		<ball pos="(-20,0,0)" name="blue ball" mass="0" color="blue" debug="true">
-			<ball pos="(0,40,0)" name="upper ball" mass="0" color="red" debug="true"></ball> 
+	<floor pos="zero" color="grass"></floor> 
+	
+	<starship pos="(0,200,0)" focus="true" force="72" camera="static" debug="false" displayCollider="true">
+		<box pos="(40,0,-20)" mass="0" color="pink"></box>
+		<ball pos="(-30,0,0)" name="blue ball" color="blue" mass="0" debug="false">
+			<ball pos="(0,40,0)" name="upper ball" color="red" mass="0" debug="false"></ball> 
 		</ball>
+		<weaponry></weaponry>
 	</starship>
 	
 	<!--  

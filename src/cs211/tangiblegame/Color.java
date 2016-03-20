@@ -19,54 +19,54 @@ public class Color extends ProMaster {
 			put("green", new Color(0, 255, 0, 200));
 			put("blue", new Color(0, 0, 255, 200));
 			put("grass", new Color(128,200,128));
-			put("yellow", new Color(255,255,0,150, 255));
+			put("yellow", new Color(255,255,0,150));
 			put("pink", new Color(255, 105, 180));
 			put("blueDark", new Color(50, 100, 125));
 		}
 	};
-	public static final Color basic = get("yellow");
+	
+	public static final Color basic = new Color("yellow", true);
 	
 	private final int[] c;
 	private final int[] s;
 	
 	/**
-	 * c,c,c,255; c,c,c,a; r,g,b,255; or r,g,b,a;
-	 * si plus de 4 arguments, le reste set le stroke.
+	 * understand 4 argument for a color: c, ca, rgb, rgba equivalent to:
+	 * (c,c,c,255), (c,c,c,a), (r,g,b,255), or (r,g,b,a).
+	 * If more than 4 arguments, the rest set the stroke in a similar way.
 	 */
 	public Color(int... rgba) {
-		if (rgba.length == 0) {
-			c = null;
-			s = null;
-		} else if (rgba.length <= 4) {
-			c = fromUF(rgba);
-			s = null;
-		} else {
-			c = fromUF(Arrays.copyOfRange(rgba, 0, 4));
-			s = fromUF(Arrays.copyOfRange(rgba, 4, rgba.length));
-		}
+		this(fromUF(Arrays.copyOfRange(rgba, 0, min(rgba.length, 4))),
+				rgba.length <= 4 ? null : fromUF(Arrays.copyOfRange(rgba, 4, min(rgba.length, 8))));
+	}
+
+	/** Return a new color from a string. if withSameStroke, stroke=color otherwise stroke=noStroke. */
+	public Color(String color, boolean withSameStroke) {
+		this(get(color).c, withSameStroke ? get(color).c : null);
+	}
+
+	/** Return a new color from 2 string. if stroke is null, set stroke to noStroke. */
+	public Color(String color, String stroke) {
+		this(get(color).c, stroke==null ? null : get(stroke).c);
+	}
+
+	private Color(int[] color, int[] stroke) {
+		if (color.length==0 || (stroke!=null && stroke.length==0)) 
+			throw new IllegalArgumentException("give me something for a color, plz m8");
+		this.c = color;
+		this.s = stroke;
 	}
 	
-	public Color(String color, String stroke) {
-		Color c = getColor(color);
-		if (c == null) {
-			System.err.println("Color is not set, taking basic");
-			c = basic;
-		}
-		Color s = getColor(stroke);
-		if (s == null) {
-			this.c = c.color();
-			this.s = c.stroke();
-		} else {
-			this.c = c.color();
-			this.s = s.color();
-		}
+	/** Return a new color with this stroke. */
+	public Color withStroke(int... stroke) {
+		return new Color(c, stroke);
 	}
-
-	/** get an existing color from string. */
-	public static Color get(String color) {
-		return colors.get(color);
+	
+	/** Return a new color with this stroke. */
+	public Color withStroke(String stroke) {
+		return new Color(c, get(stroke).c);
 	}
-
+	
 	/** applique la couleur primaire et le stroke si set */
 	public void fill() {
 		app.fill(c[0], c[1], c[2], c[3]);
@@ -76,61 +76,49 @@ public class Color extends ProMaster {
 			app.noStroke();
 	}
 	
-	public static class EmptyColor extends Color {
-		public void fill() {}
-	}
-	
-	/** retourne un clone du tableau de couleur primaire */
-	private int[] color() {
-		return c.clone();
-	}
-	
-	private int[] stroke() {
-		if (s == null)
-			return null;
-		else
-			return s.clone();
-	}
-
-	private static Color getColor(String color) {
+	private static Color get(String color) {
 		if (color == null) {
 			return null;
 		} else {
-			Color c = get(color);
+			Color c = getExistingColor(color);
 			if (c != null) {
 				return c;
 			} else {
 				Matcher matcher = intPattern.matcher(color);
-				int[] values = new int[4];
+				int[] values = new int[12];
 				int i=0;
-				for (; i<=3 && matcher.find(); i++)
+				for (; i<values.length && matcher.find(); i++)
 					values[i] = Integer.parseInt(matcher.group());
 				if (i == 0) {
-					System.out.println("wrong color format for \""+color+"\", taking basic");
+					debug.err("Unkno color format for \""+color+"\", taking basic");
 					return basic;
-				} else if (i < 4) {
+				} else if (i >= 8) {
+					debug.err("wrong color format for \""+color+"\" (max 8, taking basic");
+					return basic;
+				} else {
 					int[] ret = new int[i];
 					System.arraycopy(values, 0, ret, 0, i);
 					values = ret;
+					return new Color(values);
 				}
-				return new Color(values);
 			}
 		}
 	}
 	
+	/** get an existing color from string. Default stroke is noStroke. */
+	private static Color getExistingColor(String color) {
+		return colors.get(color);
+	}
+	
 	private static int[] fromUF(int[] rgba) {
-		switch (rgba.length) {
-		case 1:
+		assert(rgba.length > 0 && rgba.length <= 4);
+		if (rgba.length == 1)
 			return new int[] {rgba[0], rgba[0], rgba[0], 255};
-		case 2:
+		else if (rgba.length == 2)
 			return new int[] {rgba[0], rgba[0], rgba[0], rgba[1]};
-		case 3:
+		else if (rgba.length == 3)
 			return new int[] {rgba[0], rgba[1], rgba[2], 255};
-		case 4:
+		else // rgba.length = 4
 			return rgba;
-		default:
-			System.err.println("no cool color input: "+rgba);
-			return basic.color();
-		}
 	}
 }

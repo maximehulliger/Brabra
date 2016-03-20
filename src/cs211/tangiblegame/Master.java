@@ -176,6 +176,14 @@ public class Master {
 		return a>b ? a : b;
 	}
 
+	protected static int min(int a, int b) {
+		return a<b ? a : b;
+	}
+
+	protected static int max(int a, int b) {
+		return a>b ? a : b;
+	}
+
 	/** retourne true si v E [min, max] */
 	protected static boolean isConstrained(float v, float min, float max) {
 		return v>=min && v<=max;

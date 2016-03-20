@@ -2,15 +2,24 @@ package cs211.tangiblegame.physic;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 
 import cs211.tangiblegame.Debug.Debugable;
 import cs211.tangiblegame.ProMaster;
+import cs211.tangiblegame.geo.Line;
 import cs211.tangiblegame.geo.Quaternion;
 import processing.core.PMatrix;
 import processing.core.PMatrix3D;
 import processing.core.PVector;
 
-/** A movable object with transforms (location, rotation, parent), velocity and rotational velocity. */
+/** 
+ * A movable object with transforms (location, rotation, parent), 
+ * velocity and rotational velocity. <p>
+ * Gives methods to change a location between different space: <p>
+ * - Absolute (abs): relative & local to the root. 
+ * - Relative (rel): in this' space (relative to this). 
+ * - Local (loc): in this space without this' rotation (with the parents' transforms).
+ **/
 public class Object extends ProMaster implements Debugable {
 	/** 
 	 * ParentRelationship define some ways to get in local space (via pushLocal()). default is Full (if parent).<p>
@@ -34,7 +43,7 @@ public class Object extends ProMaster implements Debugable {
 	protected final NVector locationRel = new NVector(zero);
 	/** Absolute position. Equals locationRel if no parent. */
 	protected final NVector locationAbs = new NVector(zero);
-	/** Velocity relative to the parent. */
+	/** Velocity relative to the parent. should be called velocityLoc (local) because translation is applied before rotation. */
 	protected final NVector velocityRel = new NVector(zero);
 	/** Rotation relative to the parent. */
 	protected final NQuaternion rotationRel = new NQuaternion(identity);
@@ -72,8 +81,11 @@ public class Object extends ProMaster implements Debugable {
 		this(location, identity);
 	}
 
-	/** To display the object. */
+	/** Override it to display the object. */
 	public void display() {}
+	
+	/** Override it to validate the object when added from an xml file (after parent & children set). */
+	public void validate() {}
 	
 	/** To display the state of the object in the console. */
 	public void displayState() {
@@ -84,6 +96,23 @@ public class Object extends ProMaster implements Debugable {
 	public void onDelete() {
 		if (hasParent())
 			parent.children.remove(this);
+	}
+
+	// --- push & pop local ---
+	
+	/** 
+	 * push local to the object depending on the parent relationship. 
+	 * update the abs variables if needed (matrix & locationAbs). 
+	 **/
+	protected void pushLocal() {
+		updateAbs();
+		assert (!app.getMatrix().equals(new PMatrix3D())); //sinon app.resetMatrix();
+		app.pushMatrix();
+		app.applyMatrix(matrix);
+	}
+	
+	protected void popLocal() {
+		app.popMatrix();
 	}
 	
 	// --- Getters ---
@@ -102,10 +131,7 @@ public class Object extends ProMaster implements Debugable {
 	
 	/** Return true if the absolute variables are valid (check the parent). */
 	protected boolean absValid() {
-		if (hasParent() && !parent.absValid())
-			return false;
-		else
-			return absValid;
+		return (hasParent() && !parent.absValid()) ? false : absValid;
 	}
 	
 	/** Return true if the object should consider his parent. */
@@ -118,10 +144,29 @@ public class Object extends ProMaster implements Debugable {
 		return parent;
 	}
 
+	/** Return the fist child (dfs) that satisfy the predicate, */
+	public Object childThat(Function<Object, Boolean> predicate) {
+		for (Object child : children) {
+			if (predicate.apply(child))
+				return child;
+			Object forChild = child.childThat(predicate);
+			if (forChild != null)
+				return forChild;
+		}
+		return null;
+	}
+
+	/** Return the fist parent that satisfy the predicate, */
+	public Object parentThat(Function<Object, Boolean> predicate) {
+		return hasParent() 
+				? (predicate.apply(parent()) ? parent() : parent().parentThat(predicate))
+				: null;
+	}
+
 	/** Return the absolute location of the object. update things if needed. */
 	public PVector location() {
 		updateAbs();
-		return locationAbs;
+		return locationAbs.copy();
 	}
 	
 	/** for now return the relative rotation. */
@@ -129,9 +174,25 @@ public class Object extends ProMaster implements Debugable {
 		return rotationRel;
 	}
 	
-	/** for now return the relative velocity. */
+	/** Return the absolute velocity at the center of mass. */
 	public PVector velocity() {
-		return velocityRel;
+		PVector forMe = absoluteDirFromLocal(velocityRel);
+		return hasParent() ? add(forMe , parent().velocityAtRel(locationRel)) : forMe;
+	}
+
+	/** Return the absolute velocity (from an absolute pos). */
+	public PVector velocityAt(PVector posAbs) {
+		return velocityAtRel(relative(posAbs));
+	}
+
+	/** Return the absolute velocity (from a relative pos). */
+	public PVector velocityAtRel(PVector posRel) {
+		return (rotationRel.isZeroEps(false) || isZeroEps(posRel, false))
+			? velocity() : add(velocity(), rotationRelVel.rotAxisAngle().cross(posRel));
+	}
+	
+	public float radiusEnveloppe() {
+		return 0;
 	}
 
 	/** Return if the transforms of the object or one of his parent changed during last frame. */
@@ -365,65 +426,83 @@ public class Object extends ProMaster implements Debugable {
 	
 	/** retourne l'orientation de l'objet (pour la camera) */
 	public PVector orientation() {
-		return absDir(down);
+		return absoluteDir(down);
 	}
 	
-	// --- conversion vector global <-> local ---
-
+	// --- conversion position local <-> *absolute* <-> relative ---
+	
 	/** Retourne la position de rel, un point relatif au body en absolu. */
 	public PVector absolute(PVector rel) {
-		PVector local = absolute(rel, locationRel, rotationRel);
-		if (hasParent())
-			return parent.absolute(local);
-		else
-			return local;
+		PVector inParentSpace = absolute(rel, locationRel, rotationRel);
+		return hasParent() ? parent.absolute(inParentSpace) : inParentSpace;
+	}
+
+	protected PVector relative(PVector posAbs) {
+		return relative(hasParent() ? parent.relative(posAbs) : posAbs, locationRel, rotationRel);
+	}
+
+	protected PVector relativeFromLocal(PVector posLoc) {
+		return relative(hasParent() ? parent.relative(posLoc) : posLoc, zero, rotationRel);
+	}
+
+	protected PVector local(PVector posAbs) {
+		return sub(posAbs, location());
+	}
+
+	protected PVector localFromRel(PVector posRel) {
+		return absolute(posRel, zero, rotationRel);
 	}
 	
+	/** Retourne la position absolue de posLoc, un point local au body. */
+	public PVector absoluteFromLocal(PVector posLoc) {
+		//return hasParent() ? parent.absolute(absolute(posLoc, locationRel, rotationRel)) : posLoc;
+		return add( location(), posLoc );
+	}
+	
+	// --- conversion direction local <-> *absolute* <-> relative ---
+	
+	/** Return the absolute direction from a relative direction in the body space. result is only rotated -> same norm. */
+	public PVector absoluteDir(PVector dirRel) {
+		PVector inParentSpace = absolute(dirRel, zero, rotationRel);
+		return hasParent() ? parent.absoluteDir(inParentSpace) : inParentSpace;
+	}
+
+	/** Return the absolute direction from a relative direction in the body space. result is only rotated -> same norm. */
+	public PVector absoluteDirFromLocal(PVector dirLoc) {
+		return hasParent() ? parent().absoluteDir(dirLoc) : dirLoc;
+	}
+
+	/** Return the relative direction in the body body space from an absolute direction. result is only rotated -> same norm. */
+	public PVector relativeDir(PVector dirAbs) {
+		if (hasParent())
+			return relative(parent.relativeDir(dirAbs), zero, rotationRel);
+		else
+			return relative(dirAbs, zero, rotationRel);
+	}
+
+	/** Return the local direction in the object space from an absolute direction. result is only rotated -> same norm. */
+	public PVector localDir(PVector dirAbs) {
+		return hasParent() ? relative(parent.localDir(dirAbs), zero, parent.rotationRel) : dirAbs;
+	}
+	
+	/** Return the local direction in the object space regardless of this' direction. result is only rotated -> same norm. */
+	public PVector localDirFromRel(PVector dirRel) {
+		return absolute(localDir(dirRel), zero, rotationRel);
+	}
+	
+	// --- syntactic sugar for space change ---
+
 	protected PVector[] absolute(PVector[] rels) {
 		PVector[] ret = new PVector[rels.length];
 		for (int i=0; i<rels.length; i++)
 			ret[i] = absolute(rels[i]);
 		return ret;
 	}
-	protected PVector local(PVector abs) {
-		if (hasParent())
-			return local(parent.local(abs), locationRel, rotationRel);
-		else
-			return local(abs, locationRel, rotationRel);
-	}
 	
-	/** Return the relative direction vector to the body at in absolute. result is only rotated -> same norm. */
-	public PVector absDir(PVector dir) {
-		PVector inParentSpace = absolute(dir, zero, rotationRel);
-		if (hasParent())
-			return parent.absDir(inParentSpace);
-		else 
-			return inParentSpace;
-	}
-	
-	protected PVector velocityAt(PVector loc) {
-		PVector relVel = velocityRel.copy();
-		/*PVector rotVelAxis = rotationVel.rotAxis();
-		if (!isZeroEps( rotationVel.angle ));
-			relVel.add( rotVelAxis.cross(PVector.sub(loc, location)) );*/
-		if (hasParent())
-			return PVector.add(parent.velocityAt(loc), relVel);
-		else
-			return relVel;
-	}
-	
-	/** push local to the object depending on the parent relationship. update the abs variables if needed (matrix&locationAbs). */
-	protected void pushLocal() {
-		updateAbs();
-		assert (!app.getMatrix().equals(new PMatrix3D()));
-		app.pushMatrix();
-		//app.resetMatrix();
-		app.applyMatrix(matrix);
-		//System.out.println("in "+presentation());
-	}
-	
-	protected void popLocal() {
-		app.popMatrix();
-		//System.out.println("out "+presentation());
+	protected Line[] absolute(Line[] rels) {
+		Line[] ret = new Line[rels.length];
+		for (int i=0; i<rels.length; i++)
+			ret[i] = rels[i].absoluteFrom(this);
+		return ret;
 	}
 }

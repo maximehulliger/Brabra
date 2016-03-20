@@ -78,7 +78,14 @@ public class Plane extends PseudoPolyedre {
 
 	public void display() {
 		pushLocal();
-		color.fill();
+		if (!displayColliderMaybe()) {
+			color.fill();
+			displayCollider();
+		}
+		popLocal();
+	}
+
+	public void displayCollider() {
 		float x = finite ? v1.vectorMag/2 : far;
 		float z = finite ? v2.vectorMag/2 : far;
 		app.beginShape(PApplet.QUADS);
@@ -87,19 +94,14 @@ public class Plane extends PseudoPolyedre {
 	    app.vertex(x,0,z);
 	    app.vertex(-x,0,z);
 		app.endShape();
-		popLocal();
 	}
 
 	public Line collisionLineFor(PVector p) {
-		if (isFacing(p))
-			return normale();
-		else
-			return new Line(projette(p), p, false);
+		return isFacing(p) ? normale() : new Line(projette(p), p, false);
 	}
 
 	public boolean isIn(PVector abs) {
-		updateAbs();
-		return isFacing(abs) && normale.projectionFactor(abs)<0;
+		return isFacing(abs) && normale().projectionFactor(abs)<0;
 	}
 
 	public PVector projette(PVector point) {
@@ -108,8 +110,7 @@ public class Plane extends PseudoPolyedre {
 	}
 
 	public boolean doCollideFast(Collider c) {
-		updateAbs();
-		return c.projetteSur(normale).comprend(0) && (!finite || super.doCollideFast(c));
+		return c.projetteSur(normale()).comprend(0) && (!finite || super.doCollideFast(c));
 	}
 
 	//retourne le point qui est le plus contre cette normale (par rapport au centre)
@@ -129,7 +130,7 @@ public class Plane extends PseudoPolyedre {
 			throw new IllegalArgumentException("why projecting a plane on himself ??");
 			//return new Projection(0, 0);
 		else if (finite)
-			return ligne.projette( sommets );
+			return ligne.projette( vertices() );
 		else
 			return new Projection(Float.MIN_VALUE, Float.MAX_VALUE);
 	}
@@ -141,24 +142,21 @@ public class Plane extends PseudoPolyedre {
 
 	public boolean updateAbs() {
 		if (super.updateAbs()) {
-			super.sommets = absolute(natCo);
-	
-			v1 = new Line(sommets[0], sommets[1], finite); //sur x
-			v2 = new Line(sommets[0], sommets[2], finite); //sur z
-	
-			PVector norm = v2.norm.cross(v1.norm);
-			norm.normalize(); // ? plus besoin
-			normale = new Line(sommets[0], PVector.add( sommets[0], norm ), false);
-	
-			super.arretes = new Line[] {
-					v1, v2,
-					new Line(sommets[1], sommets[3], true),
-					new Line(sommets[2], sommets[3], true)};
+			// for plane
+			PVector[] vertices = absolute(natCo);
+			v1 = new Line(vertices[0], vertices[1], finite); 	// x
+			v2 = new Line(vertices[0], vertices[2], finite); 	// z
+			PVector norm = v2.norm.cross(v1.norm).normalize();
+			normale = new Line(location(), PVector.add( location(), norm ), true);
+			// for polyhedron
+			Line v3 = new Line(vertices[1], vertices[3], true); // x'
+			Line v4 = new Line(vertices[2], vertices[3], true); // z'
+			setAbs(vertices, new Line[] { v1, v2, v3, v4 });
 			return true;
 		} else
 			return false;
 	}
-
+	
 	//----- private
 
 	private boolean isFacing(PVector p) {

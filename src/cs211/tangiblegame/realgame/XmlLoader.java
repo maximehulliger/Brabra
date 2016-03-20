@@ -16,8 +16,10 @@ import cs211.tangiblegame.physic.Object.ParentRelationship;
 import cs211.tangiblegame.realgame.Camera.FollowMode;
 import cs211.tangiblegame.Color;
 import cs211.tangiblegame.ProMaster;
+import cs211.tangiblegame.TangibleGame;
 import cs211.tangiblegame.geo.Quaternion;
 import cs211.tangiblegame.physic.Body;
+import cs211.tangiblegame.physic.Collider;
 
 public final class XMLLoader extends ProMaster {
 	private final String filename;
@@ -39,10 +41,10 @@ public final class XMLLoader extends ProMaster {
 	}
 	
 	/** 
-	 * load the object from the file at @filename
+	 * load the object from the file at @filename.
 	 * supported attributes for objects:
-	 * 	 name, dir, pos, parency, mass, life, color, stroke,
-	 * 	 impulse, focus, force, camera, cameraDist, debug.
+	 * 	 name, dir, pos, parency, mass, life, color, stroke, impulse,
+	 * 	 focus, force, camera, cameraDist, debug, displayCollider.
 	 *  */
 	public void load() {
 		try {
@@ -61,36 +63,51 @@ public final class XMLLoader extends ProMaster {
 	    	if (localName.equals("scene"))
 	    		return;
 	    	else if (localName.equals("physic")) {
-	    		String gravity = atts.getValue("gravity");
+	    		final String gravity = atts.getValue("gravity");
 	    		if (gravity != null)
 				  	game.physic.gravity = Float.parseFloat(gravity);
-			  	String running = atts.getValue("running");
+	    		final String running = atts.getValue("running");
 			  	if (running != null)
 			  		game.physic.running = Boolean.parseBoolean(running);
+	    	} else if (localName.equals("general")) {
+	    		final String verbosity = atts.getValue("verbosity");
+	    		if (verbosity != null) {
+	    			if (verbosity.equals("max"))
+	    				TangibleGame.verbosity = Integer.MAX_VALUE;
+	    			else if (verbosity.equals("min") || verbosity.equals("silence") || verbosity.equals("none"))
+	    				TangibleGame.verbosity = Integer.MIN_VALUE;
+	    			else
+	    				TangibleGame.verbosity = Integer.parseInt(verbosity);
+	    		}
+	    		final String displayAllColliders =  atts.getValue("displayAllColliders");
+	    		if (displayAllColliders != null)
+	    			Collider.displayAllColliders = Boolean.parseBoolean(displayAllColliders);
 	    	} else {
 	    		// new object into scene: camera or prefab.
 	    		Object newObj;
 	    		// first set the parent
-	    		Object newParent = parentStack.empty() ? null : parentStack.peek();
+	    		final Object newParent = parentStack.empty() ? null : parentStack.peek();
 	    		
 	    		if (localName.equals("camera")) {
 	    			if (newParent != null)
 	    				game.camera.setParent(newParent);
-	    			String mode = atts.getValue("mode");
+	    			final String mode = atts.getValue("mode");
 	    			if (mode != null) {
-		    			String dist = atts.getValue("dist");
+	    				final String dist = atts.getValue("dist");
 		    			if (dist == null)
 		    				game.debug.err("for camera: dist should be set with mode. ignoring mode.");
 		    			else 
 		    				game.camera.setDist(FollowMode.fromString(mode), vec(dist));
 		    		}
-				  	String displaySkybox = atts.getValue("displaySkybox");
+	    			final String displaySkybox = atts.getValue("displaySkybox");
 		    		if (displaySkybox != null)
 					  	game.camera.setSkybox(Boolean.parseBoolean(displaySkybox));
 				  	newObj = game.camera;
 	    		} else {
 	    			String pos = atts.getValue("pos");
-	    			String dir = atts.getValue("dir");
+	    			if (pos == null)
+	    				pos = "zero";
+	    			final String dir = atts.getValue("dir");
 	    			Body newBody = Prefab.add(localName, vec(pos), 
 	    					dir != null ? Quaternion.fromDirection(vec(dir)) : identity);
 
@@ -100,31 +117,35 @@ public final class XMLLoader extends ProMaster {
 							String parentRel = atts.getValue("parentRel");
 							newBody.setParentRel(ParentRelationship.fromString(parentRel));
 						}
-						String color = atts.getValue("color");
+						final String color = atts.getValue("color");
 						if (color != null) {
 							String stroke = atts.getValue("stroke");
 							newBody.setColor( new Color(color, stroke) );
 						}
-						String mass = atts.getValue("mass");
+						final String displayCollider = atts.getValue("displayCollider");
+						if (displayCollider != null) {
+							((Collider)newBody).setDisplayCollider( Boolean.parseBoolean(displayCollider) );
+						}
+						final String mass = atts.getValue("mass");
 						if (mass != null)
 							newBody.setMass(Float.parseFloat(mass));
-						String name = atts.getValue("name");
+						final String name = atts.getValue("name");
 						if (name != null)
 							newBody.setName(name);
-						String life = atts.getValue("life");
+						final String life = atts.getValue("life");
 						if (life != null)
 							setLife(newBody, life);
-						String cameraMode = atts.getValue("camera");
+						final String cameraMode = atts.getValue("camera");
 						if (cameraMode != null) {
-							String cameraDist = atts.getValue("cameraDist");
+							final String cameraDist = atts.getValue("cameraDist");
 							game.camera.set(newBody, cameraMode, cameraDist);
 						}
-						String impulse = atts.getValue("impulse");
+						final String impulse = atts.getValue("impulse");
 						if (impulse != null)
 							newBody.applyImpulse(vec(impulse));
-						String focus = atts.getValue("focus");
+						final String focus = atts.getValue("focus");
 						if (focus != null && Boolean.parseBoolean(focus)) {
-							String force = atts.getValue("force");
+							final String force = atts.getValue("force");
 							if (force != null)
 								game.physicInteraction.setFocused(newBody, Float.parseFloat(force));
 							else
@@ -134,7 +155,7 @@ public final class XMLLoader extends ProMaster {
 					newObj = newBody;
 	    		}
 				parentStack.push(newObj);
-	    		String debug = atts.getValue("debug");
+	    		final String debug = atts.getValue("debug");
 			  	if (debug != null && Boolean.parseBoolean(debug)) {
 			  		game.debug.followed.add(newObj);
 			  	}
@@ -143,16 +164,18 @@ public final class XMLLoader extends ProMaster {
 	    
 		public void endElement(String uri, String localName, String qName) 
 				throws SAXException {
-			if (localName.equals("scene") || localName.equals("physic"))
+			if (localName.equals("scene") || localName.equals("physic") ||  localName.equals("general"))
 	    		return;
 	    	else {
-	    		parentStack.pop();
+	    		final Object endedObject = parentStack.pop();
+	    		if (endedObject != null)
+	    			endedObject.validate();
 	    	}
 		}
 	}
 
 	private void setLife(Body b, String lifeText) {
-		String[] sub = lifeText.split("/");
+		final String[] sub = lifeText.split("/");
 		if (sub.length == 2)
 			b.setLife(Integer.parseInt(sub[0]),Integer.parseInt(sub[1]));
 		else if (sub.length == 1) {

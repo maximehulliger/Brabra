@@ -7,15 +7,15 @@ import processing.core.PImage;
 
 public class Menu extends Interface {
 	//title & buttons
-	private static final int titleOffsetX = app.width/2+250, titleOffsetY = 100; 
+	private static final int titleOffsetX = TangibleGame.width/2+250, titleOffsetY = 100; 
 	private static final int buttonFontSize = 60, titleFontSize = 120, helpFontSize = 16; 
 	private static final int buttonSizeX = 400, buttonSizeY = 100;
 	private static final int buttonDiffY = buttonSizeY + 60;
 	private static final int nbButton = 3;
-	private static final int buttonOffsetX = app.width/2 - buttonSizeX - 100,
-				buttonOffsetY = app.height/2 - ((nbButton-1)*buttonDiffY + buttonSizeY)/2;
+	private static final int buttonOffsetX = TangibleGame.width/2 - buttonSizeX - 100,
+				buttonOffsetY = TangibleGame.height/2 - ((nbButton-1)*buttonDiffY + buttonSizeY)/2;
 	//help: button, zone & text
-	private static final int helpButtonOffsetX = app.width/2+150, helpButtonOffsetY = 200;
+	private static final int helpButtonOffsetX = TangibleGame.width/2+150, helpButtonOffsetY = 200;
 	private static final int helpButtonSizeX = 150, helpButtonSizeY = 60;
 	private static final int helpZoneSizeX = 400, helpZoneSizeY = 415;
 	private static final int helpZoneOffsetX = helpButtonOffsetX + helpButtonSizeX/2 - helpZoneSizeX/2,

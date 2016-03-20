@@ -74,7 +74,7 @@ public class ImageAnalyser extends ProMaster {
 		HoughLine.colorQuad = app.color(200, 100, 0, 120);
 		
 		// font & parametres
-		standardFont = app.createFont("Arial", app.height/40f);
+		standardFont = app.createFont("Arial", TangibleGame.height/40f);
 		paraMovie = ImageProcessing.paraMovieBase.clone();
 		paraCamera = imgProc.paraCameraBase.clone();
 		if (takeMovie)
@@ -227,7 +227,7 @@ public class ImageAnalyser extends ProMaster {
 				inWidth = inputImg.width;
 				inHeight = inputImg.height;
 				quadDetection = app.createGraphics(inWidth, inHeight);
-				strockWeight = PApplet.max(inWidth * 3f / app.width, 1f);
+				strockWeight = PApplet.max(inWidth * 3f / TangibleGame.width, 1f);
 				quadDetection.strokeWeight(strockWeight);
 			}
 			newInput = false;
@@ -353,9 +353,9 @@ public class ImageAnalyser extends ProMaster {
 			
 			if (quadDetectionLock.isLocked() && newInput) {
 				app.fill(0, 0, 0, 180);
-				app.rect(20, 20, app.width/6f, app.height/6f);
+				app.rect(20, 20, TangibleGame.width/6f, TangibleGame.height/6f);
 				app.fill(200, 100, 0, 180);
-				app.text("coming...", 20 + app.width/6f, 20 + app.height/6f);
+				app.text("coming...", 20 + TangibleGame.width/6f, 20 + TangibleGame.height/6f);
 			} else if (quadDetection != null) {
 				quadDetectionLock.lock();
 				app.fill(255);
@@ -363,12 +363,12 @@ public class ImageAnalyser extends ProMaster {
 					app.tint(255, 255, 255, 150); 
 				else if (hasFoundQuad)		//rotation is to big
 					app.tint(255, 0, 0, 210);
-				app.image(quadDetection, 20, 20, app.width/6f, app.height/6f);
+				app.image(quadDetection, 20, 20, TangibleGame.width/6f, TangibleGame.height/6f);
 				quadDetectionLock.unlock();
 				app.tint(255, 255);
 				if (paused()) {
 					app.fill(200, 100, 0, 180);
-					app.text("paused", 20 + app.width/6f, 20 + app.height/6f);
+					app.text("paused", 20 + TangibleGame.width/6f, 20 + TangibleGame.height/6f);
 				}
 			}
 		}
