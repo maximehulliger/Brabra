@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import brabra.game.Color;
+import brabra.game.XMLLoader.Attributes;
 import brabra.game.physic.geo.Line;
 import brabra.game.physic.geo.Quaternion;
 import brabra.game.scene.Object;
@@ -17,21 +18,19 @@ import processing.core.*;
  * TODO: If has a parent, apply it to the parent.
  **/
 public class Body extends Object {
+	
 	private static final boolean displayInteractions = true; //forces et impulse
 	private static final Color interactionColor = new Color("white", true);
+	
+	/** Mass of the body. -2 for ghost, -1 for infinite or bigger than 0 (never equals 0).*/
+	protected float mass = -2;
 	protected int life = -1;
 	protected int maxLife = -1;
 	protected Color color = Color.basic;
-	/** Mass of the body. -1 for infinite or bigger than 0 (never equals 0).*/
-	protected float mass = -1;
 	protected float inverseMass = 0;
 	protected PVector inertiaMom = cube(Float.POSITIVE_INFINITY);
 	protected PVector inverseInertiaMom = zero.copy();
 	protected float restitution = 0.8f; // [0, 1]
-	/** If set to true, the body doesn't interact with others (and others don't). */
-	protected boolean ghost = false;
-	/** If set to false, the body doesn't react to the collision but others do. */
-	protected boolean affectedByCollision = true;
 
 	private PVector forces = zero.copy();
 	private PVector torques = zero.copy();
@@ -50,6 +49,24 @@ public class Body extends Object {
 	/** to react to a collision */
 	protected void onCollision(Collider col, PVector impact) {}
 
+	public void validate(Attributes atts) {
+		super.validate(atts);
+		final String color = atts.getValue("color");
+		if (color != null) {
+			String stroke = atts.getValue("stroke");
+			setColor( new Color(color, stroke) );
+		}
+		final String mass = atts.getValue("mass");
+		if (mass != null)
+			setMass(Float.parseFloat(mass));
+		final String life = atts.getValue("life");
+		if (life != null)
+			setLife(life);
+		final String impulse = atts.getValue("impulse");
+		if (impulse != null)
+			applyImpulse(vec(impulse));
+	}
+	
 	/** applique les forces et update l'etat. return true if this was updated. */
 	public boolean update() {
 		if (!updated) {
@@ -110,20 +127,20 @@ public class Body extends Object {
 	 *	Should be overload (and called) to set the inertia moment (depending on the shape). 
 	 **/
 	public void setMass(float mass) {
-		if (mass == -1) {
-			this.mass = -1;
-			this.affectedByCollision = false;
+		if (mass == -2 || mass == 0) {
+			this.mass = -2;
 			this.inverseMass = 0;
 			this.inverseInertiaMom = zero.copy();
-		} else if (mass == 0) {
-			setMass(-1);
-			ghost = true;
-		} else if (mass < 0)
-			throw new IllegalArgumentException("negative mass !");
-		else {
+		} else if (mass == -1) {
+			this.mass = -1;
+			this.inverseMass = 0;
+			this.inverseInertiaMom = zero.copy();
+		} else if (mass <= 0) {
+			game.debug.err("invalide mass: "+mass+", taking -2 (ghost)");
+			setMass(-2);
+		} else {
 			this.mass = mass;
 			this.inverseMass = 1/mass;
-			this.affectedByCollision = true;
 			this.inverseInertiaMom = zero.copy();
 		}
 	}
@@ -139,11 +156,11 @@ public class Body extends Object {
 	
 	public void setLife(int life, int maxLife) {
 		if (maxLife <= 0) {
-			debug.err(toString()+" should have a positive maxLife, set to 1 (0 is dead).");
+			game.debug.err(toString()+" should have a positive maxLife, set to 1 (0 is dead).");
 			maxLife = 1;
 		}
 		if (life < 0) {
-			debug.err(toString()+" should have a positive life, killing him...");
+			game.debug.err(toString()+" should have a positive life, killing him...");
 			life = 0;
 			onDeath();
 		}
@@ -151,10 +168,21 @@ public class Body extends Object {
 		this.maxLife = maxLife;
 		if (life > maxLife) {
 			this.life = maxLife;
-			System.err.println(toString()+" can not have more life than maxLife, setting at "+life());
+			game.debug.err(toString()+" can not have more life than maxLife, setting at "+life());
 		} else {
 			this.life = life;
 		}
+	}
+
+	private void setLife(String lifeText) {
+		final String[] sub = lifeText.split("/");
+		if (sub.length == 2)
+			setLife(Integer.parseInt(sub[0]),Integer.parseInt(sub[1]));
+		else if (sub.length == 1) {
+			int life = Integer.parseInt(sub[0]);
+			setLife(life, life);
+		} else
+			game.debug.err("unsuported life format: \""+lifeText+"\". letting to "+life());
 	}
 
 	public void damage(int damage) {
@@ -175,8 +203,18 @@ public class Body extends Object {
 		return life+"/"+maxLife;
 	}
 
-	//------ Gestion des impulse, forces et torques
+	// --- Physic management:  impulse, forces and torques ---
+
+	/** If true, the body doesn't interact with others (and others don't). */
+	public boolean ghost() {
+		return mass < -1;
+	}
 	
+	/** If false, the body doesn't react to the collision but others do. */
+	public boolean affectedByCollision() {
+		return mass > 0;
+	}
+
 	/** Add momentum to the body at this point (absolute). */
 	public void applyImpulse(PVector posAbs, PVector impulseAbs) {
 		assert(!impulseAbs.equals(zero));

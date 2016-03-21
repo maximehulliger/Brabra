@@ -22,7 +22,7 @@ public abstract class Effect extends Object {
 	public boolean update() {
 		if (super.update()) {
 			if (--timeLeft == 0) // -1 -> continue
-				game.physic.remove(this);
+				game.scene.remove(this);
 			return true;
 		} else
 			return false;
@@ -64,7 +64,7 @@ public abstract class Effect extends Object {
 		public boolean update() {
 			if (super.update()) {
 				for (int i=0; i<5; i++)
-					game.physic.add( new Bulbe(randomPos()) );
+					game.scene.add( new Bulbe(randomPos()) );
 				return true;
 			} else
 				return false;

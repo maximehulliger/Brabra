@@ -4,34 +4,33 @@ import java.util.ArrayList;
 import java.util.List;
 
 import brabra.Brabra;
+import brabra.game.XMLLoader.Attributes;
 import brabra.game.physic.geo.Quaternion;
-import brabra.game.physic.geo.Sphere;
 import brabra.game.scene.Object;
-import processing.core.PApplet;
 import processing.core.PVector;
 
 public class Weaponry extends Object {
 	protected final static int tAffichageErreur = 15;
 	
 	//private static final float ratioUpgradeMax = 2, ratioUpgradeMin = 0.4f, ratioUpgradeToExist = 0.2f;
-	/** Threshold for the button input to fire a tier of weapon. */
+	/** Threshold for the button input (from the plate) to fire a tier of weapon. */
 	private static final float[] etatThreshold = new float[] { 0, 0, 0.8f };
+	private static final int guiWidthMax = 400;
+	private int guiWidth = guiWidthMax;
+	private final PVector basGauche = zero.copy();
+	private boolean valid = false; // object is in a valid state
 	
-
-	protected static final int guiWidth = 400;
-	protected float guiRatio;
+	protected float guiRatio = 1;
+	protected boolean displayColliders = true;
 	
 	private final List<Weapon> weapons = new ArrayList<>();
 	/** In the order in which the weapons will be shot. */
 	private final List<Weapon> weaponsOrdered = new ArrayList<>();
 	
-	public interface Armed {
-		public Weaponry armement();
-	}
-
 	/** t0-2 : thresholds pour répartir la l'amélioration puissance sur les differents tiers d'armement. */
 	public Weaponry(PVector loc, Quaternion rot) {
 		super(loc, rot);
+		setName("Weaponry");
 	}
 	
 	/*public static Armement ShipArmement(Object launcher) {
@@ -50,18 +49,21 @@ public class Weaponry extends Object {
 	}
 	}*/
 
-	public void validate() {
-		float imagesWidth = 0;
-		for (Weapon w : weapons)
-			imagesWidth += w.img().width*w.upgradeRatio;
-		guiRatio = Weaponry.guiWidth / imagesWidth;
-	}
-	
+	/** */
 	protected void addWeapon(Weapon w) {
 		weapons.add(w);
-		weapons.sort((a,b) -> PApplet.round(a.puissance - b.puissance)); //TODO location.x
 		weaponsOrdered.add(w);
-		weaponsOrdered.sort((a,b) -> PApplet.round(a.puissance - b.puissance));
+		valid = false;
+	}
+
+	protected void removeWeapon(Weapon w) {
+		weapons.remove(w);
+		weaponsOrdered.remove(w);
+		valid = false;
+	}
+	
+	public void setDisplayColliders(boolean displayColliders) {
+		this.displayColliders = displayColliders;
 	}
 	
 	/** 
@@ -72,7 +74,7 @@ public class Weaponry extends Object {
 		if (idx < 0) { //-2, -1
 			for (Weapon w : weaponsOrdered) {
 				if (w.ready() 
-						&& (idx != -2 || etat > etatThreshold[w.tier]) 
+						&& (idx != -2 || etat >= etatThreshold[w.tier()-1]) 
 						&& w.fire())
 					return;
 				}
@@ -87,37 +89,35 @@ public class Weaponry extends Object {
 	
 	/** display the state of the missiles in the gui */
 	public void displayGui() {
-		PVector basGauche = new PVector((Brabra.width-guiWidth)/2, Brabra.height);
-		for(Weapon w : weapons) {
-			basGauche = w.displayGui(basGauche);
-		}
+		if (!valid)
+			validate();
+		PVector basGaucheCurrent = basGauche.copy();
+		for(Weapon w : weapons)
+			basGaucheCurrent = w.displayGui(basGaucheCurrent);
 	}
-
 	
-	/** A sphere to destroy. */
-	public static class Objectif extends Sphere {
-		
-		public Objectif(PVector location, Quaternion rotation) {
-			super(location, rotation, 50);
-			setMass(30);
-			setName("Objectif");
+	public void validate(Attributes atts) {
+		super.validate(atts);
+		final String displayColliders = atts.getValue("displayColliders");
+		if (displayColliders != null) {
+			setDisplayColliders(Boolean.parseBoolean(displayColliders));
 		}
 		
-		public String toString() {
-			return super.toString()+" ("+life()+")";
-		}
-
-		public void display() {
-			app.fill(255, 255, 0);
-			super.display();
-		}
-
-		public void addForces() {
-			freine(0.07f);
-		}
-		
-		public void onDeath() {
-			game.debug.msg(2, this+" destroyed");
-		}
+	}
+	
+	// --- private ---
+	
+	private void validate() {
+		// gui
+		float imagesWishedWidth = 0;
+		for (Weapon w : weapons)
+			imagesWishedWidth += w.img().width*Weapon.tiersRatioSize[w.tier()-1];
+		guiWidth = round(min(imagesWishedWidth, guiWidthMax));
+		guiRatio = guiWidth / imagesWishedWidth;
+		basGauche.set((Brabra.width-guiWidth)/2, Brabra.height);
+		// weapons
+		weapons.sort((a,b) -> round(b.locationRel().x - a.locationRel().x));
+		weaponsOrdered.sort((a,b) -> round(a.puissance - b.puissance));
+		valid = true;
 	}
 }

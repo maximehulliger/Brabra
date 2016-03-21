@@ -1,6 +1,7 @@
 package brabra.game.physic;
 
 import brabra.game.Color;
+import brabra.game.XMLLoader.Attributes;
 import brabra.game.physic.geo.Line;
 import brabra.game.physic.geo.Quaternion;
 import brabra.game.physic.geo.Line.Projection;
@@ -29,6 +30,14 @@ public abstract class Collider extends Body {
 	
 	public float radiusEnveloppe() {
 		return radiusEnveloppe;
+	}
+
+	public void validate(Attributes atts) {
+		super.validate(atts);
+		final String displayCollider = atts.getValue("displayCollider");
+		if (displayCollider != null) {
+			setDisplayCollider( Boolean.parseBoolean(displayCollider) );
+		}
 	}
 	
 	public void setDisplayCollider(boolean displayCollider) {

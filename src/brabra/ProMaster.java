@@ -56,6 +56,10 @@ public abstract class ProMaster extends Master {
 		app.sphere(radius);
 		app.popMatrix();
 	}
+	
+	protected int round(float f) {
+		return PApplet.round(f);
+	}
 
 	// --- PVector syntactic sugar ---
 
@@ -269,22 +273,23 @@ public abstract class ProMaster extends Master {
 		}
 		
 		// first apply, set changed to true, then notify.
-		public PVector set(PVector v) { v = super.set(v); onCh(); return v; }
-		public PVector set(float[] source) { PVector v = super.set(source); onCh(); return v; }
-		public PVector set(float x, float y, float z) { PVector v = super.set(x,y,z); onCh(); return v; }
-		public PVector set(float x, float y) { PVector v = super.set(x,y); onCh(); return v; }
-		public PVector add(PVector v) { v = super.add(v); onCh(); return v; }
-		public PVector sub(PVector v) { v = super.sub(v); onCh(); return v; }
-		public PVector mult(float f) { PVector v = super.mult(f); onCh(); return v; }
-		public PVector div(float f) { PVector v = super.mult(f); onCh(); return v; }
-		public PVector limit(float f) { PVector v = super.mult(f); onCh(); return v; }
-		public PVector setMag(float f) { PVector v = super.mult(f); onCh(); return v; }
-		public PVector normalize() { PVector v = super.normalize(); onCh(); return v; }
+		public PVector set(PVector v) { super.set(v); return onChange(); }
+		public PVector set(float[] source) { super.set(source); return onChange(); }
+		public PVector set(float x, float y, float z) { super.set(x,y,z); return onChange(); }
+		public PVector set(float x, float y) { super.set(x,y); return onChange(); }
+		public PVector add(PVector v) { super.add(v); return onChange(); }
+		public PVector sub(PVector v) { super.sub(v); return onChange(); }
+		public PVector mult(float f) { super.mult(f); return onChange(); }
+		public PVector div(float f) { super.mult(f); return onChange(); }
+		public PVector limit(float f) { super.mult(f); return onChange(); }
+		public PVector setMag(float f) { super.mult(f); return onChange(); }
+		public PVector normalize() { super.normalize(); return onChange(); }
 		
-		private void onCh() {
+		private PVector onChange() {
 			changedCurrent=true;
 			if (onChange != null)
 				onChange.run();
+			return this;
 		}
 	}
 	
@@ -326,6 +331,15 @@ public abstract class ProMaster extends Master {
 		
 		public Quaternion set(float w, float x, float y, float z) {
 			super.set(w,x,y,z);
+			return onChange();
+		}
+
+		public Quaternion set(Quaternion quat) {
+			super.set(quat);
+			return onChange();
+		}
+
+		private Quaternion onChange() {
 			if (onChange != null)
 				onChange.run();
 			changedCurrent = true;

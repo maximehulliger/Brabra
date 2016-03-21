@@ -16,6 +16,7 @@ public class Quaternion extends ProMaster {
 	
 	private static final int manucureAge = 1; // #rotate before normalize.
 	private int age = 0;
+	private boolean justNormalized = false;
 
 	public Quaternion(float w, float x, float y, float z) {
 		set(w, x, y, z);
@@ -52,7 +53,9 @@ public class Quaternion extends ProMaster {
 		this.x = x;
 		this.y = y;
 		this.z = z;
-		if (!isNormalized())
+		if (justNormalized)
+			justNormalized = false;
+		else
 			normalize();
 		validRotAxis = false;
 		return this;
@@ -69,13 +72,15 @@ public class Quaternion extends ProMaster {
 	}
 
 	/** Set wxyz of the quaternion and return it. */
-	public Quaternion set(Quaternion rot) {
-		set(rot.w, rot.x, rot.y, rot.z);
-		if (rot.isIdentity()) {
-			angle = 0;
-			rotAxis = null;
-			validRotAxis = true;
-		}
+	public Quaternion set(Quaternion quat) {
+		// we trust that the quat is valid.
+		this.w = quat.w;
+		this.x = quat.x;
+		this.y = quat.y;
+		this.z = quat.z;
+		this.angle = quat.angle;
+		this.rotAxis = quat.rotAxis;
+		this.validRotAxis = quat.validRotAxis;
 		return this;
 	}
 
@@ -111,7 +116,7 @@ public class Quaternion extends ProMaster {
 	}
 
 	/** Check if this (wxyz) nearly equals other and if so & clean set it to other. */
-	public boolean equalsEps(Quaternion other, boolean clean) {
+	public boolean equalsEpsWXYZ(Quaternion other, boolean clean) {
 		if (equalsEps(w, other.w) && equalsEps(x, other.x) && 
 				equalsEps(y, other.y) && equalsEps(z, other.z)) {
 			if (clean && !equals(other))
@@ -131,10 +136,14 @@ public class Quaternion extends ProMaster {
 		} else
 			return false;
 	}
+	
+	public boolean equalsEps(Quaternion other, boolean clean) {
+		return equalsEpsWXYZ(other, clean) && equalsEpsAxis(other, clean);
+	}
 
 	/** Check if rotation is null and if so & clean reset it. */
 	public boolean isZeroEps(boolean clean) {
-		return equalsEpsAxis(identity, clean);
+		return equalsEps(identity, clean);
 	}
 	
 	// --- immutable stuff ---
@@ -189,10 +198,6 @@ public class Quaternion extends ProMaster {
 	
 	public boolean equalsWXYZ(Quaternion other) {
 		return other.w == w && other.x == x && other.y == y && other.z == z;
-	}
-
-	public boolean isNormalized() {
-		return equalsEps(normSq(), 1);
 	}
 	
 	public String toString() {
@@ -347,6 +352,7 @@ public class Quaternion extends ProMaster {
 		assert (!equalsEps(norm, 0));
 		if (norm != 1) {
 			float invNorm = 1f/norm;
+			justNormalized = true;
 			set(w * invNorm,
 				x * invNorm,
 				y * invNorm,
@@ -357,7 +363,9 @@ public class Quaternion extends ProMaster {
 	
 	// mult by a normalized quaternion
 	private Quaternion mult(Quaternion q) {
-		if (!q.isIdentity()) {
+		if (isIdentity())
+			set(q);
+		else if (!q.isIdentity()) {
 			set(w*q.w - x*q.x - y*q.y - z*q.z,
 				w*q.x + x*q.w - y*q.z + z*q.y,
 				w*q.y + y*q.w - z*q.x + x*q.z,

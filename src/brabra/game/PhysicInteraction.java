@@ -9,7 +9,7 @@ import brabra.game.physic.Collider;
 import brabra.game.physic.geo.Line;
 import brabra.game.physic.geo.Line.Projection;
 import brabra.game.scene.weapons.Weaponry;
-import brabra.game.scene.weapons.Weaponry.Armed;
+import brabra.game.scene.Object;
 import processing.core.PApplet;
 import processing.core.PVector;
 
@@ -23,36 +23,17 @@ public final class PhysicInteraction extends ProMaster {
 	
 	private float force = 40, ratioTrans = 10, ratioRot = 0.004f;
 	private float forceTrans = force*ratioTrans, forceRot = force*ratioRot;
-	private Body focused = null;
+	private Body focusedBody = null;
+	private Object focused = null;
 	private Weaponry armement = null;
 
-	/** Set focused. displayState. */
-	public void setFocused(Body focused) {
-		this.focused = focused;
-		armement = focused instanceof Armed ?
-				((Armed)focused).armement() : null;
-		displayState();
+	/** Set focused and force (except if force = -1). displayState. */
+	public void setFocused(Object focused, float force) {
+		if (force != -1)
+			setForce(force, false);
+		setFocused(focused);
 	}
-	
-	/** Set focused and force. displayState. */
-	public void setFocused(Body focused, float force) {
-		this.focused = focused;
-		armement = focused instanceof Armed ?
-				((Armed)focused).armement() : null;
-		setForce(force, false);
-		displayState();
-	}
-	
-	/** Set the force of interaction. if displayIfChange & changed, displayState. */
-	public void setForce(float force, boolean displayIfChange) {
-		force = PApplet.constrain(force, forceMin, forceMax);
-		if (force != this.force) {
-			this.force = force;
-			if (displayIfChange)
-				displayState();
-		}
-	}
-	
+
 	public void displayState() {
 		if (hasFocused()) {
 			String armed = armement != null ? "armed " : "";
@@ -68,6 +49,10 @@ public final class PhysicInteraction extends ProMaster {
 	/** Update interaction & apply forces. */
 	public void update() {
 		game.debug.setCurrentWork("interaction");
+		//check for armement changes (in focused children)
+		if (hasFocused() && focused.childrenChanged()) {
+			updateWeaponry();
+		}
 		
 		// force change
 		if (game.input.scrollDiff != 0) {
@@ -77,7 +62,7 @@ public final class PhysicInteraction extends ProMaster {
 			game.debug.msg(1, String.format("force d'interaction: %.1f\n",force));
 		}
 		
-		if (hasFocused() && game.physic.running)
+		if (hasFocused() && focusedBody != null)
 			applyForces();
 
 		// fire if needed
@@ -124,35 +109,35 @@ public final class PhysicInteraction extends ProMaster {
 			PVector forceRel = zero.copy();
 			forceRel.add( front(forceRot.x * this.forceRot * 3/2) );
 			forceRel.add( right(forceRot.z * this.forceRot * 3/2) );
-			focused.applyForce(focused.absolute(upAP), focused.absoluteDir(forceRel));
+			focusedBody.applyForce(focused.absolute(upAP), focused.absoluteDir(forceRel));
 		}
 		//> apply force rot: front (yaw)
 		if (forceRot.y != 0) {
 			PVector frontAP = front(150);
 			PVector frontForceRel = right(forceRot.y * this.forceRot);
-			focused.applyForce(focused.absolute(frontAP), focused.absoluteDir(frontForceRel));
+			focusedBody.applyForce(focused.absolute(frontAP), focused.absoluteDir(frontForceRel));
 		}
 
 		// 2. forward
 		float rightScore = max(0, app.imgAnalyser.buttonDetection.rightScore());
 		if (game.input.vertical != 0 || rightScore > 0) {
-			focused.applyForceRel(front(150), front((game.input.vertical+rightScore) * forceTrans));
+			focusedBody.applyForceRel(front(150), front((game.input.vertical+rightScore) * forceTrans));
 		}
 
 		// 3. brake
 		if ( rightScore > 0) {
 			// if the buttons are detected
-			focused.freineDepl(0.1f);
-			focused.freineRot(0.15f);
+			focusedBody.freineDepl(0.1f);
+			focusedBody.freineRot(0.15f);
 		} else {
 			// keyboard: alt -> brake, space -> non-brake
 			if (game.input.altDown)
-				focused.freine(0.35f);
+				focusedBody.freine(0.35f);
 			else if (game.input.spaceDown) {
-				focused.freineDepl(0.001f);
-				focused.freineRot(0.01f);
+				focusedBody.freineDepl(0.001f);
+				focusedBody.freineRot(0.01f);
 			} else
-				focused.freine(0.1f);
+				focusedBody.freine(0.1f);
 		}
 	}
 
@@ -174,7 +159,7 @@ public final class PhysicInteraction extends ProMaster {
 		ArrayList<Collider> candidates = new ArrayList<>();
 		ArrayList<Float> candidatesDist = new ArrayList<>();
 
-		for (Collider c : game.physic.activeColliders()) {
+		for (Collider c : game.scene.activeColliders()) {
 			if (c.projetteSur(p1).comprend(0)&& c.projetteSur(p2).comprend(0)) {
 				Projection proj = c.projetteSur(ray);
 				if (proj.intersectionne(targetProj)) {
@@ -201,5 +186,36 @@ public final class PhysicInteraction extends ProMaster {
 			assert(best != null);
 			return best;
 		}
+	}
+
+	// --- private ---
+	
+	private void updateWeaponry() {
+		armement = (Weaponry)focused.childThat(c -> c instanceof Weaponry);
+	}
+	
+	/** Set the force of interaction. if displayIfChange & changed, displayState. */
+	private void setForce(float force, boolean displayIfChange) {
+		if (force < forceMin) {
+			game.debug.err("interaction force min is "+forceMin+" ("+force+")");
+			force = forceMin;
+		} else if (force > forceMax) {
+			game.debug.err("interaction force max is "+forceMax+" ("+force+")");
+			force = forceMax;
+		}
+		force = PApplet.constrain(force, forceMin, forceMax);
+		if (force != this.force) {
+			this.force = force;
+			if (displayIfChange)
+				displayState();
+		}
+	}
+
+	/** Set focused. displayState. */
+	private void setFocused(Object focused) {
+		this.focused = focused;
+		this.focusedBody = focused instanceof Body ? (Body)focused : null;
+		updateWeaponry();
+		displayState();
 	}
 }

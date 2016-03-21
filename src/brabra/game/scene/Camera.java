@@ -3,7 +3,6 @@ package brabra.game.scene;
 import brabra.ProMaster;
 import brabra.Brabra;
 import brabra.game.Color;
-import brabra.game.physic.Body;
 import processing.core.PShape;
 import processing.core.PVector;
 
@@ -67,7 +66,7 @@ public class Camera extends Object {
 	public Camera() {
 		super(cube(100));
 		setName("Camera");
-		game.physic.addNow(this);
+		game.scene.addNow(this);
 		if (skybox == null) {
 			skybox = app.loadShape("skybox.obj");
 			skybox.scale(far/90);
@@ -87,7 +86,7 @@ public class Camera extends Object {
 		return absValid && super.absValid();
 	}
 	
-	public void set(Body toFollow, String followMode, String dist) {
+	public void set(Object toFollow, String followMode, String dist) {
 		assert(toFollow != null && followMode != null);
 		// 1. get follow mode
 		FollowMode mode = FollowMode.fromString(followMode);
@@ -121,7 +120,6 @@ public class Camera extends Object {
 	
 	public void setSkybox(boolean displaySkybox) {
 		this.displaySkybox = displaySkybox;
-		game.debug.info(3, (displaySkybox ? "with" : "without")+" skybox.");
 	}
 	
 	/** To let parentRel be consistent with followMode. */
@@ -165,9 +163,9 @@ public class Camera extends Object {
 		updateAbs();
 		
 		// we remove the objects too far away.
-		game.physic.objects().forEach(o -> {
+		game.scene.objects().forEach(o -> {
 			if (ProMaster.distSq(focus, o.location()) > distSqBeforeRemove)
-				game.physic.remove(o);
+				game.scene.remove(o);
 		});
 		
 		// draw all the stuff
@@ -205,8 +203,8 @@ public class Camera extends Object {
 	protected String state() {
 		updateAbs();
 		return (followMode == FollowMode.Not ? "fixed at "+locationAbs
-				: "at "+parent().location()+" from +"+locationRel+" in "+followMode+" mode.")
-				+ " looking at "+focus+" orientation: "+orientation;
+				: "at "+parent().location()+" from +"+locationRel+" in "+followMode+" mode.");
+				//+ " looking at "+focus+" orientation: "+orientation;
 	}
 	
 	public String getStateUpdate() {

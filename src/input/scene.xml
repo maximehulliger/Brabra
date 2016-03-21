@@ -9,14 +9,14 @@
 	
 	<floor pos="zero" color="grass"></floor> 
 	
-	<starship pos="(0,200,0)" focus="true" force="72" camera="static" debug="false" displayCollider="true">
+	<starship pos="(0,200,0)" focus="true" force="72" camera="static" debug="false" displayCollider="false">
 		<box pos="(40,0,-20)" mass="0" color="pink"></box>
 		<ball pos="(-30,0,0)" name="blue ball" color="blue" mass="0" debug="false">
 			<ball pos="(0,40,0)" name="upper ball" color="red" mass="0" debug="false"></ball> 
 		</ball>
 		<weaponry>
 			<missile_launcher pos="(30,-10,0)" tier="2" upgrade="0.8"></missile_launcher>
-			<missile_launcher pos="(0,-15,0)" tier="3" upgrade="1.5"></missile_launcher>
+			<missile_launcher pos="(0,-15,0)" tier="3" upgrade="1.2"></missile_launcher>
 			<missile_launcher pos="(-30,-10,0)" tier="2" upgrade="0.8"></missile_launcher>
 		</weaponry>
 	</starship>

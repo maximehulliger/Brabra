@@ -38,9 +38,9 @@ public abstract class Collision extends ProMaster {
 			
 		PVector impulse = PVector.mult(norm, -(obstacle.restitution+collider.restitution)*relVdotN/(collider.inverseMass+obstacle.inverseMass));
 		
-		if (collider.affectedByCollision)
+		if (collider.affectedByCollision())
 			collider.applyImpulse(impact, impulse);
-		if (obstacle.affectedByCollision)
+		if (obstacle.affectedByCollision())
 			obstacle.applyImpulse(impact, PVector.mult(impulse, -1));
 		
 		

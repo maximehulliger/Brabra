@@ -56,7 +56,7 @@ public class Plane extends PseudoPolyedre {
 
 	public void setMass(float mass) {
 		super.setMass(mass);
-		if (!finite && !ghost && mass!=-1)
+		if (!finite && !ghost() && mass!=-1)
 			throw new IllegalArgumentException("An infinite plane without an infinite mass is a bad idea :/");
 		if (mass!=-1 && inverseMass > 0) {
 			float fact = mass/12;

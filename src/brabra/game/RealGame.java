@@ -5,12 +5,14 @@ import brabra.ProMaster;
 import brabra.Debug;
 import brabra.game.physic.Physic;
 import brabra.game.scene.Camera;
+import brabra.game.scene.Scene;
 import processing.core.PApplet;
 import processing.event.MouseEvent;
 
 public class RealGame extends Interface {
 	
 	public Input input;
+	public Scene scene;
 	public Physic physic;
 	public PhysicInteraction physicInteraction;
 	public Camera camera;
@@ -18,6 +20,7 @@ public class RealGame extends Interface {
 	
 	private XMLLoader xmlFile = new XMLLoader();
 	private boolean playOnFocus;
+	private boolean running = true;
 	
 	public RealGame() {
 		ProMaster.game = this;
@@ -28,8 +31,9 @@ public class RealGame extends Interface {
 		debug.info(0, "loading scene");
 		debug.followed.clear();
 		input = new Input();
+		scene = new Scene();
 		physic = new Physic();
-		playOnFocus = physic.running;
+		playOnFocus = running;
 		camera = new Camera();
 		physicInteraction = new PhysicInteraction();
 		xmlFile.load();
@@ -42,20 +46,26 @@ public class RealGame extends Interface {
 	
 	// mother method of all life:
 	public void draw() {
-		input.update();
 		camera.place();
-		physicInteraction.update();
-		physic.updateAll();
-		physic.doMagic();
-		physic.displayAll();
-		if (physic.running)
+		if (running) {
+			scene.beforeUpdateAll();
+			input.update();
+			physicInteraction.update();
+			scene.updateAll();
+			physic.doMagic();
 			debug.update();
+		}
+		scene.displayAll();	
 	}
 	
 	public void gui() {
 		game.physicInteraction.gui();
 		input.gui();
 		game.debug.setCurrentWork("user events");
+	}
+
+	public String state() {
+		return running ? "running !" : "paused :)";
 	}
 		
 	// --- events ---
@@ -64,23 +74,22 @@ public class RealGame extends Interface {
 		input.keyPressed();
 		if (app.key == 'r') {
 			init();
-			physic.running = false;
+			setRunning(false);
 		}
 	}
 	
 	public void keyReleased() {
 		input.keyReleased();
 		if (app.key == 'r')
-			physic.running = true;
+			setRunning(true);
 		else if (app.key == 'c') {
-			debug.info(2, physic.objects().size()+" objects in scene:");
-			physic.objects().forEach(o -> o.displayState());
+			debug.info(2, scene.objects().size()+" objects in scene:");
+			scene.objects().forEach(o -> o.displayState());
 			//camera.displayState();
 		} else if (app.keyCode == PApplet.TAB)
 			camera.nextMode();
 		else if (app.key == 'p') {
-			physic.running = !physic.running;
-			debug.msg(1, "physic " + physic.state());
+			setRunning(!running);
 		}
 	}
 
@@ -91,18 +100,29 @@ public class RealGame extends Interface {
 	public void mouseWheel(MouseEvent event) {
 		input.mouseWheel(event);
 	}
+
+	public void mousePressed() {
+		input.mousePressed();
+	}
+	
+	public void mouseReleased() {
+		input.mouseReleased();
+	}
 	
 	public void onFocusChange(boolean focused) {
-		 if (focused && !physic.running) {
-			 physic.running = playOnFocus;
-			 //debug.msg(1, "physic " + physic.state());
+		 if (focused && !running) {
+			 setRunning(playOnFocus);
 		 } else if (!focused) {
-			 playOnFocus = physic.running;
-			 if (physic.running){
-				 physic.running = false;
-				 //debug.msg(1, "physic " + physic.state());
-			 }
+			 playOnFocus = running;
+			 setRunning(false);
 		 }
+	}
+	
+	public void setRunning(boolean running) {
+		if (running != this.running) {
+			this.running = running;
+			debug.info(1, "physic " + state());
+		}
 	}
 	
 	// --- Game debug ---

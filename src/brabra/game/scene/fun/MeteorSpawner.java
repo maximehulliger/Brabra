@@ -56,7 +56,7 @@ public final class MeteorSpawner extends Effect {
 				int toOtherSideIdx = (idxStartFace%2 == 0 ? 1 : -1);
 				goal = spawnCage.faces[idxStartFace + toOtherSideIdx].randomPoint();
 			}
-			game.physic.add( new Meteor(startPos, goal) );
+			game.scene.add( new Meteor(startPos, goal) );
 			nbMeteor++;
 		}
 	}
