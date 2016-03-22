@@ -281,27 +281,31 @@ public class Camera extends Object {
 	
 	// --- life cycle (validate + update) ---
 
-	public void validate(Attributes atts) {
-		final String mode = atts.getValue("mode");
-		if (mode != null) {
-			final String distString = atts.getValue("dist");
-			final PVector dist = distString != null ? vec(distString) : locationRel;
-			if (dist == null)
-				game.debug.err("for camera: dist (or pos) should be set with mode. ignoring.");
-			else if (dist.equals(zero))
-				game.debug.err("for camera: dist (or pos) should not be zero. ignoring.");
-			else
-				setDist(FollowMode.fromString(mode), dist);
-		}
-		final String displaySkybox = atts.getValue("displaySkybox");
-		if (displaySkybox != null)
-		  	setDisplaySkybox(Boolean.parseBoolean(displaySkybox));
-		final String displayCentralPoint = atts.getValue("displayCentralPoint");
-		if (displayCentralPoint != null)
-			setDisplayCentralPoint(Boolean.parseBoolean(displayCentralPoint));
-		final String displayAxis = atts.getValue("displayAxis");
-		if (displayAxis != null)
-			setDisplayAxis(Boolean.parseBoolean(displayAxis));
+	public boolean validate(Attributes atts) {
+		if (super.validate(atts)) {
+			final String mode = atts.getValue("mode");
+			if (mode != null) {
+				final String distString = atts.getValue("dist");
+				final PVector dist = distString != null ? vec(distString) : locationRel;
+				if (dist == null)
+					game.debug.err("for camera: dist (or pos) should be set with mode. ignoring.");
+				else if (dist.equals(zero))
+					game.debug.err("for camera: dist (or pos) should not be zero. ignoring.");
+				else
+					setDist(FollowMode.fromString(mode), dist);
+			}
+			final String displaySkybox = atts.getValue("displaySkybox");
+			if (displaySkybox != null)
+			  	setDisplaySkybox(Boolean.parseBoolean(displaySkybox));
+			final String displayCentralPoint = atts.getValue("displayCentralPoint");
+			if (displayCentralPoint != null)
+				setDisplayCentralPoint(Boolean.parseBoolean(displayCentralPoint));
+			final String displayAxis = atts.getValue("displayAxis");
+			if (displayAxis != null)
+				setDisplayAxis(Boolean.parseBoolean(displayAxis));
+			return true;
+		} else
+			return false;
 	}
 	
 	public boolean update() {

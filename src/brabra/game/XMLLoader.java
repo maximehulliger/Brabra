@@ -122,6 +122,10 @@ public final class XMLLoader extends ProMaster {
 			this.parent = parent;
 		}
 		
+		public Attributes() {
+			this.parent = null;
+		}
+		
 		public String getValue(String field) {
 			return get(field);
 		}

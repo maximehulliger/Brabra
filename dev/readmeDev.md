@@ -84,7 +84,7 @@ Contains the external libraries used by the project.
 Contains all the external files for developers.
 
 #### tests/
-yes, really ;)
+yeah, really ;)
 
 ## Packages
 > Notable feature implemented here.
@@ -99,6 +99,7 @@ yes, really ;)
 #### game
 > Simulation interface.
 > Scene file loading.
+
 ##### physic
 > Physic magic.
 

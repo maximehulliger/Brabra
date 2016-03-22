@@ -23,7 +23,7 @@ public class Target extends Sphere {
 	}
 
 	public void addForces() {
-		freine(0.07f);
+		brake(0.07f);
 	}
 	
 	public void onDeath() {

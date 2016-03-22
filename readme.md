@@ -32,8 +32,8 @@ The key interface of the project :D
 
 It display the view of the scene from a camera. The scene contains all the simulated objects. 
 
-- *q*, *r*     ->  restart the game
-- <_tab_>	   ->  change the camera mode
+- `*q*`, `*r*`	=>  restart the game
+- `<_tab_>`	   	=>  change the camera mode
 
 <br>
 
@@ -45,60 +45,82 @@ The existing objects are separated in 4 main category (Just an object is standal
 - Weaponry, weapons
 
 #### Camera
-The camera can work in several modes and follow a particular object.
+The camera is an object that carry the camera in the scene.
+It can work in several modes and follow a particular object (focused).
 
-modes: ***fixed, static, relative***.
+- **fixed**: look at zero., static, relative***.
+- **static**: look at the location of the focused.
+- **relative**: look from the parent perspective (follow his rotation too).
 
-each mode has his own distance from the looked point.
+Each mode has his own distance from the focused (looked) point.
+
+press `<_tab_>` to change the camera mode.
 
 <br>
 
 #### Focused object/body
 You can focus your interaction on an object or body. 
 
-- *e*        ->  shoot the biggest ready missile (if available)
-- *w, s*     ->  go forward / backward
-- space   ->  unbrake (less brake)
-- mouse drag, *a*, *d*
-				->  turn the object around
-- scroll wheel 	->  change the interaction force
+- `*e*`       	=>  shoot the biggest ready missile (if available)
+- `*w*`, `*s*` =>  go forward / backward
+- `<_alt_>`		=>	brake
+- `space`   	=>  unbrake (less brake)
+- mouse drag, `*a*`, `*d*`
+				=>  turn the object around
+- scroll wheel 	=>  change the interaction force
 
 <br>
 
 #### Scene initialization
-You will find an input file "Brabra/bin/input/scene.xml" to configure the initialization 
-of the scene's objects and parameters (camera, physic). To reload the file, restart the game with *q* or *r*.
+You will find an input file `Brabra/bin/input/scene.xml` to configure the initialization 
+of the scene's objects and parameters: camera and physic(in settings). To reload the file, restart the game with `*q*` or `*r*`.
 
-supported parameters: <i>**physic**: gravity, deltaTime. **camera**: displaySkybox, displayAxis, displayCentralPoint, [mode, dist]</i>
+supported parameters: <i>**settings**: gravity, deltaTime. **camera**: displaySkybox, displayAxis, displayCentralPoint, [mode, dist]</i>
 
 supported object names: ***object, floor, ball, box, starship :rocket:, target***.
 
-supported object attributes: ***pos, dir, parency, mass, name, impluse, life, [color, (stroke)], [camera, (cameraDist)], [focus, (force)], displayColliders, debug***.
+supported object attributes: ***pos, dir, parency, size, mass, name, impluse, life, [color, (stroke)], [camera, (cameraDist)], [focus, (force)], displayCollider, debug***.
 
 supported object names: ***floor, ball, box, starship, target***.
 
-supported weaponry attributes: <i>**weaponry**: prefab, displayColliders, puissance. **weapon**: tier, upgradeRatio, puissance</i>
+supported weaponry attributes: <i>**weaponry**: prefab, displayColliders, puissance. **weapon**: tier, upgradeRatio, puissanceRatio, displayColliders</i>
 
 supported weapon names: ***missile_launcher***
 
 file example with all supported attributes:
-
+	
 	<?xml version="1.0" encoding="UTF-8"?>
 	<scene>
-		<camera displaySkybox="true" mode="not" dist="(200,200,200)"></camera>
-		<physic gravity="0.2" deltaTime="0.7"></physic>
-		<floor pos="zero" color="grass" stroke="green"></floor>
-		<ball pos="(0,5,5)" mass="5"></ball>
-		<box pos="(5,5,0)" name="box1"></box>
-		<objectif pos="(100,100,-500)" life="200" color="red"></objectif>
+		<settings gravity="0.2" running="true" verbosity="max" displayAllColliders="false"></settings>
 		
-		<starship pos="(100,300,100)" dir="left" camera="relative" focus="true" force="40"></starship>
+		<camera displaySkybox="true" mode="not" dist="(300,300,300)" debug="false">
+			<!-- Family works with the camera too ! it's just a regular object. -->
+			<box pos="(0,0,-400)" mass="0" color="yellow"></box>
+		</camera>
 		
-		<!--  
-		<objectif pos="(1000,100,-2000)" life="50/200" color="red"></objectif>
-		-->
+		<floor pos="zero" color="grass"></floor> 
+		
+		<ball pos="(20,200,-300)" mass="5" color="red"></ball>
+		
+		<starship pos="(0,200,0)" focus="true" force="72" camera="static" debug="false" displayCollider="false">
+			<!-- You can stack the children as wished :D -->
+			<box pos="(40,0,-20)" name="pink box" mass="0" color="pink">
+				<ball pos="(0,40,0)" name="upper ball" color="blue" mass="0"></ball>
+			</box>
+			
+			<!-- The weapons automatically add themselves to the weaponry. -->
+			<weaponry puissance="400" prefab="none" displayColliders="false">
+				<missile_launcher pos="(30,-10,0)" tier="2" upgrade="1.2"></missile_launcher>
+				<missile_launcher pos="(0,-15,0)" tier="3" upgrade="1.2"></missile_launcher>
+				<missile_launcher pos="(-30,-10,0)" tier="2" upgrade="0.8" displayColliders="true"></missile_launcher>
+			</weaponry>
+		</starship>
+		
+		<!-- targets can be destroyed by missiles. -->
+		<target pos="(-200,200,0)" life="50/200" color="red"></objectif>
+		
 	</scene>
-
+	
 <br>
 
 # 2. 	Trivial Game
@@ -113,13 +135,13 @@ the software with an external object.
 We want to detect a plate or quad with a particular colour (example: see "plate exemple.jpg"). Once calibrated, the software will compute the rotation of the plate relative of the camera.
 In option, it also detects two buttons on each side of the plate.
 
-- rotation       ->  turn the focused object around
-- left button	 ->  go forward, brake if not visible
-- right button   ->  shoot missiles bigger with the visibility
+- rotation       =>  turn the focused object around
+- left button	 =>  go forward, brake if not visible
+- right button   =>  shoot missiles bigger with the visibility
 
 example plate:
 
-![Example plate with 2 buttons](Brabra/plate example.jpg)
+![Example plate with 2 buttons](Brabra/plate_example.jpg)
 
 <br>
 
@@ -127,11 +149,11 @@ example plate:
 Here you can find and manage image filtering parameters to operate the image analysis.
 It is mainly thresholding of the pixel colours in both RGB and HSV representation.
 
-- p	-> pause/play the input
-- i -> change the input (camera / example video)
-- l	-> load a parameters file
-- s	-> save current parameters
-- b -> go in 'button detection' mode, to calibrate the button detection
+- `p` => pause/play the input
+- `i` => change the input (camera / example video)
+- `l` => load a parameters file
+- `s` => save current parameters
+- `b` => go in 'button detection' mode, to calibrate the button detection
 
 <br>
 
@@ -139,10 +161,10 @@ It is mainly thresholding of the pixel colours in both RGB and HSV representatio
 When image analysis is enabled and not paused, a control or feedback screen will be 
 displayed in the upper left corner of the window reporting what the software sees.
 
-- darker control screen -> no quad detected
-- quad in red -> rotation of the plate is too big
+- darker control screen => no quad detected
+- quad in red => rotation of the plate is too big
 			(max 65°, happens too when the quad is wrongly detected.)
-- button circles are red -> not enough detected to count
+- button circles are red => not enough detected to count
 
 <br>
 

@@ -32,12 +32,14 @@ public abstract class Collider extends Body {
 		return radiusEnveloppe;
 	}
 
-	public void validate(Attributes atts) {
-		super.validate(atts);
-		final String displayCollider = atts.getValue("displayCollider");
-		if (displayCollider != null) {
-			setDisplayCollider( Boolean.parseBoolean(displayCollider) );
-		}
+	public boolean validate(Attributes atts) {
+		if (super.validate(atts)) {
+			final String displayCollider = atts.getValue("displayCollider");
+			if (displayCollider != null)
+				setDisplayCollider( Boolean.parseBoolean(displayCollider) );
+			return true;
+		} else
+			return false;
 	}
 	
 	public void setDisplayCollider(boolean displayCollider) {

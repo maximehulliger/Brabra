@@ -1,46 +1,43 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
 <scene>
-	<physic gravity="0.2" deltaTime="0.7" running="true"></physic>
-	<settings verbosity="max" displayAllColliders="false"></settings>
+	<settings gravity="0.2" running="true" verbosity="max" displayAllColliders="false"></settings>
 	
 	<camera displaySkybox="true" mode="not" dist="(300,300,300)" debug="false">
+		<!-- Family works with the camera too ! it's just a regular object. -->
 		<box pos="(0,0,-400)" mass="0" color="yellow"></box>
 	</camera>
 	
 	<floor pos="zero" color="grass"></floor> 
 	
+	<ball pos="(20,200,-300)" mass="5" color="red"></ball>
+	
 	<starship pos="(0,200,0)" focus="true" force="72" camera="static" debug="false" displayCollider="false">
-		<box pos="(40,0,-20)" mass="0" color="pink"></box>
-		<ball pos="(-30,0,0)" name="blue ball" color="blue" mass="0" debug="false">
-			<ball pos="(0,40,0)" name="upper ball" color="red" mass="0" debug="false"></ball> 
-		</ball>
-		<weaponry displayColliders="false" prefab="2">
-			<missile_launcher pos="(30,-10,0)" tier="2" upgrade="0.8"></missile_launcher>
+		<!-- You can stack the children as wished :D -->
+		<box pos="(40,0,-20)" name="pink box" mass="0" color="pink">
+			<ball pos="(0,40,0)" name="upper ball" color="blue" mass="0"></ball>
+		</box>
+		
+		<!-- The weapons automatically add themselves to the weaponry. -->
+		<weaponry puissance="400" prefab="none" displayColliders="false">
+			<missile_launcher pos="(30,-10,0)" tier="2" upgrade="1.2"></missile_launcher>
 			<missile_launcher pos="(0,-15,0)" tier="3" upgrade="1.2"></missile_launcher>
-			<missile_launcher pos="(-30,-10,0)" tier="2" upgrade="0.8"></missile_launcher>
+			<missile_launcher pos="(-30,-10,0)" tier="2" upgrade="0.8" displayColliders="true"></missile_launcher>
 		</weaponry>
 	</starship>
 	
 	<!--  
-	force="40" (-20,100,100) 
-	
-	<box pos="(5,5,0)" name="box1"></box>
-	<box pos="(0,5,20)"></box>
-	
-	<ball pos="(0,5,5)" mass="5" color="red"></ball>
 	<ball pos="(10,5,5)" mass="5" color="yellow" impulse="(0,5,0)"></ball>
 	<ball pos="(1,20,5)" mass="5" color="red"></ball>
 	<ball pos="(2,5,7)" mass="5" color="blue" impulse="(0,0,-2)"></ball>
 	
-	
-	<objectif pos="(100,100,-500)" life="200" color="red"></objectif>
-	<objectif pos="(1000,100,-2000)" life="200" color="red"></objectif>
-	<objectif pos="(-1000,100,-2000)" life="200" color="red"></objectif>
-	<objectif pos="(0,2000,100)" life="200" color="red"></objectif>
-	<objectif pos="(1000,1000,1000)" life="10" color="yellow"></objectif>
-	<objectif pos="(0, -1000,0)" life="10" color="yellow"></objectif>
-	<objectif pos="(-1000,-1000,1000)" life="10" color="yellow"></objectif>
-	<objectif pos="(2000, 2000,-1000)" life="10" color="yellow"></objectif>
-	<objectif pos="(1000,100,-1000)" life="10" color="yellow"></objectif>
+	<target pos="(100,100,-500)" life="200" color="red"></target>
+	<target pos="(1000,100,-2000)" life="200" color="red"></target>
+	<target pos="(-1000,100,-2000)" life="200" color="red"></target>
+	<target pos="(0,2000,100)" life="200" color="red"></target>
+	<target pos="(1000,1000,1000)" life="10" color="yellow"></target>
+	<target pos="(0, -1000,0)" life="10" color="yellow"></target>
+	<target pos="(-1000,-1000,1000)" life="10" color="yellow"></target>
+	<target pos="(2000, 2000,-1000)" life="10" color="yellow"></target>
+	<target pos="(1000,100,-1000)" life="10" color="yellow"></target>
 	-->
 </scene>

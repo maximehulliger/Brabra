@@ -10,40 +10,31 @@ import processing.core.PVector;
 /** 
  * Represent a weapon that can fire things.
  * It can be in the scene or [not in the scene and with a master].
- * On validate, the weapon add itself to the first parent weaponry (xml case). 
+ * On validate, the weapon add itself to the first parent weaponry if it finds one (xml case). 
  **/
 public abstract class Weapon extends Object {
 	
-	protected static final float[] tiersRatioSize = new float[] { 0.8f, 1, 1.2f };
-	protected static final int tierMax = 3;
+	private static final float reloadingTimeRatio = 1f;
+	private static final float[] tiersGuiRatio = new float[] { 1, 2, 3.5f };
+	private static final int tierMaxWeapon = tiersGuiRatio.length;
+	private final int tierMax;
 	
-	// handled variable.
 	/** Tier in [0,tierMax[ */
-	protected int tier = 0;
-	protected int indicateurErreur = 0;
-	protected int tempsRestant = 0;
-	protected float puissanceRatio = 1, puissance = 1;
+	private int tier = 0;
+	private float upgradeRatio = 1;
 	
-	// unhandled variables: to set on state update (updateState()).
-	protected float upgradeRatio = 1;
-	protected int tRecharge = 1;
-	protected float sizeRatio = 0;
-	/** Pure weapon puissance without upgradeRatio or puissanceRatio. */
-	protected float puissanceBase;
-	
+	private float puissance = 1;
+	private int tRecharge = 1;
+	private int indicateurErreur = 0;
+	private int tempsRestant = 0;
 	private Weaponry master;
 	private boolean displayColliders = false;
 	
-	public Weapon(PVector loc, Quaternion rot) {
+	public Weapon(PVector loc, Quaternion rot, int tierMax) {
 		super(loc, rot);
+		this.tierMax = min(tierMax, tierMaxWeapon);
 	}
 	
-	/** Try to shoot from this weapon. Return true if success. */
-	public abstract boolean fire();
-	
-	/** To override to set global weapons variable. */
-	protected abstract void updateState();
-
 	// --- Setters ---
 	
 	/** Set tier & update state. Tier should be in [1, tierMax]. */
@@ -54,7 +45,6 @@ public abstract class Weapon extends Object {
 			tier = newTier;
 		}
 		this.tier = tier-1;
-		updateState();
 	}
 	
 	public Weapon withTier(int tier) {
@@ -64,34 +54,42 @@ public abstract class Weapon extends Object {
 
 	public void setUpgradeRatio(float ratio) {
 		this.upgradeRatio = ratio;
-		updateState();
 	}
 	
-	public void setPuissance(float puissanceRatio) {
-		this.puissanceRatio = puissanceRatio;
-		puissance = puissanceBase * upgradeRatio 
-				* puissanceRatio * (master==null ? 1 : master.puissanceRatio);
+	protected void set(float tRecharge, float puissance) {
+		this.tRecharge = round(tRecharge * reloadingTimeRatio);
+		this.puissance = puissance;
 	}
-	
-	
+
 	protected void setMaster(Weaponry master) {
 		this.master = master;
-		setPuissance(puissanceRatio);
-		updateState();
 	}
 	
 	// --- Getters ---
-	
-	protected abstract PImage img();
+
+	/** Return the tier of the weapon in [1, tierMax]. */
+	public int tier() {
+		return tier+1;
+	}
 
 	/** Return true if the weapon is ready to fire. */
 	public boolean ready() {
 		return tempsRestant == 0; 
 	}
+	
+	/** Return the image that should be displayed */
+	protected abstract PImage img();
+	
+	protected int puissance() {
+		return round(puissance * upgradeRatio * (master!=null ? master.puissanceRatio : 1));
+	}
 
-	/** Return the tier of the weapon in [1, tierMax]. */
-	protected int tier() {
-		return tier+1;
+	protected float imgWidth() {
+		return img().width * tiersGuiRatio[tier] * (master!=null ? master.guiRatio : 1);
+	}
+
+	protected int tier0() {
+		return tier;
 	}
 
 	protected Weaponry master() {
@@ -102,31 +100,40 @@ public abstract class Weapon extends Object {
 	protected boolean displayColliders() {
 		return displayColliders || (master != null && master.displayColliders);
 	}
-	
-	// --- Life cycle: validate, update & gui ---
 
-	/** Takes: tier, displayColliders & check for master. */
-	public void validate(Attributes atts) {
-		super.validate(atts);
-		String tier = atts.getValue("tier");
-		setTier(tier==null ? 1 : Integer.parseInt(tier));
-		final String displayColliders = atts.getValue("displayColliders");
-		if (displayColliders != null)
-			this.displayColliders = Boolean.parseBoolean(displayColliders);
-		final String puissance = atts.getValue("puissance");
-		if (puissance != null)
-			this.puissanceRatio = Float.parseFloat(puissance);
-		// validate the master weaponry.
-		Weaponry newMaster = (Weaponry)parentThat(p -> p instanceof Weaponry);
-		if (newMaster != master) {
-			if (master != null)
-				master.removeWeapon(this);
-			master = newMaster;
-			if (newMaster != null)
-				newMaster.addWeapon(this);
+	// --- Life cycle: fire, validate, update & gui ---
+
+	/** Try to shoot from this weapon. Return true if success. */
+	public boolean fire() {
+		if (tempsRestant > 0) {
+			indicateurErreur = Weaponry.tAffichageErreur;
+			return false;
+		} else {
+			tempsRestant = tRecharge;
+			return true;
 		}
-		// validate it
-		updateState();
+	}
+	
+	/** Takes: tier, displayColliders & check for master. */
+	public boolean validate(Attributes atts) {
+		if (super.validate(atts)) {
+			String tier = atts.getValue("tier");
+			setTier(tier==null ? 1 : Integer.parseInt(tier));
+			final String displayColliders = atts.getValue("displayColliders");
+			if (displayColliders != null)
+				this.displayColliders = Boolean.parseBoolean(displayColliders);
+			// validate the master weaponry.
+			Weaponry newMaster = (Weaponry)parentThat(p -> p instanceof Weaponry);
+			if (newMaster != master) {
+				if (master != null)
+					master.removeWeapon(this);
+				master = newMaster;
+				if (newMaster != null)
+					newMaster.addWeapon(this);
+			}
+			return true;
+		} else
+			return false;
 	}
 	
 	public boolean update() {
@@ -144,7 +151,7 @@ public abstract class Weapon extends Object {
 	public PVector displayGui(final PVector basGauche) {
 		app.noStroke();
 		PVector imgDim = vec(img().width, img().height);
-		imgDim.mult(upgradeRatio*master.guiRatio*Weapon.tiersRatioSize[tier]);
+		imgDim.mult(imgWidth() / imgDim.x);
 		app.image(img(), basGauche.x, basGauche.y-imgDim.y, imgDim.x, imgDim.y);
 		if (tempsRestant > 0) {
 			app.fill(255, 0, 0, 70);

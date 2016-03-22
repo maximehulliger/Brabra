@@ -57,7 +57,7 @@ public abstract class ProMaster extends Master {
 		app.popMatrix();
 	}
 	
-	protected int round(float f) {
+	protected static int round(float f) {
 		return PApplet.round(f);
 	}
 
@@ -71,7 +71,7 @@ public abstract class ProMaster extends Master {
 		return new PVector(x, y);
 	}
 	
-	protected PVector normalized(PVector p) {
+	protected static PVector normalized(PVector p) {
 		PVector pp = p.copy();
 		return pp.normalize();
 	}

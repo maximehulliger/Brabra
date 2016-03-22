@@ -5,6 +5,7 @@ import java.util.List;
 
 import brabra.Brabra;
 import brabra.game.XMLLoader.Attributes;
+import brabra.game.physic.Collider;
 import brabra.game.physic.geo.Quaternion;
 import brabra.game.scene.Object;
 import processing.core.PVector;
@@ -105,50 +106,54 @@ public class Weaponry extends Object {
 	
 	// --- life cycle ---
 	
-	public void validate(Attributes atts) {
-		super.validate(atts);
-		// display colliders & puissance
-		final String displayColliders = atts.getValue("displayColliders");
-		if (displayColliders != null)
-			setDisplayColliders(Boolean.parseBoolean(displayColliders));
-		final String puissance = atts.getValue("puissance");
-		if (puissance != null)
-			setPuissance(Float.parseFloat(puissance));
-		// prefab
-		final String prefabString = atts.getValue("prefab");
-		if (prefabString != null && !prefabString.equals("not")) {
-			prefab = Integer.parseInt(prefabString);
-			if (prefab != 0) {
-				if (prefab < 1 || prefab > nbPrefab) {
-					int newPrefab = constrain(prefab, 1, nbPrefab);
-					game.debug.err("prefab for weaponry should be in [1,"+nbPrefab+"] "
-							+ "("+prefab+") (0/not for nothing), taking "+newPrefab);
-					prefab = newPrefab;
+	public boolean validate(Attributes atts) {
+		if (super.validate(atts)) {
+			// display colliders & puissance
+			final String displayColliders = atts.getValue("displayColliders");
+			if (displayColliders != null)
+				setDisplayColliders(Boolean.parseBoolean(displayColliders));
+			final String puissance = atts.getValue("puissance");
+			if (puissance != null)
+				setPuissance(Float.parseFloat(puissance));
+			// prefab
+			final String prefabString = atts.getValue("prefab");
+			if (prefabString != null && !prefabString.equals("none") && !prefabString.equals("not")) {
+				prefab = Integer.parseInt(prefabString);
+				if (prefab != 0) {
+					if (prefab < 1 || prefab > nbPrefab) {
+						int newPrefab = constrain(prefab, 1, nbPrefab);
+						game.debug.err("prefab for weaponry should be in [1,"+nbPrefab+"] "
+								+ "("+prefab+") (0/not for nothing), taking "+newPrefab);
+						prefab = newPrefab;
+					}
+					if (weapons.size() > 0) {
+						game.debug.err("weaponry should not have weapons when prefab is set. removing them.");
+						for (Weapon w : weapons)
+							game.scene.remove(w);
+						weapons.clear();
+					}
+					setName("Weaponry prefab "+prefab);
+					final Collider parent = parent().as(Collider.class);
+					final float r = parent == null ? 5 : parent.radiusEnveloppe();
+					if (prefab == 1) {
+						addWeapon(new MissileLauncher(vec(r*-0.65f, -10, 0), null).withTier(1));
+						addWeapon(new MissileLauncher(vec(r*-0.25f, -10, 0), null).withTier(2));
+						addWeapon(new MissileLauncher(vec(r*+0.25f, -10, 0), null).withTier(2));
+						addWeapon(new MissileLauncher(vec(r*+0.65f, -10, 0), null).withTier(1));
+					} else if (prefab == 2) {
+						addWeapon(new MissileLauncher(vec(r*-0.55f, -10, 0), null).withTier(1));
+						addWeapon(new MissileLauncher(vec(r*+0.55f, -10, 0), null).withTier(1));
+						addWeapon(new MissileLauncher(vec(r*-0.30f, -5,  0), null).withTier(1));
+						addWeapon(new MissileLauncher(vec(r*+0.30f, -5,  0), null).withTier(1));
+						addWeapon(new MissileLauncher(vec(r*-0.20f, -15, 0), null).withTier(1));
+						addWeapon(new MissileLauncher(vec(r*+0.20f, -15, 0), null).withTier(1));
+					} else
+						assert(false);
 				}
-				if (weapons.size() > 0) {
-					game.debug.err("weaponry should not have weapons when prefab is set. removing them.");
-					for (Weapon w : weapons)
-						game.scene.remove(w);
-					weapons.clear();
-				}
-				setName("Weaponry prefab "+prefab);
-				final float r = parent().radiusEnveloppe();
-				if (prefab == 1) {
-					addWeapon(new MissileLauncher(vec(r*-0.65f, -10, 0), null).withTier(1));
-					addWeapon(new MissileLauncher(vec(r*-0.25f, -10, 0), null).withTier(2));
-					addWeapon(new MissileLauncher(vec(r*+0.25f, -10, 0), null).withTier(2));
-					addWeapon(new MissileLauncher(vec(r*+0.65f, -10, 0), null).withTier(1));
-				} else if (prefab == 2) {
-					addWeapon(new MissileLauncher(vec(r*-0.55f, -10, 0), null).withTier(1));
-					addWeapon(new MissileLauncher(vec(r*+0.55f, -10, 0), null).withTier(1));
-					addWeapon(new MissileLauncher(vec(r*-0.30f, -5,  0), null).withTier(1));
-					addWeapon(new MissileLauncher(vec(r*+0.30f, -5,  0), null).withTier(1));
-					addWeapon(new MissileLauncher(vec(r*-0.20f, -15, 0), null).withTier(1));
-					addWeapon(new MissileLauncher(vec(r*+0.20f, -15, 0), null).withTier(1));
-				} else
-					assert(false);
 			}
-		}
+			return true;
+		} else
+			return false;
 	}
 	
 	protected boolean update() {
@@ -168,10 +173,12 @@ public class Weaponry extends Object {
 		if (!valid) {
 			// gui + puissance
 			float guiWidthWished = 0, puissanceWished = 0;
+			guiRatio = 1;
+			puissanceRatio = 1;
 			for (Weapon w : weapons) {
 				assert(w.validated() || w.parent()==this);
-				guiWidthWished += w.img().width*Weapon.tiersRatioSize[w.tier()-1];
-				puissanceWished += w.puissance;
+				guiWidthWished += w.imgWidth();
+				puissanceWished += w.puissance();
 			}
 			guiWidth = round(min(guiWidthWished, this.guiWidthWished));
 			guiRatio = guiWidth / guiWidthWished;
@@ -183,7 +190,7 @@ public class Weaponry extends Object {
 			weaponsOrdered.clear();
 			weaponsOrdered.addAll(weapons);
 			weaponsOrdered.sort((a,b) -> {
-				int score = round(a.puissance - b.puissance);
+				int score = round(a.puissance() - b.puissance());
 				if (score == 0)
 					score = round(abs(a.locationRel().x) - abs(b.locationRel().x));
 				return score;

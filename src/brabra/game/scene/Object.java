@@ -14,8 +14,8 @@ import processing.core.PMatrix3D;
 import processing.core.PVector;
 
 /** 
- * A movable object with transforms (location, rotation, parent), 
- * velocity and rotational velocity. <p>
+ * A movable object with transforms (location, rotation) 
+ * and family (parent, children). <p>
  * Gives methods to change a location between different space: <p>
  * - Absolute (abs): relative & local to the root. 
  * - Relative (rel): in this' space (relative to this). 
@@ -40,32 +40,32 @@ public class Object extends ProMaster implements Debugable {
 		}
 	}
 	
+	// > core
 	/** Position relative to the parent. */
 	protected final NVector locationRel = new NVector(zero);
-	/** Absolute position. Equals locationRel if no parent. */
-	protected final NVector locationAbs = new NVector(zero);
-	/** Velocity relative to the parent. should be called velocityLoc (local) because translation is applied before rotation. */
-	protected final NVector velocityRel = new NVector(zero);
 	/** Rotation relative to the parent. */
 	protected final NQuaternion rotationRel = new NQuaternion(identity);
+	
+	// > absolute variable
+	/** Absolute position. Equals locationRel if no parent. */
+	protected final NVector locationAbs = new NVector(zero);
 	/** Absolute rotation. Equals rotationRel if no parent. */
 	protected final NQuaternion rotationAbs = new NQuaternion(identity);
-	
-	protected final NQuaternion rotationRelVel = new NQuaternion(identity);
-	/** Flag used during the main update loop. */
-	protected boolean updated = false;
-	
-	private Object parent = null;
-	private ParentRelationship parentRel = ParentRelationship.None;
-	private final List<Object> children = new ArrayList<>();
-	private String name = "MyObject";
-	/** Indicates if the object was moving last frame. */
-	private boolean moving = false, rotating = false;
 	/** Matrix representing the matrix transformations till this object (lazy). */
 	private PMatrix matrix = null;
 	/** for the matrix and positions. */
 	private boolean absValid = false;
 	/** Indicate the modification of the body transform during the last frame. */
+	
+	// > Family managment
+	private Object parent = null;
+	private ParentRelationship parentRel = ParentRelationship.None;
+	private final List<Object> children = new ArrayList<>();
+	/** Flag used during the main update loop. */
+	protected boolean updated = false;
+	
+	// > Flags, other
+	private String name = "Unknown Stuff";
 	private boolean transformChanged = false, locationChanged = false, rotationChanged = false;
 	/** Indicate if the children changed. */
 	private boolean childrenChanged = false, childrenChangedCurrent = false;
@@ -94,48 +94,44 @@ public class Object extends ProMaster implements Debugable {
 	/** Override it to display the object. */
 	public void display() {}
 	
-	/** Override it to validate the object when added from an xml file (after parent & children set). */
-	public void validate(Attributes atts) {
-		// parent first !
-		setParent(atts.parent());
-		final String parentRel = atts.getValue("parentRel");
-		if (parentRel != null)
-			setParentRel(ParentRelationship.fromString(parentRel));
-		// other attributes
-		final String name = atts.getValue("name");
-		if (name != null)
-			setName(name);
-		final String cameraMode = atts.getValue("camera");
-		if (cameraMode != null)
-			game.camera.set(this, cameraMode, atts.getValue("cameraDist"));
-		// focus: here because we want to do that with the children set.
-		final String focus = atts.getValue("focus");
-		if (focus != null && Boolean.parseBoolean(focus)) {
-			final String force = atts.getValue("force");
-			game.physicInteraction.setFocused(this, force != null ? Float.parseFloat(force) : -1);
-		}
-		final String debug = atts.getValue("debug");
-	  	if (debug != null && Boolean.parseBoolean(debug)) {
-	  		assert(!game.debug.followed.contains(this));
-	  		game.debug.followed.add(this);
-	  	}
-	  	validated = true;
-	}
-	
-	/** To display the state of the object in the console. */
-	public void displayState() {
-		debug.info(2, presentation()+" "+state(false));
+	/** 
+	 * Override it to validate the object when added from an xml file (after parent & children set). 
+	 * Return true when this was valdated (only once). 
+	 **/
+	public boolean validate(Attributes atts) {
+		if (!validated) {
+			// parent first !
+			setParent(atts.parent());
+			final String parentRel = atts.getValue("parentRel");
+			if (parentRel != null)
+				setParentRel(ParentRelationship.fromString(parentRel));
+			// other attributes
+			final String name = atts.getValue("name");
+			if (name != null)
+				setName(name);
+			final String cameraMode = atts.getValue("camera");
+			if (cameraMode != null)
+				game.camera.set(this, cameraMode, atts.getValue("cameraDist"));
+			// focus: here because we want to do that with the children set.
+			final String focus = atts.getValue("focus");
+			if (focus != null && Boolean.parseBoolean(focus)) {
+				final String force = atts.getValue("force");
+				game.physicInteraction.setFocused(this, force != null ? Float.parseFloat(force) : -1);
+			}
+			final String debug = atts.getValue("debug");
+		  	if (debug != null && Boolean.parseBoolean(debug)) {
+		  		assert(!game.debug.followed.contains(this));
+		  		game.debug.followed.add(this);
+		  	}
+		  	return validated = true;
+		} else
+			return false;
 	}
 	
 	/** To react when the object is removed from the scene. should be called. */
 	public void onDelete() {
 		if (hasParent())
 			parent.removeChild(this);
-	}
-
-	/** Should be overriden for colliders at least. */
-	public float radiusEnveloppe() {
-		return 0;
 	}
 
 	// --- Simple getters ---
@@ -147,7 +143,7 @@ public class Object extends ProMaster implements Debugable {
 	public String toString() {
 		return name;
 	}
-	
+
 	public boolean inScene() {
 		return game.scene.objects().contains(this);
 	}
@@ -160,6 +156,12 @@ public class Object extends ProMaster implements Debugable {
 	/** Return the parent of the object (even if parentRel is None -> can be null). */
 	public Object parent() {
 		return parent;
+	}
+	
+	@SuppressWarnings("unchecked")
+	/** To cast this object easily. return null if invalid. */
+	public <T extends Object> T as(Class <T> as) {
+		return (as.getClass().isInstance(this)) ? (T)this : null;
 	}
 
 	/** Return the absolute location of the object. update things if needed. */
@@ -178,6 +180,20 @@ public class Object extends ProMaster implements Debugable {
 	public Quaternion rotation() {
 		updateAbs();
 		return rotationAbs;
+	}
+	
+	public PVector velocity() {
+		return zero;
+	}
+
+	/** Return the absolute velocity (from an absolute pos). */
+	public PVector velocityAt(PVector posAbs) {
+		return zero;
+	}
+
+	/** Return the absolute velocity (from a relative pos). */
+	public PVector velocityAtRel(PVector posRel) {
+		return zero;
 	}
 
 	public boolean stateChanged() {
@@ -214,6 +230,11 @@ public class Object extends ProMaster implements Debugable {
 		return (hasParent() && !parent.absValid()) ? false : absValid;
 	}
 
+	/** To display the state of the object in the console. */
+	public void displayState() {
+		debug.info(2, presentation()+" "+state(false));
+	}
+	
 	/** return the presentation of the object with the name in evidence and the parent if exists. */
 	public String presentation() {
 		return "> "+this+" <" + (hasParent() ? " "+parentRel+" after \""+parent+"\"" : "");
@@ -236,40 +257,19 @@ public class Object extends ProMaster implements Debugable {
 	
 	/** if onlyChange is false, return all the object's transforms for the console. */
 	protected String state(boolean onlyChange) {
-		boolean loc, vel, rot, rotVel;
+		boolean loc, rot;
 		if (onlyChange) {
 			loc = locationChanged;
-			vel = velocityRel.equals(zero);
 			rot = rotationChanged;
-			rotVel = rotationRelVel.isIdentity();
 		} else
-			loc = vel = rot = rotVel = false;
+			loc = rot = false;
 		
 		return (loc ? "\nlocation: "+locationAbs : "")
 				+ (!hasParent() ? "" : "\nlocationRel: "+locationRel)
-				+ (vel ? "" : "\nvitesse rel: "+velocityRel+" -> "+velocityRel.mag()+" unit/frame.") 
-				+ (rot ? "\nrotation rel: "+rotationRel : "")
-				+ (rotVel	? "" : "\nvitesse Ang.: "+rotationRelVel);
+				+ (rot ? "\nrotation rel: "+rotationRel : "");
 	}
 	
 	// --- Other getters ---
-	
-	/** Return the absolute velocity at the center of mass. */
-	public PVector velocity() {
-		PVector forMe = absoluteDirFromLocal(velocityRel);
-		return hasParent() ? add(forMe , parent().velocityAtRel(locationRel)) : forMe;
-	}
-
-	/** Return the absolute velocity (from an absolute pos). */
-	public PVector velocityAt(PVector posAbs) {
-		return velocityAtRel(relative(posAbs));
-	}
-
-	/** Return the absolute velocity (from a relative pos). */
-	public PVector velocityAtRel(PVector posRel) {
-		return (rotationRel.isZeroEps(false) || isZeroEps(posRel, false))
-			? velocity() : add(velocity(), rotationRelVel.rotAxisAngle().cross(posRel));
-	}
 	
 	/** Return true if this is a children of other. */
 	public boolean isChildOf(Object parent) {
@@ -433,47 +433,18 @@ public class Object extends ProMaster implements Debugable {
 		}
 		if (!updated) {
 			game.debug.setCurrentWork("physic: updating \""+presentation()+"\"");
-			updated = true;
-			// 1. movement
-			if (moving || velocityRel.hasChangedCurrent()) {
-				if (!isZeroEps(velocityRel, false)) {
-					if (!moving) {
-						game.debug.log(6, this+" started moving.");
-						moving = true;
-					}
-					locationRel.add( velocityRel );
-					locationAbs.set(absolute(zero));
-				} else if (moving) {
-					game.debug.log(6, this+" stopped moving.");
-					moving = false;
-				}
-			}
-			// 2. rotation
-			if (rotating || rotationRelVel.hasChangedCurrent()) {
-				if (!rotationRelVel.isZeroEps(false)) {
-					if (!rotating) {
-						game.debug.log(6, this+" started rotating.");
-						rotating = true;
-					}
-					rotationRel.rotate( rotationRelVel );
-				} else if (rotating) {
-					game.debug.log(6, this+" stopped rotating.");
-					rotating = false;
-				}
-			}
-			// 3. check changes
+			// update changes
 			locationRel.update();
 			locationAbs.update();
-			velocityRel.update();
 			rotationRel.update();
-			rotationRelVel.update();
-			
-			rotationChanged = rotationRel.hasChanged();
+			rotationAbs.update();
+			// update flags
+			rotationChanged = rotationRel.hasChanged() || rotationAbs.hasChanged();
 			locationChanged = locationRel.hasChanged() || locationAbs.hasChanged();
 			transformChanged = rotationChanged || locationChanged;
 			if (transformChanged)
 				absValid = false;
-			return true;
+			return updated = true;
 		} else
 			return false;
 	}

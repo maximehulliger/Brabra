@@ -7,17 +7,16 @@ import brabra.game.Color;
 import brabra.game.XMLLoader.Attributes;
 import brabra.game.physic.geo.Line;
 import brabra.game.physic.geo.Quaternion;
-import brabra.game.scene.Object;
+import brabra.game.scene.Movable;
 import processing.core.*;
 
 /** 
- * An object obeying to the laws of physics. 
+ * An movable object obeying to the laws of physics. 
  * It has a mass and a moment of inertia (angular mass). 
- * You can apply forces and impulse (interactions) to it to
- * move it through velocity and rotation velocity (both relative to the parent).
+ * You can apply forces and impulse (interactions) to it to move it.
  * TODO: If has a parent, apply it to the parent.
  **/
-public class Body extends Object {
+public class Body extends Movable {
 	
 	private static final boolean displayInteractions = true; //forces et impulse
 	private static final Color interactionColor = new Color("white", true);
@@ -49,20 +48,23 @@ public class Body extends Object {
 	/** to react to a collision */
 	protected void onCollision(Collider col, PVector impact) {}
 
-	public void validate(Attributes atts) {
-		super.validate(atts);
-		final String color = atts.getValue("color");
-		if (color != null)
-			setColor( new Color(color, atts.getValue("stroke")) );
-		final String mass = atts.getValue("mass");
-		if (mass != null)
-			setMass(Float.parseFloat(mass));
-		final String life = atts.getValue("life");
-		if (life != null)
-			setLife(life);
-		final String impulse = atts.getValue("impulse");
-		if (impulse != null)
-			applyImpulse(vec(impulse));
+	public boolean validate(Attributes atts) {
+		if (super.validate(atts)) {
+			final String color = atts.getValue("color");
+			if (color != null)
+				setColor( new Color(color, atts.getValue("stroke")) );
+			final String mass = atts.getValue("mass");
+			if (mass != null)
+				setMass(Float.parseFloat(mass));
+			final String life = atts.getValue("life");
+			if (life != null)
+				setLife(life);
+			final String impulse = atts.getValue("impulse");
+			if (impulse != null)
+				applyImpulse(vec(impulse));
+			return true;
+		} else
+			return false;
 	}
 	
 	/** applique les forces et update l'etat. return true if this was updated. */
@@ -214,10 +216,9 @@ public class Body extends Object {
 		// in local space
 		PVector posLoc = local(posAbs);
 		PVector impulseLoc = localDir(impulseAbs);
-		interactionsRel.add(new Line(relative(posAbs), relative(add(posAbs, mult(impulseAbs, 4))), true));
-				
+		interactionsRel.add(new Line(relative(posAbs), relative(add(posAbs, mult(impulseAbs, 4))), true));		
+		// test if the impulse is against (or on) the mass center -> just translation
 		if (isZeroEps(posLoc, false) || isZeroEps(posLoc.cross(impulseLoc), false)) {
-			// if the impulse is against (or on) the mass center -> just translation
 			velocityRel.add( mult(impulseLoc, this.inverseMass) );
 		} else {
 			PVector posLocN = posLoc.normalize(new PVector());
@@ -302,25 +303,5 @@ public class Body extends Object {
 	public void avance(float forceFront) {
 		assert(forceFront != 0);
 		applyForceRel( front(forceFront) );
-	}
-	
-	/** applique une force qui s'oppose aux vitesse. perte dans [0,1]. reset selon eps. */
-	public void freine(float perte) {
-		freineDepl(perte);
-		freineRot(perte);
-	}
-	
-	/** applique une force qui s'oppose à la vitesse. perte dans [0,1]. reset selon eps. */
-	public void freineDepl(float perte) {
-		if (isZeroEps(velocityRel, true))
-			return;
-		//le frottement, frein. s'oppose Ã  la vitesse :
-	    velocityRel.mult(1-perte);
-	}
-	
-	/** applique une force qui s'oppose à la vitesse angulaire. perte dans [0,1]. reset selon eps. */
-	public void freineRot(float perte) {
-		if ( !rotationRelVel.isZeroEps(true) )
-			rotationRelVel.setAngle(rotationRelVel.angle() * (1 - perte));
 	}
 }

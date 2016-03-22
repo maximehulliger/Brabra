@@ -18,13 +18,14 @@ import processing.core.PVector;
  * Reacts to user input: wasd, space, alt, mouse drag, scroll.
  */
 public final class PhysicInteraction extends ProMaster {
-	/** Puissance de l'interaction. */
+	/** Puissance of the interaction. */
 	private static final float forceMin = 20, forceMax = 150, forceRange = forceMax - forceMin; 
 	
 	private float force = 70, ratioTrans = 10, ratioRot = 0.004f;
 	private float forceTrans = force*ratioTrans, forceRot = force*ratioRot;
-	private Body focusedBody = null;
+	
 	private Object focused = null;
+	private Body focusedBody = null;
 	private Weaponry armement = null;
 
 	/** Set focused and force (except if force = -1). displayState. */
@@ -61,10 +62,8 @@ public final class PhysicInteraction extends ProMaster {
 					forceMin, forceMax);
 			game.debug.msg(1, String.format("force d'interaction: %.1f",force));
 		}
-		
-		if (hasFocused() && focusedBody != null)
-			applyForces();
-
+		// apply forces to focused
+		applyForces();
 		// fire if needed
 		if (armement != null) {
 			if (app.imgAnalyser.running()) {
@@ -84,62 +83,66 @@ public final class PhysicInteraction extends ProMaster {
 	}
 
 	private void applyForces() {
-		// 1. rotation (plate, mouse, horizontal)
-		PVector forceRot = zero.copy(); // [pitch, yaw, roll]
-		//> from the plate
-		if (app.imgAnalyser.running()) {
-			// rotation selon angle de la plaque
-			PVector plateRot = PVector.div(app.imgAnalyser.rotation(), Brabra.inclinaisonMax); //sur 1
-			// on adoucit par x -> x ^ 1.75
-			plateRot = new PVector(
-					PApplet.pow(PApplet.abs(plateRot.x), 1.75f) * sgn(plateRot.x), 
-					PApplet.pow(PApplet.abs(plateRot.y), 1.75f) * sgn(plateRot.y),
-					PApplet.pow(PApplet.abs(plateRot.z), 1.75f) * sgn(plateRot.z));
-			forceRot.add( mult(plateRot,  Brabra.inclinaisonMax/4 ) );
-		}
-		//> add from input (horizon:ad)
-		forceRot.add( yawAxis(game.input.horizontal*120) );
-		//> add from mouse drag
-		forceRot.add( pitchAxis(game.input.mouseDrag().y * -1f) );
-		forceRot.add( rollAxis(game.input.mouseDrag().x * 1f) );
-		forceRot.mult(this.forceRot);
-		//> apply force rot: up (pitch, roll)
-		if (forceRot.x != 0 || forceRot.z != 0) {
-			PVector upAP = up(100);
-			PVector forceRel = zero.copy();
-			forceRel.add( front(forceRot.x * 3/2) );
-			forceRel.add( right(forceRot.z * 3/2) );
-			focusedBody.applyForce(focused.absolute(upAP), focused.absoluteDir(forceRel));
-		}
-		//> apply force rot: front (yaw)
-		if (forceRot.y != 0) {
-			PVector frontAP = front(150);
-			PVector frontForceRel = right(forceRot.y);
-			focusedBody.applyForce(focused.absolute(frontAP), focused.absoluteDir(frontForceRel));
-		}
-
-		// 2. forward
-		float rightScore = max(0, app.imgAnalyser.buttonDetection.rightScore());
-		if (game.input.vertical != 0 || rightScore > 0) {
-			focusedBody.applyForceRel(front(150), front((game.input.vertical+rightScore) * forceTrans));
-		}
-
-		// 3. brake
-		if (rightScore > 0) {
-			// if the buttons are detected
-			focusedBody.freineDepl(0.1f);
-			focusedBody.freineRot(0.15f);
-		} else {
-			// keyboard: alt -> brake, space -> non-brake
-			if (game.input.altDown)
-				focusedBody.freine(0.35f);
-			else if (game.input.spaceDown) {
-				focusedBody.freineDepl(0.001f);
-				focusedBody.freineRot(0.01f);
-			} else
-				focusedBody.freine(0.1f);
+		if (hasFocused() && focusedBody != null) {
+			// 1. rotation (plate, mouse, horizontal)
+			PVector forceRot = zero.copy(); // [pitch, yaw, roll]
+			//> from the plate
+			if (app.imgAnalyser.running()) {
+				// rotation selon angle de la plaque
+				PVector plateRot = PVector.div(app.imgAnalyser.rotation(), Brabra.inclinaisonMax); //sur 1
+				// on adoucit par x -> x ^ 1.75
+				plateRot = new PVector(
+						PApplet.pow(PApplet.abs(plateRot.x), 1.75f) * sgn(plateRot.x), 
+						PApplet.pow(PApplet.abs(plateRot.y), 1.75f) * sgn(plateRot.y),
+						PApplet.pow(PApplet.abs(plateRot.z), 1.75f) * sgn(plateRot.z));
+				forceRot.add( mult(plateRot,  Brabra.inclinaisonMax/4 ) );
+			}
+			//> add from input (horizon:ad)
+			forceRot.add( yawAxis(game.input.horizontal*120) );
+			//> add from mouse drag
+			forceRot.add( pitchAxis(game.input.mouseDrag().y * -1f) );
+			forceRot.add( rollAxis(game.input.mouseDrag().x * 1f) );
+			forceRot.mult(this.forceRot);
+			//> apply force rot: up (pitch, roll)
+			if (forceRot.x != 0 || forceRot.z != 0) {
+				PVector upAP = up(100);
+				PVector forceRel = zero.copy();
+				forceRel.add( front(forceRot.x * 3/2) );
+				forceRel.add( right(forceRot.z * 3/2) );
+				focusedBody.applyForce(focused.absolute(upAP), focused.absoluteDir(forceRel));
+			}
+			//> apply force rot: front (yaw)
+			if (forceRot.y != 0) {
+				PVector frontAP = front(150);
+				PVector frontForceRel = right(forceRot.y);
+				focusedBody.applyForce(focused.absolute(frontAP), focused.absoluteDir(frontForceRel));
+			}
+			
+			// 2. forward
+			float rightScore = max(0, app.imgAnalyser.buttonDetection.rightScore());
+			if (game.input.vertical != 0 || rightScore > 0) {
+				focusedBody.applyForceRel(front(150), front((game.input.vertical+rightScore) * forceTrans));
+			}
+			
+			// 3. brake
+			if (rightScore > 0) {
+				// if the buttons are detected
+				focusedBody.brakeDepl(0.1f);
+				focusedBody.brakeRot(0.15f);
+			} else {
+				// keyboard: alt -> brake, space -> non-brake
+				if (game.input.altDown)
+					focusedBody.brake(0.35f);
+				else if (game.input.spaceDown) {
+					focusedBody.brakeDepl(0.001f);
+					focusedBody.brakeRot(0.01f);
+				} else
+					focusedBody.brake(0.1f);
+			}
 		}
 	}
+	
+	// --- Raycast ---
 
 	public static Collider raycast(PVector from, PVector dir) {
 		assert(!dir.equals(zero));
