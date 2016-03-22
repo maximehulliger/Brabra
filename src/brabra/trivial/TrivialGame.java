@@ -218,12 +218,12 @@ public class TrivialGame extends Interface {
 		case Placement:
 			break;
 		case TransUp:
-			etat = PApplet.constrain(etat + 1.0f/tempsTransition/app.frameRate, 0, 1);
+			etat = PApplet.constrain(etat + 1.0f/tempsTransition/Brabra.frameRate, 0, 1);
 			if (etat == 1)
 				setMode(Mode.Placement);
 			break;
 		case TransDown:
-			etat = PApplet.constrain(etat - 1.0f/tempsTransition/app.frameRate, 0, 1);
+			etat = PApplet.constrain(etat - 1.0f/tempsTransition/Brabra.frameRate, 0, 1);
 			if (etat == 0)
 				setMode(Mode.Jeu);
 			break;

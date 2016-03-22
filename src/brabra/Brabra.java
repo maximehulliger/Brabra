@@ -27,6 +27,8 @@ public class Brabra extends PApplet {
 	public static final float inclinaisonMax = PApplet.PI/5;
 	/** Main window size. */
 	public static final int width = 1080, height = 720;
+	/** Frame per seconds wished by Brabra. */
+	public static final float frameRate = 30;
 	/** Indicates if this should be activated on start. */
 	protected boolean imgAnalysis = false, toolWindow = false;
 	
@@ -68,7 +70,7 @@ public class Brabra extends PApplet {
 
 	public void setup() {
 		// 1. processing stuff.
-		frameRate(30);
+		frameRate(frameRate);
 		//float camZ = height / (2*tan(PI*60/360.0f));
 		perspective(PI/3, width/(float)height, 1, ProMaster.far);
 		surface.setTitle(name);

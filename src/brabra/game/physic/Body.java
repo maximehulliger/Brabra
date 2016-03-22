@@ -52,10 +52,8 @@ public class Body extends Object {
 	public void validate(Attributes atts) {
 		super.validate(atts);
 		final String color = atts.getValue("color");
-		if (color != null) {
-			String stroke = atts.getValue("stroke");
-			setColor( new Color(color, stroke) );
-		}
+		if (color != null)
+			setColor( new Color(color, atts.getValue("stroke")) );
 		final String mass = atts.getValue("mass");
 		if (mass != null)
 			setMass(Float.parseFloat(mass));
@@ -73,19 +71,14 @@ public class Body extends Object {
 			addForces();
 			if (addForces != null)
 				addForces.run();
-			
 			//1. translation
 			PVector acceleration = PVector.mult( forces, inverseMass );
-			if (!acceleration.equals(zero)) {
+			if (!acceleration.equals(zero))
 				velocityRel.add( acceleration );
-			}
-			
 			//2. rotation, vitesse angulaire, on prend rotation axis comme L/I
 			PVector dL = multMatrix( torques, inverseInertiaMom );
-			if (!dL.equals(zero)) {
+			if (!dL.equals(zero))
 				rotationRelVel.addAngularMomentum( dL );
-			}
-			
 			forces.set(zero);
 			torques.set(zero);
 			boolean pu = super.update();

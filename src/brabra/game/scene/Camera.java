@@ -3,6 +3,7 @@ package brabra.game.scene;
 import brabra.ProMaster;
 import brabra.Brabra;
 import brabra.game.Color;
+import brabra.game.XMLLoader.Attributes;
 import processing.core.PShape;
 import processing.core.PVector;
 
@@ -38,20 +39,22 @@ public class Camera extends Object {
 		}
 	}
 	
-	/** Distance from camera before remove. */
-	private static final float distSqBeforeRemove = far*far;
+	// static / definitive stuff
+	private static final float distSqBeforeRemove = far*far; //from camera
 	private static final PVector defaultOrientation = y(-1);
+	private static PShape skybox;
 	private static final Color 
 			xColor = new Color("red", true), 
 			yColor = new Color("green", true), 
 			zColor = new Color("blue", true),
 			pointCentralColor = new Color("red", true);
-	private static PShape skybox;
 	
+	// simple flags
 	private boolean displaySkybox = true;
-	private boolean displayPointCentral = true;
+	private boolean displayCentralPoint = true;
 	private boolean displayAxis = true;
 	
+	// intern, mode related
 	private FollowMode followMode = FollowMode.Not;
 	/** The absolute point that looks the camera. */
 	private final PVector focus = zero.copy();
@@ -67,37 +70,98 @@ public class Camera extends Object {
 		super(cube(100));
 		setName("Camera");
 		game.scene.addNow(this);
+		// load resources
 		if (skybox == null) {
 			skybox = app.loadShape("skybox.obj");
 			skybox.scale(far/90);
 		}
 	}
 	
-	public boolean update() {
-		if (super.update()) {
-			stateChanged = stateChangedCurrent;
-			stateChangedCurrent = false;
-			return true;
-		} else
-			return false;
-	}
-
+	// --- Getters ---
+	
 	protected boolean absValid() {
 		return absValid && super.absValid();
 	}
 	
-	public void set(Object toFollow, String followMode, String dist) {
-		assert(toFollow != null && followMode != null);
-		// 1. get follow mode
-		FollowMode mode = FollowMode.fromString(followMode);
-		// 2. update dist if set
-		if (dist != null)
-			setDist(mode, vec(dist));
-		// 3. apply
-		setParent(toFollow);
-		setMode(mode);
+	public void displayState() {
+		game.debug.info(2, presentation()+" "+state()+state(false));
+	}
+	
+	public String getStateUpdate() {
+		boolean sSC = super.stateChanged();
+		return (sSC ? super.getStateUpdate() : "")
+				+(sSC && stateChanged ? "\n" : "")
+				+(stateChanged ? state() : "");
+	}
+	
+	public boolean stateChanged() {
+		return stateChanged || super.stateChanged();
 	}
 
+	private String state() {
+		updateAbs();
+		return (followMode == FollowMode.Not ? "fixed at "+locationAbs
+				: "at "+parent().location()+" from +"+locationRel+" in "+followMode+" mode.");
+				//+ " looking at "+focus+" orientation: "+orientation;
+	}
+	
+	// --- Setters ---
+
+	public void setDisplaySkybox(boolean displaySkybox) {
+		this.displaySkybox = displaySkybox;
+	}
+	
+	public void setDisplayCentralPoint(boolean displayCentralPoint) {
+		this.displayCentralPoint = displayCentralPoint;
+	}
+	
+	public void setDisplayAxis(boolean displayAxis) {
+		this.displayAxis = displayAxis;
+	}
+	
+	/** Set the object followed by the camera. toFollow & followMode should be non-null. */
+	public void set(Object toFollow, String followMode, String dist) {
+		assert(toFollow != null && followMode != null);
+		// get follow mode
+		final FollowMode mode = FollowMode.fromString(followMode);
+		// update dist if set
+		if (dist != null)
+			setDist(mode, vec(dist));
+		// check input
+		if (toFollow == this)
+			game.debug.err("The camera can not follow itself...");
+		else {
+			// apply
+			setParent(toFollow);
+			setMode(mode);
+		}
+	}
+	
+	public boolean setParent(Object p) {
+		if (super.setParent(p)) {
+			stateChangedCurrent = true;
+			absValid = false;
+			return true;
+		} else
+			return false;
+	}
+	
+	/** To let parentRel be consistent with followMode. */
+	public void setParentRel(ParentRelationship rel) {
+		switch (followMode) {
+		case Not:
+			super.setParentRel(ParentRelationship.None);
+			break;
+		case Full:
+			super.setParentRel(ParentRelationship.Full);
+			break;
+		default: // Static
+			super.setParentRel(ParentRelationship.Static);
+			break;
+		}
+	}
+
+	/** Set the camera relative dist for this mode. */
 	public void setDist(FollowMode mode, PVector dist) {
 		if ( !dist.equals(getDist(mode)) ) {
 			switch(mode) {
@@ -118,25 +182,6 @@ public class Camera extends Object {
 		}
 	}
 	
-	public void setSkybox(boolean displaySkybox) {
-		this.displaySkybox = displaySkybox;
-	}
-	
-	/** To let parentRel be consistent with followMode. */
-	public void setParentRel(ParentRelationship rel) {
-		switch (followMode) {
-		case Not:
-			super.setParentRel(ParentRelationship.None);
-			break;
-		case Full:
-			super.setParentRel(ParentRelationship.Full);
-			break;
-		default: // Static
-			super.setParentRel(ParentRelationship.Static);
-			break;
-		}
-	}
-	
 	/** Change the camera mode and location. display state. */
 	public void setMode(FollowMode mode) {
 		if (mode == followMode && absValid)
@@ -151,6 +196,7 @@ public class Camera extends Object {
 		}
 	}
 	
+	/** Switch camera mode. */
 	public void nextMode() {
 		if (parent() != null)
 			setMode(followMode.next());
@@ -158,74 +204,7 @@ public class Camera extends Object {
 			game.debug.msg(3, "Camera need an object to focus on.");
 	}
 	
-	public void place() {
-		game.debug.setCurrentWork("camera");
-		updateAbs();
-		
-		// we remove the objects too far away.
-		game.scene.objects().forEach(o -> {
-			if (ProMaster.distSq(focus, o.location()) > distSqBeforeRemove)
-				game.scene.remove(o);
-		});
-		
-		// draw all the stuff
-		app.background(200);
-		app.camera(locationAbs.x, locationAbs.y, locationAbs.z, 
-				focus.x, focus.y, focus.z, 
-				orientation.x, orientation.y, orientation.z);
-		if (displaySkybox) {
-			app.pushMatrix();
-				translate(locationAbs);
-				app.shape(skybox);
-			app.popMatrix();
-		} else {
-			//app.directionalLight(50, 100, 125, 0, -1, 0);
-			app.ambientLight(255, 255, 255);
-		}
-		
-		if (displayAxis)
-			displayAxis();
-		
-		//drawMouseray(50);
-	}
-	
-	public void gui() {
-		if (displayPointCentral) {
-			pointCentralColor.fill();
-			app.point(Brabra.width/2, Brabra.height/2);
-		}
-	}
-	
-	public void displayState() {
-		game.debug.info(2, presentation()+" "+state()+state(true,true,true,true));
-	}
-	
-	protected String state() {
-		updateAbs();
-		return (followMode == FollowMode.Not ? "fixed at "+locationAbs
-				: "at "+parent().location()+" from +"+locationRel+" in "+followMode+" mode.");
-				//+ " looking at "+focus+" orientation: "+orientation;
-	}
-	
-	public String getStateUpdate() {
-		boolean sSC = super.stateChanged();
-		return (sSC ? super.getStateUpdate() : "")
-				+(sSC && stateChanged ? "\n" : "")
-				+(stateChanged ? state() : "");
-	}
-	
-	public boolean stateChanged() {
-		return stateChanged || super.stateChanged();
-	}
-	
-	public boolean setParent(Object p) {
-		if (super.setParent(p)) {
-			stateChangedCurrent = true;
-			absValid = false;
-			return true;
-		} else
-			return false;
-	}
+	// --- Raycast from screen ---
 	
 	/*public void drawMouseray(float dist) { //TODO
 		float focal = 10;
@@ -257,6 +236,82 @@ public class Camera extends Object {
 	    System.out.println("cam to mouse: "+camToMouse);
 	    System.out.println("cam to focus: "+PVector.sub(locationAbs, focus));
 	}*/
+	
+	// --- main usage (draw) ---
+
+	/** Put the camera in the processing scene and carry his job (see class doc). */
+	public void place() {
+		game.debug.setCurrentWork("camera");
+		updateAbs();
+		
+		// we remove the objects too far away.
+		game.scene.objects().forEach(o -> {
+			if (ProMaster.distSq(focus, o.location()) > distSqBeforeRemove)
+				game.scene.remove(o);
+		});
+		
+		// draw all the stuff
+		app.background(200);
+		app.camera(locationAbs.x, locationAbs.y, locationAbs.z, 
+				focus.x, focus.y, focus.z, 
+				orientation.x, orientation.y, orientation.z);
+		if (displaySkybox) {
+			app.pushMatrix();
+				translate(locationAbs);
+				app.shape(skybox);
+			app.popMatrix();
+		} else {
+			//app.directionalLight(50, 100, 125, 0, -1, 0);
+			app.ambientLight(255, 255, 255);
+		}
+		
+		if (displayAxis)
+			displayAxis();
+		
+		//drawMouseray(50);
+	}
+	
+	/** Display (maybe) a point at the center of the screen. */
+	public void gui() {
+		if (displayCentralPoint) {
+			pointCentralColor.fill();
+			app.point(Brabra.width/2, Brabra.height/2);
+		}
+	}
+	
+	// --- life cycle (validate + update) ---
+
+	public void validate(Attributes atts) {
+		final String mode = atts.getValue("mode");
+		if (mode != null) {
+			final String distString = atts.getValue("dist");
+			final PVector dist = distString != null ? vec(distString) : locationRel;
+			if (dist == null)
+				game.debug.err("for camera: dist (or pos) should be set with mode. ignoring.");
+			else if (dist.equals(zero))
+				game.debug.err("for camera: dist (or pos) should not be zero. ignoring.");
+			else
+				setDist(FollowMode.fromString(mode), dist);
+		}
+		final String displaySkybox = atts.getValue("displaySkybox");
+		if (displaySkybox != null)
+		  	setDisplaySkybox(Boolean.parseBoolean(displaySkybox));
+		final String displayCentralPoint = atts.getValue("displayCentralPoint");
+		if (displayCentralPoint != null)
+			setDisplayCentralPoint(Boolean.parseBoolean(displayCentralPoint));
+		final String displayAxis = atts.getValue("displayAxis");
+		if (displayAxis != null)
+			setDisplayAxis(Boolean.parseBoolean(displayAxis));
+	}
+	
+	public boolean update() {
+		if (super.update()) {
+			stateChanged = stateChangedCurrent;
+			stateChangedCurrent = false;
+			return true;
+		} else
+			return false;
+	}
 
 	protected boolean updateAbs() {
 		boolean sUpdated = super.updateAbs();
@@ -272,7 +327,7 @@ public class Camera extends Object {
 				break;
 			case Full:
 				newFocus = parent().absolute(up(60));
-				newOrientation = orientation();
+				newOrientation = absoluteDir(down);
 				break;
 			default: //Not
 				newFocus = zero;
@@ -291,6 +346,8 @@ public class Camera extends Object {
 		} else
 			return false;
 	}
+	
+	// --- private ---
 
 	private PVector getDist(FollowMode mode) {
 		switch(followMode) {

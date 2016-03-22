@@ -9,55 +9,44 @@ import processing.core.PVector;
 
 /** 
  * Represent a weapon that can fire things.
- * on validate, the weapon add itself to the first parent weaponry. */
+ * It can be in the scene or [not in the scene and with a master].
+ * On validate, the weapon add itself to the first parent weaponry (xml case). 
+ **/
 public abstract class Weapon extends Object {
 	
 	protected static final float[] tiersRatioSize = new float[] { 0.8f, 1, 1.2f };
 	protected static final int tierMax = 3;
 	
+	// handled variable.
 	/** Tier in [0,tierMax[ */
 	protected int tier = 0;
 	protected int indicateurErreur = 0;
 	protected int tempsRestant = 0;
+	protected float puissanceRatio = 1, puissance = 1;
 	
-	// to set on state update:
-	protected float puissance = 1;
+	// unhandled variables: to set on state update (updateState()).
 	protected float upgradeRatio = 1;
 	protected int tRecharge = 1;
 	protected float sizeRatio = 0;
-		
-	protected Weaponry master;
-	protected boolean displayColliders = false;
+	/** Pure weapon puissance without upgradeRatio or puissanceRatio. */
+	protected float puissanceBase;
+	
+	private Weaponry master;
+	private boolean displayColliders = false;
 	
 	public Weapon(PVector loc, Quaternion rot) {
 		super(loc, rot);
 	}
 	
-	public void validate(Attributes atts) {
-		super.validate(atts);
-		String tier = atts.getValue("tier");
-		setTier(tier==null ? 1 : Integer.parseInt(tier));
-
-		final String displayColliders = atts.getValue("displayColliders");
-		if (displayColliders != null) {
-			this.displayColliders = Boolean.parseBoolean(displayColliders);
-		}
-		// Validate the master weaponry.
-		Weaponry newMaster = (Weaponry)parentThat(p -> p instanceof Weaponry);
-		if (newMaster != master) {
-			if (master != null)
-				master.removeWeapon(this);
-			if (newMaster != null)
-				newMaster.addWeapon(this);
-			master = newMaster;
-		}
-	}
-	
-	/** Return true if success. */
+	/** Try to shoot from this weapon. Return true if success. */
 	public abstract boolean fire();
-
-	// --- setters ---
 	
+	/** To override to set global weapons variable. */
+	protected abstract void updateState();
+
+	// --- Setters ---
+	
+	/** Set tier & update state. Tier should be in [1, tierMax]. */
 	public void setTier(int tier) {
 		if (tier < 1 || tier > tierMax) {
 			final int newTier = PApplet.constrain(tier, 1, tierMax);
@@ -65,30 +54,80 @@ public abstract class Weapon extends Object {
 			tier = newTier;
 		}
 		this.tier = tier-1;
+		updateState();
+	}
+	
+	public Weapon withTier(int tier) {
+		setTier(tier);
+		return this;
 	}
 
 	public void setUpgradeRatio(float ratio) {
-		this.upgradeRatio = ratio;		
+		this.upgradeRatio = ratio;
+		updateState();
 	}
 	
-	// --- getters ---
+	public void setPuissance(float puissanceRatio) {
+		this.puissanceRatio = puissanceRatio;
+		puissance = puissanceBase * upgradeRatio 
+				* puissanceRatio * (master==null ? 1 : master.puissanceRatio);
+	}
 	
-	public abstract PImage img();
+	
+	protected void setMaster(Weaponry master) {
+		this.master = master;
+		setPuissance(puissanceRatio);
+		updateState();
+	}
+	
+	// --- Getters ---
+	
+	protected abstract PImage img();
 
-	public boolean ready() { 
+	/** Return true if the weapon is ready to fire. */
+	public boolean ready() {
 		return tempsRestant == 0; 
 	}
 
-	protected Weaponry launcher() {
-		return master;
-	}
-	
 	/** Return the tier of the weapon in [1, tierMax]. */
 	protected int tier() {
 		return tier+1;
 	}
+
+	protected Weaponry master() {
+		return master;
+	}
+
+	/** Return true if the colliders of the projectiles should be displayed. */
+	protected boolean displayColliders() {
+		return displayColliders || (master != null && master.displayColliders);
+	}
 	
-	// --- update & gui ---
+	// --- Life cycle: validate, update & gui ---
+
+	/** Takes: tier, displayColliders & check for master. */
+	public void validate(Attributes atts) {
+		super.validate(atts);
+		String tier = atts.getValue("tier");
+		setTier(tier==null ? 1 : Integer.parseInt(tier));
+		final String displayColliders = atts.getValue("displayColliders");
+		if (displayColliders != null)
+			this.displayColliders = Boolean.parseBoolean(displayColliders);
+		final String puissance = atts.getValue("puissance");
+		if (puissance != null)
+			this.puissanceRatio = Float.parseFloat(puissance);
+		// validate the master weaponry.
+		Weaponry newMaster = (Weaponry)parentThat(p -> p instanceof Weaponry);
+		if (newMaster != master) {
+			if (master != null)
+				master.removeWeapon(this);
+			master = newMaster;
+			if (newMaster != null)
+				newMaster.addWeapon(this);
+		}
+		// validate it
+		updateState();
+	}
 	
 	public boolean update() {
 		if (super.update()) {
@@ -101,7 +140,7 @@ public abstract class Weapon extends Object {
 			return false;
 	}
 
-	/** Retourne le nouveau point bas gauche. */
+	/** Return the new left down point (right down of this' img). */
 	public PVector displayGui(final PVector basGauche) {
 		app.noStroke();
 		PVector imgDim = vec(img().width, img().height);

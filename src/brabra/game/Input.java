@@ -22,16 +22,16 @@ public class Input extends ProMaster {
 	/** True when the mouse click is pressed (dragging) */
 	public boolean dragging = false;
 	/** True if the touch is down. */
-	public boolean spaceDown = false, altDown = false, clickDown = false;
+	public boolean spaceDown = false, altDown = false, clickDown = false, fireDown = false;
 	/** Input axis (wasd) ~[-1, 1] */
 	public float horizontal = 0, vertical = 0;
 	/** [0, 1] */
 	public float scroll = 1f/4;
 	/** [scrollMin, scrollMax] */
 	public int scrollDiff = 0;
-	/** Indicate the need to fire during the last frame */
+	/** Indicate the need to fire during the last frame. */
 	public boolean fire = false;
-	/** FireSlot [-1-3] -1: any */
+	/** FireSlot [0,8] -1: any, -2: all. */
 	public int fireSlot = -1;
 	
 	/** The distance dragged with the mouse (since last click) in pixel. */
@@ -39,8 +39,8 @@ public class Input extends ProMaster {
 	private final PVector clickPos = zero.copy();
 	private int scrollAcc = (int)(scrollMax*scroll);
 	private int scrollDiffAcc = 0;
-	private boolean fireAcc = false;
-	private int fireSlotAcc = -1;
+	private boolean fireAcc = false, fireDownReal = false;
+	private int fireDownDelay = 0, fireDownDelayNeeded = round(Brabra.frameRate / 4);
 	
 	public void update() {
 		// scroll
@@ -52,11 +52,21 @@ public class Input extends ProMaster {
 			scroll = clamp(scrollAcc, scrollMin, scrollMax, true);
 		} else
 			scrollDiff = 0;
+		// fire down
+		if (fireDownReal != fireDown) {
+			if (fireDownReal) {
+				if (fireDownDelay < fireDownDelayNeeded)
+					fireDownDelay++;
+				else {
+					fireDown = true;
+					fireSlot = -2;
+				}
+			} else
+				fireDown = false;
+		}
 		// fire
 		fire = fireAcc;
 		fireAcc = false;
-		fireSlot = fireSlotAcc;
-		fireSlotAcc = -1;
 	}
 	
 	public void gui() {
@@ -82,6 +92,7 @@ public class Input extends ProMaster {
 		if (app.key == 's') 	vertical -= 1;
 		if (app.key == 'a')		horizontal -= 1;
 		if (app.key == 'd')		horizontal += 1;
+		if (app.key == 'e')		fireDownReal = true;
 	}
 
 	public void keyReleased() {
@@ -94,10 +105,12 @@ public class Input extends ProMaster {
 
 		// armement
 		if (app.key == 'e') {
-			fireSlotAcc = -1;
+			fireSlot = -1;
 			fireAcc = true;
-		} else if (app.key >= '1' && app.key <= '5') {
-			fireSlotAcc = app.key-'1';
+			fireDownReal = false;
+			fireDownDelay = 0;
+		} else if (app.key >= '1' && app.key <= '9') {
+			fireSlot = app.key-'1';
 			fireAcc = true;
 		}
 	}

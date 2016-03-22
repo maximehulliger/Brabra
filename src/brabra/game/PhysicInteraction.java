@@ -19,9 +19,9 @@ import processing.core.PVector;
  */
 public final class PhysicInteraction extends ProMaster {
 	/** Puissance de l'interaction. */
-	private static final float forceMin = 20, forceMax = 100, forceRange = forceMax - forceMin; 
+	private static final float forceMin = 20, forceMax = 150, forceRange = forceMax - forceMin; 
 	
-	private float force = 40, ratioTrans = 10, ratioRot = 0.004f;
+	private float force = 70, ratioTrans = 10, ratioRot = 0.004f;
 	private float forceTrans = force*ratioTrans, forceRot = force*ratioRot;
 	private Body focusedBody = null;
 	private Object focused = null;
@@ -59,7 +59,7 @@ public final class PhysicInteraction extends ProMaster {
 			force = PApplet.constrain(
 					force + game.input.scrollDiff*forceRange/Input.scrollRange,
 					forceMin, forceMax);
-			game.debug.msg(1, String.format("force d'interaction: %.1f\n",force));
+			game.debug.msg(1, String.format("force d'interaction: %.1f",force));
 		}
 		
 		if (hasFocused() && focusedBody != null)
@@ -67,13 +67,12 @@ public final class PhysicInteraction extends ProMaster {
 
 		// fire if needed
 		if (armement != null) {
-			armement.update();
 			if (app.imgAnalyser.running()) {
 				float leftScore = app.imgAnalyser.buttonDetection.leftScore();
 				if (leftScore > 0)
 					armement.fire(-1, leftScore);
 			}
-			if (game.input.fire)
+			if (game.input.fire || game.input.fireDown)
 				armement.fire(game.input.fireSlot);
 		}
 	}
@@ -103,18 +102,19 @@ public final class PhysicInteraction extends ProMaster {
 		//> add from mouse drag
 		forceRot.add( pitchAxis(game.input.mouseDrag().y * -1f) );
 		forceRot.add( rollAxis(game.input.mouseDrag().x * 1f) );
+		forceRot.mult(this.forceRot);
 		//> apply force rot: up (pitch, roll)
 		if (forceRot.x != 0 || forceRot.z != 0) {
 			PVector upAP = up(100);
 			PVector forceRel = zero.copy();
-			forceRel.add( front(forceRot.x * this.forceRot * 3/2) );
-			forceRel.add( right(forceRot.z * this.forceRot * 3/2) );
+			forceRel.add( front(forceRot.x * 3/2) );
+			forceRel.add( right(forceRot.z * 3/2) );
 			focusedBody.applyForce(focused.absolute(upAP), focused.absoluteDir(forceRel));
 		}
 		//> apply force rot: front (yaw)
 		if (forceRot.y != 0) {
 			PVector frontAP = front(150);
-			PVector frontForceRel = right(forceRot.y * this.forceRot);
+			PVector frontForceRel = right(forceRot.y);
 			focusedBody.applyForce(focused.absolute(frontAP), focused.absoluteDir(frontForceRel));
 		}
 
@@ -125,7 +125,7 @@ public final class PhysicInteraction extends ProMaster {
 		}
 
 		// 3. brake
-		if ( rightScore > 0) {
+		if (rightScore > 0) {
 			// if the buttons are detected
 			focusedBody.freineDepl(0.1f);
 			focusedBody.freineRot(0.15f);
@@ -206,6 +206,8 @@ public final class PhysicInteraction extends ProMaster {
 		force = PApplet.constrain(force, forceMin, forceMax);
 		if (force != this.force) {
 			this.force = force;
+			this.forceTrans = force*ratioTrans;
+			this.forceRot = force*ratioRot;
 			if (displayIfChange)
 				displayState();
 		}

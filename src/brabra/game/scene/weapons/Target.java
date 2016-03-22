@@ -5,12 +5,12 @@ import brabra.game.physic.geo.Sphere;
 import processing.core.PVector;
 
 /** A sphere to destroy. */
-public class Objectif extends Sphere {
+public class Target extends Sphere {
 	
-	public Objectif(PVector location, Quaternion rotation) {
+	public Target(PVector location, Quaternion rotation) {
 		super(location, rotation, 50);
 		setMass(30);
-		setName("Objectif");
+		setName("Target");
 	}
 	
 	public String toString() {
@@ -27,6 +27,6 @@ public class Objectif extends Sphere {
 	}
 	
 	public void onDeath() {
-		game.debug.msg(2, this+" destroyed");
+		game.debug.msg(2, presentation()+" destroyed");
 	}
 }

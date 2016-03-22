@@ -1,5 +1,6 @@
 package brabra.game.scene;
 
+import brabra.Brabra;
 import processing.core.PApplet;
 import processing.core.PVector;
 
@@ -44,7 +45,7 @@ public abstract class Effect extends Object {
 	}
 
 	protected static int toFrame(float seconds) {
-		return PApplet.round(seconds * app.frameRate);
+		return PApplet.round(seconds * Brabra.frameRate);
 	}
 	
 	public static class Explosion extends Effect {

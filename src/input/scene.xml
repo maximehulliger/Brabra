@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
 <scene>
 	<physic gravity="0.2" deltaTime="0.7" running="true"></physic>
-	<general verbosity="max" displayAllColliders="false"></general>
+	<settings verbosity="max" displayAllColliders="false"></settings>
 	
 	<camera displaySkybox="true" mode="not" dist="(300,300,300)" debug="false">
 		<box pos="(0,0,-400)" mass="0" color="yellow"></box>
@@ -14,7 +14,7 @@
 		<ball pos="(-30,0,0)" name="blue ball" color="blue" mass="0" debug="false">
 			<ball pos="(0,40,0)" name="upper ball" color="red" mass="0" debug="false"></ball> 
 		</ball>
-		<weaponry>
+		<weaponry displayColliders="false" prefab="2">
 			<missile_launcher pos="(30,-10,0)" tier="2" upgrade="0.8"></missile_launcher>
 			<missile_launcher pos="(0,-15,0)" tier="3" upgrade="1.2"></missile_launcher>
 			<missile_launcher pos="(-30,-10,0)" tier="2" upgrade="0.8"></missile_launcher>

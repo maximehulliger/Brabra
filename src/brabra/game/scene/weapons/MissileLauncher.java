@@ -1,7 +1,5 @@
 package brabra.game.scene.weapons;
 
-import brabra.Brabra;
-import brabra.game.XMLLoader.Attributes;
 import brabra.game.physic.Collider;
 import brabra.game.physic.geo.Quaternion;
 import brabra.game.physic.geo.Sphere;
@@ -11,13 +9,14 @@ import processing.core.PImage;
 import processing.core.PShape;
 import processing.core.PVector;
 
+/** A weapon shooting missiles. */
 public class MissileLauncher extends Weapon {
 
 	private static final float sizeRatioFactor = 1f;
 	private static final float tRechargeRatio = 0.7f;
-	private static final float[] tiersTRecharge = new float[] { 3, 15, 30 };
+	private static final float[] tiersTRecharge = new float[] { 5, 15, 30 };
 	private static final float[] tiersPuissance = new float[] { 10, 50, 200 };
-	private static final float[] tiersRatioSize = new float[] { 3, 8, 12.5f };
+	private static final float[] tiersRatioSize = new float[] { 4, 8, 12.5f };
 	
 	private static PShape missile;
 	private static PImage missileImg;
@@ -39,34 +38,10 @@ public class MissileLauncher extends Weapon {
 	public PImage img() {
 		return missileImg;
 	}
-	
-	public void setTier(int tier) {
-		super.setTier(tier);
-		updateState();
-	}
-
-	public void setUpgradeRatio(float ratio) {
-		super.setUpgradeRatio(ratio);
-		updateState();
-	}
-	
-	private void updateState() {
-		setName("Missile launcher t"+tier());
-		sizeRatio = tiersRatioSize[tier] * Weapon.tiersRatioSize[tier] * upgradeRatio * sizeRatioFactor;
-		puissance = tiersPuissance[tier] * Weapon.tiersRatioSize[tier] * upgradeRatio;
-		tRecharge = PApplet.round(tiersTRecharge[tier] * tRechargeRatio / (Weapon.tiersRatioSize[tier]*upgradeRatio));
-	}
-
-	public void validate(Attributes attr) {
-		updateState();
-		super.validate(attr);
-	}
 
 	public boolean fire() {
 		if (tempsRestant > 0) {
 			indicateurErreur = Weaponry.tAffichageErreur;
-			if (Brabra.verbosity > 2)
-				System.out.println("encore "+tempsRestant+" frame(s) !");
 			return false;
 		} else {
 			tempsRestant = tRecharge;
@@ -75,17 +50,25 @@ public class MissileLauncher extends Weapon {
 		}
 	}
 
-	public class Missile extends Sphere {//Cube {
+	protected void updateState() {
+		setName("Missile launcher t"+tier());
+		sizeRatio = tiersRatioSize[tier] * Weapon.tiersRatioSize[tier] * upgradeRatio * sizeRatioFactor;
+		puissanceBase = tiersPuissance[tier] * Weapon.tiersRatioSize[tier];
+		tRecharge = PApplet.round(tiersTRecharge[tier] * tRechargeRatio / (Weapon.tiersRatioSize[tier]*upgradeRatio));
+	}
 
+	/** A missile that explode on collision and damage (life) the obstacle. */
+	public class Missile extends Sphere {//Cube {
+		
 		public Missile(PVector location, Quaternion rotation) {
 			super(location, rotation, sizeRatio);
 			//super(location, rotation, vec(sizeRatio*2, sizeRatio*2, sizeRatio*7));
-			setName("Missile t"+(tier())+" p"+PApplet.round(puissance));
+			setName("Missile t"+(tier())+" p("+PApplet.round(puissance)+")");
 			setMass(puissance);
-			setParent(launcher());
+			setParent(master());
 			setParentRel(ParentRelationship.None);
 			velocityRel.set(velocity());
-			setDisplayCollider(true);
+			setDisplayCollider(displayColliders());
 		}
 
 		public void display() {
@@ -102,12 +85,12 @@ public class MissileLauncher extends Weapon {
 		}
 
 		public void onCollision(Collider col, PVector impact) {
+			// explodes and disappears
 			game.scene.remove( this );
 			game.scene.add( new Effect.Explosion( impact, 30 ) );
-
-			//réaction objectif
-			if (col instanceof Objectif) {
-				((Objectif)col).damage(PApplet.round(puissance));
+			// to damage the targets
+			if (col instanceof Target) {
+				((Target)col).damage(PApplet.round(puissance));
 			}
 		}
 	}

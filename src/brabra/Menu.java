@@ -119,13 +119,13 @@ public class Menu extends Interface {
 
 		if (diffx > 0 && diffx < helpButtonSizeX && diffy > 0 && diffy < helpButtonSizeY) { //dans le bouton
 			onHelpButton = true;
-			etatInfo = PApplet.constrain(etatInfo + 1/app.frameRate, 0, ttransTotal);
+			etatInfo = constrain(etatInfo + 1/Brabra.frameRate, 0, ttransTotal);
 			etatGoesUp = true;
 		} else if (diffZonex > 0 && diffZonex < helpZoneSizeX && diffZoney > 0 && diffZoney < hzSizeY) { //dans la zone
-			etatInfo = PApplet.constrain(etatInfo + 1/app.frameRate, 0, ttransTotal);
+			etatInfo = constrain(etatInfo + 1/Brabra.frameRate, 0, ttransTotal);
 			etatGoesUp = true;
 		} else {
-			etatInfo = PApplet.constrain(etatInfo - 1/app.frameRate, 0, ttransTotal);
+			etatInfo = constrain(etatInfo - 1/Brabra.frameRate, 0, ttransTotal);
 			etatGoesUp = false;
 		}
 		

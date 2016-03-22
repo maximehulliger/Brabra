@@ -7,8 +7,7 @@ import java.util.regex.Matcher;
 
 import brabra.ProMaster;
 
-// --- Couleurs ---
-
+/** Represent a color to apply in processing (color & stroke). */
 public class Color extends ProMaster {
 	private static final Map<String, Color> colors = new HashMap<String, Color>() {
 		private static final long serialVersionUID = -4177973193569192575L;
@@ -22,13 +21,15 @@ public class Color extends ProMaster {
 			put("yellow", new Color(255,255,0,150));
 			put("pink", new Color(255, 105, 180));
 			put("blueDark", new Color(50, 100, 125));
+			put("none", new Color(0,0,0,0, 0,0,0,0));
 		}
 	};
-	
 	public static final Color basic = new Color("yellow", true);
 	
 	private final int[] c;
 	private final int[] s;
+	
+	// --- Initialization ---
 	
 	/**
 	 * understand 4 argument for a color: c, ca, rgb, rgba equivalent to:
@@ -67,6 +68,8 @@ public class Color extends ProMaster {
 		return new Color(c, get(stroke).c);
 	}
 	
+	// --- Usage ---
+	
 	/** applique la couleur primaire et le stroke si set */
 	public void fill() {
 		app.fill(c[0], c[1], c[2], c[3]);
@@ -75,6 +78,8 @@ public class Color extends ProMaster {
 		else
 			app.noStroke();
 	}
+	
+	// --- private ---
 	
 	private static Color get(String color) {
 		if (color == null) {

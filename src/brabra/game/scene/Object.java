@@ -69,14 +69,16 @@ public class Object extends ProMaster implements Debugable {
 	private boolean transformChanged = false, locationChanged = false, rotationChanged = false;
 	/** Indicate if the children changed. */
 	private boolean childrenChanged = false, childrenChangedCurrent = false;
+	/** Flag indicating if the object was ever validated via validate(Atts). */
+	private boolean validated = false;
 	
 	/** Create a Body with this location & rotation. rotation can be null. */
 	public Object(PVector location, Quaternion rotation) {
 		locationRel.setOnChange(() -> {absValid=false;});
 		rotationRel.setOnChange(() -> {absValid=false;});
-		locationAbs.setOnChange(() -> {});
+		//locationAbs.setOnChange(() -> {});
+		// we only set rel variables cause !absValid.
 		locationRel.set(location);
-		locationAbs.set(location);
 		if (rotation != null) {
 			rotationRel.set(rotation);
 		}
@@ -86,54 +88,57 @@ public class Object extends ProMaster implements Debugable {
 	public Object(PVector location) {
 		this(location, identity);
 	}
+	
+	// --- Methods to override if wanted (of course basically everything is ;) ) ---
 
 	/** Override it to display the object. */
 	public void display() {}
 	
 	/** Override it to validate the object when added from an xml file (after parent & children set). */
 	public void validate(Attributes atts) {
+		// parent first !
+		setParent(atts.parent());
+		final String parentRel = atts.getValue("parentRel");
+		if (parentRel != null)
+			setParentRel(ParentRelationship.fromString(parentRel));
+		// other attributes
 		final String name = atts.getValue("name");
 		if (name != null)
 			setName(name);
 		final String cameraMode = atts.getValue("camera");
 		if (cameraMode != null)
 			game.camera.set(this, cameraMode, atts.getValue("cameraDist"));
+		// focus: here because we want to do that with the children set.
+		final String focus = atts.getValue("focus");
+		if (focus != null && Boolean.parseBoolean(focus)) {
+			final String force = atts.getValue("force");
+			game.physicInteraction.setFocused(this, force != null ? Float.parseFloat(force) : -1);
+		}
 		final String debug = atts.getValue("debug");
 	  	if (debug != null && Boolean.parseBoolean(debug)) {
 	  		assert(!game.debug.followed.contains(this));
 	  		game.debug.followed.add(this);
 	  	}
+	  	validated = true;
 	}
 	
 	/** To display the state of the object in the console. */
 	public void displayState() {
-		debug.info(2, presentation()+" "+state(true, true, true, true));
+		debug.info(2, presentation()+" "+state(false));
 	}
 	
 	/** To react when the object is removed from the scene. should be called. */
 	public void onDelete() {
 		if (hasParent())
-			parent.children.remove(this);
+			parent.removeChild(this);
 	}
-	
-	// --- push & pop local ---
-	
-	/** 
-	 * push local to the object depending on the parent relationship. 
-	 * update the abs variables if needed (matrix & locationAbs). 
-	 **/
-	protected void pushLocal() {
-		updateAbs();
-		assert (!app.getMatrix().equals(new PMatrix3D())); //sinon app.resetMatrix();
-		app.pushMatrix();
-		app.applyMatrix(matrix);
+
+	/** Should be overriden for colliders at least. */
+	public float radiusEnveloppe() {
+		return 0;
 	}
-	
-	protected void popLocal() {
-		app.popMatrix();
-	}
-	
-	// --- Getters ---
+
+	// --- Simple getters ---
 
 	public boolean equals(java.lang.Object other) {
 		return other == this;
@@ -142,47 +147,19 @@ public class Object extends ProMaster implements Debugable {
 	public String toString() {
 		return name;
 	}
-
-	public boolean stateChanged() {
-		return transformChanged;
-	}
 	
-	public boolean childrenChanged() {
-		return childrenChanged;
-	}
-	
-	/** Return true if the absolute variables are valid (check the parent). */
-	protected boolean absValid() {
-		return (hasParent() && !parent.absValid()) ? false : absValid;
+	public boolean inScene() {
+		return game.scene.objects().contains(this);
 	}
 	
 	/** Return true if the object should consider his parent. */
 	public boolean hasParent() {
 		return parent != null && parentRel != ParentRelationship.None;
 	}
-	
+
 	/** Return the parent of the object (even if parentRel is None -> can be null). */
 	public Object parent() {
 		return parent;
-	}
-
-	/** Return the fist child (dfs) that satisfy the predicate, */
-	public Object childThat(Function<Object, Boolean> predicate) {
-		for (Object child : children) {
-			if (predicate.apply(child))
-				return child;
-			Object forChild = child.childThat(predicate);
-			if (forChild != null)
-				return forChild;
-		}
-		return null;
-	}
-
-	/** Return the fist parent that satisfy the predicate, */
-	public Object parentThat(Function<Object, Boolean> predicate) {
-		return hasParent() 
-				? (predicate.apply(parent()) ? parent() : parent().parentThat(predicate))
-				: null;
 	}
 
 	/** Return the absolute location of the object. update things if needed. */
@@ -202,6 +179,80 @@ public class Object extends ProMaster implements Debugable {
 		updateAbs();
 		return rotationAbs;
 	}
+
+	public boolean stateChanged() {
+		return transformChanged;
+	}
+
+	/** Return true if this object was validated once in his life. */
+	public boolean validated() {
+		return validated;
+	}
+
+	/** Return if the transforms of the object or one of his parent changed during last frame. */
+	public boolean transformChanged() { 
+		return transformChanged;
+	}
+
+	/** Return if the transforms of the object or one of his parent changed during last frame. */
+	public boolean locationChanged() { 
+		return locationChanged;
+	}
+
+	/** Return if the transforms of the object or one of his parent changed during last frame. */
+	public boolean rotationChanged() { 
+		return rotationChanged;
+	}
+
+	/** Return true if the children list was changed during last frame. */
+	public boolean childrenChanged() {
+		return childrenChanged;
+	}
+
+	/** Return true if the absolute variables are valid (check the parent). */
+	protected boolean absValid() {
+		return (hasParent() && !parent.absValid()) ? false : absValid;
+	}
+
+	/** return the presentation of the object with the name in evidence and the parent if exists. */
+	public String presentation() {
+		return "> "+this+" <" + (hasParent() ? " "+parentRel+" after \""+parent+"\"" : "");
+	}
+
+	public String getStateUpdate() {
+		if (stateChanged()) {
+			final String moveType = (locationAbs.hasChanged() ? "abs" : "")
+					+ ((locationAbs.hasChanged() && locationRel.hasChanged()) ? " + " : "")
+					+ (locationRel.hasChanged() ? "rel" : "");
+			final String transType = (rotationChanged ? "rot" : "")
+					+ ((rotationChanged && locationChanged) ? " + "+moveType : moveType);
+			final String changeName = "transforms("+transType+") changed";
+			final String changeStr = state(true);
+					
+			return presentation() + " " + changeName + " ---" + changeStr;
+		} else
+			return "";
+	}
+	
+	/** if onlyChange is false, return all the object's transforms for the console. */
+	protected String state(boolean onlyChange) {
+		boolean loc, vel, rot, rotVel;
+		if (onlyChange) {
+			loc = locationChanged;
+			vel = velocityRel.equals(zero);
+			rot = rotationChanged;
+			rotVel = rotationRelVel.isIdentity();
+		} else
+			loc = vel = rot = rotVel = false;
+		
+		return (loc ? "\nlocation: "+locationAbs : "")
+				+ (!hasParent() ? "" : "\nlocationRel: "+locationRel)
+				+ (vel ? "" : "\nvitesse rel: "+velocityRel+" -> "+velocityRel.mag()+" unit/frame.") 
+				+ (rot ? "\nrotation rel: "+rotationRel : "")
+				+ (rotVel	? "" : "\nvitesse Ang.: "+rotationRelVel);
+	}
+	
+	// --- Other getters ---
 	
 	/** Return the absolute velocity at the center of mass. */
 	public PVector velocity() {
@@ -220,23 +271,12 @@ public class Object extends ProMaster implements Debugable {
 			? velocity() : add(velocity(), rotationRelVel.rotAxisAngle().cross(posRel));
 	}
 	
-	public float radiusEnveloppe() {
-		return 0;
-	}
-
-	/** Return if the transforms of the object or one of his parent changed during last frame. */
-	public boolean transformChanged() { 
-		return transformChanged;
-	}
-
-	/** Return if the transforms of the object or one of his parent changed during last frame. */
-	public boolean locationChanged() { 
-		return locationChanged;
-	}
-
-	/** Return if the transforms of the object or one of his parent changed during last frame. */
-	public boolean rotationChanged() { 
-		return rotationChanged;
+	/** Return true if this is a children of other. */
+	public boolean isChildOf(Object parent) {
+		for (Object p=parent(); p!=null; p=p.parent())
+			if (p == parent) 
+				return true;
+		return false;
 	}
 
 	/** Return true if this has a parentRel link with other */
@@ -254,13 +294,23 @@ public class Object extends ProMaster implements Debugable {
 		return false;
 	}
 	
-	/** Return true if this is a children of other. */
-	public boolean isChildOf(Object parent) {
-		for (Object p=parent(); p!=null; p=p.parent()) {
-			if (p == parent)
-				return true;
+	/** Return the fist child (dfs) that satisfy the predicate, */
+	public Object childThat(Function<Object, Boolean> predicate) {
+		for (Object child : children) {
+			if (predicate.apply(child))
+				return child;
+			Object forChild = child.childThat(predicate);
+			if (forChild != null)
+				return forChild;
 		}
-		return false;
+		return null;
+	}
+
+	/** Return the fist parent that satisfy the predicate, */
+	public Object parentThat(Function<Object, Boolean> predicate) {
+		return hasParent() 
+				? (predicate.apply(parent()) ? parent() : parent().parentThat(predicate))
+				: null;
 	}
 
 	// --- Setters ---
@@ -323,15 +373,6 @@ public class Object extends ProMaster implements Debugable {
 			return false;
 	}
 	
-	/** Set the parent & parentRel... maybe. accepts everything without complain. :) */
-	public void setParentMaybe(Object newParent, String parentRel) {
-		if (newParent != this.parent) {
-			setParent(newParent);
-			if (parentRel != null)
-				setParentRel(ParentRelationship.fromString(parentRel));
-		}
-	}
-
 	/** parent should be set before. */
 	private void addChild(Object newChild) {
 		if (!children.contains(newChild)) {
@@ -351,11 +392,28 @@ public class Object extends ProMaster implements Debugable {
 			oldChild.absValid = false;
 		}
 	}
+
+	// --- push & pop local ---
 	
-	// --- update stuff (+transformChanged) ---
+	/** 
+	 * push local to the object depending on the parent relationship. 
+	 * update the abs variables if needed (matrix & locationAbs). 
+	 **/
+	protected void pushLocal() {
+		updateAbs();
+		assert (!app.getMatrix().equals(new PMatrix3D())); //sinon app.resetMatrix();
+		app.pushMatrix();
+		app.applyMatrix(matrix);
+	}
+	
+	protected void popLocal() {
+		app.popMatrix();
+	}
+	
+	// --- Update stuff (+transformChanged) ---
 
 	/** Called before all objects' update. */
-	public void beforeUpdate() {
+	protected void beforeUpdate() {
 		this.updated = false;
 		childrenChanged = childrenChangedCurrent;
 		childrenChangedCurrent = false;
@@ -367,7 +425,7 @@ public class Object extends ProMaster implements Debugable {
 	 * 	Should be called at first by children. 
 	 * 	Return true if the object was updated or false if it already was for this frame.
 	 **/
-	public boolean update() {
+	protected boolean update() {
 		if (hasParent() && !parent.updated) {
 			boolean pu = parent.update();
 			assert(pu);
@@ -472,38 +530,10 @@ public class Object extends ProMaster implements Debugable {
 			return false;
 	}
 	
-	/** return the presentation of the object with the name in evidence and the parent if exists. */
-	public String presentation() {
-		return "> "+this+" <" + (hasParent() ? " "+parentRel+" after \""+parent+"\"" : "");
-	}
-
-	public String getStateUpdate() {
-		if (stateChanged()) {
-			final String moveType = (locationAbs.hasChanged() ? "abs" : "")
-					+ ((locationAbs.hasChanged() && locationRel.hasChanged()) ? " + " : "")
-					+ (locationRel.hasChanged() ? "rel" : "");
-			final String transType = (rotationChanged ? "rot" : "")
-					+ ((rotationChanged && locationChanged) ? " + "+moveType : moveType);
-			final String changeName = "transforms("+transType+") changed";
-			final String changeStr = state(locationChanged, velocityRel.equals(zero),
-					rotationChanged, rotationRelVel.isIdentity());
-					
-			return presentation() + " " + changeName + " ---" + changeStr;
-		} else
-			return "";
-	}
-	
-	protected String state(boolean loc, boolean vel, boolean rot, boolean rotVel) {
-		return (loc ? "\nlocation: "+locationAbs : "")
-				+ (!hasParent() ? "" : "\nlocationRel: "+locationRel)
-				+ (vel ? "" : "\nvitesse rel: "+velocityRel+" -> "+velocityRel.mag()+" unit/frame.") 
-				+ (rot ? "\nrotation rel: "+rotationRel : "")
-				+ (rotVel	? "" : "\nvitesse Ang.: "+rotationRelVel);
-	}
-	
-	/** retourne l'orientation de l'objet (pour la camera) */
-	public PVector orientation() {
-		return absoluteDir(down);
+	/** Force this object to call update. */
+	public void forceUpdate() {
+		updated = false;
+		update();
 	}
 	
 	// --- conversion position local <-> *absolute* <-> relative ---
@@ -514,29 +544,28 @@ public class Object extends ProMaster implements Debugable {
 		return hasParent() ? parent.absolute(inParentSpace) : inParentSpace;
 	}
 
-	protected PVector relative(PVector posAbs) {
+	public PVector relative(PVector posAbs) {
 		return relative(hasParent() ? parent.relative(posAbs) : posAbs, locationRel, rotationRel);
 	}
 
-	protected PVector relativeFromLocal(PVector posLoc) {
+	public PVector relativeFromLocal(PVector posLoc) {
 		return relative(hasParent() ? parent.relative(posLoc) : posLoc, zero, rotationRel);
 	}
 
-	protected PVector local(PVector posAbs) {
+	public PVector local(PVector posAbs) {
 		return sub(posAbs, location());
 	}
 
-	protected PVector localFromRel(PVector posRel) {
+	public PVector localFromRel(PVector posRel) {
 		return absolute(posRel, zero, rotationRel);
 	}
 	
 	/** Retourne la position absolue de posLoc, un point local au body. */
 	public PVector absoluteFromLocal(PVector posLoc) {
-		//return hasParent() ? parent.absolute(absolute(posLoc, locationRel, rotationRel)) : posLoc;
 		return add( location(), posLoc );
 	}
 	
-	// --- conversion direction local <-> *absolute* <-> relative ---
+	// --- direction conversion: local <-> *absolute* <-> relative ---
 	
 	/** Return the absolute direction from a relative direction in the body space. result is only rotated -> same norm. */
 	public PVector absoluteDir(PVector dirRel) {
@@ -551,10 +580,9 @@ public class Object extends ProMaster implements Debugable {
 
 	/** Return the relative direction in the body body space from an absolute direction. result is only rotated -> same norm. */
 	public PVector relativeDir(PVector dirAbs) {
-		if (hasParent())
-			return relative(parent.relativeDir(dirAbs), zero, rotationRel);
-		else
-			return relative(dirAbs, zero, rotationRel);
+		return hasParent() 
+				? relative(parent.relativeDir(dirAbs), zero, rotationRel) 
+				: relative(dirAbs, zero, rotationRel);
 	}
 
 	/** Return the local direction in the object space from an absolute direction. result is only rotated -> same norm. */

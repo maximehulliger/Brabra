@@ -48,10 +48,10 @@ public class Master {
 	/** [min, max] => [0, 1] */
 	protected static float clamp(float val, float min, float max, boolean constrain) {
 		if (constrain)
-			val = PApplet.constrain(val, min, max);
+			val = constrain(val, min, max);
 		return (val - min)/(max - min);
 	}
-	
+
 	/** [min, max] */
 	protected static float random(float min, float max) {
 		return min + (max-min) * random.nextFloat();
@@ -155,6 +155,14 @@ public class Master {
 			return -1;
 	}
 	
+	protected static int abs(int i) {
+		return i<0 ? -i : i;
+	}
+	
+	protected static float abs(float f) {
+		return f<0 ? -f : f;
+	}
+	
 	/** a random value in [-1, 1] */ 
 	protected static float randomBi() {
 		return random(-1, 1);
@@ -184,7 +192,21 @@ public class Master {
 		return a>b ? a : b;
 	}
 
-	/** retourne true si v E [min, max] */
+	/** return v in [min, max]. */
+	protected static int constrain(int v, int min, int max) {
+		if (v < min) 		return min;
+		else if (v > max) 	return max;
+		else 				return v;
+	}
+
+	/** return v in [min, max]. */
+	protected static float constrain(float v, float min, float max) {
+		if (v < min) 		return min;
+		else if (v > max) 	return max;
+		else 				return v;
+	}
+
+	/** return true if v is in [min, max] */
 	protected static boolean isConstrained(float v, float min, float max) {
 		return v>=min && v<=max;
 	}

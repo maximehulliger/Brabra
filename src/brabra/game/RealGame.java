@@ -26,6 +26,15 @@ public class RealGame extends Interface {
 		ProMaster.game = this;
 	}
 
+	public void setRunning(boolean running) {
+		if (running != this.running) {
+			this.running = running;
+			debug.info(1, "game " + (running ? "running !" : "paused :)"));
+		}
+	}
+		
+	// --- life cycle ---
+	
 	public void init() {
 		clearConsole();
 		debug.info(0, "loading scene");
@@ -64,10 +73,6 @@ public class RealGame extends Interface {
 		game.debug.setCurrentWork("user events");
 	}
 
-	public String state() {
-		return running ? "running !" : "paused :)";
-	}
-		
 	// --- events ---
 	
 	public void keyPressed() {
@@ -116,13 +121,6 @@ public class RealGame extends Interface {
 			 playOnFocus = running;
 			 setRunning(false);
 		 }
-	}
-	
-	public void setRunning(boolean running) {
-		if (running != this.running) {
-			this.running = running;
-			debug.info(1, "physic " + state());
-		}
 	}
 	
 	// --- Game debug ---

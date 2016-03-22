@@ -17,7 +17,7 @@ This augmented reality project was initially developed for the course
 CS-211 "Introduction to visual computing" given in 2014-2015 at EPFL.
 
 ###### Featuring:
-- Processing 3, Java 8, Java FX and ready for Scala
+- Processing 3, Java 8, JavaFX and ready for Scala
 - 3D interactive physic simulation
 - A starship shooting missiles
 - Dynamic scene initialization
@@ -30,12 +30,30 @@ CS-211 "Introduction to visual computing" given in 2014-2015 at EPFL.
 # 1.	Real Game
 The key interface of the project :D
 
+It display the view of the scene from a camera. The scene contains all the simulated objects. 
+
 - *q*, *r*     ->  restart the game
 - <_tab_>	   ->  change the camera mode
 
 <br>
 
-#### Focused object
+#### Scene
+The existing objects are separated in 4 main category (Just an object is standalone too): 
+- Camera
+- Body
+- Effect
+- Weaponry, weapons
+
+#### Camera
+The camera can work in several modes and follow a particular object.
+
+modes: ***fixed, static, relative***.
+
+each mode has his own distance from the looked point.
+
+<br>
+
+#### Focused object/body
 You can focus your interaction on an object or body. 
 
 - *e*        ->  shoot the biggest ready missile (if available)
@@ -47,24 +65,21 @@ You can focus your interaction on an object or body.
 
 <br>
 
-#### Camera
-The camera can work in several modes and follow a particular object.
-
-modes: ***fixed, static, relative***.
-
-each mode has his own distance from the looked point.
-
-<br>
-
 #### Scene initialization
 You will find an input file "Brabra/bin/input/scene.xml" to configure the initialization 
 of the scene's objects and parameters (camera, physic). To reload the file, restart the game with *q* or *r*.
 
-supported object names: ***floor, ball, box, objectif, starship***.
+supported parameters: <i>**physic**: gravity, deltaTime. **camera**: displaySkybox, displayAxis, displayCentralPoint, [mode, dist]</i>
 
-supported attributes: ***pos, dir, mass, name, impluse, [color, stroke], life, camera, cameraDist, focus***.
+supported object names: ***object, floor, ball, box, starship :rocket:, target***.
 
-supported parameters: <i>**physic**: gravity, deltaTime. **camera**: displaySkybox, displayAxis, [mode, dist]</i>
+supported object attributes: ***pos, dir, parency, mass, name, impluse, life, [color, (stroke)], [camera, (cameraDist)], [focus, (force)], displayColliders, debug***.
+
+supported object names: ***floor, ball, box, starship, target***.
+
+supported weaponry attributes: <i>**weaponry**: prefab, displayColliders, puissance. **weapon**: tier, upgradeRatio, puissance</i>
+
+supported weapon names: ***missile_launcher***
 
 file example with all supported attributes:
 
@@ -101,6 +116,10 @@ In option, it also detects two buttons on each side of the plate.
 - rotation       ->  turn the focused object around
 - left button	 ->  go forward, brake if not visible
 - right button   ->  shoot missiles bigger with the visibility
+
+example plate:
+
+![Example plate with 2 buttons](Brabra/plate example.jpg)
 
 <br>
 
