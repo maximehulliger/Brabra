@@ -3,8 +3,10 @@ package brabra.game.physic.geo;
 import brabra.ProMaster;
 import processing.core.PApplet;
 import processing.core.PVector;
+import brabra.game.Observable.NQuaternion;
 
 public class Quaternion extends ProMaster {
+	
 	public static final Quaternion identity = new NQuaternion(new Quaternion(), 
 			() -> { throw new IllegalArgumentException("pas touche à l'identity /!\\"); });
 	public static final Quaternion toTurnAround = new Quaternion(up, PApplet.PI);

@@ -6,6 +6,8 @@ import java.util.function.Function;
 
 import brabra.ProMaster;
 import brabra.Debug.Debugable;
+import brabra.game.Observable.NQuaternion;
+import brabra.game.Observable.NVector;
 import brabra.game.XMLLoader.Attributes;
 import brabra.game.physic.geo.Line;
 import brabra.game.physic.geo.Quaternion;

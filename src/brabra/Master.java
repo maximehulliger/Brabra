@@ -16,7 +16,8 @@ import processing.core.PApplet;
  * Provide a lot of useful methods, mostly syntactic sugar. 
  * Free to use once extended :) 
  * */
-public class Master {
+public abstract class Master {
+	
 	protected static final Pattern floatPattern = Pattern.compile("[+-]?\\d+[.]?\\d*");
 	protected static final Pattern intPattern = Pattern.compile("[+]?\\d+");
 	protected static final Random random = new Random();

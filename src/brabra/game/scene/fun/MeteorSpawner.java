@@ -47,14 +47,14 @@ public final class MeteorSpawner extends Effect {
 	public void popMeteor() {
 		if (nbMeteor < nbMeteorMax) {
 			int idxStartFace = random.nextInt(6);
-			PVector startPos = spawnCage.faces[idxStartFace].randomPoint();
+			PVector startPos = spawnCage.planes()[idxStartFace].randomPoint();
 			PVector goal;
 			if (randomMeteorCounter++ >= ratioRandomToPlayer) { //temps de viser le joueur
 				goal = parent().location();
 				randomMeteorCounter = 0;
 			} else {
 				int toOtherSideIdx = (idxStartFace%2 == 0 ? 1 : -1);
-				goal = spawnCage.faces[idxStartFace + toOtherSideIdx].randomPoint();
+				goal = spawnCage.planes()[idxStartFace + toOtherSideIdx].randomPoint();
 			}
 			game.scene.add( new Meteor(startPos, goal) );
 			nbMeteor++;

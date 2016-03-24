@@ -6,7 +6,7 @@ import java.util.Set;
 import java.util.TreeSet;
 
 /** Utilitary class to debug with class ;) take verbosity from TangibleGame. */
-public class Debug {
+public class Debug extends ProMaster {
 	private static final String debugLine = " > ";
 	private static final String msgLine = " ( ";
 	
@@ -70,7 +70,7 @@ public class Debug {
 	
 	/** Print a message only once. (remembers) */
 	public void once(int verbMin, String s) {
-		if (Brabra.verbosity >= verbMin && !onceMem.contains(s)) {
+		if (app.verbosity >= verbMin && !onceMem.contains(s)) {
 			onceMem.add(s);
 			msg(verbMin, s);
 		}
@@ -100,7 +100,7 @@ public class Debug {
 	}
 	
 	private void print(int verbMin, String s, String msgType, String line, boolean error) {
-		if (!testMode && !s.equals("") && Brabra.verbosity >= verbMin) {
+		if (!testMode && !s.equals("") && app.verbosity >= verbMin) {
 			if (noPrint) {
 				if (verbMin < Brabra.verbMax && !work.equals(lastWork) && !work.equals(lastLastWork)) {
 					final String frameCount;

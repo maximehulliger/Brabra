@@ -34,6 +34,8 @@ public class Plane extends PseudoPolyedre {
 		this.finite = false;
 		setName("Plane");
 	}
+	
+	// --- Getters --- 
 
 	/** Return the normal of the plane (starting in the plane). */
 	public Line normale() {

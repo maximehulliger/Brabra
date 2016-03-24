@@ -72,7 +72,6 @@ public class ProTest extends ProMaster {
 		}
 		
 		public void setup() {
-			setupGame();
 			frame.setVisible(false);
 			setView(View.None);
 		}

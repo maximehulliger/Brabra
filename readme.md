@@ -23,7 +23,7 @@ CS-211 "Introduction to visual computing" given in 2014-2015 at EPFL.
 - Dynamic scene initialization
 - Image analysis for quad detection (bugged for now)
 
-*For developers, see also the [readmeDev](readmeDev.md) file.*
+*For developers, see also the [readmeDev](dev/readmeDev.md) file.*
 
 <br>
 
@@ -32,8 +32,8 @@ The key interface of the project :D
 
 It display the view of the scene from a camera. The scene contains all the simulated objects. 
 
-- `*q*`, `*r*`	=>  restart the game
-- `<_tab_>`	   	=>  change the camera mode
+- `q`, `r`	=>  restart the game
+- `<tab>`	   	=>  change the camera mode
 
 <br>
 
@@ -48,24 +48,24 @@ The existing objects are separated in 4 main category (Just an object is standal
 The camera is an object that carry the camera in the scene.
 It can work in several modes and follow a particular object (focused).
 
-- **fixed**: look at zero., static, relative***.
+- **fixed**: look at zero.
 - **static**: look at the location of the focused.
 - **relative**: look from the parent perspective (follow his rotation too).
 
 Each mode has his own distance from the focused (looked) point.
 
-press `<_tab_>` to change the camera mode.
+press `<tab>` to change the camera mode.
 
 <br>
 
 #### Focused object/body
 You can focus your interaction on an object or body. 
 
-- `*e*`       	=>  shoot the biggest ready missile (if available)
-- `*w*`, `*s*` =>  go forward / backward
-- `<_alt_>`		=>	brake
+- `e`       	=>  shoot the biggest ready missile (if available)
+- `w`, `s` =>  go forward / backward
+- `<alt>`		=>	brake
 - `space`   	=>  unbrake (less brake)
-- mouse drag, `*a*`, `*d*`
+- mouse drag, `a`, `d`
 				=>  turn the object around
 - scroll wheel 	=>  change the interaction force
 
@@ -73,7 +73,7 @@ You can focus your interaction on an object or body.
 
 #### Scene initialization
 You will find an input file `Brabra/bin/input/scene.xml` to configure the initialization 
-of the scene's objects and parameters: camera and physic(in settings). To reload the file, restart the game with `*q*` or `*r*`.
+of the scene's objects and parameters: camera and physic(in settings). To reload the file, restart the game with `q` or `r`.
 
 supported parameters: <i>**settings**: gravity, deltaTime. **camera**: displaySkybox, displayAxis, displayCentralPoint, [mode, dist]</i>
 
@@ -141,7 +141,7 @@ In option, it also detects two buttons on each side of the plate.
 
 example plate:
 
-![Example plate with 2 buttons](Brabra/plate_example.jpg)
+![Example plate with 2 buttons](plate_example.jpg)
 
 <br>
 
@@ -168,8 +168,16 @@ displayed in the upper left corner of the window reporting what the software see
 
 <br>
 
-# 4. 	Contact
+# 4. 	Contact, contributors
 
-<br>
+Maxime Hulliger, `hulliger@epfl.ch`
 
-Maxime Hulliger, hulliger@epfl.ch
+######Contributors
+
+Boris
+
+Mathieu Girard
+
+Max Turpenteim, `maxtu@kth.se`
+
+Kei japan `Kei@kth.se`

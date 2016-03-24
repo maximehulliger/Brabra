@@ -8,39 +8,46 @@ import processing.core.*;
 public class Cube extends PseudoPolyedre {
 	
 	/** Total size (local). */
-	public final PVector size;
+	private PVector size;
 	/** Size / 2. */
-	public final PVector dim;
-	public final Plane[] faces;
+	private PVector dim;
+	private Plane[] faces;
 	/** Vertices relative to the object. */
-	private final PVector[] verticesRel;
+	private PVector[] verticesRel;
 	/** Edges relative to the object. */
-	private final Line[] edgesRel;
+	private Line[] edgesRel;
 
 	/** Create a cube with arretes of lenght dim. */
 	public Cube(PVector location, Quaternion rotation, PVector size) {
 	    super(location, rotation, size.mag()/2);
 	    super.setName("Cube");
-	    this.size = size;
+	    setSize(size);
+	}
+	
+	// --- Getters ---
+
+	public PVector size() {
+		return size;
+	}
+
+	public PVector dim() {
+		return dim;
+	}
+
+	public Plane[] planes() {
+		return faces;
+	}
+	
+	// --- Setters ---
+	
+	public void setSize(PVector size) {
+		this.size = size;
 	    this.dim = mult(size, 0.5f);
 		this.faces = getFaces(size, this);
 		this.verticesRel = verticesRel(dim);
 	    this.edgesRel = edgesRel(verticesRel);
 	}
-
-	public void display() {
-		pushLocal();
-		if (!displayColliderMaybe()) {
-			color.fill();
-			displayCollider();
-		}
-		popLocal();
-	}
 	
-	public void displayCollider() {
-		app.box(size.x, size.y, size.z);
-	}
-
 	public void setMass(float mass) {
 		super.setMass(mass);
 		if (inverseMass > 0) {
@@ -55,6 +62,22 @@ public class Cube extends PseudoPolyedre {
 					1/inertiaMom.z );
 		}
 	}
+	
+	// --- life cycle ---
+
+	public void display() {
+		pushLocal();
+		if (!displayColliderMaybe()) {
+			color.fill();
+			displayCollider();
+		}
+		popLocal();
+	}
+	
+	public void displayCollider() {
+		app.box(size.x, size.y, size.z);
+	}
+
 
 	public boolean updateAbs() {
 		if (super.updateAbs()) {

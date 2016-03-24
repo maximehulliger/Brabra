@@ -12,7 +12,6 @@ import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.DefaultHandler;
 
 import brabra.ProMaster;
-import brabra.Brabra;
 import brabra.game.physic.Collider;
 import brabra.game.physic.geo.Quaternion;
 import brabra.game.scene.Object;
@@ -94,11 +93,11 @@ public final class XMLLoader extends ProMaster {
 		final String verbosity = atts.getValue("verbosity");
 		if (verbosity != null) {
 			if (verbosity.equals("max") || verbosity.equals("all"))
-				Brabra.verbosity = Integer.MAX_VALUE;
+				app.verbosity = Integer.MAX_VALUE;
 			else if (verbosity.equals("min") || verbosity.equals("silence") || verbosity.equals("none"))
-				Brabra.verbosity = Integer.MIN_VALUE;
+				app.verbosity = Integer.MIN_VALUE;
 			else
-				Brabra.verbosity = Integer.parseInt(verbosity);
+				app.verbosity = Integer.parseInt(verbosity);
 		}
 		final String displayAllColliders =  atts.getValue("displayAllColliders");
 		if (displayAllColliders != null)

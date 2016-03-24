@@ -32,7 +32,7 @@ public class Color extends ProMaster {
 	// --- Initialization ---
 	
 	/**
-	 * understand 4 argument for a color: c, ca, rgb, rgba equivalent to:
+	 * understand 4 arguments for a color: wether c, ca, rgb or rgba equivalent to:
 	 * (c,c,c,255), (c,c,c,a), (r,g,b,255), or (r,g,b,a).
 	 * If more than 4 arguments, the rest set the stroke in a similar way.
 	 */

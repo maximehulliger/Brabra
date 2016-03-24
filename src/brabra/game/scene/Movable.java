@@ -1,5 +1,7 @@
 package brabra.game.scene;
 
+import brabra.game.Observable.NQuaternion;
+import brabra.game.Observable.NVector;
 import brabra.game.physic.geo.Quaternion;
 import processing.core.PVector;
 
@@ -16,7 +18,7 @@ public class Movable extends Object {
 
 	/** Indicates if the object was moving last frame. */
 	private boolean moving = false, rotating = false;
-
+	
 
 	public Movable(PVector location, Quaternion rotation) {
 		super(location, rotation);

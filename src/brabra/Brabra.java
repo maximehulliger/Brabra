@@ -20,7 +20,7 @@ public class Brabra extends PApplet {
 	
 	//--- parametres
 	/** [1-6]: user[1-3], dev[4-verbMax]. atm: verbMax. */
-	public static int verbosity = 6;
+	public int verbosity = 6;
 	/** Verbosity for one object debug. */
 	public static final int verbMax = 6;
 	/** Max tilt in radians that will be taken in account for the plate (detection) */
@@ -30,7 +30,7 @@ public class Brabra extends PApplet {
 	/** Frame per seconds wished by Brabra. */
 	public static final float frameRate = 30;
 	/** Indicates if this should be activated on start. */
-	protected boolean imgAnalysis = false, toolWindow = false;
+	protected boolean imgAnalysis = false, toolWindow = true;
 	
 	//--- public
 	public final Debug debug = new Debug();
@@ -54,6 +54,8 @@ public class Brabra extends PApplet {
 	}
 	
 	public Brabra() {
+		ProMaster.app = this;
+		// for window location
 		GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
 		windowLoc = new PVector((gd.getDisplayMode().getWidth() - width) / 2,
        			(gd.getDisplayMode().getHeight() - height) / 3);
@@ -81,17 +83,8 @@ public class Brabra extends PApplet {
         windowLoc.sub(insets.left, insets.top);
 		
         // 2. our stuff
-		setupGame();
 		setView(View.RealGame);
-		// show second window if needed
-		setToolWindow(toolWindow);
-	}
-
-	/** setup all our stuff. */
-	protected void setupGame() {
-		ProMaster.app = this;
-		ToolWindow.app = this;
-		setImgAnalysis(imgAnalysis);
+        setImgAnalysis(imgAnalysis);
 		setToolWindow(toolWindow);
 	}
 	
@@ -209,11 +202,7 @@ public class Brabra extends PApplet {
 			setInterface(intCalibration);
 			return;
 		case RealGame:
-			if (intRealGame == null) {
-				intRealGame = new RealGame();
-				intRealGame.init();
-			}
-			setInterface(intRealGame);
+			setInterface(game());
 			return;
 		case TrivialGame:
 			if (intTrivialGame == null) {
@@ -231,6 +220,14 @@ public class Brabra extends PApplet {
 			setInterface(intNone);
 			return;
 		}
+	}
+	
+	public RealGame game() {
+		if (intRealGame == null) {
+			intRealGame = new RealGame();
+			intRealGame.init();
+		}
+		return (RealGame)intRealGame;
 	}
 
 	//-------- Gestion Evenements

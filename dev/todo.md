@@ -10,8 +10,8 @@
 - add size xml support for geo shapes.
 - dont stop rotating
 
-### hard/?
-- export.bat
+### hard/?0'
+- export.bats
 
 <br>
 
