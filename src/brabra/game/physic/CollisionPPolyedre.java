@@ -1,7 +1,7 @@
 package brabra.game.physic;
 
 import brabra.game.physic.geo.Line;
-import processing.core.PVector;
+import brabra.game.physic.geo.Vector;
 
 public class CollisionPPolyedre extends Collision {
 	private final PseudoPolyedre p1, p2;
@@ -13,28 +13,27 @@ public class CollisionPPolyedre extends Collision {
 	}
 
 	public void resolve() {
-		if (!areCollidingFast(collider, obstacle))
+		if (!areCollidingFast(c1, c2))
 			return;
 		
 		//vecteurs relatifs normalisé
-		PVector p1Top2 = PVector.sub( p2.location(), p1.location() ); //TODO normale d'une face !
-		p1Top2.normalize();
-		PVector p2Top1 = PVector.mult( p1Top2, -1 );
+		Vector p1Top2 = p2.location().minus(p1.location()).normalized(); //TODO normale d'une face !
+		Vector p2Top1 = p1Top2.multBy(-1);
 		
 		//1. si un point est en collision / une face
-		PVector pCont1 = p1.pointContre(p2Top1); //point de p1 vers p2
-		PVector pCont2 = p2.pointContre(p1Top2);
+		Vector pCont1 = p1.pointContre(p2Top1); //point de p1 vers p2
+		Vector pCont2 = p2.pointContre(p1Top2);
 		if (p2.isIn(pCont1)) {
 			impact = p2.projette(pCont1);
 			Line colLine = p2.collisionLineFor(impact);
 			norm = colLine.norm;
-			correction = PVector.sub(impact, pCont1);
+			correction = impact.minus(pCont1);
 			nulle = false;
 		} else if (p1.isIn(pCont2)) {
 			impact = p1.projette(pCont2);
 			Line colLine = p1.collisionLineFor(impact);
 			norm = colLine.norm;
-			correction = PVector.sub(impact, pCont2);
+			correction = impact.minus(pCont2);
 			nulle = false;
 		}
 		
@@ -45,8 +44,8 @@ public class CollisionPPolyedre extends Collision {
 		
 		Line colLine = obstacle.collisionLineFor(sphere.location);
 		norm = colLine.norm;
-		PVector contact = sphere.projette(impact);
-		correction = PVector.sub(impact, contact);
+		Vector contact = sphere.projette(impact);
+		correction = Vector.sub(impact, contact);
 		nulle = false;*/
 	}
 }

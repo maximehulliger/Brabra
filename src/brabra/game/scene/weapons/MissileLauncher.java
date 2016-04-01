@@ -3,10 +3,10 @@ package brabra.game.scene.weapons;
 import brabra.game.physic.Collider;
 import brabra.game.physic.geo.Quaternion;
 import brabra.game.physic.geo.Sphere;
+import brabra.game.physic.geo.Vector;
 import brabra.game.scene.Effect;
 import processing.core.PImage;
 import processing.core.PShape;
-import processing.core.PVector;
 
 /** A weapon shooting missiles. */
 public class MissileLauncher extends Weapon {
@@ -20,7 +20,7 @@ public class MissileLauncher extends Weapon {
 	
 	private final MissileLauncher launcher;
 	
-	public MissileLauncher(PVector loc, Quaternion rot) {
+	public MissileLauncher(Vector loc, Quaternion rot) {
 		super(loc, rot, tiersPuissance.length);
 		this.setTier(1);
 		this.launcher = this;
@@ -69,7 +69,7 @@ public class MissileLauncher extends Weapon {
 			super.setMass(puissance);
 			super.setParent(master().parent());
 			super.setParentRel(ParentRelationship.None);
-			super.velocityRel.set(launcher.velocity());
+			super.setVelocityRel(launcher.velocity());
 			super.setDisplayCollider(displayColliders());
 			
 		}
@@ -87,7 +87,7 @@ public class MissileLauncher extends Weapon {
 			avance( puissance()*3 );
 		}
 
-		public void onCollision(Collider col, PVector impact) {
+		public void onCollision(Collider col, Vector impact) {
 			// explodes and disappears
 			game.scene.remove( this );
 			game.scene.add( new Effect.Explosion( impact, 30 ) );

@@ -6,10 +6,10 @@ import java.util.Comparator;
 import java.util.List;
 
 import brabra.ProMaster;
+import brabra.game.physic.geo.Vector;
 import processing.core.PApplet;
 import processing.core.PGraphics;
 import processing.core.PImage;
-import processing.core.PVector;
  
 public class HoughLine extends ProMaster {
 	private static final float discretizationStepsPhi = 0.06f;
@@ -30,7 +30,7 @@ public class HoughLine extends ProMaster {
 	private static float[] cosTab = null;
 	private int[] accumulator;
 	public List<Line> lines = new ArrayList<Line>();;
-	public PVector[] quad;
+	public Vector[] quad;
 	
 	public HoughLine(PImage edgeImg, PApplet app) {
 		this.app = app;
@@ -104,8 +104,8 @@ public class HoughLine extends ProMaster {
 		quad = getQuad();
 	}
 	
-	public ArrayList<PVector> quad() {
-		ArrayList<PVector> ret = new ArrayList<PVector>();
+	public ArrayList<Vector> quad() {
+		ArrayList<Vector> ret = new ArrayList<Vector>();
 		ret.add(quad[0]); ret.add(quad[1]); ret.add(quad[2]); ret.add(quad[3]);
 		return ret;
 	}
@@ -164,7 +164,7 @@ public class HoughLine extends ProMaster {
 	}
 	
 	//retourne les 4 coins d'un quad valide à partir des lignes, ou null si pas de quad valide détecté.
-	private PVector[] getQuad() {
+	private Vector[] getQuad() {
 		if (lines.size() < 4)
 			return null;	
 		
@@ -176,16 +176,16 @@ public class HoughLine extends ProMaster {
 			Line l2 = lines.get(quad[1]);
 			Line l3 = lines.get(quad[2]);
 			Line l4 = lines.get(quad[3]);
-			PVector c12 = l1.intersection(l2);
-			PVector c23 = l2.intersection(l3);
-			PVector c34 = l3.intersection(l4);
-			PVector c41 = l4.intersection(l1);
+			Vector c12 = l1.intersection(l2);
+			Vector c23 = l2.intersection(l3);
+			Vector c34 = l3.intersection(l4);
+			Vector c41 = l4.intersection(l1);
 			
 			//filter quads
 			if (QuadGraph.validArea(c12, c23, c34, c41, 170_000, 6_000) &&
 					QuadGraph.isConvex(c12, c23, c34, c41)){ //&&
 					//QuadGraph.nonFlatQuad(c12, c23, c34, c41)) {
-						return new PVector[] {c12, c23, c34, c41};
+						return new Vector[] {c12, c23, c34, c41};
 			}
 		}
 		return null;
@@ -207,11 +207,11 @@ public class HoughLine extends ProMaster {
 			this.sinPhi = sinTab[iPhi];
 		}
 		
-		public PVector intersection(Line other) {
+		public Vector intersection(Line other) {
 			float d = other.cosPhi*this.sinPhi - this.cosPhi*other.sinPhi;
 			int x = Math.round((other.r*this.sinPhi - this.r*other.sinPhi)/d);
 			int y = Math.round(-(other.r*this.cosPhi - this.r*other.cosPhi)/d);
-			return new PVector(x, y);
+			return new Vector(x, y);
 		}
 	}
 

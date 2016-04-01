@@ -4,9 +4,12 @@ import java.util.regex.Matcher;
 
 import brabra.game.Color;
 import brabra.game.RealGame;
+import brabra.game.physic.Physic;
 import brabra.game.physic.geo.Quaternion;
 import processing.core.PApplet;
-import processing.core.PVector;
+import brabra.game.physic.geo.Vector;
+import brabra.game.scene.Camera;
+
 
 /** 
  * An abstract class mastering Processing. 
@@ -14,25 +17,24 @@ import processing.core.PVector;
  * Free to use once extended :) 
  * */
 public abstract class ProMaster extends Master {
-	protected static final float epsilon = 1E-5f;
 	
 	protected static Brabra app;
 	protected static RealGame game;
 	
 	// --- some constants ---
 	
-	protected static final PVector zero = new PVector(0, 0, 0);
+	protected static final Vector zero = Vector.zero;
 	protected static final String[] directions = new String[] {
 			"front", "behind", "up", "down", "right", "left" };
-	protected static final PVector left = new PVector(1, 0, 0);
-	protected static final PVector right = new PVector(-1, 0, 0);
-	protected static final PVector up = new PVector(0, 1, 0);
-	protected static final PVector down = new PVector(0, -1, 0);
-	protected static final PVector front = new PVector(0, 0, -1);
-	protected static final PVector behind = new PVector(0, 0, 1);
+	protected static final Vector left = new Vector(1, 0, 0);
+	protected static final Vector right = new Vector(-1, 0, 0);
+	protected static final Vector up = new Vector(0, 1, 0);
+	protected static final Vector down = new Vector(0, -1, 0);
+	protected static final Vector front = new Vector(0, 0, -1);
+	protected static final Vector behind = new Vector(0, 0, 1);
 	protected static final Quaternion identity = Quaternion.identity;
-	protected static final float small = 0.05f;
-	protected static final float far = 10_000;
+	protected static final float close = Camera.close;
+	protected static final float far = Camera.far;
 	protected static final float pi = PApplet.PI;
 	protected static final float halfPi = PApplet.HALF_PI;
 	protected static final float twoPi = PApplet.TWO_PI;
@@ -40,16 +42,16 @@ public abstract class ProMaster extends Master {
 	
 	// --- General syntactic sugar ---
 
-	protected void line(PVector v1, PVector v2) {
+	protected void line(Vector v1, Vector v2) {
 		app.line(v1.x,v1.y,v1.z,v2.x,v2.y,v2.z);
 	}
 
-	protected void line(PVector v1, PVector v2, Color color) {
+	protected void line(Vector v1, Vector v2, Color color) {
 		color.fill();
 		line(v1, v2);
 	}
 	
-	protected void sphere(PVector pos, float radius, Color color) {
+	protected void sphere(Vector pos, float radius, Color color) {
 		app.pushMatrix();
 		translate(pos);
 		color.fill();
@@ -61,96 +63,90 @@ public abstract class ProMaster extends Master {
 		return PApplet.round(f);
 	}
 
-	// --- PVector syntactic sugar ---
+	// --- Vector syntactic sugar ---
 
-	protected static PVector vec(float x, float y, float z) {
-		return new PVector(x, y, z);
+	protected static Vector vec(float x, float y, float z) {
+		return new Vector(x, y, z);
 	}
 	
-	protected static PVector vec(float x, float y) {
-		return new PVector(x, y);
-	}
-	
-	protected static PVector normalized(PVector p) {
-		PVector pp = p.copy();
-		return pp.normalize();
+	protected static Vector vec(float x, float y) {
+		return new Vector(x, y, 0);
 	}
 	
 	/** Add dome vectors. */
-	public static PVector add(PVector... v) {
+	protected static Vector add(Vector... v) {
 		if (v.length <= 1)
 			throw new IllegalArgumentException("add at least 2 vectors !");
-		else if (v.length == 2)
-			return PVector.add(v[0], v[1]);
 		else {
-			PVector ret = zero.copy();
-			for (PVector vec : v)
-				ret.add(vec);
-			return ret;
+			return zero.copy().add(v);
 		}	
 	}
 	
-	public static PVector sub(PVector v1, PVector v2) {
-		return PVector.sub(v1, v2);
-	}
-
-	public static PVector mult(PVector v1, float f) {
-		return PVector.mult(v1, f);
-	}
-
-	protected static PVector front(float lenght) { 
-		return mult(front, lenght); 
+	protected static Vector front(float lenght) { 
+		return front.multBy(lenght); 
 	}
 	
-	protected static PVector behind(float lenght) { 
-		return mult(behind, lenght); 
+	protected static Vector behind(float lenght) { 
+		return behind.multBy(lenght); 
 	}
 	
-	protected static PVector up(float lenght) { 
-		return mult(up, lenght); 
+	protected static Vector up(float lenght) { 
+		return up.multBy(lenght); 
 	}
 
-	protected static PVector down(float lenght) { 
-		return mult(down, lenght); 
+	protected static Vector down(float lenght) { 
+		return down.multBy(lenght); 
 	}
 	
-	protected static PVector right(float lenght) { 
-		return mult(right, lenght); 
+	protected static Vector right(float lenght) { 
+		return right.multBy(lenght); 
 	}
 
-	protected static PVector left(float lenght) { 
-		return mult(left, lenght); 
+	protected static Vector left(float lenght) { 
+		return left.multBy(lenght); 
 	}
 
-	protected static PVector x(float lenght) { 
+	protected static Vector x(float lenght) { 
 		return vec(lenght,0,0); 
 	}
 	
-	protected static PVector y(float lenght) { 
+	protected static Vector y(float lenght) { 
 		return vec(0,lenght,0); 
 	}
 	
-	protected static PVector z(float lenght) { 
+	protected static Vector z(float lenght) { 
 		return vec(0,0,lenght); 
 	}
 
-	protected static PVector yawAxis(float lenght) { 
+	protected static Vector yawAxis(float lenght) { 
 		return y(lenght); 
 	}
 	
-	protected static PVector pitchAxis(float lenght) { 
+	protected static Vector pitchAxis(float lenght) { 
 		return x(lenght); 
 	}
 	
-	protected static PVector rollAxis(float lenght) { 
+	protected static Vector rollAxis(float lenght) { 
 		return z(lenght);
 	}	
 
-	// --- PVector help methods ---
+	// --- epsilon shortcut ---
+	
+	/** Return true if f is nearly zero. */
+	public static boolean isZeroEps(float f) {
+		return Physic.isZeroEps(f);
+	}
+
+	/** Return true if f1 is nearly equal to f2. */
+	public static boolean equalsEps(float f1, float f2) {
+		return Physic.equalsEps(f1, f2);
+	}
+	
+	// --- Vector help methods ---
 
 	/** Return the distance between the 2 vectors squared. */
-	protected static float distSq(PVector p1, PVector p2) {
-		return sub(p1, p2).magSq();
+	protected static float distSq(Vector p1, Vector p2) {
+		return p1.minus(p2).magSq();
 	}
 	
 	/** 
@@ -158,7 +154,7 @@ public abstract class ProMaster extends Master {
 	 * a direction vector (front, behind(back), right, left, up, down) or
 	 * zero or null.
 	 **/
-	protected static PVector vec(String vec) {
+	protected static Vector vec(String vec) {
 		if (vec.equals("zero"))
 			return zero;
 		else if (vec.equals("front"))
@@ -186,89 +182,11 @@ public abstract class ProMaster extends Master {
 		}
 		return vec(values[0],values[1],values[2]);
 	}
-
-	/** Deep copy. */
-	protected static PVector[] copy(PVector[] vectors) {
-		PVector[] ret = new PVector[vectors.length];
-		for (int i=0; i<vectors.length; i++)
-			ret[i] = vectors[i].copy();
-		return ret;
-	}
-	
-	/** return vec(d,d,d) */
-	protected static PVector cube(float d) {
-		return vec(d, d, d);
-	}
-	
-	protected static PVector moyenne(PVector[] points) {
-		PVector moyenne = zero.copy();
-		for (PVector p : points)
-			moyenne.add(p);
-		moyenne.div(points.length);
-		return moyenne;
-	}
-
-	/** effectue une multiplication element par element. (utile pour L = Iw) */
-	protected static PVector multMatrix(PVector matriceDiag, PVector vector) {
-		return new PVector(
-				matriceDiag.x * vector.x,
-				matriceDiag.y * vector.y,
-				matriceDiag.z * vector.z );
-	}
-
-	/** retourne un vecteur avec xyz dans [-norm,norm] */
-	protected static PVector randomVec(float norm) {
-		return vec(random(-norm, norm), random(-norm, norm), random(-norm, norm));
-	}
-	
-	// --- EPSILON (small value) ---
-
-	/** Return true if p is zero or zero eps (nearly zero). if clean & zero eps, reset p. */
-	public static boolean isZeroEps(PVector p, boolean clean) {
-		if (p.equals(zero))
-			return true;
-		else {
-			if (isZeroEps(p.x) && isZeroEps(p.y) && isZeroEps(p.z)) {
-				if (clean)
-					p.x = p.y = p.z = 0;
-				return true;
-			} else
-				return p.equals(zero);
-			/*if (p.x != 0 && isZeroEps(p.x)) p.x = 0;
-			if (p.y != 0 && isZeroEps(p.y)) p.y = 0;
-			if (p.z != 0 && isZeroEps(p.z)) p.z = 0;*/
-			//return isZeroEps(p.x) && isZeroEps(p.y) && isZeroEps(p.z);
-		}
-	}
-
-	/** Return true if f is nearly zero. */
-	protected static boolean isZeroEps(float f) {
-		return f==0 || isConstrained(f, -epsilon, epsilon);	
-	}
-
-	/** return true if close to zero. if clean, set p1 to p2. */
-	protected static boolean equalsEps(PVector p1, PVector p2, boolean clean) {
-		if (p1 == p2)
-			return true;
-		else if (p1==null || p2==null)
-			return false;
-		else {
-			boolean isZero = isZeroEps( PVector.sub(p1, p2), false );
-			if (clean && isZero)
-				p1.set(p2);
-			return isZero;
-		}
-	}
-	
-	/** Return true if f1 is nearly equal to f2. */
-	public static boolean equalsEps(float f1, float f2) {
-		return isZeroEps(f1 - f2);
-	}
 	
 	// --- Transformations (location, rotation) ---
 
 	/** Return the absolute location of rel (translated & rotated, from reseted matrix)*/
-	protected static synchronized PVector absolute(PVector rel, PVector trans, Quaternion rotation) {
+	protected static synchronized Vector absolute(Vector rel, Vector trans, Quaternion rotation) {
 		boolean rotNull = rotation.equals(identity);
 		boolean transNull = trans.equals(zero);
 		if (rotNull && transNull)
@@ -282,13 +200,13 @@ public abstract class ProMaster extends Master {
 				translate(trans);
 			if (!rotNull)
 				rotateBy(rotation);
-			PVector ret = model(rel);
+			Vector ret = model(rel);
 			app.popMatrix();
 			return ret;
 		}
 	}
 
-	protected static synchronized void translate(PVector t) {
+	protected static synchronized void translate(Vector t) {
 		app.translate(t.x, t.y, t.z);
 	}
 
@@ -296,28 +214,28 @@ public abstract class ProMaster extends Master {
 		rotateBy(rotation.rotAxis(), rotation.angle());
 	}
 
-	protected static synchronized void rotateBy(PVector rotAxis, float angle) {
+	protected static synchronized void rotateBy(Vector rotAxis, float angle) {
 		if (rotAxis == null)
 			return;
 		app.rotate(angle, rotAxis.x, rotAxis.y, rotAxis.z);
 	}
 
-	protected static synchronized PVector screenPos(PVector pos3D) {
-		return new PVector( app.screenX(pos3D.x, pos3D.y, pos3D.z), app.screenY(pos3D.x, pos3D.y, pos3D.z) );
+	protected static synchronized Vector screenPos(Vector pos3D) {
+		return vec( app.screenX(pos3D.x, pos3D.y, pos3D.z), app.screenY(pos3D.x, pos3D.y, pos3D.z) );
 	}
 
-	protected static PVector relative(PVector abs, PVector trans, Quaternion rotation) {
-		return absolute( PVector.sub(abs, trans), zero, rotation.withOppositeAngle());
+	protected static Vector relative(Vector abs, Vector trans, Quaternion rotation) {
+		return absolute( abs.minus(trans), zero, rotation.withOppositeAngle());
 	}
 
-	protected static PVector[] absolute(PVector[] v, PVector trans, Quaternion rotation) {
-		PVector[] ret = new PVector[v.length];
+	protected static Vector[] absolute(Vector[] v, Vector trans, Quaternion rotation) {
+		Vector[] ret = new Vector[v.length];
 		for (int i=0; i<v.length; i++)
 			ret[i] = absolute(v[i], trans, rotation);
 		return ret;
 	}
 
-	protected static synchronized PVector model(PVector rel) {
-		return new PVector( app.modelX(rel.x, rel.y, rel.z), app.modelY(rel.x, rel.y, rel.z), app.modelZ(rel.x, rel.y, rel.z) );
+	protected static synchronized Vector model(Vector rel) {
+		return new Vector( app.modelX(rel.x, rel.y, rel.z), app.modelY(rel.x, rel.y, rel.z), app.modelZ(rel.x, rel.y, rel.z) );
 	}
 }

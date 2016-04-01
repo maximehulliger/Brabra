@@ -9,8 +9,9 @@ import org.junit.Before;
 import org.junit.Test;
 
 import brabra.ProMaster;
+import brabra.game.physic.Physic;
 import brabra.game.physic.geo.Quaternion;
-import processing.core.PVector;
+import brabra.game.physic.geo.Vector;
 
 public class QuaternionTest extends ProTest {
 	private final static List<Quaternion> dirSample = new ArrayList<>();
@@ -42,7 +43,7 @@ public class QuaternionTest extends ProTest {
 			iter++;
 			assertTrue(q.equalsAxis( q.copy().initFromAxis() ));
 			float angle = q.angle();
-			PVector rotAxis = q.rotAxis();
+			Vector rotAxis = q.rotAxis();
 			q.updateAxis();
 			assertEqualsEps("at iter "+iter, q, new Quaternion(rotAxis, angle));
 		}
@@ -53,22 +54,22 @@ public class QuaternionTest extends ProTest {
 		final int sampleSize = 50;
 		// rotAxis -> wxyz -> rotAxis
 		for (int i=0; i < sampleSize; i++) {
-			Quaternion q1 = new Quaternion(randomVec(1), random(-pi, pi));
+			Quaternion q1 = new Quaternion(Vector.randomVec(1), random(-pi, pi));
 			float angle = q1.angle();
-			PVector rotAxis = q1.rotAxis();
+			Vector rotAxis = q1.rotAxis();
 			q1.updateAxis();
-			assertEquals("at iter "+i, angle, q1.angle(), epsilon);
+			assertEquals("at iter "+i, angle, q1.angle(), Physic.epsilon);
 			assertEqualsEps("at iter "+i, rotAxis, q1.rotAxis());
 			assertEqualsEps("at iter "+i, q1, new Quaternion(rotAxis, angle));
 		}
 		
 		// rotAxis -> wxyz -> rotAxis
 		for (int i=0; i < sampleSize; i++) {
-			Quaternion q1 = new Quaternion(randomVec(1), random(-pi, pi));
+			Quaternion q1 = new Quaternion(Vector.randomVec(1), random(-pi, pi));
 			float angle = q1.angle();
-			PVector rotAxis = q1.rotAxis();
+			Vector rotAxis = q1.rotAxis();
 			q1.updateAxis();
-			assertEquals("at iter "+i, angle, q1.angle(), epsilon);
+			assertEquals("at iter "+i, angle, q1.angle(), Physic.epsilon);
 			assertEquals("at iter "+i, rotAxis, q1.rotAxis());
 			assertEquals("at iter "+i, q1, new Quaternion(rotAxis, angle));
 		}

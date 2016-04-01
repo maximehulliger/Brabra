@@ -27,9 +27,12 @@ Click on "save max.. ..Github desktop" button, left from "Download ZIP". Don't f
 Now we'll create the eclipse project to run it. File -> Import... -> Existing project into workspace -> browse to the Brabra folder -> Finish.
 
 ##### 1.4 Activate JUnit in Eclipse
-In package explorer, right click on the Brabra folder, then Build Path / Add Libraries... -> JUnit -> Finish.
+In package explorer, right click on the Brabra folder, then Build Path / Add Libraries... -> JUnit -> Next -> Finish.
 
-##### 1.5 Create run configurations
+##### 1.5 Add external libraries
+Add the processing & co libraries to the build path: right click on the libs (or folder) -> add to Build Path.
+
+##### 1.6 Create run configurations
 You need a run configuration to run some files in a certain way. You will need at least one main and one for the tests.
 
 Click on the arrow next to the green play button -> Run Configurations... -> double-click on "Java Application".

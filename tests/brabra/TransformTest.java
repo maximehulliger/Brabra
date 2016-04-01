@@ -6,7 +6,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import brabra.ProTest;
-import processing.core.PVector;
+import brabra.game.physic.geo.Vector;
 
 public class TransformTest extends ProTest {
 	
@@ -18,10 +18,10 @@ public class TransformTest extends ProTest {
 	@Test
 	public void translation() {
 		for (int i=0; i< 50; i++) {
-			PVector v = randomVec(100);
-			PVector t = randomVec(100);
+			Vector v = Vector.randomVec(100);
+			Vector t = Vector.randomVec(100);
 			assertEquals("at iter "+i, t, absolute(zero, t, identity));
-			assertEquals("at iter "+i, add(t,v), absolute(v, t, identity));
+			assertEquals("at iter "+i, t.plus(v), absolute(v, t, identity));
 		}
 	}
 	

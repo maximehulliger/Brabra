@@ -4,15 +4,16 @@ import java.util.ArrayList;
 import java.util.concurrent.locks.ReentrantLock;
 
 import brabra.ProMaster;
+import brabra.game.physic.geo.Vector;
 import brabra.Brabra;
 import brabra.imageprocessing.HoughLine;
 import brabra.imageprocessing.TwoDThreeD;
 import processing.core.PFont;
 import processing.core.PGraphics;
 import processing.core.PImage;
+import processing.video.Capture;
+import processing.video.Movie;
 import processing.core.PApplet;
-import processing.core.PVector;
-import processing.video.*;
 
 /** Maestro Class of the image processing part of the project. */
 public class ImageAnalyser extends ProMaster {
@@ -51,9 +52,9 @@ public class ImageAnalyser extends ProMaster {
 	private final ReentrantLock rotationLock = new ReentrantLock();
 	public boolean hasFoundRotation = false;
 	private int rotationAge = 0;
-	private PVector rotation = new PVector(0,0,0);
-	private PVector lastRotation = new PVector(0,0,0);
-	private PVector gameRotation = new PVector(0,0,0);
+	private Vector rotation = new Vector();
+	private Vector lastRotation = new Vector();
+	private Vector gameRotation = new Vector();
 	
 	//--- "interne" (img / calibration)
 	public PFont standardFont;
@@ -95,7 +96,7 @@ public class ImageAnalyser extends ProMaster {
 		return app.hasImgAnalysis() && !paused();
 	}
 
-	public PVector rotation() {
+	public Vector rotation() {
 		try {
 			rotationLock.lock();
 			return gameRotation.copy();
@@ -144,7 +145,7 @@ public class ImageAnalyser extends ProMaster {
 				hasFoundQuad = hough.quad != null;
 				
 				// if quad is found, analyse buttons & rotation (with image lock release)
-				ArrayList<PVector> detectedQuad = null;
+				ArrayList<Vector> detectedQuad = null;
 				if (hasFoundQuad) {
 					//-- finish with images & start button det.
 					detectedQuad = hough.quad();
@@ -156,7 +157,7 @@ public class ImageAnalyser extends ProMaster {
 
 					//-- compute & set rotation
 					TwoDThreeD deathMasterLongSword = new TwoDThreeD(inWidth, inHeight);
-					PVector newRot = deathMasterLongSword.get3DRotations(detectedQuad);
+					Vector newRot = deathMasterLongSword.get3DRotations(detectedQuad);
 					if (isConstrained(newRot.x, -maxAcceptedAngle, maxAcceptedAngle) &&
 							isConstrained(newRot.x, -maxAcceptedAngle, maxAcceptedAngle) &&
 							isConstrained(newRot.x, -maxAcceptedAngle, maxAcceptedAngle)) {
@@ -164,7 +165,7 @@ public class ImageAnalyser extends ProMaster {
 						if (!lastRotation.equals(newRot) ) {
 							lastRotation = rotation;
 							rotation = newRot;
-							gameRotation = PVector.div( PVector.add(lastRotation, rotation), 2); //moyenne des 2 dernières entrées
+							gameRotation = lastRotation.plus(rotation).div(2); //moyenne des 2 dernières entrées
 							gameRotation.mult(-Brabra.inclinaisonMax / maxAcceptedAngle);
 							//on adoucis les angles d'entr�e (pour + de contr�le proche de 0)
 							float r = 360/PApplet.TWO_PI;

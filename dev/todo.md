@@ -7,8 +7,9 @@
 
 ## 2. Less important
 ### easy
-- add size xml support for geo shapes.
+- DONE Sadd size xml support for geo shapes.
 - dont stop rotating
+- shoot with prefab 2.
 
 ### hard/?0'
 - export.bats

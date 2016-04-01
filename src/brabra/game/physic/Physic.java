@@ -7,9 +7,11 @@ import brabra.ProMaster;
 import brabra.game.physic.geo.Sphere;
 
 
-public class Physic extends ProMaster
-{
-	public float gravity = 0.8f; //0.7f
+public class Physic extends ProMaster {
+	
+	public static final float epsilon = 1E-5f;
+	
+	public float gravity = 0.8f;
 	
 	private int errCount = 0;
 	
@@ -20,8 +22,10 @@ public class Physic extends ProMaster
 			//2. on détermine et filtre les collisions pour chaque paire possible (c, o).
 			List<Collision> collisions = new ArrayList<>();
 			forAllPairs(game.scene.activeColliders(), (c,o)-> {
-				if ( (o.affectedByCollision() || c.affectedByCollision()) && !c.isRelated(o) && (o.doCollideFast(c) && c.doCollideFast(o)) ) {
-					Collision col = null;
+				if ( (o.affectedByCollision() || c.affectedByCollision())
+						&& !c.isRelated(o) 
+						&& (o.doCollideFast(c) && c.doCollideFast(o)) ) {
+					Collision col;
 					if (c.affectedByCollision() && c instanceof Sphere)
 						col = new CollisionSphere((Sphere)c, o);
 					else if (o.affectedByCollision() && o instanceof Sphere)
@@ -58,5 +62,17 @@ public class Physic extends ProMaster
 				game.debug.msg(1, "physic paused (after 3 errors)");
 			}
 		}
+	}
+	
+	// --- EPSILON (small value) ---
+
+	/** Return true if f is nearly zero. */
+	public static boolean isZeroEps(float f) {
+		return f==0 || isConstrained(f, -epsilon, epsilon);	
+	}
+
+	/** Return true if f1 is nearly equal to f2. */
+	public static boolean equalsEps(float f1, float f2) {
+		return isZeroEps(f1 - f2);
 	}
 }

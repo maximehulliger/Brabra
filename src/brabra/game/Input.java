@@ -1,9 +1,9 @@
 package brabra.game;
 
 import brabra.ProMaster;
+import brabra.game.physic.geo.Vector;
 import brabra.Brabra;
 import processing.core.PApplet;
-import processing.core.PVector;
 import processing.event.MouseEvent;
 
 public class Input extends ProMaster {
@@ -18,7 +18,7 @@ public class Input extends ProMaster {
 	public static final Color dragIndicColor = new Color("white", true);
 	
 	/** In pixel/frame. */
-	public final PVector mouseDragDelta = zero.copy();
+	public final Vector mouseDragDelta = zero.copy();
 	/** True when the mouse click is pressed (dragging) */
 	public boolean dragging = false;
 	/** True if the touch is down. */
@@ -35,8 +35,8 @@ public class Input extends ProMaster {
 	public int fireSlot = -1;
 	
 	/** The distance dragged with the mouse (since last click) in pixel. */
-	private final PVector mouseDrag = zero.copy();
-	private final PVector clickPos = zero.copy();
+	private final Vector mouseDrag = zero.copy();
+	private final Vector clickPos = zero.copy();
 	private int scrollAcc = (int)(scrollMax*scroll);
 	private int scrollDiffAcc = 0;
 	private boolean fireAcc = false, fireDownReal = false;
@@ -71,16 +71,16 @@ public class Input extends ProMaster {
 	
 	public void gui() {
 		if (dragging && app.useDrag()) {
-			PVector drag = mouseDrag();
+			Vector drag = mouseDrag();
 			if (!drag.equals(zero)) {
 				line(clickPos, mousePos(), dragIndicColor);
 			}
 		}
 	}
 	
-	public PVector mouseDrag() {
+	public Vector mouseDrag() {
 		return mouseDrag.magSq() > dragDistMinSq
-			? new PVector().set(mouseDrag).limit(dragDistMax) : zero;
+			? mouseDrag.limited(dragDistMax) : zero;
 	}
 	
 	// --- event gesture ---
@@ -129,8 +129,8 @@ public class Input extends ProMaster {
 		clickPos.set(mousePos());
 	}
 	
-	public PVector mousePos() {
-		return new PVector(app.mouseX, app.mouseY);
+	public Vector mousePos() {
+		return vec(app.mouseX, app.mouseY);
 	}
 
 	void mouseReleased() {

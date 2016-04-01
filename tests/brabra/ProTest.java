@@ -7,8 +7,8 @@ import java.util.concurrent.locks.ReentrantLock;
 import brabra.ProMaster;
 import brabra.Brabra;
 import brabra.game.physic.geo.Quaternion;
+import brabra.game.physic.geo.Vector;
 import processing.core.PApplet;
-import processing.core.PVector;
 
 public class ProTest extends ProMaster {
 	
@@ -51,8 +51,8 @@ public class ProTest extends ProMaster {
 			assertEquals(msg, q1, q2);
 	}
 
-	protected static void assertEqualsEps(String msg, PVector p1, PVector p2) {
-		if (!equalsEps(p1, p2, false))
+	protected static void assertEqualsEps(String msg, Vector p1, Vector p2) {
+		if (!(p1.equalsEps(p2, false)))
 			assertEquals(msg, p1, p2);
 	}
 

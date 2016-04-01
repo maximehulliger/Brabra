@@ -2,26 +2,20 @@
 <scene>
 	<settings gravity="0.2" running="true" verbosity="max" displayAllColliders="false"></settings>
 	
-	<camera displaySkybox="true" mode="not" dist="(300,300,300)" debug="false">
-		<!-- Family works with the camera too ! it's just a regular object. -->
-		<box pos="(0,0,-400)" mass="0" color="yellow"></box>
-	</camera>
+	<camera displaySkybox="true" mode="not" dist="(300,300,300)" debug="false"></camera>
 	
 	<floor pos="zero" color="grass"></floor> 
 	
-	<ball pos="(20,200,-300)" mass="5" color="red"></ball>
 	
-	<starship pos="(0,200,0)" focus="true" force="72" camera="static" debug="false" displayCollider="false">
-		<!-- You can stack the children as wished :D -->
+	<starship pos="(0,200,0)" focus="true" force="72" camera="static" debug="true" displayCollider="false">
 		<box pos="(40,0,-20)" name="pink box" mass="0" color="pink">
 			<ball pos="(0,40,0)" name="upper ball" color="blue" mass="0"></ball>
 		</box>
 		
-		<!-- The weapons automatically add themselves to the weaponry. -->
 		<weaponry puissance="400" prefab="none" displayColliders="false">
 			<missile_launcher pos="(30,-10,0)" tier="2" upgrade="1.2"></missile_launcher>
 			<missile_launcher pos="(0,-15,0)" tier="3" upgrade="1.2"></missile_launcher>
-			<missile_launcher pos="(-30,-10,0)" tier="2" upgrade="0.8" displayColliders="true"></missile_launcher>
+			<missile_launcher pos="(-30,-10,0)" tier="2" upgrade="0.8" displayColliders="false"></missile_launcher>
 		</weaponry>
 	</starship>
 	

@@ -77,9 +77,13 @@ of the scene's objects and parameters: camera and physic(in settings). To reload
 
 supported parameters: <i>**settings**: gravity, deltaTime. **camera**: displaySkybox, displayAxis, displayCentralPoint, [mode, dist]</i>
 
-supported object names: ***object, floor, ball, box, starship :rocket:, target***.
+supported object names: ***object, movable, plane, ball, box, starship :rocket:, target***.
 
-supported object attributes: ***pos, dir, parency, size, mass, name, impluse, life, [color, (stroke)], [camera, (cameraDist)], [focus, (force)], displayCollider, debug***.
+supported object attributes: ***pos, dir, parency, name, life, [color, (stroke)], [camera, (cameraDist)], [focus, (force)], displayCollider, debug***.
+
+supported moving attributes: ***velocity, rotationVel***.
+
+supported body attributes: ***size, mass, name, impluse, displayCollider***.
 
 supported object names: ***floor, ball, box, starship, target***.
 
@@ -174,10 +178,10 @@ Maxime Hulliger, `hulliger@epfl.ch`
 
 ######Contributors
 
-Boris
+Mathieu Girard, `girarg@epfl.ch`
 
-Mathieu Girard
+Boris, `boris@epfl.ch`
 
 Max Turpenteim, `maxtu@kth.se`
 
-Kei japan `Kei@kth.se`
+Kei Wakabayashi `keiw@kth.se`

@@ -2,8 +2,9 @@ package brabra.game.scene;
 
 import brabra.game.Observable.NQuaternion;
 import brabra.game.Observable.NVector;
+import brabra.game.XMLLoader.Attributes;
 import brabra.game.physic.geo.Quaternion;
-import processing.core.PVector;
+import brabra.game.physic.geo.Vector;
 
 /**
  * A movable Object. 
@@ -15,32 +16,53 @@ public class Movable extends Object {
 	protected final NVector velocityRel = new NVector(zero);
 	/** Rotation velocity relative to the parent. */
 	protected final NQuaternion rotationRelVel = new NQuaternion(identity);
-
+	
+	/** The first parent that is a movable or null if nothing moves before this. */
+	private Movable movableParent = null;
 	/** Indicates if the object was moving last frame. */
 	private boolean moving = false, rotating = false;
 	
 
-	public Movable(PVector location, Quaternion rotation) {
+	public Movable(Vector location, Quaternion rotation) {
 		super(location, rotation);
-		// TODO Auto-generated constructor stub
 	}
-
+	
 	// --- Getters ---
 	
+	/** Return true if the object has moved during last frame (by velocity or parent's rotational velocity). */
+	public boolean isMoving() {
+		return moving || (movableParent != null && 
+				(movableParent.isMoving() || (!locationRel.isZeroEps(false) && movableParent.isRotating())));
+	}
+	
+	/** Return true if the object has rotated during last frame (by this or parent's rotational velocity). */
+	public boolean isRotating() {
+		return rotating || (movableParent != null && movableParent.isRotating());
+	}
+	
+	/** Return the velocity relative to the parent at the center of mass. */
+	public Vector velocityRel() {
+		return velocityRel;
+	}
+	
 	/** Return the absolute velocity at the center of mass. */
-	public PVector velocity() {
-		PVector forMe = absoluteDirFromLocal(velocityRel);
-		return hasParent() ? add(forMe , parent().velocityAtRel(locationRel)) : forMe;
+	public Vector velocity() {
+		if (!isMoving())
+			return zero;
+		else {
+			Vector forMe = absoluteDirFromLocal(velocityRel);
+			return hasParent() ? add(forMe , parent().velocityAtRel(locationRel)) : forMe;
+		}
 	}
 
 	/** Return the absolute velocity (from an absolute pos). */
-	public PVector velocityAt(PVector posAbs) {
+	public Vector velocityAt(Vector posAbs) {
 		return velocityAtRel(relative(posAbs));
 	}
 
 	/** Return the absolute velocity (from a relative pos). */
-	public PVector velocityAtRel(PVector posRel) {
-		return (rotationRel.isZeroEps(false) || isZeroEps(posRel, false))
+	public Vector velocityAtRel(Vector posRel) {
+		return (rotationRel.isZeroEps(false) || posRel.isZeroEps(false))
 			? velocity() : add(velocity(), rotationRelVel.rotAxisAngle().cross(posRel));
 	}
 	
@@ -55,12 +77,47 @@ public class Movable extends Object {
 				+ (vel ? "" : "\nvitesse rel: "+velocityRel+" -> "+velocityRel.mag()+" unit/frame.") 
 				+ (rotVel	? "" : "\nvitesse Ang.: "+rotationRelVel);
 	}
+
+	// --- Setters ---
+
+	/** Set the velocity of this object relative to his parent. */
+	public void setVelocityRel(Vector velocityRel) {
+		this.velocityRel.set(velocityRel);
+	}
+
+	/** Set the velocity of this object relative to his parent. */
+	public void setRotationVelRel(Vector rotationVelRel) {
+		this.rotationRelVel.set(rotationVelRel);
+	}
+	
+	public boolean setParent(Object newParent) {
+		if (super.setParent(newParent)) {
+			movableParent = (Movable) parentThat(p -> p instanceof Movable);
+			return true;
+		} else
+			return false;
+	}
+
+	// --- life cycle ---
+
+	public boolean validate(Attributes atts) {
+		if (super.validate(atts)) {
+			final String velocity = atts.getValue("velocity");
+			if (velocity != null)
+				setRotationVelRel(vec(velocity));
+			final String rotVelocity = atts.getValue("rot_velocity");
+			if (velocity != null)
+				setRotationVelRel(vec(rotVelocity));
+			return true;
+		} else
+			return false;
+	}
 	
 	protected boolean update() {
 		if (!updated) {
 			// 1. movement
 			if (moving || velocityRel.hasChangedCurrent()) {
-				if (!isZeroEps(velocityRel, false)) {
+				if (!velocityRel.isZeroEps(false)) {
 					if (!moving) {
 						game.debug.log(6, this+" started moving.");
 						moving = true;
@@ -95,23 +152,23 @@ public class Movable extends Object {
 	
 	// --- cooked methods to brake ---
 
-	/** applique une force qui s'oppose aux vitesse. perte dans [0,1]. reset selon eps. */
+	/** Force the object to lose some velocity and rotational velocity. loss in [0,1]. reset after eps. */
 	public void brake(float loss) {
 		brakeDepl(loss);
 		brakeRot(loss);
 	}
 	
-	/** applique une force qui s'oppose à la vitesse. perte dans [0,1]. reset selon eps. */
+	/** Force the object to lose some velocity. loss in [0,1]. reset after eps. */
 	public void brakeDepl(float loss) {
-		if (isZeroEps(velocityRel, true))
-			return;
-		//le frottement, frein. s'oppose Ã  la vitesse :
-	    velocityRel.mult(1-loss);
+		if (isMoving())
+			velocityRel.mult(1-loss);
+		velocityRel.isZeroEps(true);
 	}
 	
-	/** applique une force qui s'oppose à la vitesse angulaire. perte dans [0,1]. reset selon eps. */
+	/** Force the object to lose some rotational velocity. reset after eps. */
 	public void brakeRot(float loss) {
-		if ( !rotationRelVel.isZeroEps(true) )
+		if (isRotating())
 			rotationRelVel.setAngle(rotationRelVel.angle() * (1 - loss));
+		rotationRelVel.isZeroEps(true);
 	}
 }
