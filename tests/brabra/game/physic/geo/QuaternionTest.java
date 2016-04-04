@@ -41,11 +41,10 @@ public class QuaternionTest extends ProTest {
 	public void coherenceTest() {
 		for (Quaternion q : dirSample) {
 			iter++;
-			Quaternion qp = q.copy().initFromAxis();
+			final Quaternion qp = q.copy().initFromAxis();
 			assertEqualsEps("at iter "+iter, q, qp);
-			
-			float angle = q.angle();
-			Vector rotAxis = q.rotAxis();
+			final float angle = q.angle();
+			final Vector rotAxis = q.rotAxis();
 			q.updateAxis();
 			assertEqualsEps("at iter "+iter, q, new Quaternion(rotAxis, angle));
 		}
@@ -56,9 +55,9 @@ public class QuaternionTest extends ProTest {
 		final int sampleSize = 50;
 		// rotAxis -> wxyz -> rotAxis
 		for (int i=0; i < sampleSize; i++) {
-			Quaternion q1 = new Quaternion(Vector.randomVec(1), random(-pi, pi));
-			float angle = q1.angle();
-			Vector rotAxis = q1.rotAxis();
+			final Quaternion q1 = new Quaternion(Vector.randomVec(1), random(-pi, pi));
+			final float angle = q1.angle();
+			final Vector rotAxis = q1.rotAxis();
 			q1.updateAxis();
 			assertEquals("at iter "+i, angle, q1.angle(), Physic.epsilon);
 			assertEqualsEps("at iter "+i, rotAxis, q1.rotAxis());
@@ -67,9 +66,9 @@ public class QuaternionTest extends ProTest {
 		
 		// rotAxis -> wxyz -> rotAxis
 		for (int i=0; i < sampleSize; i++) {
-			Quaternion q1 = new Quaternion(Vector.randomVec(1), random(-pi, pi));
-			float angle = q1.angle();
-			Vector rotAxis = q1.rotAxis();
+			final Quaternion q1 = new Quaternion(Vector.randomVec(1), random(-pi, pi));
+			final float angle = q1.angle();
+			final Vector rotAxis = q1.rotAxis();
 			q1.updateAxis();
 			assertEquals("at iter "+i, angle, q1.angle(), Physic.epsilon);
 			assertEqualsEps("at iter "+i, rotAxis, q1.rotAxis());
