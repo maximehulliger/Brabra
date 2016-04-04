@@ -14,8 +14,8 @@ import org.xml.sax.helpers.DefaultHandler;
 import brabra.ProMaster;
 import brabra.game.physic.Collider;
 import brabra.game.physic.geo.Quaternion;
+import brabra.game.physic.geo.Vector;
 import brabra.game.scene.Object;
-import processing.core.PVector;
 
 /** Class responsible to load the scene file. */
 public final class XMLLoader extends ProMaster {
@@ -68,7 +68,7 @@ public final class XMLLoader extends ProMaster {
 	    		// get loc & dir
 	    		final String locString = atts.getValue("pos");
 	    		final String dirString = atts.getValue("dir");
-	    		final PVector loc = locString != null ? vec(locString) : zero;
+	    		final Vector loc = locString != null ? vec(locString) : zero;
 	    		final Quaternion rot = dirString != null ? Quaternion.fromDirection(vec(dirString)) : identity;
 	    		// create object
 	    		final Object newObj = game.scene.addPrefab(localName, loc, rot);

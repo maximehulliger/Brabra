@@ -1,7 +1,7 @@
 package brabra.game;
 
 import brabra.game.physic.geo.Quaternion;
-import processing.core.PVector;
+import brabra.game.physic.geo.Vector;
 
 /** Observable/Notifying classes with update (state flag per frame) */
 public interface Observable {
@@ -21,20 +21,20 @@ public interface Observable {
 	/** Reset the flags to false */
 	public void reset();
 	
-	// --- implementation for PVector & Quaternion ---
+	// --- implementation for Vector & Quaternion ---
 	
-	/** PVector notifying on change (after changes. not on creation). With a change flag.  */
-	public class NVector extends PVector implements Observable {
+	/** Vector notifying on change (after changes. not on creation). With a change flag.  */
+	public class NVector extends Vector implements Observable {
 		private static final long serialVersionUID = 5162673540041216409L;
 		private Runnable onChange;
 		private boolean changedCurrent = false, changed = false;
 		
-		public NVector(PVector v, Runnable onChange) { 
+		public NVector(Vector v, Runnable onChange) { 
 			super(v.x,v.y,v.z); 
 			setOnChange(onChange); 
 		}
 
-		public NVector(PVector v) { 
+		public NVector(Vector v) { 
 			this(v, null);
 		}
 		
@@ -60,19 +60,19 @@ public interface Observable {
 		}
 		
 		// first apply, set changed to true, then notify.
-		public PVector set(PVector v) { super.set(v); return onChange(); }
-		public PVector set(float[] source) { super.set(source); return onChange(); }
-		public PVector set(float x, float y, float z) { super.set(x,y,z); return onChange(); }
-		public PVector set(float x, float y) { super.set(x,y); return onChange(); }
-		public PVector add(PVector v) { super.add(v); return onChange(); }
-		public PVector sub(PVector v) { super.sub(v); return onChange(); }
-		public PVector mult(float f) { super.mult(f); return onChange(); }
-		public PVector div(float f) { super.mult(f); return onChange(); }
-		public PVector limit(float f) { super.mult(f); return onChange(); }
-		public PVector setMag(float f) { super.mult(f); return onChange(); }
-		public PVector normalize() { super.normalize(); return onChange(); }
+		public Vector set(Vector v) { super.set(v); return onChange(); }
+		public Vector set(float[] source) { super.set(source); return onChange(); }
+		public Vector set(float x, float y, float z) { super.set(x,y,z); return onChange(); }
+		public Vector set(float x, float y) { super.set(x,y); return onChange(); }
+		public Vector add(Vector v) { super.add(v); return onChange(); }
+		public Vector sub(Vector v) { super.sub(v); return onChange(); }
+		public Vector mult(float f) { super.mult(f); return onChange(); }
+		public Vector div(float f) { super.mult(f); return onChange(); }
+		public Vector limit(float f) { super.mult(f); return onChange(); }
+		public Vector setMag(float f) { super.mult(f); return onChange(); }
+		public Vector normalize() { super.normalize(); return onChange(); }
 		
-		private PVector onChange() {
+		private Vector onChange() {
 			changedCurrent=true;
 			if (onChange != null)
 				onChange.run();

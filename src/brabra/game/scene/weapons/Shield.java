@@ -1,11 +1,11 @@
 package brabra.game.scene.weapons;
 
 import brabra.game.physic.geo.Ellipsoide;
-import processing.core.PVector;
+import brabra.game.physic.geo.Vector;
 
 public class Shield extends Ellipsoide {
 
-	public Shield(PVector location, PVector rayons) {
+	public Shield(Vector location, Vector rayons) {
 		super(location, identity, rayons);
 	}
 	

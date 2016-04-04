@@ -4,8 +4,8 @@ import brabra.ProMaster;
 import brabra.Brabra;
 import brabra.game.Color;
 import brabra.game.XMLLoader.Attributes;
+import brabra.game.physic.geo.Vector;
 import processing.core.PShape;
-import processing.core.PVector;
 
 /** 
  * Class dealing with the camera, background and light (+removal of far objects). 
@@ -40,8 +40,10 @@ public class Camera extends Object {
 	}
 	
 	// static / definitive stuff
+	public static final float close = 0.05f;
+	public static final float far = 10_000;
 	private static final float distSqBeforeRemove = far*far; //from camera
-	private static final PVector defaultOrientation = y(-1);
+	private static final Vector defaultOrientation = y(-1);
 	private static PShape skybox;
 	private static final Color 
 			xColor = new Color("red", true), 
@@ -57,17 +59,17 @@ public class Camera extends Object {
 	// intern, mode related
 	private FollowMode followMode = FollowMode.Not;
 	/** The absolute point that looks the camera. */
-	private final PVector focus = zero.copy();
-	private final PVector orientation = defaultOrientation.copy();
-	private final PVector distNot = cube(300);
-	private final PVector distStatic = cube(300);
-	private final PVector distFull = add(up(90), behind(135));
+	private final Vector focus = zero.copy();
+	private final Vector orientation = defaultOrientation.copy();
+	private final Vector distNot = Vector.cube(300);
+	private final Vector distStatic = Vector.cube(300);
+	private final Vector distFull = add(up(90), behind(135));
 	private boolean stateChanged = false, stateChangedCurrent = false;
 	private boolean absValid = false;
 	
 	/** Creates a new camera and add it to the physic objects. */
 	public Camera() {
-		super(cube(100));
+		super(Vector.cube(100));
 		setName("Camera");
 		game.scene.addNow(this);
 		// load resources
@@ -162,7 +164,7 @@ public class Camera extends Object {
 	}
 
 	/** Set the camera relative dist for this mode. */
-	public void setDist(FollowMode mode, PVector dist) {
+	public void setDist(FollowMode mode, Vector dist) {
 		if ( !dist.equals(getDist(mode)) ) {
 			switch(mode) {
 			case Not:
@@ -208,14 +210,14 @@ public class Camera extends Object {
 	
 	/*public void drawMouseray(float dist) { //TODO
 		float focal = 10;
-	    PVector mrel = new PVector(-(app.mouseX-app.width/2)/focal, -(app.mouseY-app.height/2)/focal, -focal);
+	    Vector mrel = new Vector(-(app.mouseX-app.width/2)/focal, -(app.mouseY-app.height/2)/focal, -focal);
 	    
 	    app.fill(0,0,0);
 	    app.sphere(5);
 	    //this finds the position of the mouse in model space
-	    PVector mousePos = absolute(mrel, locationAbs, identity);
+	    Vector mousePos = absolute(mrel, locationAbs, identity);
 
-	    PVector camToMouse=PVector.sub(mousePos, locationAbs);
+	    Vector camToMouse=Vector.sub(mousePos, locationAbs);
 
 	    app.stroke(150, 150, 150, 255); //box line colour
 	    line(camToMouse, mousePos);
@@ -234,7 +236,7 @@ public class Camera extends Object {
 	    System.out.println("cam pos: "+locationAbs);
 	    System.out.println("mouse pos: "+mousePos);
 	    System.out.println("cam to mouse: "+camToMouse);
-	    System.out.println("cam to focus: "+PVector.sub(locationAbs, focus));
+	    System.out.println("cam to focus: "+Vector.sub(locationAbs, focus));
 	}*/
 	
 	// --- main usage (draw) ---
@@ -286,7 +288,7 @@ public class Camera extends Object {
 			final String mode = atts.getValue("mode");
 			if (mode != null) {
 				final String distString = atts.getValue("dist");
-				final PVector dist = distString != null ? vec(distString) : locationRel;
+				final Vector dist = distString != null ? vec(distString) : locationRel;
 				if (dist == null)
 					game.debug.err("for camera: dist (or pos) should be set with mode. ignoring.");
 				else if (dist.equals(zero))
@@ -321,9 +323,9 @@ public class Camera extends Object {
 		boolean sUpdated = super.updateAbs();
 		if (!absValid || sUpdated) {
 			// get new values.
-			PVector newFocus;
-			PVector newOrientation;
-			PVector newLocationRel = getDist(followMode);
+			Vector newFocus;
+			Vector newOrientation;
+			Vector newLocationRel = getDist(followMode);
 			switch(followMode) {
 			case Static:
 				newFocus = parent().location();
@@ -353,7 +355,7 @@ public class Camera extends Object {
 	
 	// --- private ---
 
-	private PVector getDist(FollowMode mode) {
+	private Vector getDist(FollowMode mode) {
 		switch(followMode) {
 		case Static:
 			return distStatic;

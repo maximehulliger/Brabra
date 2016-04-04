@@ -2,7 +2,7 @@ package brabra.game.physic.geo;
 
 import brabra.ProMaster;
 import processing.core.PApplet;
-import processing.core.PVector;
+import brabra.game.physic.geo.Vector;
 import brabra.game.Observable.NQuaternion;
 
 public class Quaternion extends ProMaster {
@@ -13,7 +13,7 @@ public class Quaternion extends ProMaster {
 
 	private float w, x, y, z;      	// components of a quaternion
 	private boolean validRotAxis = false;
-	private PVector rotAxis = null;	// lazily updated when rotated, always normalized or null (if valid)
+	private Vector rotAxis = null;	// lazily updated when rotated, always normalized or null (if valid)
 	private float angle = 0;
 	
 	private static final int manucureAge = 1; // #rotate before normalize.
@@ -38,18 +38,18 @@ public class Quaternion extends ProMaster {
 	}
 
 	/** Makes quaternion from angle and axis */
-	public Quaternion(PVector axis, float angle) {
+	public Quaternion(Vector axis, float angle) {
 		set(axis, angle);
 	}
 
 	/** Makes quaternion from angle * normalized axis */
-	public Quaternion(PVector axis) {
+	public Quaternion(Vector axis) {
 		set(axis, axis.mag());
 	}
 
 	// ---- manipulation methods
 	
-	/** Set wxyz of the quaternion and return it. */
+	/** Set the quaternion from WXYZ and return it. */
 	public Quaternion set(float w, float x, float y, float z) {
 		this.w = w;
 		this.x = x;
@@ -63,8 +63,8 @@ public class Quaternion extends ProMaster {
 		return this;
 	}
 	
-	/** Set wxyz of the quaternion and return it. */
-	public Quaternion set(PVector axis, float angle) {
+	/** Set the quaternion from rotation axis & angular velocity and return it. */
+	public Quaternion set(Vector axis, float angle) {
 		if (!isConstrained(angle, -pi, pi))
 			game.debug.log(4, "quaternion set angle: "+angle+" pas dans [-pi,pi]");
 		this.angle = entrePiEtMoinsPi(angle);
@@ -72,8 +72,13 @@ public class Quaternion extends ProMaster {
 		initFromAxis();
 		return this;
 	}
+	
+	/** Set the quaternion from rotation axis * angular velocity and return it. */
+	public Quaternion set(Vector axisAngle) {
+		return set(axisAngle, axisAngle.mag());
+	}
 
-	/** Set wxyz of the quaternion and return it. */
+	/** Set the quaternion from another quaternion (deep copy) and return it. */
 	public Quaternion set(Quaternion quat) {
 		// we trust that the quat is valid.
 		this.w = quat.w;
@@ -110,17 +115,17 @@ public class Quaternion extends ProMaster {
 		return this;
 	}
 
-	public void addAngularMomentum(PVector dL) {
+	public void addAngularMomentum(Vector dL) {
 		assert (!dL.equals(zero));
-		PVector rotAxis = rotAxisAngle();
-		PVector newRotAxis = (rotAxis == null) ? dL : PVector.add(rotAxis, dL);
+		Vector rotAxis = rotAxisAngle();
+		Vector newRotAxis = (rotAxis == null) ? dL : rotAxis.plus(dL);
 		set( newRotAxis, newRotAxis.mag() );
 	}
 
 	/** Check if this (wxyz) nearly equals other and if so & clean set it to other. */
 	public boolean equalsEpsWXYZ(Quaternion other, boolean clean) {
-		if (equalsEps(w, other.w) && equalsEps(x, other.x) && 
-				equalsEps(y, other.y) && equalsEps(z, other.z)) {
+		if (equalsEps(this.w, other.w) && equalsEps(this.x, other.x) && 
+				equalsEps(this.y, other.y) && equalsEps(this.z, other.z)) {
 			if (clean && !equals(other))
 				set(other);
 			return true;
@@ -130,7 +135,10 @@ public class Quaternion extends ProMaster {
 
 	/** Check if this (axis & angle) nearly equals other and if so & clean set it to other. */
 	public boolean equalsEpsAxis(Quaternion other, boolean clean) {
-		if (equalsEps(rotAxis(), other.rotAxis(), false) && 
+		updateAxis();
+		if (rotAxis == null && rotAxis == other.rotAxis)
+			return true;
+		else if (rotAxis().equalsEps(other.rotAxis(), false) && 
 				equalsEps(angle(), other.angle())) {
 			if (clean && !equals(other))
 				set(other);
@@ -161,15 +169,15 @@ public class Quaternion extends ProMaster {
 	}
 
 	/** return the rot axis or null if identity. */
-	public PVector rotAxis() {
+	public Vector rotAxis() {
 		updateAxis();
 		return rotAxis;
 	}
 	
 	/** return the rot axis or null if identity. */
-	public PVector rotAxisAngle() {
+	public Vector rotAxisAngle() {
 		updateAxis();
-		return (rotAxis == null) ? null : mult(rotAxis, angle);
+		return (rotAxis == null) ? null : rotAxis.multBy(angle);
 	}
 	
 	public float angle() {
@@ -242,16 +250,16 @@ public class Quaternion extends ProMaster {
 	}
 	
 	/** build a quaternion from a direction vector and return it. */
-	public static Quaternion fromDirection(PVector vDirection) {
-		if (equalsEps(vDirection, behind, false))
+	public static Quaternion fromDirection(Vector vDirection) {
+		if (vDirection.equalsEps(behind, false))
 			return toTurnAround.copy();
-		else if (equalsEps(vDirection, front, false))
+		else if (vDirection.equalsEps(front, false))
 			return identity.copy();
 				
 		vDirection.normalize();
-		PVector up = ProMaster.up.copy();
+		Vector up = ProMaster.up.copy();
         // setup basis vectors describing the rotation given the input vector and assuming an initial up direction.
-		PVector vRight = up.cross(vDirection);    
+		Vector vRight = up.cross(vDirection);    
 		up = vDirection.cross(vRight);	// The actual up vector
         if (up.equals(zero)) {
         	up = up.copy();
@@ -341,7 +349,7 @@ public class Quaternion extends ProMaster {
 				} else {
 					float invSinHO = 1/s;
 					angle = halfomega*2;
-					rotAxis = new PVector( x*invSinHO, y*invSinHO, z*invSinHO );
+					rotAxis = new Vector( x*invSinHO, y*invSinHO, z*invSinHO );
 					rotAxis.normalize();
 				}
 			}

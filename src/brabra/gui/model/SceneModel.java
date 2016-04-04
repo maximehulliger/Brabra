@@ -2,10 +2,8 @@ package brabra.gui.model;
 
 import java.util.Observable;
 import java.util.Observer;
-import java.util.*;
 
 import brabra.game.scene.Scene;
-import brabra.game.scene.Object;
 
 /** 
  * Model representing the scene (of the main window) 
@@ -20,14 +18,11 @@ public class SceneModel extends Observable implements Observer {
 		this.scene = scene;
 	}
 	
+	
 	// --- Getters ---
 	
 	public int objectCount() {
 		return scene.objects().size();
-	}
-	
-	public List<Object> objects(){
-		return scene.objects();
 	}
 
 	// --- Setters ---
@@ -35,7 +30,7 @@ public class SceneModel extends Observable implements Observer {
 
 	// --- update ---
 	
-	public void update(Observable o, java.lang.Object arg) {
+	public void update(Observable o, Object arg) {
 		// when updated
 		notifyObservers();
 	}
