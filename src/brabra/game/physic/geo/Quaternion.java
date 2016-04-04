@@ -9,7 +9,6 @@ public class Quaternion extends ProMaster {
 	
 	public static final Quaternion identity = new NQuaternion(new Quaternion(), 
 			() -> { throw new IllegalArgumentException("pas touche à l'identity /!\\"); });
-	public static final Quaternion toTurnAround = new Quaternion(up, PApplet.PI);
 
 	private float w, x, y, z;      	// components of a quaternion
 	private boolean validRotAxis = false;
@@ -93,7 +92,8 @@ public class Quaternion extends ProMaster {
 
 	/** set to identity & validRotAxis to true. */
 	private Quaternion reset() {
-		set(identity);
+		if (!isIdentity())
+			set(identity);
 		return this;
 	}
 	
@@ -198,8 +198,7 @@ public class Quaternion extends ProMaster {
 	}
 
 	public boolean equals(Quaternion other) {
-		boolean ret = equalsWXYZ(other);
-		return ret;
+		return equalsWXYZ(other);
 	}
 
 	public boolean equalsAxis(Quaternion other) {
@@ -211,16 +210,14 @@ public class Quaternion extends ProMaster {
 	}
 	
 	public String toString() {
-		if (app.debug.testMode) 
+		if (app != null && app.debug.testMode) 
 			return toStringAll();
 		else{
 			updateAxis();
 			boolean id = isIdentity();
-			
-			assert((rotAxis == null || angle == 0) == id);
-			assert((rotAxis == null) == (angle == 0));
-				
-			//return "quat: (wxyz:"+w+", "+x+", "+y+", "+z+") norm: "+PApplet.sqrt(normSq())+" angle: "+angle;
+			boolean rotAxisCool = (rotAxis == null) == (angle == 0);
+			assert(rotAxisCool && (rotAxis == null) == id);
+			//assert((rotAxis == null) == id);
 			return "quat "+ (id ? "identity" : "axis: "+rotAxis+" angle: "+angle*180/pi+"°");
 		}
 	}
@@ -249,42 +246,40 @@ public class Quaternion extends ProMaster {
 		return new Quaternion(w, -x, -y, -z).normalize();
 	}
 	
-	/** build a quaternion from a direction vector and return it. */
-	public static Quaternion fromDirection(Vector vDirection) {
-		if (vDirection.equalsEps(behind, false))
-			return toTurnAround.copy();
-		else if (vDirection.equalsEps(front, false))
-			return identity.copy();
-				
-		vDirection.normalize();
-		Vector up = ProMaster.up.copy();
-        // setup basis vectors describing the rotation given the input vector and assuming an initial up direction.
-		Vector vRight = up.cross(vDirection);    
-		up = vDirection.cross(vRight);	// The actual up vector
-        if (up.equals(zero)) {
-        	up = up.copy();
-        }
-        
-        float in = 1.0f + vRight.x + up.y + vDirection.z;
-        if (in > 0) {
-        	Quaternion qrot = new Quaternion();
-            qrot.w = PApplet.sqrt(in) / 2.0f;
-	        float dfwScale = qrot.w * 4.0f;
-	        qrot.x = (vDirection.y - up.z) / dfwScale;
-	        qrot.y = (vRight.z - vDirection.x) / dfwScale;
-	        qrot.z = (up.x - vRight.y) / dfwScale;
-	        return qrot;
-        } else
+	/** Retutn a new Quaternion representing a quaternion from a direction vector and return it.  */
+	public static Quaternion fromDirection(Vector forward) {
+		forward.normalize();
+		if (forward.equalsEps(up, false))
+			return new Quaternion(left, PApplet.PI/2);
+		else if (forward.equalsEps(down, false))
+			return new Quaternion(left, -PApplet.PI/2);
+		else 
+			return fromDirection(forward, up);
+	}
+	
+	/** Retutn a new Quaternion representing a quaternion from 2 direction vectors and return it. Forward and upwards shouldn't be colinear. */
+	public static Quaternion fromDirection(Vector forward, Vector upwards) {
+		forward.normalize();
+		upwards.normalize();
+		assert(!upwards.cross(forward).equals(zero));
+		final Vector right = upwards.cross(forward).normalized();    
+		final Vector up = forward.cross(right).normalized();
+        final float in = 1.0f + right.x + up.y + forward.z;
+        if (in == 0)
         	return identity.copy();
+        else {
+        	assert (in > 0);
+			final float w = PApplet.sqrt(in) / 2.0f;
+	        final float dfwScale = w * 4.0f;
+	        return new Quaternion(w, (forward.y - up.z) / dfwScale,
+	        		(right.z - forward.x) / dfwScale, (up.x - right.y) / dfwScale);
+        }
     }
 
-	/** Rotates a towards b with factor t[0,1] */
-	public static Quaternion slerp(Quaternion a, Quaternion b, float t)
-	{
-		float omega, cosom, sinom, sclp, sclq;
-
+	/** Return a new Quaternion with a rotation between a and b with factor t[0,1]. */
+	public static Quaternion slerp(Quaternion a, Quaternion b, float t) {
+		final float omega, cosom, sinom, sclp, sclq;
 		cosom = a.x*b.x + a.y*b.y + a.z*b.z + a.w*b.w;
-
 		if ((1.0f+cosom) > Float.MIN_VALUE) {
 			if ((1.0f-cosom) > Float.MIN_VALUE) {
 				omega = PApplet.acos(cosom);
@@ -295,13 +290,11 @@ public class Quaternion extends ProMaster {
 				sclp = 1.0f - t;
 				sclq = t;
 			}
-
 			return new Quaternion ( sclp*a.w + sclq*b.w, sclp*a.x + sclq*b.x,
 					sclp*a.y + sclq*b.y, sclp*a.z + sclq*b.z);
 		} else {
 			sclp = PApplet.sin((1f-t) * PApplet.PI * 0.5f);
 			sclq = PApplet.sin(t * PApplet.PI * 0.5f);
-
 			return new Quaternion (a.z, sclp*a.x + sclq*b.x,
 					sclp*a.y + sclq*b.y, sclp*a.z + sclq*b.z);
 		}
@@ -322,7 +315,7 @@ public class Quaternion extends ProMaster {
 			if (s == 0)
 				reset();
 			else {
-				// validate rotAxis
+				// validate rotAxis (angle ok)
 				rotAxis.normalize();
 				validRotAxis = true;
 				set(PApplet.cos(omega),
@@ -342,8 +335,8 @@ public class Quaternion extends ProMaster {
 				angle = 0;
 				rotAxis = null;
 			} else {
-				float halfomega = PApplet.acos(w);
-				float s = PApplet.sin(halfomega);
+				final float halfomega = PApplet.acos(w);
+				final float s = PApplet.sin(halfomega);
 				if (halfomega == 0 || s == 0) { //no rotation
 					reset();
 				} else {
@@ -358,10 +351,10 @@ public class Quaternion extends ProMaster {
 	}
 
 	private Quaternion normalize() {
-		float norm = PApplet.sqrt(normSq());
+		final float norm = PApplet.sqrt(normSq());
 		assert (!equalsEps(norm, 0));
 		if (norm != 1) {
-			float invNorm = 1f/norm;
+			float invNorm = 1/norm;
 			justNormalized = true;
 			set(w * invNorm,
 				x * invNorm,

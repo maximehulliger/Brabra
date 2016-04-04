@@ -1,4 +1,4 @@
-package brabra;
+package brabra.game.physic.geo;
 
 import static org.junit.Assert.*;
 
@@ -8,7 +8,7 @@ import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 
-import brabra.ProMaster;
+import brabra.ProTest;
 import brabra.game.physic.Physic;
 import brabra.game.physic.geo.Quaternion;
 import brabra.game.physic.geo.Vector;
@@ -20,8 +20,8 @@ public class QuaternionTest extends ProTest {
 	
 	// Before before & once only
 	static {
-		for (String dir : ProMaster.directions)
-			dirSample.add(Quaternion.fromDirection(vec(dir)));
+		for (Vector dir : directions)
+			dirSample.add(Quaternion.fromDirection(dir));
 	}
 	
 	@Before
@@ -30,7 +30,7 @@ public class QuaternionTest extends ProTest {
 	}
 
 	@Test
-	public void testDirection() {
+	public void initFromAxisTest() {
 		for (Quaternion q : dirSample) {
 			iter++;
 			assertEqualsEps("at iter "+iter, q, new Quaternion(q.rotAxis(), q.angle()));
@@ -38,10 +38,12 @@ public class QuaternionTest extends ProTest {
 	}
 
 	@Test
-	public void updateTest() {
+	public void coherenceTest() {
 		for (Quaternion q : dirSample) {
 			iter++;
-			assertTrue(q.equalsAxis( q.copy().initFromAxis() ));
+			Quaternion qp = q.copy().initFromAxis();
+			assertEqualsEps("at iter "+iter, q, qp);
+			
 			float angle = q.angle();
 			Vector rotAxis = q.rotAxis();
 			q.updateAxis();
@@ -70,8 +72,8 @@ public class QuaternionTest extends ProTest {
 			Vector rotAxis = q1.rotAxis();
 			q1.updateAxis();
 			assertEquals("at iter "+i, angle, q1.angle(), Physic.epsilon);
-			assertEquals("at iter "+i, rotAxis, q1.rotAxis());
-			assertEquals("at iter "+i, q1, new Quaternion(rotAxis, angle));
+			assertEqualsEps("at iter "+i, rotAxis, q1.rotAxis());
+			assertEqualsEps("at iter "+i, q1, new Quaternion(rotAxis, angle));
 		}
 	}
 }

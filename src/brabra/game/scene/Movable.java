@@ -80,6 +80,14 @@ public class Movable extends Object {
 
 	// --- Setters ---
 
+	public void move(Vector deplAbs) {
+		locationRel.add(localDir(deplAbs));
+	}
+	
+	public void rotate(Quaternion rotAbs) {
+		rotationRel.rotate(rotAbs);
+	}
+	
 	/** Set the velocity of this object relative to his parent. */
 	public void setVelocityRel(Vector velocityRel) {
 		this.velocityRel.set(velocityRel);
@@ -122,8 +130,7 @@ public class Movable extends Object {
 						game.debug.log(6, this+" started moving.");
 						moving = true;
 					}
-					locationRel.add( velocityRel );
-					locationAbs.set(absolute(zero));
+					move(velocityRel);
 				} else if (moving) {
 					game.debug.log(6, this+" stopped moving.");
 					moving = false;
@@ -136,7 +143,7 @@ public class Movable extends Object {
 						game.debug.log(6, this+" started rotating.");
 						rotating = true;
 					}
-					rotationRel.rotate( rotationRelVel );
+					rotate(rotationRelVel);
 				} else if (rotating) {
 					game.debug.log(6, this+" stopped rotating.");
 					rotating = false;
@@ -160,15 +167,17 @@ public class Movable extends Object {
 	
 	/** Force the object to lose some velocity. loss in [0,1]. reset after eps. */
 	public void brakeDepl(float loss) {
-		if (isMoving())
+		if (isMoving()) {
 			velocityRel.mult(1-loss);
-		velocityRel.isZeroEps(true);
+			velocityRel.isZeroEps(true);
+		}
 	}
 	
 	/** Force the object to lose some rotational velocity. reset after eps. */
 	public void brakeRot(float loss) {
-		if (isRotating())
+		if (isRotating()) {
 			rotationRelVel.setAngle(rotationRelVel.angle() * (1 - loss));
-		rotationRelVel.isZeroEps(true);
+			rotationRelVel.isZeroEps(true);
+		}
 	}
 }

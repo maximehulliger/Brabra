@@ -1,5 +1,7 @@
 package brabra.game.physic.geo;
 
+import java.util.regex.Matcher;
+
 import brabra.Master;
 import brabra.game.physic.Physic;
 import processing.core.PVector;
@@ -8,7 +10,13 @@ public class Vector extends PVector {
 	private static final long serialVersionUID = 1;
 	
 	public static final Vector zero = new Vector(0,0,0);
-
+	public static final Vector left = new Vector(1, 0, 0);
+	public static final Vector right = new Vector(-1, 0, 0);
+	public static final Vector up = new Vector(0, 1, 0);
+	public static final Vector down = new Vector(0, -1, 0);
+	public static final Vector front = new Vector(0, 0, -1);
+	public static final Vector behind = new Vector(0, 0, 1);
+	
 	// --- Contructor ---
 	
 	public Vector() {
@@ -27,6 +35,39 @@ public class Vector extends PVector {
 		super(v.x,v.y,v.z); 
 	}
 
+	/** 
+	 * Return a vector from "(x,y,z)" format or 
+	 * a direction vector (front, behind(back), right, left, up, down) or
+	 * zero or null (if invalid).
+	 **/
+	public static Vector fromString(String vec) {
+		// 1. known vector name
+		if (vec.equals("zero"))
+			return zero;
+		else if (vec.equals("front"))
+			return front;
+		else if (vec.equals("behind") || vec.equals("back"))
+			return behind;
+		else if (vec.equals("right"))
+			return right;
+		else if (vec.equals("left"))
+			return left;
+		else if (vec.equals("up"))
+			return up;
+		else if (vec.equals("down"))
+			return down;
+		// 2. extract 3 float from string.
+		Matcher matcher = Master.floatPattern.matcher(vec);
+		float[] values = new float[3];
+		for (int i=0; i<3; i++) {
+			if (matcher.find())
+				values[i] = Float.parseFloat(matcher.group());
+			else
+				return null;
+		}
+		return new Vector(values[0],values[1],values[2]);
+	}
+	
 	// --- Getters ---
 
 	public Vector copy() {
