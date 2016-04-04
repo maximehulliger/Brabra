@@ -30,7 +30,7 @@ public class Brabra extends PApplet {
 	/** Frame per seconds wished by Brabra. */
 	public static final float frameRate = 30;
 	/** Indicates if this should be activated on start. */
-	protected boolean imgAnalysis = false, toolWindow = false;
+	protected boolean imgAnalysis = false, toolWindow = true;
 	
 	//--- public
 	public final Debug debug = new Debug();

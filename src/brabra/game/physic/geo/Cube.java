@@ -1,24 +1,24 @@
 package brabra.game.physic.geo;
 
-import brabra.game.XMLLoader.Attributes;
 import brabra.game.physic.PseudoPolyedre;
 import brabra.game.physic.geo.Line.Projection;
 import brabra.game.scene.Object;
+import processing.core.*;
 
-public class Box extends PseudoPolyedre {
+public class Cube extends PseudoPolyedre {
 	
 	/** Total size (local). */
-	private Vector size;
+	private PVector size;
 	/** Size / 2. */
-	private Vector dim;
+	private PVector dim;
 	private Plane[] faces;
 	/** Vertices relative to the object. */
-	private Vector[] verticesRel;
+	private PVector[] verticesRel;
 	/** Edges relative to the object. */
 	private Line[] edgesRel;
 
 	/** Create a cube with arretes of lenght dim. */
-	public Box(Vector location, Quaternion rotation, Vector size) {
+	public Cube(PVector location, Quaternion rotation, PVector size) {
 	    super(location, rotation, size.mag()/2);
 	    super.setName("Cube");
 	    setSize(size);
@@ -26,26 +26,23 @@ public class Box extends PseudoPolyedre {
 	
 	// --- Getters ---
 
-	/** Return the size of the box (edges length). */
-	public Vector size() {
+	public PVector size() {
 		return size;
 	}
 
-	/** Return half of the size of the box. */
-	public Vector dim() {
+	public PVector dim() {
 		return dim;
 	}
 
-	/** Return the 6 faces of this box. */
-	public Plane[] faces() {
+	public Plane[] planes() {
 		return faces;
 	}
 	
 	// --- Setters ---
 	
-	public void setSize(Vector size) {
+	public void setSize(PVector size) {
 		this.size = size;
-	    this.dim = size.multBy(0.5f);
+	    this.dim = mult(size, 0.5f);
 		this.faces = getFaces(size, this);
 		this.verticesRel = verticesRel(dim);
 	    this.edgesRel = edgesRel(verticesRel);
@@ -55,11 +52,11 @@ public class Box extends PseudoPolyedre {
 		super.setMass(mass);
 		if (inverseMass > 0) {
 			float fact = mass/12;
-			super.inertiaMom = new Vector(
+			super.inertiaMom = new PVector(
 					fact*(sq(size.y) + sq(size.z)), 
 					fact*(sq(size.x) + sq(size.z)), 
 					fact*(sq(size.x) + sq(size.y)));
-			super.inverseInertiaMom = new Vector(
+			super.inverseInertiaMom = new PVector(
 					1/inertiaMom.x,
 					1/inertiaMom.y,
 					1/inertiaMom.z );
@@ -72,27 +69,16 @@ public class Box extends PseudoPolyedre {
 		pushLocal();
 		if (!displayColliderMaybe()) {
 			color.fill();
-			displayShape();
+			displayCollider();
 		}
 		popLocal();
 	}
 	
-	public void displayShape() {
+	public void displayCollider() {
 		app.box(size.x, size.y, size.z);
 	}
 
-	// --- life cycle ---
 
-	public boolean validate(Attributes atts) {
-		if (super.validate(atts)) {
-			final String size = atts.getValue("size");
-			if (size != null)
-				setSize(vec(size));
-			return true;
-		} else
-			return false;
-	}
-	
 	public boolean updateAbs() {
 		if (super.updateAbs()) {
 			// for Cube
@@ -107,24 +93,24 @@ public class Box extends PseudoPolyedre {
 	
 	// --- from PseudoPolyedre ---
 	
-	public boolean isIn(Vector abs) {
-		float[] loc = relative(abs).array();
+	public boolean isIn(PVector abs) {
+		float[] loc = local(abs).array();
 		for (int i=0; i<3; i++)
-			if (abs(loc[i]) >= dim.array()[0])
+			if (PApplet.abs(loc[i]) >= dim.array()[0])
 				return false;
 		return true;
 	}
 	
-	public Vector pointContre(Vector normale) {
-		Vector cNorm = normale.multBy(-1);
-		Vector proj = zero.copy();
+	public PVector pointContre(PVector normale) {
+		PVector cNorm = PVector.mult(normale, -1);
+		PVector proj = zero.copy();
 		for (int i=0; i<3; i++)
-			proj.add( Vector.mult( faces[i*2].normale().norm, dim.array()[i] * sgn(faces[i*2].normale().norm.dot(cNorm))) );
+			proj.add( PVector.mult( faces[i*2].normale().norm, dim.array()[i] * sgn(faces[i*2].normale().norm.dot(cNorm))) );
 		proj.add(locationAbs);
 		return proj;
 	}
 	
-	public float projetteSur(Vector normale) {
+	public float projetteSur(PVector normale) {
 		float proj = 0;
 		for (int i=0; i<3; i++) {
 			proj += dim.array()[i] * faces[i*2].normale().norm.dot(normale);
@@ -132,8 +118,8 @@ public class Box extends PseudoPolyedre {
 		return proj;
 	}
 	
-	public Plane[] plansSeparationFor(Vector colliderLocation) {
-		Vector rel = colliderLocation.minus(locationAbs);
+	public Plane[] plansSeparationFor(PVector colliderLocation) {
+		PVector rel = PVector.sub(colliderLocation, locationAbs);
 		Plane[] ret = new Plane[3];
 		for (int i=0; i<3; i++) {
 			ret[i] = rel.dot(faces[i*2].normale().norm) > 0
@@ -142,7 +128,7 @@ public class Box extends PseudoPolyedre {
 		return ret;
 	}
 
-	public Line collisionLineFor(Vector p) {
+	public Line collisionLineFor(PVector p) {
 		float bestSqDist = Float.MAX_VALUE;
 		Line bestNormale = null;
 		for (Plane plane : faces) {
@@ -159,16 +145,16 @@ public class Box extends PseudoPolyedre {
 	
 	public Projection projetteSur(Line ligne) {
 	  float mid = ligne.projectionFactor(locationAbs);
-	  float proj = abs(projetteSur(ligne.norm));
+	  float proj = PApplet.abs(projetteSur(ligne.norm));
 	  return new Projection(mid-proj, mid+proj);
 	}
 	
-	public Vector projette(Vector point) {
+	public PVector projette(PVector point) {
 		updateAbs();
 		float bestSqDist = Float.MAX_VALUE;
-		Vector bestProj = null;
+		PVector bestProj = null;
 		for (Plane p : faces) {
-			Vector proj = p.projette(point);
+			PVector proj = p.projette(point);
 			float distSq = distSq(proj, point);
 			if (distSq < bestSqDist) {
 				bestSqDist = distSq;
@@ -180,7 +166,7 @@ public class Box extends PseudoPolyedre {
 			bestSqDist = Float.MAX_VALUE;
 			bestProj = null;
 			for (Plane p : faces) {
-				Vector proj = p.projette(point);
+				PVector proj = p.projette(point);
 				float distSq = distSq(proj, point);
 				if (distSq < bestSqDist) {
 					bestSqDist = distSq;
@@ -193,15 +179,15 @@ public class Box extends PseudoPolyedre {
 	
 	// --- private stuff ---
 	
-	private static Vector[] verticesRel(Vector dim) {
-		return new Vector[] {
-				new Vector(dim.x, dim.y, dim.z), new Vector(-dim.x, -dim.y, -dim.z), 	//+++
-				new Vector(dim.x, dim.y, -dim.z), new Vector(-dim.x, -dim.y, dim.z), 	//++-
-				new Vector(dim.x, -dim.y, dim.z), new Vector(-dim.x, dim.y, -dim.z),	//+-+
-				new Vector(dim.x, -dim.y, -dim.z), new Vector(-dim.x, dim.y, dim.z)};	//+--
+	private static PVector[] verticesRel(PVector dim) {
+		return new PVector[] {
+				new PVector(dim.x, dim.y, dim.z), new PVector(-dim.x, -dim.y, -dim.z), 	//+++
+				new PVector(dim.x, dim.y, -dim.z), new PVector(-dim.x, -dim.y, dim.z), 	//++-
+				new PVector(dim.x, -dim.y, dim.z), new PVector(-dim.x, dim.y, -dim.z),	//+-+
+				new PVector(dim.x, -dim.y, -dim.z), new PVector(-dim.x, dim.y, dim.z)};	//+--
 	}
 	
-	private static Line[] edgesRel(Vector[] verRel) {
+	private static Line[] edgesRel(PVector[] verRel) {
 		return new Line[] {
 				// -x -> x
 				new Line(verRel[1], verRel[6], true), new Line(verRel[3], verRel[4], true),
@@ -214,20 +200,20 @@ public class Box extends PseudoPolyedre {
 				new Line(verRel[5], verRel[7], true), new Line(verRel[6], verRel[4], true)};
 	}
 	
-	private static Plane[] getFaces(Vector size, Object forMe) {
+	private static Plane[] getFaces(PVector size, Object forMe) {
 	    Plane[] faces =  new Plane[6];
-	    Vector[] facesLoc = new Vector[] {
-		    	new Vector(size.x/2, 0, 0), new Vector(-size.x/2, 0, 0), 	//gauche,  droite  (x)
-		    	new Vector(0, size.y/2, 0), new Vector(0, -size.y/2, 0), 	//dessus, dessous  (y)
-		  	    new Vector(0, 0, size.z/2), new Vector(0, 0, -size.z/2)};	//devant, derriere (z)
+	    PVector[] facesLoc = new PVector[] {
+		    	new PVector(size.x/2, 0, 0), new PVector(-size.x/2, 0, 0), 	//gauche,  droite  (x)
+		    	new PVector(0, size.y/2, 0), new PVector(0, -size.y/2, 0), 	//dessus, dessous  (y)
+		  	    new PVector(0, 0, size.z/2), new PVector(0, 0, -size.z/2)};	//devant, derriere (z)
 	    Quaternion[] facesRot = new Quaternion[] {
 				Quaternion.fromDirection(left), Quaternion.fromDirection(right),
 				Quaternion.fromDirection(up), Quaternion.fromDirection(down),
 				Quaternion.fromDirection(front), Quaternion.fromDirection(behind)};
-	    Vector[] facesSize = new Vector[] {
-		    	new Vector(size.y, 0, size.z), new Vector(size.y, 0, size.z), 	//gauche,  droite  (x)
-		    	new Vector(size.x, 0, size.z), new Vector(size.x, 0, size.z), 	//dessus, dessous  (y)
-		  	    new Vector(size.x, 0, size.y), new Vector(size.x, 0, size.y)};	//devant, derriere (z)
+	    PVector[] facesSize = new PVector[] {
+		    	new PVector(size.y, 0, size.z), new PVector(size.y, 0, size.z), 	//gauche,  droite  (x)
+		    	new PVector(size.x, 0, size.z), new PVector(size.x, 0, size.z), 	//dessus, dessous  (y)
+		  	    new PVector(size.x, 0, size.y), new PVector(size.x, 0, size.y)};	//devant, derriere (z)
 	    for (int i=0; i<6; i++) {
 	    	faces[i] = new Plane(facesLoc[i], facesRot[i], facesSize[i]);
 	    	faces[i].setParent(forMe);

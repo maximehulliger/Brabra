@@ -18,43 +18,43 @@ import processing.core.PApplet;
  * */
 public abstract class Master {
 	
-	public static final Pattern floatPattern = Pattern.compile("[+-]?\\d+[.]?\\d*");
-	public static final Pattern intPattern = Pattern.compile("[+]?\\d+");
-	public static final Random random = new Random();
-	public static final Debug debug = new Debug();
-	public static final Map<String, String> env = System.getenv();
+	protected static final Pattern floatPattern = Pattern.compile("[+-]?\\d+[.]?\\d*");
+	protected static final Pattern intPattern = Pattern.compile("[+]?\\d+");
+	protected static final Random random = new Random();
+	protected static final Debug debug = new Debug();
+	protected static final Map<String, String> env = System.getenv();
 	
 	// --- General mastery ---
 	
-	public static void println(Object s) {
+	protected static void println(Object s) {
 		System.out.println(s);
 	}
 	
-	public static void println(float[] array) {
+	protected static void println(float[] array) {
 		println(Arrays.toString(array));
 	}
 	
 	/** angle en radian => [-pi, pi] */
-	public static float entrePiEtMoinsPi(float a) {
+	protected static float entrePiEtMoinsPi(float a) {
 		if (a > PApplet.PI) return a - PApplet.TWO_PI;
 		else if (a < -PApplet.PI) return a + PApplet.TWO_PI;
 		else return a;
 	}
 	
 	/** [min, max] => [min2, max2] */
-	public static float map(float val, float min, float max, float min2, float max2, boolean constrain) {
+	protected static float map(float val, float min, float max, float min2, float max2, boolean constrain) {
 		return (clamp(val, min, max, constrain)-min)/(max-min)*(max2-min2) + min2;
 	}
 	
 	/** [min, max] => [0, 1] */
-	public static float clamp(float val, float min, float max, boolean constrain) {
+	protected static float clamp(float val, float min, float max, boolean constrain) {
 		if (constrain)
 			val = constrain(val, min, max);
 		return (val - min)/(max - min);
 	}
 
 	/** [min, max] */
-	public static float random(float min, float max) {
+	protected static float random(float min, float max) {
 		return min + (max-min) * random.nextFloat();
 	}
 	
@@ -74,13 +74,15 @@ public abstract class Master {
 		Iterator<T> it1 = col.iterator();
 		while (it1.hasNext()) {
 			T o1 = it1.next();
+			boolean atSelf = false;
 			Iterator<T> it2 = col.iterator();
-			while (it2.hasNext()) {
+			while (it1.hasNext() && !atSelf) {
 				T o2 = it2.next();
-				if (o1 == o2)
-					break;
-				else 
+				if (o1 == o2) {
+					atSelf = true;
+				} else {
 					fun.accept(o1,o2);
+				}
 			}
 		}
 	}
@@ -145,7 +147,7 @@ public abstract class Master {
 		
 	// --- Syntactic sugar ---
 
-	public static int sgn(float a) {
+	protected static int sgn(float a) {
 		if (a == 0)
 			return 0;
 		else if (a>0)
@@ -154,73 +156,59 @@ public abstract class Master {
 			return -1;
 	}
 	
-	public static int abs(int i) {
+	protected static int abs(int i) {
 		return i<0 ? -i : i;
 	}
 	
-	public static float abs(float f) {
+	protected static float abs(float f) {
 		return f<0 ? -f : f;
 	}
 	
 	/** a random value in [-1, 1] */ 
-	public static float randomBi() {
+	protected static float randomBi() {
 		return random(-1, 1);
 	}
 	
-	public static float sq(float t) {
+	protected static float sq(float t) {
 		return t*t;
 	}
 
-	public static float sqrt(float t) {
+	protected static float sqrt(float t) {
 		return PApplet.sqrt(t);
 	}
 
-	public static float min(float a, float b) {
+	protected static float min(float a, float b) {
 		return a<b ? a : b;
 	}
 
-	public static float min(float... fs) {
-		float min = fs[0];
-		for (int i=1; i<fs.length; i++)
-			min = min(min, fs[i]);
-		return min;
-	}
-
-	public static float max(float a, float b) {
+	protected static float max(float a, float b) {
 		return a>b ? a : b;
 	}
 
-	public static float max(float... fs) {
-		float max = fs[0];
-		for (int i=1; i<fs.length; i++)
-			max = max(max, fs[i]);
-		return max;
-	}
-
-	public static int min(int a, int b) {
+	protected static int min(int a, int b) {
 		return a<b ? a : b;
 	}
 
-	public static int max(int a, int b) {
+	protected static int max(int a, int b) {
 		return a>b ? a : b;
 	}
 
 	/** return v in [min, max]. */
-	public static int constrain(int v, int min, int max) {
+	protected static int constrain(int v, int min, int max) {
 		if (v < min) 		return min;
 		else if (v > max) 	return max;
 		else 				return v;
 	}
 
 	/** return v in [min, max]. */
-	public static float constrain(float v, float min, float max) {
+	protected static float constrain(float v, float min, float max) {
 		if (v < min) 		return min;
 		else if (v > max) 	return max;
 		else 				return v;
 	}
 
 	/** return true if v is in [min, max] */
-	public static boolean isConstrained(float v, float min, float max) {
+	protected static boolean isConstrained(float v, float min, float max) {
 		return v>=min && v<=max;
 	}
 	

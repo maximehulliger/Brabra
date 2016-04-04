@@ -7,8 +7,8 @@ import brabra.Brabra;
 import brabra.game.XMLLoader.Attributes;
 import brabra.game.physic.Collider;
 import brabra.game.physic.geo.Quaternion;
-import brabra.game.physic.geo.Vector;
 import brabra.game.scene.Object;
+import processing.core.PVector;
 
 /** Class holding some weapons (in the children or not). */
 public class Weaponry extends Object {
@@ -29,14 +29,14 @@ public class Weaponry extends Object {
 	private final List<Weapon> weapons = new ArrayList<>();
 	/** in the order in which the weapons will be shot. */
 	private final List<Weapon> weaponsOrdered = new ArrayList<>(); 
-	private final Vector basGauche = zero.copy();
+	private final PVector basGauche = zero.copy();
 	private boolean valid = true; // object is in a valid state.
 	private int guiWidth = guiWidthWished;
 	private float puissance = puissanceWished;
 	private int prefab = 0;
 	
 	/** t0-2 : thresholds pour répartir la l'amélioration puissance sur les differents tiers d'armement. */
-	public Weaponry(Vector loc, Quaternion rot) {
+	public Weaponry(PVector loc, Quaternion rot) {
 		super(loc, rot);
 		setName("Weaponry");
 	}
@@ -99,7 +99,7 @@ public class Weaponry extends Object {
 	/** display the state of the missiles in the gui */
 	public void displayGui() {
 		updateState();
-		Vector basGaucheCurrent = basGauche.copy();
+		PVector basGaucheCurrent = basGauche.copy();
 		for(Weapon w : weapons)
 			basGaucheCurrent = w.displayGui(basGaucheCurrent);
 	}

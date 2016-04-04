@@ -8,10 +8,10 @@ import brabra.game.physic.Body;
 import brabra.game.physic.Collider;
 import brabra.game.physic.geo.Line;
 import brabra.game.physic.geo.Line.Projection;
-import brabra.game.physic.geo.Vector;
 import brabra.game.scene.weapons.Weaponry;
 import brabra.game.scene.Object;
 import processing.core.PApplet;
+import processing.core.PVector;
 
 /**
  * Class to enable interaction with the scene's bodies.
@@ -85,17 +85,17 @@ public final class PhysicInteraction extends ProMaster {
 	private void applyForces() {
 		if (hasFocused() && focusedBody != null) {
 			// 1. rotation (plate, mouse, horizontal)
-			Vector forceRot = zero.copy(); // [pitch, yaw, roll]
+			PVector forceRot = zero.copy(); // [pitch, yaw, roll]
 			//> from the plate
 			if (app.imgAnalyser.running()) {
 				// rotation selon angle de la plaque
-				Vector plateRot = app.imgAnalyser.rotation().multBy(1/Brabra.inclinaisonMax); //over 1
+				PVector plateRot = PVector.div(app.imgAnalyser.rotation(), Brabra.inclinaisonMax); //sur 1
 				// on adoucit par x -> x ^ 1.75
-				plateRot = new Vector(
+				plateRot = new PVector(
 						PApplet.pow(PApplet.abs(plateRot.x), 1.75f) * sgn(plateRot.x), 
 						PApplet.pow(PApplet.abs(plateRot.y), 1.75f) * sgn(plateRot.y),
 						PApplet.pow(PApplet.abs(plateRot.z), 1.75f) * sgn(plateRot.z));
-				forceRot.add( plateRot.multBy(Brabra.inclinaisonMax/4 ) );
+				forceRot.add( mult(plateRot,  Brabra.inclinaisonMax/4 ) );
 			}
 			//> add from input (horizon:ad)
 			forceRot.add( yawAxis(game.input.horizontal*120) );
@@ -105,23 +105,24 @@ public final class PhysicInteraction extends ProMaster {
 			forceRot.mult(this.forceRot);
 			//> apply force rot: up (pitch, roll)
 			if (forceRot.x != 0 || forceRot.z != 0) {
-				Vector upAP = up(100);
-				Vector forceRel = zero.copy();
+				PVector upAP = up(100);
+				PVector forceRel = zero.copy();
 				forceRel.add( front(forceRot.x * 3/2) );
 				forceRel.add( right(forceRot.z * 3/2) );
 				focusedBody.applyForce(focused.absolute(upAP), focused.absoluteDir(forceRel));
 			}
 			//> apply force rot: front (yaw)
 			if (forceRot.y != 0) {
-				Vector frontAP = front(150);
-				Vector frontForceRel = right(forceRot.y);
+				PVector frontAP = front(150);
+				PVector frontForceRel = right(forceRot.y);
 				focusedBody.applyForce(focused.absolute(frontAP), focused.absoluteDir(frontForceRel));
 			}
 			
 			// 2. forward
 			float rightScore = max(0, app.imgAnalyser.buttonDetection.rightScore());
-			if (game.input.vertical != 0 || rightScore > 0)
+			if (game.input.vertical != 0 || rightScore > 0) {
 				focusedBody.applyForceRel(front(150), front((game.input.vertical+rightScore) * forceTrans));
+			}
 			
 			// 3. brake
 			if (rightScore > 0) {
@@ -143,12 +144,12 @@ public final class PhysicInteraction extends ProMaster {
 	
 	// --- Raycast ---
 
-	public static Collider raycast(Vector from, Vector dir) {
+	public static Collider raycast(PVector from, PVector dir) {
 		assert(!dir.equals(zero));
 		Line ray = new Line(from, add(from,dir), true);
-		Vector other = vec(1,1,1);
-		Vector target1 = new Vector();
-		Vector target2 = new Vector();
+		PVector other = vec(1,1,1);
+		PVector target1 = new PVector();
+		PVector target2 = new PVector();
 		dir.cross(other, target1);
 		if (target1.equals(zero))
 			other = vec(-2,-3,-5);

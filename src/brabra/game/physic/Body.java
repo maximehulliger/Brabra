@@ -7,8 +7,8 @@ import brabra.game.Color;
 import brabra.game.XMLLoader.Attributes;
 import brabra.game.physic.geo.Line;
 import brabra.game.physic.geo.Quaternion;
-import brabra.game.physic.geo.Vector;
 import brabra.game.scene.Movable;
+import processing.core.*;
 
 /** 
  * An movable object obeying to the laws of physics. 
@@ -16,31 +16,29 @@ import brabra.game.scene.Movable;
  * You can apply forces and impulse (interactions) to it to move it.
  * TODO: If has a parent, apply it to the parent.
  **/
-public abstract class Body extends Movable {
+public class Body extends Movable {
 	
 	private static final boolean displayInteractions = true; //forces et impulse
 	private static final Color interactionColor = new Color("white", true);
 	
 	/** Mass of the body. -2 for ghost, -1 for infinite or bigger than 0 (never equals 0).*/
 	protected float mass = -2;
-	/** Inverse of the body mass. 0 for infinite mass or bigger than 0. */
-	protected float inverseMass = 0;
-	protected Vector inertiaMom = null;
-	protected Vector inverseInertiaMom = null;
-	protected Color color = Color.basic;
-	protected float restitution = 0.8f; // [0, 1]
 	protected int life = -1;
 	protected int maxLife = -1;
-	
-	/** Will be added on next update. */
-	private Vector forcesLocToAdd = zero.copy(), torquesLocToAdd = zero.copy();
-	/** Executed before updating the body. */
-	private Runnable onUpdate = null;
+	protected Color color = Color.basic;
+	protected float inverseMass = 0;
+	protected PVector inertiaMom = cube(Float.POSITIVE_INFINITY);
+	protected PVector inverseInertiaMom = zero.copy();
+	protected float restitution = 0.8f; // [0, 1]
+
+	private PVector forces = zero.copy();
+	private PVector torques = zero.copy();
+	private Runnable addForces = null;
 	private List<Line> interactionsRel = new ArrayList<>();
 	
 	
 	/** create a Body with this location & location and infinite mass. rotation can be null */
-	public Body(Vector location, Quaternion rotation) {
+	public Body(PVector location, Quaternion rotation) {
 		super(location, rotation);
 	}
 
@@ -48,7 +46,7 @@ public abstract class Body extends Movable {
 	protected void addForces() {}
 
 	/** to react to a collision */
-	protected void onCollision(Collider col, Vector impact) {}
+	protected void onCollision(Collider col, PVector impact) {}
 
 	public boolean validate(Attributes atts) {
 		if (super.validate(atts)) {
@@ -72,22 +70,22 @@ public abstract class Body extends Movable {
 	/** applique les forces et update l'etat. return true if this was updated. */
 	public boolean update() {
 		if (!updated) {
-			//0. before update
 			addForces();
-			if (onUpdate != null)
-				onUpdate.run();
+			if (addForces != null)
+				addForces.run();
 			//1. translation
-			Vector acceleration = forcesLocToAdd.multBy(inverseMass);
+			PVector acceleration = PVector.mult( forces, inverseMass );
 			if (!acceleration.equals(zero))
 				velocityRel.add( acceleration );
 			//2. rotation, vitesse angulaire, on prend rotation axis comme L/I
-			Vector dL = torquesLocToAdd.multElementsBy(inverseInertiaMom);
+			PVector dL = multMatrix( torques, inverseInertiaMom );
 			if (!dL.equals(zero))
 				rotationRelVel.addAngularMomentum( dL );
-
-			forcesLocToAdd.set(zero);
-			torquesLocToAdd.set(zero);
-			return super.update(); //always true
+			forces.set(zero);
+			torques.set(zero);
+			boolean pu = super.update();
+			assert(pu);
+			return true;
 		} else
 			return false;
 	}
@@ -95,8 +93,9 @@ public abstract class Body extends Movable {
 	/** Display the interactions... maybe. In local space (should be call after pushLocal()). */
 	protected void displayInteractionMaybe() {
 		if (displayInteractions) {
-			for (Line l : interactionsRel)
+			for (Line l : interactionsRel) {
 				l.display(interactionColor);
+			}
 			interactionsRel.clear();
 		}
 	}
@@ -108,10 +107,10 @@ public abstract class Body extends Movable {
 
 	// --- some setters
 	
-	public void addOnUpdate(Runnable onUpdate) {
-		final Runnable oldAddForce = this.onUpdate;
-		this.onUpdate = this.onUpdate == null ?
-				onUpdate : () -> { oldAddForce.run(); onUpdate.run(); };
+	public void addApplyForces(Runnable addForce) {
+		final Runnable oldAddForce = this.addForces;
+		this.addForces = this.addForces == null ?
+				addForce : () -> { oldAddForce.run(); addForce.run(); };
 	}
 
 	/** 
@@ -123,23 +122,21 @@ public abstract class Body extends Movable {
 	 *	Should be overload (and called) to set the inertia moment (depending on the shape). 
 	 **/
 	public void setMass(float mass) {
-		if (mass < -1) {
-			game.debug.err("invalide mass: "+mass+", taking 0 (ghost)");
-			setMass(0);
+		if (mass == -2 || mass == 0) {
+			this.mass = -2;
+			this.inverseMass = 0;
+			this.inverseInertiaMom = zero.copy();
 		} else if (mass == -1) {
 			this.mass = -1;
 			this.inverseMass = 0;
-			this.inertiaMom = Vector.cube(Float.POSITIVE_INFINITY);
 			this.inverseInertiaMom = zero.copy();
-		} else if (mass == 0) {
-			setMass(-1);
-			this.mass = -2; //-> ghost
-		} else { //mass > 0
+		} else if (mass <= 0) {
+			game.debug.err("invalide mass: "+mass+", taking -2 (ghost)");
+			setMass(-2);
+		} else {
 			this.mass = mass;
 			this.inverseMass = 1/mass;
-			// to be set by concrete class
-			this.inertiaMom = null;
-			this.inverseInertiaMom = null;
+			this.inverseInertiaMom = zero.copy();
 		}
 	}
 	
@@ -210,87 +207,87 @@ public abstract class Body extends Movable {
 	
 	/** If false, the body doesn't react to the collision but others do. */
 	public boolean affectedByCollision() {
-		return inverseMass > 0;
+		return mass > 0;
 	}
 
 	/** Add momentum to the body at this point (absolute). */
-	public void applyImpulse(Vector posAbs, Vector impulseAbs) {
+	public void applyImpulse(PVector posAbs, PVector impulseAbs) {
 		assert(!impulseAbs.equals(zero));
 		// in local space
-		Vector posLoc = local(posAbs);
-		Vector impulseLoc = localDir(impulseAbs);
-		interactionsRel.add(new Line(relative(posAbs), relative(add(posAbs, impulseAbs.multBy(4))), true));		
+		PVector posLoc = local(posAbs);
+		PVector impulseLoc = localDir(impulseAbs);
+		interactionsRel.add(new Line(relative(posAbs), relative(add(posAbs, mult(impulseAbs, 4))), true));		
 		// test if the impulse is against (or on) the mass center -> just translation
-		if (posLoc.isZeroEps(false) || posLoc.cross(impulseLoc).isZeroEps(false)) {
-			velocityRel.add( impulseLoc.multBy(this.inverseMass) );
+		if (isZeroEps(posLoc, false) || isZeroEps(posLoc.cross(impulseLoc), false)) {
+			velocityRel.add( mult(impulseLoc, this.inverseMass) );
 		} else {
-			Vector posLocN = posLoc.normalized();
+			PVector posLocN = posLoc.normalize(new PVector());
 			// for translation, just in absolute
-			Vector dVel = posLocN.multBy(impulseLoc.dot(posLocN)*this.inverseMass);
+			PVector dVel = mult(posLocN, impulseLoc.dot(posLocN)*this.inverseMass);
 			if (!dVel.equals(zero))
 				velocityRel.add( dVel );
 			// for rotation, we want to stay coherent with inertia moment.
-			Vector dL = inverseInertiaMom.multElementsBy(posLoc.cross(impulseLoc));
+			PVector dL = multMatrix(inverseInertiaMom, posLoc.cross(impulseLoc));
 			if (!dL.equals(zero))
 				rotationRelVel.addAngularMomentum( dL );
 		}
 	}
 	
 	/** Add linear momentum to the body (absolute). */
-	public void applyImpulse(Vector impulseAbs) {
+	public void applyImpulse(PVector impulseAbs) {
 		applyImpulse(location(), impulseAbs);
 	}
 
 	/** Apply a force on the body at this point (absolu). */
-	public void applyForce(Vector posAbs, Vector forceAbs) {
+	public void applyForce(PVector posAbs, PVector forceAbs) {
 		applyForceLoc(local(posAbs), localDir(forceAbs));
 	}
 	
 	/** Apply a force on the body at this point (in this object's space). */
-	public void applyForceRel(Vector posRel, Vector forceRel) {
+	public void applyForceRel(PVector posRel, PVector forceRel) {
 		applyForceLoc(localFromRel(posRel), localDirFromRel(forceRel));
 	}
 
 	/** Add a pure translation force on the body at the mass center (from absolute). */
-	public void applyForce(Vector forceAbs) {
+	public void applyForce(PVector forceAbs) {
 		applyForceLoc(localDir(forceAbs));
 	}
 
 	/** Add a pure translation force on the body at the mass center (from relative). */
-	public void applyForceRel(Vector forceRel) {
+	public void applyForceRel(PVector forceRel) {
 		applyForceLoc(localDirFromRel(forceRel));
 	}
 
 	/** Main methods to add a force. we work in local space. */
-	private void applyForceLoc(Vector posLoc, Vector forceLoc) {
+	private void applyForceLoc(PVector posLoc, PVector forceLoc) {
 		assert(!forceLoc.equals(zero));
-		interactionsRel.add(new Line(relativeFromLocal(posLoc), relativeFromLocal(add(posLoc, forceLoc.multBy(4))), true));
-		if (posLoc.isZeroEps(false) || posLoc.cross(forceLoc).isZeroEps(false)) {
+		interactionsRel.add(new Line(relativeFromLocal(posLoc), relativeFromLocal(add(posLoc, mult(forceLoc, 4))), true));
+		if (isZeroEps(posLoc, false) || isZeroEps(posLoc.cross(forceLoc), false)) {
 			// if the force is against (or on) the mass center -> just translation
 			applyForceLoc( forceLoc );
 		} else {
-			Vector posLocN = posLoc.normalized();
+			PVector posLocN = posLoc.normalize(new PVector());
 			// for translation, just in absolute
 			float forceFactor = forceLoc.dot(posLocN);
 			if (forceFactor != 0)
-				applyForceLoc( posLocN.multBy(forceFactor) );
+				applyForceLoc( mult(posLocN, forceFactor) );
 			// for rotation, we want to stay coherent with inertia moment.
 			applyTorqueLoc( posLoc.cross(forceLoc) );
 		}
 	}
 
 	/** add a pure translation force on the body at the mass center (from parent space). */
-	private void applyForceLoc(Vector forceLoc) {
+	private void applyForceLoc(PVector forceLoc) {
 		assert(!forceLoc.equals(zero));
 		if (!forceLoc.equals(zero))
-			forcesLocToAdd.add(forceLoc);
+			forces.add(forceLoc);
 	}
 
 	/** add a torque (rotational force) on the body (from parent space). */
-	private void applyTorqueLoc(Vector torqueLoc) {
+	private void applyTorqueLoc(PVector torqueLoc) {
 		assert(!torqueLoc.equals(zero));
 		if (!torqueLoc.equals(zero))
-			torquesLocToAdd.add(torqueLoc);
+			torques.add(torqueLoc);
 	}
 	
 	// --- cooked methods to apply forces

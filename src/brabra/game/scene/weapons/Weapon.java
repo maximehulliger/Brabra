@@ -2,10 +2,10 @@ package brabra.game.scene.weapons;
 
 import brabra.game.XMLLoader.Attributes;
 import brabra.game.physic.geo.Quaternion;
-import brabra.game.physic.geo.Vector;
 import brabra.game.scene.Object;
 import processing.core.PApplet;
 import processing.core.PImage;
+import processing.core.PVector;
 
 /** 
  * Represent a weapon that can fire things.
@@ -30,7 +30,7 @@ public abstract class Weapon extends Object {
 	private Weaponry master;
 	private boolean displayColliders = false;
 	
-	public Weapon(Vector loc, Quaternion rot, int tierMax) {
+	public Weapon(PVector loc, Quaternion rot, int tierMax) {
 		super(loc, rot);
 		this.tierMax = min(tierMax, tierMaxWeapon);
 	}
@@ -148,9 +148,9 @@ public abstract class Weapon extends Object {
 	}
 
 	/** Return the new left down point (right down of this' img). */
-	public Vector displayGui(final Vector basGauche) {
+	public PVector displayGui(final PVector basGauche) {
 		app.noStroke();
-		Vector imgDim = vec(img().width, img().height);
+		PVector imgDim = vec(img().width, img().height);
 		imgDim.mult(imgWidth() / imgDim.x);
 		app.image(img(), basGauche.x, basGauche.y-imgDim.y, imgDim.x, imgDim.y);
 		if (tempsRestant > 0) {

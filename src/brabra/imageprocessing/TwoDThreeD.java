@@ -4,7 +4,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-import brabra.game.physic.geo.Vector;
+import processing.core.PVector;
 import papaya.*;
 
 public class TwoDThreeD {
@@ -36,22 +36,22 @@ public class TwoDThreeD {
 		K[1][2] = 0.5f * height;
 	}
 	
-	static class CWComparator implements Comparator<Vector> {
-		Vector center;
-		public CWComparator(Vector center) {
+	static class CWComparator implements Comparator<PVector> {
+		PVector center;
+		public CWComparator(PVector center) {
 			this.center = center;
 		}
-		public int compare(Vector b, Vector d) {
+		public int compare(PVector b, PVector d) {
 			if(Math.atan2(b.y-center.y,b.x-center.x)<Math.atan2(d.y-center.y,d.x-center.x))
 				return -1;
 			else return 1;
 		}
 	}
-	public static List<Vector> sortCorners(List<Vector> quad){
+	public static List<PVector> sortCorners(List<PVector> quad){
 		// Sort corners so that they are ordered clockwise
-		Vector a = quad.get(0);
-		Vector b = quad.get(2);
-		Vector center = new Vector((a.x+b.x)/2,(a.y+b.y)/2);
+		PVector a = quad.get(0);
+		PVector b = quad.get(2);
+		PVector center = new PVector((a.x+b.x)/2,(a.y+b.y)/2);
 		Collections.sort(quad,new CWComparator(center));
 
 		int idxBest = -1;
@@ -68,9 +68,9 @@ public class TwoDThreeD {
 	}
 
 
-	public Vector get3DRotations(List<Vector> points2Dunordered) {
-		List<Vector> points2Dordered = sortCorners(points2Dunordered);
-		for (Vector p : points2Dordered)
+	public PVector get3DRotations(List<PVector> points2Dunordered) {
+		List<PVector> points2Dordered = sortCorners(points2Dunordered);
+		for (PVector p : points2Dordered)
 			p.z = 1;
 		
 		// 1- Solve the extrinsic matrix from the projected 2D points
@@ -102,7 +102,7 @@ public class TwoDThreeD {
 	}
 		
 		
-	private double[][] solveExtrinsicMatrix(List<Vector> points2D) {
+	private double[][] solveExtrinsicMatrix(List<PVector> points2D) {
 	
 		// p ~= K · [R|t] · P
 		// with P the (3D) corners of the physical board, p the (2D) 
@@ -179,10 +179,10 @@ public class TwoDThreeD {
 
 	}
 	  
-	private Vector rotationFromMatrix(float[][]  mat) {
+	private PVector rotationFromMatrix(float[][]  mat) {
 
 		// Assuming rotation order is around x,y,z
-		Vector rot = new Vector();
+		PVector rot = new PVector();
 		
 		if(mat[1][0] > 0.998) { // singularity at north pole
 			rot.z = 0;

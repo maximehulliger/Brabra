@@ -2,12 +2,12 @@ package brabra.game.scene.weapons;
 
 import brabra.game.physic.geo.Quaternion;
 import brabra.game.physic.geo.Sphere;
-import brabra.game.physic.geo.Vector;
+import processing.core.PVector;
 
 /** A sphere to destroy. */
 public class Target extends Sphere {
 	
-	public Target(Vector location, Quaternion rotation) {
+	public Target(PVector location, Quaternion rotation) {
 		super(location, rotation, 50);
 		setMass(30);
 		setName("Target");

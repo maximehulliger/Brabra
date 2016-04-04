@@ -7,15 +7,15 @@ import java.util.stream.Collectors;
 import brabra.ProMaster;
 import brabra.game.physic.Body;
 import brabra.game.physic.Collider;
-import brabra.game.physic.geo.Box;
+import brabra.game.physic.geo.Cube;
 import brabra.game.physic.geo.Plane;
 import brabra.game.physic.geo.Quaternion;
 import brabra.game.physic.geo.Sphere;
-import brabra.game.physic.geo.Vector;
 import brabra.game.scene.fun.Starship;
 import brabra.game.scene.weapons.MissileLauncher;
 import brabra.game.scene.weapons.Target;
 import brabra.game.scene.weapons.Weaponry;
+import processing.core.PVector;
 
 public class Scene extends ProMaster {
 
@@ -69,23 +69,21 @@ public class Scene extends ProMaster {
 	 *	Supported names: <p>
 	 *	camera, box, ball, floor, target, starship, weaponry, weapon.
 	 */
-	public Object addPrefab(String name, Vector location, Quaternion rotation) {
+	public Object addPrefab(String name, PVector location, Quaternion rotation) {
 		Object obj;
 		Body body;
-		if (name.equals("object"))
+		if (name.equals("object")) {
 			obj = new Object(location, rotation);
-		else if (name.equals("movable"))
-			obj = new Movable(location, rotation);
-		else if (name.equals("camera")) {
+		} else if (name.equals("camera")) {
 			return game.camera; // already in scene
 		} else if (name.equals("box")) {
-			obj = body = new Box(location, rotation, vec(20,20,20));
+			obj = body = new Cube(location, rotation, vec(20,20,20));
 			body.setMass(1);
-			body.addOnUpdate(() -> body.pese());
+			body.addApplyForces(() -> body.pese());
 		} else if (name.equals("ball")) {
 			obj = body = new Sphere(location, 10);
 			body.setMass(1);
-			body.addOnUpdate(() -> body.pese());
+			body.addApplyForces(() -> body.pese());
 		} else if (name.equals("floor"))
 			obj = new Plane(location, rotation).withName("Floor");
 		else if (name.equals("targer"))

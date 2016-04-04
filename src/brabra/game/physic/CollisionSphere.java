@@ -2,7 +2,7 @@ package brabra.game.physic;
 
 import brabra.game.physic.geo.Line;
 import brabra.game.physic.geo.Sphere;
-import brabra.game.physic.geo.Vector;
+import processing.core.PVector;
 
 public final class CollisionSphere extends Collision {
 	Sphere sphere;
@@ -13,19 +13,19 @@ public final class CollisionSphere extends Collision {
 	}
 
 	public void resolve() {
-		if (!areCollidingFast(c1, c2))
+		if (!areCollidingFast(collider, obstacle))
 			return;
 		
-		impact = c2.projette(sphere.location());
-		if (distSq(sphere.location(), impact) >= sq(sphere.radius())) 
+		impact = obstacle.projette(sphere.location());
+		if (distSq(sphere.location(), impact) >= sq(sphere.radius)) 
 			return;
 		
-		Line colLine = c2.collisionLineFor(sphere.location());
+		Line colLine = obstacle.collisionLineFor(sphere.location());
 		norm = colLine.norm;
-		Vector toContact = norm.multBy(-1);
-		toContact.setMag(sphere.radius());
-		Vector contact = sphere.location().plus(toContact);
-		correction = impact.minus(contact);
+		PVector toContact = PVector.mult(norm, -1);
+		toContact.setMag(sphere.radius);
+		PVector contact = PVector.add(sphere.location(), toContact);
+		correction = PVector.sub(impact, contact);
 		nulle = false;
 	}
 }

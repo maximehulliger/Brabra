@@ -1,21 +1,22 @@
 package brabra.game.scene;
 
 import brabra.Brabra;
-import brabra.game.physic.geo.Vector;
+import processing.core.PApplet;
+import processing.core.PVector;
 
 public abstract class Effect extends Object {
 	protected int timeLeft;
 	protected final int lifeTime;
 
 	/** Create an effect at this location. lifetime in frame, -1 -> infinite */
-	public Effect(Vector location, int lifeTime) {
+	public Effect(PVector location, int lifeTime) {
 		super(location);
 		this.timeLeft = lifeTime;
 		this.lifeTime = lifeTime;
 	}
 
 	/** Create an effect at this location. */
-	public Effect(Vector location) {
+	public Effect(PVector location) {
 		this(location, -1);
 	}
 
@@ -44,21 +45,21 @@ public abstract class Effect extends Object {
 	}
 
 	protected static int toFrame(float seconds) {
-		return round(seconds * Brabra.frameRate);
+		return PApplet.round(seconds * Brabra.frameRate);
 	}
 	
 	public static class Explosion extends Effect {
 		private float radius;
 		
-		public Explosion(Vector location, float radius) {
+		public Explosion(PVector location, float radius) {
 			super(location, toFrame(0.6f));
 			this.radius = radius;
 		}
 		
-		private Vector randomPos() {
-			Vector pos = new Vector(random.nextFloat(), random.nextFloat(), random.nextFloat());
+		private PVector randomPos() {
+			PVector pos = new PVector(random.nextFloat(), random.nextFloat(), random.nextFloat());
 			pos.mult( radius * etatCrete() );
-			return locationAbs.plus(pos);
+			return PVector.add(locationAbs, pos);
 		}
 		
 		public boolean update() {
@@ -81,7 +82,7 @@ public abstract class Effect extends Object {
 			private final float radius;
 			private final int color;
 			
-			public Bulbe(Vector location) {
+			public Bulbe(PVector location) {
 				super(location, toFrame(0.2f));
 				this.color = app.color(255, random.nextInt(256), 0);
 				this.radius = random(minRad, maxRad);

@@ -1,10 +1,10 @@
 package brabra.game.scene.fun;
 
-import brabra.game.physic.geo.Box;
+import brabra.game.physic.geo.Cube;
 import brabra.game.physic.geo.Sphere;
-import brabra.game.physic.geo.Vector;
 import brabra.game.scene.Effect;
 import processing.core.PShape;
+import processing.core.PVector;
 
 /** Pop meteors randomly in a box (in front of the parent). */
 public final class MeteorSpawner extends Effect {
@@ -17,14 +17,14 @@ public final class MeteorSpawner extends Effect {
 	private static final float minRadius = 1, maxRadius = 120;
 	
 	private static PShape meteor;
-	private Box spawnCage;
+	private Cube spawnCage;
 	private int nbMeteor = 0;
 	private int randomMeteorCounter = 0;
 	private int nextPopTime;
 	
-	public MeteorSpawner(Vector location, Vector size) {
+	public MeteorSpawner(PVector location, PVector size) {
 		super(location);
-		spawnCage = new Box(location, identity, size);
+		spawnCage = new Cube(location, identity, size);
 		setNext();
 		// load resources
 		if (meteor==null) {
@@ -47,14 +47,14 @@ public final class MeteorSpawner extends Effect {
 	public void popMeteor() {
 		if (nbMeteor < nbMeteorMax) {
 			int idxStartFace = random.nextInt(6);
-			Vector startPos = spawnCage.faces()[idxStartFace].randomPoint();
-			Vector goal;
+			PVector startPos = spawnCage.planes()[idxStartFace].randomPoint();
+			PVector goal;
 			if (randomMeteorCounter++ >= ratioRandomToPlayer) { //temps de viser le joueur
 				goal = parent().location();
 				randomMeteorCounter = 0;
 			} else {
 				int toOtherSideIdx = (idxStartFace%2 == 0 ? 1 : -1);
-				goal = spawnCage.faces()[idxStartFace + toOtherSideIdx].randomPoint();
+				goal = spawnCage.planes()[idxStartFace + toOtherSideIdx].randomPoint();
 			}
 			game.scene.add( new Meteor(startPos, goal) );
 			nbMeteor++;
@@ -67,16 +67,16 @@ public final class MeteorSpawner extends Effect {
 	
 	private class Meteor extends Sphere {
 
-		public Meteor(Vector startPos, Vector goal) {
+		public Meteor(PVector startPos, PVector goal) {
 			super(startPos, identity, -1);
 			
 			float tailleRatio = random.nextFloat();
 			setMass(minMass + tailleRatio * (maxMass - minMass));
-			setRadius(minRadius + tailleRatio * (maxRadius - minRadius));
+			radius = minRadius + tailleRatio * (maxRadius - minRadius);
 			
 			float speed = minSpeed + random.nextFloat() * (maxSpeed - minSpeed);
-			velocityRel.set( goal.minus(startPos).setMag(speed) );
-			rotationRelVel.set( Vector.randomVec(1), speed*random.nextFloat()/30 );
+			velocityRel.set( PVector.sub(goal, startPos).setMag(speed) );
+			rotationRelVel.set( randomVec(1), speed*random.nextFloat()/30 );
 		}
 		
 		public void onDelete() {
@@ -86,7 +86,7 @@ public final class MeteorSpawner extends Effect {
 		public void display() {
 			pushLocal();
 			if (!displayColliderMaybe()) {
-				app.scale(radius());
+				app.scale(radius);
 				app.shape(meteor);
 			}
 			popLocal();

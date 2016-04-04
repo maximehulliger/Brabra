@@ -5,7 +5,7 @@ import brabra.game.XMLLoader.Attributes;
 import brabra.game.physic.geo.Line;
 import brabra.game.physic.geo.Quaternion;
 import brabra.game.physic.geo.Line.Projection;
-import brabra.game.physic.geo.Vector;
+import processing.core.*;
 
 /** A class able to init and react to a collision. */
 public abstract class Collider extends Body {
@@ -17,7 +17,7 @@ public abstract class Collider extends Body {
 	private final float radiusEnveloppe;
 	private boolean displayCollider = false;
 	
-	public Collider(Vector location, Quaternion rotation, float radiusEnveloppe) {
+	public Collider(PVector location, Quaternion rotation, float radiusEnveloppe) {
 	  super(location, rotation);
 	  assert(radiusEnveloppe > 0);
 	  this.radiusEnveloppe = radiusEnveloppe;
@@ -47,11 +47,12 @@ public abstract class Collider extends Body {
 	}
 	
 	public boolean doCollideFast(Collider c) {
-		return this.location().minus(c.location()).magSq() < sq(this.radiusEnveloppe + c.radiusEnveloppe);
+		boolean contactEnveloppe = PVector.sub(this.locationAbs, c.locationAbs).magSq() < sq(this.radiusEnveloppe + c.radiusEnveloppe);
+		return contactEnveloppe;
 	}
 	
-	/** To display the shape of the collider (without color, in relative space). */
-	public abstract void displayShape();
+	/** To display the active collider (without color, in relative space). */
+	public abstract void displayCollider();
 	
 	/** Return the projection of this collider on the line. */
 	public abstract Projection projetteSur(Line ligne);
@@ -65,7 +66,7 @@ public abstract class Collider extends Body {
 		final boolean display = displayCollider || displayAllColliders;
 		if (display) {
 			colliderColor.fill();
-			displayShape();
+			displayCollider();
 		}
 		return display;
 	}
@@ -73,11 +74,11 @@ public abstract class Collider extends Body {
 	// --- obstacle --- ?
 	
 	//point Ã  la surface du collider le plus dans l'obstacle.
-	//public abstract Vector[] getIntruderPointOver(Line colLine);
+	//public abstract PVector[] getIntruderPointOver(Line colLine);
 	
 	/** La ligne sur laquelle on va projeter. Basé à la surface de l'obstacle. */
-	public abstract Line collisionLineFor(Vector p);
+	public abstract Line collisionLineFor(PVector p);
 	
 	/** Projette ce point dans la face la plus proche de l'obstacle. */
-	public abstract Vector projette(Vector point);
+	public abstract PVector projette(PVector point);
 }

@@ -13,7 +13,7 @@ import brabra.game.physic.geo.Line;
 import brabra.game.physic.geo.Quaternion;
 import processing.core.PMatrix;
 import processing.core.PMatrix3D;
-import brabra.game.physic.geo.Vector;
+import processing.core.PVector;
 
 /** 
  * A movable object with transforms (location, rotation) 
@@ -75,7 +75,7 @@ public class Object extends ProMaster implements Debugable {
 	private boolean validated = false;
 	
 	/** Create a Body with this location & rotation. rotation can be null. */
-	public Object(Vector location, Quaternion rotation) {
+	public Object(PVector location, Quaternion rotation) {
 		locationRel.setOnChange(() -> {absValid=false;});
 		rotationRel.setOnChange(() -> {absValid=false;});
 		//locationAbs.setOnChange(() -> {});
@@ -87,7 +87,7 @@ public class Object extends ProMaster implements Debugable {
 	}
 	
 	/** Create a Body with this location & no initial rotation. */
-	public Object(Vector location) {
+	public Object(PVector location) {
 		this(location, identity);
 	}
 	
@@ -167,13 +167,13 @@ public class Object extends ProMaster implements Debugable {
 	}
 
 	/** Return the absolute location of the object. update things if needed. */
-	public Vector location() {
+	public PVector location() {
 		updateAbs();
 		return locationAbs;
 	}
 	
 	/** Return the absolute location of the object. update things if needed. */
-	public Vector locationRel() {
+	public PVector locationRel() {
 		updateAbs();
 		return locationRel;
 	}
@@ -184,17 +184,17 @@ public class Object extends ProMaster implements Debugable {
 		return rotationAbs;
 	}
 	
-	public Vector velocity() {
+	public PVector velocity() {
 		return zero;
 	}
 
 	/** Return the absolute velocity (from an absolute pos). */
-	public Vector velocityAt(Vector posAbs) {
+	public PVector velocityAt(PVector posAbs) {
 		return zero;
 	}
 
 	/** Return the absolute velocity (from a relative pos). */
-	public Vector velocityAtRel(Vector posRel) {
+	public PVector velocityAtRel(PVector posRel) {
 		return zero;
 	}
 
@@ -283,7 +283,8 @@ public class Object extends ProMaster implements Debugable {
 
 	/** Return true if this has a parentRel link with other */
 	public boolean isRelated(Object other) {
-		assert (other != this && other != null);
+		if (other == this || other == null)
+			throw new IllegalArgumentException("Object "+other+" isRelated called on himself ! (or null)");
 		// case #1: one parent of the other
 		if (isChildOf(other) || other.isChildOf(this))
 			return true;
@@ -372,10 +373,6 @@ public class Object extends ProMaster implements Debugable {
 			return true;
 		} else
 			return false;
-	}
-	
-	public void move(Vector deplAbs) {
-		locationRel.set(add(locationRel, localDir(deplAbs)));
 	}
 	
 	/** parent should be set before. */
@@ -515,66 +512,66 @@ public class Object extends ProMaster implements Debugable {
 	// --- conversion position local <-> *absolute* <-> relative ---
 	
 	/** Retourne la position de rel, un point relatif au body en absolu. */
-	public Vector absolute(Vector rel) {
-		Vector inParentSpace = absolute(rel, locationRel, rotationRel);
+	public PVector absolute(PVector rel) {
+		PVector inParentSpace = absolute(rel, locationRel, rotationRel);
 		return hasParent() ? parent.absolute(inParentSpace) : inParentSpace;
 	}
 
-	public Vector relative(Vector posAbs) {
+	public PVector relative(PVector posAbs) {
 		return relative(hasParent() ? parent.relative(posAbs) : posAbs, locationRel, rotationRel);
 	}
 
-	public Vector relativeFromLocal(Vector posLoc) {
+	public PVector relativeFromLocal(PVector posLoc) {
 		return relative(hasParent() ? parent.relative(posLoc) : posLoc, zero, rotationRel);
 	}
 
-	public Vector local(Vector posAbs) {
-		return posAbs.minus(location());
+	public PVector local(PVector posAbs) {
+		return sub(posAbs, location());
 	}
 
-	public Vector localFromRel(Vector posRel) {
+	public PVector localFromRel(PVector posRel) {
 		return absolute(posRel, zero, rotationRel);
 	}
 	
 	/** Retourne la position absolue de posLoc, un point local au body. */
-	public Vector absoluteFromLocal(Vector posLoc) {
+	public PVector absoluteFromLocal(PVector posLoc) {
 		return add( location(), posLoc );
 	}
 	
 	// --- direction conversion: local <-> *absolute* <-> relative ---
 	
 	/** Return the absolute direction from a relative direction in the body space. result is only rotated -> same norm. */
-	public Vector absoluteDir(Vector dirRel) {
-		Vector inParentSpace = absolute(dirRel, zero, rotationRel);
+	public PVector absoluteDir(PVector dirRel) {
+		PVector inParentSpace = absolute(dirRel, zero, rotationRel);
 		return hasParent() ? parent.absoluteDir(inParentSpace) : inParentSpace;
 	}
 
 	/** Return the absolute direction from a relative direction in the body space. result is only rotated -> same norm. */
-	public Vector absoluteDirFromLocal(Vector dirLoc) {
+	public PVector absoluteDirFromLocal(PVector dirLoc) {
 		return hasParent() ? parent().absoluteDir(dirLoc) : dirLoc;
 	}
 
 	/** Return the relative direction in the body body space from an absolute direction. result is only rotated -> same norm. */
-	public Vector relativeDir(Vector dirAbs) {
+	public PVector relativeDir(PVector dirAbs) {
 		return hasParent() 
 				? relative(parent.relativeDir(dirAbs), zero, rotationRel) 
 				: relative(dirAbs, zero, rotationRel);
 	}
 
 	/** Return the local direction in the object space from an absolute direction. result is only rotated -> same norm. */
-	public Vector localDir(Vector dirAbs) {
+	public PVector localDir(PVector dirAbs) {
 		return hasParent() ? relative(parent.localDir(dirAbs), zero, parent.rotationRel) : dirAbs;
 	}
 	
 	/** Return the local direction in the object space regardless of this' direction. result is only rotated -> same norm. */
-	public Vector localDirFromRel(Vector dirRel) {
+	public PVector localDirFromRel(PVector dirRel) {
 		return absolute(localDir(dirRel), zero, rotationRel);
 	}
 	
 	// --- syntactic sugar for space change ---
 
-	protected Vector[] absolute(Vector[] rels) {
-		Vector[] ret = new Vector[rels.length];
+	protected PVector[] absolute(PVector[] rels) {
+		PVector[] ret = new PVector[rels.length];
 		for (int i=0; i<rels.length; i++)
 			ret[i] = absolute(rels[i]);
 		return ret;
