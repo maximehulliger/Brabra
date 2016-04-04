@@ -5,14 +5,14 @@ import java.util.Observer;
 
 import brabra.gui.model.AppModel;
 import javafx.scene.control.Button;
-import javafx.scene.layout.StackPane;
+import javafx.scene.layout.Pane;
 
 /** View for the parameters. Listen to the app model. */
 public class ParametersView implements Observer {
 	
 	public final Button btn;
 	
-	public ParametersView(StackPane root, AppModel appModel) {
+	public ParametersView(Pane root, AppModel appModel) {
 		appModel.addObserver(this);
 		this.btn = new Button();
 		// init the button

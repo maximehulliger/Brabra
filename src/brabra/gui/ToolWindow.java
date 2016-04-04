@@ -9,6 +9,7 @@ import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.KeyCode;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
@@ -48,7 +49,7 @@ public class ToolWindow extends Application {
     	});
     	updateStageLoc();
     	// init the scene
-    	StackPane root = new StackPane();
+    	Pane root = new StackPane();
     	initWindow(root);
         stage.setScene(new Scene(root, width, Brabra.height));
     	// show
@@ -57,7 +58,7 @@ public class ToolWindow extends Application {
     }
     
     /** Init the javaFX components (MVC). */
-    private void initWindow(StackPane root) {
+    private void initWindow(Pane root) {
     	// first the models
     	AppModel appModel = new AppModel(app);
     	//SceneModel sceneModel = new SceneModel(app.game().scene);
