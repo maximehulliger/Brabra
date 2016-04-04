@@ -1,5 +1,6 @@
 #0. Misc (to do before)
 - (@Max) create shell classes (that do nothing but could if implemented) for the views 1 to 4. initialize them in ToolWindow.
+- (@Kei) implement the element field class (used in nearly every view)
 
 #1. Parameters View
 ## Functionality
