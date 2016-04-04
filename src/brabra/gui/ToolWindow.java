@@ -6,7 +6,11 @@ import brabra.gui.model.AppModel;
 import brabra.gui.view.ParametersView;
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
+import javafx.scene.control.Label;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.Pane;
@@ -32,6 +36,7 @@ public class ToolWindow extends Application {
 	
 	/** Called to start the JavaFX application. */
     public void start(Stage stage) {
+    	stage.setTitle("ToolSelection");
     	app.fxApp = this;
     	this.stage = stage;
     	// to keep both windows shown (at least tool -> game)
@@ -49,25 +54,52 @@ public class ToolWindow extends Application {
     	});
     	updateStageLoc();
     	// init the scene
-    	Pane root = new StackPane();
-    	initWindow(root);
-        stage.setScene(new Scene(root, width, Brabra.height));
+    	
+        stage.setScene(new Scene(initRoot(), width, Brabra.height));
     	// show
         app.debug.info(3, "tool window ready");
         stage.show();
     }
     
-    /** Init the javaFX components (MVC). */
-    private void initWindow(Pane root) {
+    /** Init the javaFX components (MVC). 
+     * @return */
+    private Pane initRoot() {
+    	StackPane root = new StackPane();
+    	TabPane tabs = new TabPane();
+    	root.getChildren().add(tabs);
+
+    	Tab tabB = new Tab();
+    	tabB.setText("objectState");
+    	//Add something in Tab
+    	StackPane tabB_stack = new StackPane();
+    	tabB_stack.setAlignment(Pos.CENTER);
+    	tabB_stack.getChildren().add(new Label("Label@Tab B"));
+    	tabB.setContent(tabB_stack);
+    	tabs.getTabs().add(tabB);
+
+    	Tab tabA = new Tab();
+    	tabA.setText("Parameters");
+    	//Add something in Tab
+    	StackPane tabA_stack = new StackPane();
+    	tabA_stack.setAlignment(Pos.CENTER);
+    	tabA_stack.getChildren().add(new Label("Label@Tab B")); 
+    	tabA.setContent(tabA_stack);
+    	tabs.getTabs().add(tabA);
+
+
+
     	// first the models
     	AppModel appModel = new AppModel(app);
     	//SceneModel sceneModel = new SceneModel(app.game().scene);
     	
     	// then per view
     	// > Parameters view
-    	ParametersView pv = new ParametersView(root, appModel);
+    	ParametersView pv = new ParametersView(tabA_stack, appModel);
     	new ParametersViewController(pv, appModel);
     	// > ...
+    	
+    	
+    	return root;
     }
     
     // --- Window with Processing managment ---

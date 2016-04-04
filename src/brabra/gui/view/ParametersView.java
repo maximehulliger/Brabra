@@ -24,5 +24,4 @@ public class ParametersView implements Observer {
 		System.out.println("updated");
 		btn.setText("Say '"+((AppModel)o).textToPrint()+"'");
 	}
-	
 }
