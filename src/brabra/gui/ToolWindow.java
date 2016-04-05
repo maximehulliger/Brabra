@@ -3,13 +3,14 @@ package brabra.gui;
 import brabra.Brabra;
 import brabra.gui.controller.ParametersViewController;
 import brabra.gui.model.AppModel;
+import brabra.gui.model.SceneModel;
 import brabra.gui.view.ParametersView;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.KeyCode;
-import javafx.scene.layout.StackPane;
+import javafx.scene.layout.GridPane;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 
@@ -19,6 +20,7 @@ public class ToolWindow extends Application {
 	public static final int width = 300;
 	/** Reference to the main app. */
 	private static Brabra app;
+	private static Scene scene;
 	
 	private Stage stage;
 	private boolean visible = false;
@@ -48,23 +50,25 @@ public class ToolWindow extends Application {
     	});
     	updateStageLoc();
     	// init the scene
-    	StackPane root = new StackPane();
+    	GridPane root = new GridPane();
     	initWindow(root);
-        stage.setScene(new Scene(root, width, Brabra.height));
+    	scene = new Scene(root, width, Brabra.height);
+        scene.getStylesheets().add("brabra/gui/gui.css");
+        stage.setScene(scene);
     	// show
         app.debug.info(3, "tool window ready");
         stage.show();
     }
     
     /** Init the javaFX components (MVC). */
-    private void initWindow(StackPane root) {
+    private void initWindow(GridPane root) {
     	// first the models
     	AppModel appModel = new AppModel(app);
-    	//SceneModel sceneModel = new SceneModel(app.game().scene);
+    	SceneModel sceneModel = new SceneModel(app.game().scene);
     	
     	// then per view
     	// > Parameters view
-    	ParametersView pv = new ParametersView(root, appModel);
+    	ParametersView pv = new ParametersView(root, appModel, sceneModel);
     	new ParametersViewController(pv, appModel);
     	// > ...
     }
