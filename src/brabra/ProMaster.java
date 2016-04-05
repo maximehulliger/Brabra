@@ -1,7 +1,5 @@
 package brabra;
 
-import java.util.regex.Matcher;
-
 import brabra.game.Color;
 import brabra.game.RealGame;
 import brabra.game.physic.Physic;
@@ -22,23 +20,20 @@ public abstract class ProMaster extends Master {
 	protected static RealGame game;
 	
 	// --- some constants ---
-	
-	protected static final Vector zero = Vector.zero;
-	protected static final String[] directions = new String[] {
-			"front", "behind", "up", "down", "right", "left" };
-	protected static final Vector left = new Vector(1, 0, 0);
-	protected static final Vector right = new Vector(-1, 0, 0);
-	protected static final Vector up = new Vector(0, 1, 0);
-	protected static final Vector down = new Vector(0, -1, 0);
-	protected static final Vector front = new Vector(0, 0, -1);
-	protected static final Vector behind = new Vector(0, 0, 1);
-	protected static final Quaternion identity = Quaternion.identity;
+
 	protected static final float close = Camera.close;
 	protected static final float far = Camera.far;
+	protected static final Vector zero = Vector.zero;
+	protected static final Vector left = Vector.left;
+	protected static final Vector right = Vector.right;
+	protected static final Vector up = Vector.up;
+	protected static final Vector down = Vector.down;
+	protected static final Vector front = Vector.front;
+	protected static final Vector behind = Vector.behind;
+	protected static final Quaternion identity = Quaternion.identity;
 	protected static final float pi = PApplet.PI;
 	protected static final float halfPi = PApplet.HALF_PI;
 	protected static final float twoPi = PApplet.TWO_PI;
-	
 	
 	// --- General syntactic sugar ---
 
@@ -71,6 +66,16 @@ public abstract class ProMaster extends Master {
 	
 	protected static Vector vec(float x, float y) {
 		return new Vector(x, y, 0);
+	}
+	
+	protected static Vector vec(String s) {
+		final Vector v = Vector.fromString(s);
+		if (v != null)
+			return v;
+		else {
+			debug.err("wrong vector format for \""+s+"\", taking zero");
+			return zero.copy();
+		}
 	}
 	
 	/** Add dome vectors. */
@@ -147,40 +152,6 @@ public abstract class ProMaster extends Master {
 	/** Return the distance between the 2 vectors squared. */
 	protected static float distSq(Vector p1, Vector p2) {
 		return p1.minus(p2).magSq();
-	}
-	
-	/** 
-	 * Return a vector from "(x,y,z)" format or 
-	 * a direction vector (front, behind(back), right, left, up, down) or
-	 * zero or null.
-	 **/
-	protected static Vector vec(String vec) {
-		if (vec.equals("zero"))
-			return zero;
-		else if (vec.equals("front"))
-			return front;
-		else if (vec.equals("behind") || vec.equals("back"))
-			return behind;
-		else if (vec.equals("right"))
-			return right;
-		else if (vec.equals("left"))
-			return left;
-		else if (vec.equals("up"))
-			return up;
-		else if (vec.equals("down"))
-			return down;
-		
-		Matcher matcher = floatPattern.matcher(vec);
-		float[] values = new float[3];
-		for (int i=0; i<3; i++) {
-			if (matcher.find()) {
-				values[i] = Float.parseFloat(matcher.group());
-			} else {
-				System.out.println("wrong vector format for \""+vec+"\", taking zero");
-				return zero;
-			}
-		}
-		return vec(values[0],values[1],values[2]);
 	}
 	
 	// --- Transformations (location, rotation) ---

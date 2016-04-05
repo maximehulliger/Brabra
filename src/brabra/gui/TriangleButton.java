@@ -8,18 +8,11 @@ public class TriangleButton extends Polygon{
 	private double len;
 	private boolean clicked = false;
 	
-	public TriangleButton createStartingTriangle(double i) {
+	public TriangleButton(double i) {
 		this.len = i;
-
-	    this.getPoints().setAll(
-	        0d, len,
-	        2*len-2, 0d,
-	        0d, -len
-	    );
+	    this.getPoints().setAll(0d, len, 2*len-2, 0d, 0d, -len);
 	    this.setFill(Color.GREY);
-
-	    return this;
-	  }
+	}
 	
 	public void changeTriangle() {
 	    if (clicked){

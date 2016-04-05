@@ -15,23 +15,22 @@ import javafx.geometry.Insets;
 /** View for the parameters. Listen to the app model. */
 public class ParametersView implements Observer {
 	
-	private List<Object> lists;	
-	private int i;
-	
 	public TriangleButton[] btns;
 	public Label[] labels;
+
+	private List<Object> lists;	
 	
 	public ParametersView(GridPane root, AppModel appModel, SceneModel sceneModel) {
 		appModel.addObserver(this);
-		this.i = 0;
 		this.lists = sceneModel.objects();
 		this.labels = new Label[sceneModel.objectCount()];
 		this.btns = new TriangleButton[sceneModel.objectCount()];
 		root.setHgap(8);
 		root.setVgap(8);
 		
+		int i = 0;
 		for(Object obj : lists){
-			btns[i] = new TriangleButton().createStartingTriangle(8d);
+			btns[i] = new TriangleButton(8d);
 			root.setPadding(new Insets(2,0,2,4));
 			root.add(btns[i],0,i);
 			
@@ -46,6 +45,5 @@ public class ParametersView implements Observer {
 
 	public void update(Observable o, java.lang.Object arg) {
 		System.out.println("updated");
-	
 	}	
 }
