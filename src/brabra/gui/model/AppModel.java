@@ -21,8 +21,6 @@ public class AppModel extends Observable implements Observer {
 	
 	public AppModel(Brabra app) {
 		this.app = app;
-		System.out.println("ke");
-		
 	}
 	
 	// --- Getters ---
