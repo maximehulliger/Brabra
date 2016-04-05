@@ -13,12 +13,12 @@ import javafx.application.Platform;
 import processing.core.*;
 import processing.event.MouseEvent;
 
-/** Main class of the project. */
+/** Main class of the Brabra project. */
 public class Brabra extends PApplet {
 	public enum View {Menu, Calibration, TrivialGame, RealGame, None}
 	public static final String name = "Brabra";
 	
-	//--- parametres
+	//--- Parameters
 	/** [1-6]: user[1-3], dev[4-verbMax]. atm: verbMax. */
 	public int verbosity = 6;
 	/** Verbosity for one object debug. */
@@ -32,13 +32,13 @@ public class Brabra extends PApplet {
 	/** Indicates if this should be activated on start. */
 	public boolean imgAnalysis = false, toolWindow = false, runWithoutFocus = true;
 	
-	//--- public
+	//--- Public
 	public final Debug debug = new Debug();
 	public ImageAnalyser imgAnalyser;
 	public ToolWindow fxApp;
 	public PVector windowLoc;
 		
-	//--- interne
+	//--- Intern
 	private String basePath;
 	private boolean imgAnalysisStarted = false, fxAppStarted = false;
 	private Interface currentInterface, intMenu, intRealGame, intTrivialGame, intCalibration, intNone;
@@ -111,7 +111,7 @@ public class Brabra extends PApplet {
 		System.out.println("bye bye !");
 	}
 	
-	// --- getters ---
+	// --- Getters ---
 	
 	public String inputPath() {
 		return dataPathTo("input");
@@ -141,7 +141,7 @@ public class Brabra extends PApplet {
 		return currentInterface.useDrag();
 	}
 	
-	// --- file loading ---
+	// --- File loading ---
 	
 	public PShape loadShape(String filename) {
 		return super.loadShape(dataPath()+filename);
@@ -152,7 +152,7 @@ public class Brabra extends PApplet {
 		return super.loadImage(abs ? file : dataPath()+file);
 	}
 	
-	// --- setters ---
+	// --- Setters ---
 
 	public void setVisible(boolean visible) {
 		surface.setVisible(visible);
@@ -230,11 +230,11 @@ public class Brabra extends PApplet {
 		return (RealGame)intRealGame;
 	}
 
-	//-------- Gestion Evenements
+	// --- Event Management ---
 
 	public void keyPressed() {
 		if (key == 27) {
-			key = 0; // on intercepte escape
+			key = 0; // we intercept escape
 			if (currentInterface != intMenu)
 				setView(View.Menu);
 			else
@@ -290,7 +290,7 @@ public class Brabra extends PApplet {
 			focusGainedEventWaiting = true;
 	}
 	
-	// --- private stuff -> KEEP OUT ---
+	// --- Private stuff -> KEEP OUT ---
 	
 	private void setInterface(Interface view) {
 		if (currentInterface != null)
