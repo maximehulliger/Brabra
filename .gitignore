@@ -13,10 +13,4 @@ export.bat
 *.log
 *.swp
 *~.nib
-.project
-.metadata
-.classpath
-.loadpath
-.cache-main
-local.properties
 preferences.txt
