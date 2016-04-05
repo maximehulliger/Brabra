@@ -3,6 +3,7 @@ package brabra.gui;
 import brabra.Brabra;
 import brabra.gui.controller.ParametersViewController;
 import brabra.gui.model.AppModel;
+import brabra.gui.model.SceneModel;
 import brabra.gui.view.ParametersView;
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -13,8 +14,7 @@ import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.KeyCode;
-import javafx.scene.layout.Pane;
-import javafx.scene.layout.StackPane;
+import javafx.scene.layout.GridPane;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 
@@ -24,6 +24,7 @@ public class ToolWindow extends Application {
 	public static final int width = 300;
 	/** Reference to the main app. */
 	private static Brabra app;
+	private static Scene scene;
 	
 	private Stage stage;
 	private boolean visible = false;
@@ -53,21 +54,24 @@ public class ToolWindow extends Application {
     		}
     	});
     	updateStageLoc();
-    	// init the scene
-    	
+    	// init the scene    	
         stage.setScene(new Scene(initRoot(), width, Brabra.height));
+    	GridPane root = new GridPane();
+    	initWindow(root);
+    	scene = new Scene(root, width, Brabra.height);
+        scene.getStylesheets().add("brabra/gui/gui.css");
+        stage.setScene(scene);
     	// show
         app.debug.info(3, "tool window ready");
         stage.show();
     }
-    
+
     /** Init the javaFX components (MVC). 
      * @return */
     private Pane initRoot() {
     	StackPane root = new StackPane();
     	TabPane tabs = new TabPane();
     	root.getChildren().add(tabs);
-
     	Tab tabB = new Tab();
     	tabB.setText("objectState");
     	//Add something in Tab
@@ -88,13 +92,20 @@ public class ToolWindow extends Application {
 
 
 
+=======
+    /** Init the javaFX components (MVC). */
+    private void initWindow(GridPane root) {
     	// first the models
     	AppModel appModel = new AppModel(app);
-    	//SceneModel sceneModel = new SceneModel(app.game().scene);
+    	SceneModel sceneModel = new SceneModel(app.game().scene);
     	
     	// then per view
     	// > Parameters view
+
     	ParametersView pv = new ParametersView(tabA_stack, appModel);
+=======
+    	ParametersView pv = new ParametersView(root, appModel, sceneModel);
+>>>>>>> origin/Max-branch
     	new ParametersViewController(pv, appModel);
     	// > ...
     	
