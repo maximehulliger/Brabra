@@ -374,10 +374,6 @@ public class Object extends ProMaster implements Debugable {
 			return false;
 	}
 	
-	public void move(Vector deplAbs) {
-		locationRel.set(add(locationRel, localDir(deplAbs)));
-	}
-	
 	/** parent should be set before. */
 	private void addChild(Object newChild) {
 		if (!children.contains(newChild)) {

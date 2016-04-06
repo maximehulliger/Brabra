@@ -115,11 +115,12 @@ public class RealGame extends Interface {
 	}
 	
 	public void onFocusChange(boolean focused) {
-		 if (focused && !running) {
-			 setRunning(playOnFocus);
-		 } else if (!focused) {
+		 if (focused) {
+			 if (!running)
+				 setRunning(playOnFocus);
+		 } else {
 			 playOnFocus = running;
-			 setRunning(false);
+			 setRunning(running ? app.runWithoutFocus : false);
 		 }
 	}
 	

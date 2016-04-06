@@ -23,7 +23,7 @@ CS-211 "Introduction to visual computing" given in 2014-2015 at EPFL.
 - Dynamic scene initialization
 - Image analysis for quad detection (bugged for now)
 
-*For developers, see also the [readmeDev](dev/readmeDev.md) file.*
+*For developers, see also the [readmeDev](dev/readmeDev.md), [todo](dev/todo.md) and [todoJavaFX](dev/todoJavaFX.md) files.*
 
 <br>
 

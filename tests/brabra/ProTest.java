@@ -11,8 +11,11 @@ import brabra.game.physic.geo.Vector;
 import processing.core.PApplet;
 
 public class ProTest extends ProMaster {
+
+	public static final Vector[] directions = new Vector[] {
+			up, down, front, behind, right, left };
 	
-	protected static void initApp() {
+	public static void initApp() {
 		if (ProMaster.app == null) {
 			TestTangibleGame testApp = new TestTangibleGame();
 			app = testApp;
@@ -41,17 +44,17 @@ public class ProTest extends ProMaster {
 		}
 	}
 
-	protected static void assertEqualsEps(String msg, Quaternion q1, Quaternion q2) {
+	public static void assertEqualsEps(String msg, Quaternion q1, Quaternion q2) {
 		if (!q1.equalsEps(q2, false))
 			assertEquals(msg, q1, q2);
 	}
 
-	protected static void assertEqualsEpsAxis(String msg, Quaternion q1, Quaternion q2) {
+	public static void assertEqualsEpsAxis(String msg, Quaternion q1, Quaternion q2) {
 		if (!q1.equalsEpsAxis(q2, false))
 			assertEquals(msg, q1, q2);
 	}
 
-	protected static void assertEqualsEps(String msg, Vector p1, Vector p2) {
+	public static void assertEqualsEps(String msg, Vector p1, Vector p2) {
 		if (!(p1.equalsEps(p2, false)))
 			assertEquals(msg, p1, p2);
 	}
