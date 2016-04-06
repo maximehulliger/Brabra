@@ -1,5 +1,5 @@
 ﻿# Installation
-Those are the step to get you started with the project in Eclipse.
+Those are the steps to get you started with the project in Eclipse.
 
 ##### 1.1 IDE setup 
 Get eclipse IDE (for scala :D )

@@ -28,7 +28,8 @@ public abstract class Body extends Movable {
 	protected Vector inertiaMom = null;
 	protected Vector inverseInertiaMom = null;
 	protected Color color = Color.basic;
-	protected float restitution = 0.8f; // [0, 1]
+	/** Coefficient of restitution in [0, 1] for stable simulation. */
+	protected float restitution = 0.8f;
 	protected int life = -1;
 	protected int maxLife = -1;
 	
