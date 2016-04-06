@@ -14,7 +14,7 @@ import brabra.gui.model.SceneModel;
 
 public class SceneView implements Observer {
 
-	private List<Object> lists;	
+	private List<Object> lists;
 	
 	public TriangleButton[] btns;
 	public Label[] labels;

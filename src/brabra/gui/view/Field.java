@@ -14,7 +14,6 @@ public abstract class Field {
 	public Field(Pane root) {
 		
 		//TODO: add to the root all the element of the field (triangle & short text at the begining, as closed)
-		//TODO: 
 		
 	}
 	
@@ -68,7 +67,8 @@ public abstract class Field {
 		public void onChange() {
 
 			//TODO: update vector value
-			vector.set(0, 0, 0);
+			final float f = Float.parseFloat("-55.2");
+			vector.set(f, 0, 0);
 			
 		}
 

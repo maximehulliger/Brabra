@@ -13,7 +13,6 @@ public class TriangleButton extends Polygon {
 	}
 
 	public void setState(boolean open) {
-		
 		if (open)
 			this.getPoints().setAll(0d, triangleSize, 2*triangleSize-2, 0d, 0d, -triangleSize);
 		else

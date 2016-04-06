@@ -13,7 +13,7 @@ public class SceneViewController {
 			triangle.setOnMouseClicked(new EventHandler<MouseEvent>() {
 			    public void handle(MouseEvent me) {
 			    	//TODO: let the field class deal with that (open/close from anywhere on the field, not just on the triangle)
-			        //triangle.setState(triangle.open);
+			        //triangle.setOpen(!triangle.open);
 			    }
 			});
 		}
