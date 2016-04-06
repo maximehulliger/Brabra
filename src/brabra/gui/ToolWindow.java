@@ -2,24 +2,31 @@ package brabra.gui;
 
 import brabra.Brabra;
 import brabra.gui.controller.ParametersViewController;
+import brabra.gui.controller.SceneViewController;
 import brabra.gui.model.AppModel;
+import brabra.gui.model.SceneModel;
 import brabra.gui.view.ParametersView;
+import brabra.gui.view.SceneView;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.Scene;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.KeyCode;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 
 /** Class responsible for the JavaFX thread. */
 public class ToolWindow extends Application {
+	
 	public static final String name = "Tool Window";
 	public static final int width = 300;
+	
 	/** Reference to the main app. */
 	private static Brabra app;
-	
 	private Stage stage;
 	private boolean visible = false;
 	
@@ -31,6 +38,7 @@ public class ToolWindow extends Application {
 	
 	/** Called to start the JavaFX application. */
     public void start(Stage stage) {
+    	stage.setTitle("ToolSelection");
     	app.fxApp = this;
     	this.stage = stage;
     	// to keep both windows shown (at least tool -> game)
@@ -47,26 +55,50 @@ public class ToolWindow extends Application {
     		}
     	});
     	updateStageLoc();
-    	// init the scene
-    	StackPane root = new StackPane();
-    	initWindow(root);
-        stage.setScene(new Scene(root, width, Brabra.height));
+    	// init the scene    
+    	Scene scene = new Scene(initRoot(), width, Brabra.height);
+        scene.getStylesheets().add("data/gui.css");
+        stage.setScene(scene);
     	// show
-        app.debug.info(3, "tool window ready");
-        stage.show();
+        stage.setScene(scene);
+    	stage.show();
+    	app.debug.info(3, "tool window ready");
+    }
+
+    /** Init the javaFX components (MVC). Return the root. */
+    private Pane initRoot() {
+    	AppModel appModel = new AppModel(app);
+    	SceneModel sceneModel = new SceneModel(app.game().scene);
+    	StackPane root = new StackPane();
+    	Pane[] tabs = tabs(root, new String[] {"Scene", "Parameters"});
+    	
+    	SceneView sv = new SceneView(tabs[0], sceneModel);
+    	new SceneViewController(sv, sceneModel);
+    	ParametersView pv = new ParametersView(tabs[1], appModel);
+    	new ParametersViewController(pv, appModel);
+    	
+    	//TODO (@max) add others views & controller.
+    	
+    	return root;
     }
     
-    /** Init the javaFX components (MVC). */
-    private void initWindow(StackPane root) {
-    	// first the models
-    	AppModel appModel = new AppModel(app);
-    	//SceneModel sceneModel = new SceneModel(app.game().scene);
-    	
-    	// then per view
-    	// > Parameters view
-    	ParametersView pv = new ParametersView(root, appModel);
-    	new ParametersViewController(pv, appModel);
-    	// > ...
+    /** Create the tabs and return an array of the tabs root. */
+    private Pane[] tabs(Pane root, String[] names) {
+    	//connect new tabs holder with root
+    	TabPane tabs = new TabPane();
+    	root.getChildren().add(tabs);
+    	//get result array
+    	Pane[] tabsRoot = new Pane[names.length];
+    	// we have to add a root in each 
+    	for (int i=0; i<names.length; i++) {
+        	Tab tab = new Tab();
+        	tabsRoot[i] = new StackPane();
+        	tabs.getTabs().add(tab);
+        	tab.setText(names[i]);
+        	//tabsRoot.setAlignment(Pos.CENTER);
+        	tab.setContent(tabsRoot[i]);
+    	}
+    	return tabsRoot;
     }
     
     // --- Window with Processing managment ---

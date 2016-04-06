@@ -2,27 +2,20 @@ package brabra.gui.view;
 
 import java.util.Observable;
 import java.util.Observer;
-
+import javafx.scene.control.*;
+import javafx.scene.layout.Pane;
 import brabra.gui.model.AppModel;
-import javafx.scene.control.Button;
-import javafx.scene.layout.StackPane;
 
 /** View for the parameters. Listen to the app model. */
 public class ParametersView implements Observer {
 	
-	public final Button btn;
-	
-	public ParametersView(StackPane root, AppModel appModel) {
+	public ParametersView(Pane root, AppModel appModel) {
 		appModel.addObserver(this);
-		this.btn = new Button();
-		// init the button
-    	btn.setText("Say '"+appModel.textToPrint()+"'");
-        root.getChildren().add(btn);
+    	root.getChildren().add(new Label("parameters tab"));
 	}
 
-	public void update(Observable o, Object arg) {
-		System.out.println("updated");
-		btn.setText("Say '"+((AppModel)o).textToPrint()+"'");
+	public void update(Observable o, java.lang.Object arg) {
+		/*btn.setText("Say '"+((AppModel)o).textToPrint()+"'");*/
 	}
-	
 }
+
