@@ -19,7 +19,7 @@ all the following field:
 
 #2. Scene View
 ## Functionality
-- ValueField
+- vector, float & boolean Field
 - SceneView
 - ObjectField
 - add ValueFields for 
