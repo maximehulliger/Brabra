@@ -3,32 +3,19 @@ package brabra.gui;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Polygon;
 
-public class TriangleButton extends Polygon{
+public class TriangleButton extends Polygon {
 	
-	private double len;
-	private boolean clicked = false;
+	private final static double triangleSize = 8;
 	
-	public TriangleButton(double i) {
-		this.len = i;
-	    this.getPoints().setAll(0d, len, 2*len-2, 0d, 0d, -len);
-	    this.setFill(Color.GREY);
+	public TriangleButton() {
+		super.getPoints().setAll(0d, triangleSize, 2*triangleSize-2, 0d, 0d, -triangleSize);
+		super.setFill(Color.GREY);
 	}
-	
-	public void changeTriangle() {
-	    if (clicked){
-	    	this.getPoints().setAll(
-	    	        0d, len,
-	    	        2*len-2, 0d,
-	    	        0d, -len
-	    	    );
-	    	this.clicked = false;
-	    }else{
-	    	this.getPoints().setAll(
-	    			len, 0d,
-	    			0d, 2*(len-1),
-	    			-len, 0d
-	    		);
-	    	this.clicked = true;
-	    }
-	  }
+
+	public void setState(boolean open) {
+		if (open)
+			this.getPoints().setAll(0d, triangleSize, 2*triangleSize-2, 0d, 0d, -triangleSize);
+		else
+			this.getPoints().setAll(triangleSize, 0d, 0d, 2*(triangleSize-1), -triangleSize, 0d);
+	}
 }
