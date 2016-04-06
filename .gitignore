@@ -1,16 +1,50 @@
+#################
+## From the contributors
+#################
+
+export/
+preferences.txt
+
+#################
+## Eclipse
+#################
+
 bin/
 tmp/
-applet/
 .settings/
-application.*
+.externalToolBuilders/
 
-export.bat
-
-*.dll
 *.pydevproject
 *.tmp
 *.bak
-*.log
 *.swp
 *~.nib
-preferences.txt
+# Locally stored "Eclipse launch configurations"
+*.launch
+
+local.properties
+.metadata
+.loadpath
+.cache-main
+# CDT- & PDT-specific
+.cproject
+.buildpath
+
+## We keep those from eclipse:
+#.project
+#.classpath
+
+#############
+## OS detritus
+#############
+
+# Windows image file caches
+Thumbs.db
+ehthumbs.db
+# Folder config file
+Desktop.ini
+# Recycle Bin used on file shares
+$RECYCLE.BIN/
+
+# Mac crap
+.DS_Store

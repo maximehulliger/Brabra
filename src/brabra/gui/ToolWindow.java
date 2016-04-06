@@ -2,30 +2,31 @@ package brabra.gui;
 
 import brabra.Brabra;
 import brabra.gui.controller.ParametersViewController;
+import brabra.gui.controller.SceneViewController;
 import brabra.gui.model.AppModel;
 import brabra.gui.model.SceneModel;
 import brabra.gui.view.ParametersView;
+import brabra.gui.view.SceneView;
 import javafx.application.Application;
 import javafx.application.Platform;
-import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.control.Label;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.KeyCode;
-import javafx.scene.layout.GridPane;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 
 /** Class responsible for the JavaFX thread. */
 public class ToolWindow extends Application {
+	
 	public static final String name = "Tool Window";
 	public static final int width = 300;
+	
 	/** Reference to the main app. */
 	private static Brabra app;
-	private static Scene scene;
-	
 	private Stage stage;
 	private boolean visible = false;
 	
@@ -54,63 +55,50 @@ public class ToolWindow extends Application {
     		}
     	});
     	updateStageLoc();
-    	// init the scene    	
-        stage.setScene(new Scene(initRoot(), width, Brabra.height));
-    	GridPane root = new GridPane();
-    	initWindow(root);
-    	scene = new Scene(root, width, Brabra.height);
-        scene.getStylesheets().add("brabra/gui/gui.css");
+    	// init the scene    
+    	Scene scene = new Scene(initRoot(), width, Brabra.height);
+        scene.getStylesheets().add("data/gui.css");
         stage.setScene(scene);
     	// show
-        app.debug.info(3, "tool window ready");
-        stage.show();
+        stage.setScene(scene);
+    	stage.show();
+    	app.debug.info(3, "tool window ready");
     }
 
-    /** Init the javaFX components (MVC). 
-     * @return */
+    /** Init the javaFX components (MVC). Return the root. */
     private Pane initRoot() {
-    	StackPane root = new StackPane();
-    	TabPane tabs = new TabPane();
-    	root.getChildren().add(tabs);
-    	Tab tabB = new Tab();
-    	tabB.setText("objectState");
-    	//Add something in Tab
-    	StackPane tabB_stack = new StackPane();
-    	tabB_stack.setAlignment(Pos.CENTER);
-    	tabB_stack.getChildren().add(new Label("Label@Tab B"));
-    	tabB.setContent(tabB_stack);
-    	tabs.getTabs().add(tabB);
-
-    	Tab tabA = new Tab();
-    	tabA.setText("Parameters");
-    	//Add something in Tab
-    	StackPane tabA_stack = new StackPane();
-    	tabA_stack.setAlignment(Pos.CENTER);
-    	tabA_stack.getChildren().add(new Label("Label@Tab B")); 
-    	tabA.setContent(tabA_stack);
-    	tabs.getTabs().add(tabA);
-
-
-
-=======
-    /** Init the javaFX components (MVC). */
-    private void initWindow(GridPane root) {
-    	// first the models
     	AppModel appModel = new AppModel(app);
     	SceneModel sceneModel = new SceneModel(app.game().scene);
+    	StackPane root = new StackPane();
+    	Pane[] tabs = tabs(root, new String[] {"Scene", "Parameters"});
     	
-    	// then per view
-    	// > Parameters view
-
-    	ParametersView pv = new ParametersView(tabA_stack, appModel);
-=======
-    	ParametersView pv = new ParametersView(root, appModel, sceneModel);
->>>>>>> origin/Max-branch
+    	SceneView sv = new SceneView(tabs[0], sceneModel);
+    	new SceneViewController(sv, sceneModel);
+    	ParametersView pv = new ParametersView(tabs[1], appModel);
     	new ParametersViewController(pv, appModel);
-    	// > ...
     	
+    	//TODO (@max) add others views & controller.
     	
     	return root;
+    }
+    
+    /** Create the tabs and return an array of the tabs root. */
+    private Pane[] tabs(Pane root, String[] names) {
+    	//connect new tabs holder with root
+    	TabPane tabs = new TabPane();
+    	root.getChildren().add(tabs);
+    	//get result array
+    	Pane[] tabsRoot = new Pane[names.length];
+    	// we have to add a root in each 
+    	for (int i=0; i<names.length; i++) {
+        	Tab tab = new Tab();
+        	tabsRoot[i] = new StackPane();
+        	tabs.getTabs().add(tab);
+        	tab.setText(names[i]);
+        	//tabsRoot.setAlignment(Pos.CENTER);
+        	tab.setContent(tabsRoot[i]);
+    	}
+    	return tabsRoot;
     }
     
     // --- Window with Processing managment ---
