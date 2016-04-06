@@ -4,7 +4,7 @@ applet/
 .settings/
 application.*
 
-export.bat
+export/
 
 *.dll
 *.pydevproject
