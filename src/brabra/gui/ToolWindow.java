@@ -2,13 +2,11 @@ package brabra.gui;
 
 import brabra.Brabra;
 import brabra.gui.controller.CreateViewController;
-import brabra.gui.controller.ObjectViewController;
 import brabra.gui.controller.ParametersViewController;
 import brabra.gui.controller.SceneViewController;
 import brabra.gui.model.AppModel;
 import brabra.gui.model.SceneModel;
 import brabra.gui.view.CreateView;
-import brabra.gui.view.ObjectView;
 import brabra.gui.view.ParametersView;
 import brabra.gui.view.SceneView;
 import javafx.application.Application;
@@ -79,15 +77,13 @@ public class ToolWindow extends Application {
     	AppModel appModel = new AppModel(app);
     	SceneModel sceneModel = new SceneModel(app.game().scene);
     	StackPane root = new StackPane();
-    	Pane[] tabs = tabs(root, new String[] {"Scene", "Para","+","Create"});
+    	Pane[] tabs = tabs(root, new String[] {"Scene", "Para","+"});
     	
     	SceneView sv = new SceneView(tabs[0], sceneModel);
     	new SceneViewController(sv, sceneModel);
     	ParametersView pv = new ParametersView(tabs[1], appModel);
     	new ParametersViewController(pv, appModel);
-    	ObjectView ov = new ObjectView(tabs[2]); 
-    	new ObjectViewController(ov);
-    	CreateView cv = new CreateView(tabs[3]); 
+    	CreateView cv = new CreateView(tabs[2]); 
     	new CreateViewController(cv);
     	
     	//TODO (@max) add others views & controller.
