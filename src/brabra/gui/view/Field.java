@@ -1,88 +1,70 @@
 package brabra.gui.view;
 
-import brabra.game.physic.geo.Vector;
+import brabra.gui.TriangleButton;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.control.Label;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.HBox;
 
 /** A common class for all the fields. a field can be closed and display in text his value or open and is editable. */
-public abstract class Field {
+public abstract class Field extends HBox{
 
-	//private final TriangleButton triangleButton;
-	//private final GUIText? textClosed;
+	protected final Label textClosed;
+	private final TriangleButton triangleButton;
+	protected final HBox content;				//current status of object shown when Field is closed
+	protected final HBox hidedcontent;			//changeable status of object shown when Field is open
 	
-	private boolean open = false;
+	protected boolean open = false;
 	
 	public Field(Pane root) {
+	    setSpacing(10);
+	    setId("objectName");
+	    setAlignment(Pos.CENTER_LEFT);
+	    setPadding(new Insets(0,0,0,4));
+	    
+		content = new HBox();
+		content.setSpacing(10);
+		content.setId("objectName");
 		
-		//TODO: add to the root all the element of the field (triangle & short text at the begining, as closed)
+		hidedcontent = new HBox();
+		hidedcontent.setSpacing(10);
+		hidedcontent.setId("objectName");
+	    
+	    textClosed = new Label();
+	    textClosed.setMaxWidth(100);
+	    triangleButton = new TriangleButton();  
+	    getChildren().addAll(triangleButton, textClosed, content, hidedcontent);
+	    hidedcontent.setVisible(false);
+	    hidedcontent.setManaged(false);
+	    
+	    setOpen(false);
 		
+	    // Control:
+	    
+	    setOnMouseClicked(
+				e ->{
+					this.setOpen(!open); {this.onChange();}
+				});
 	}
-	
+
+	public void setName(String name){
+		this.textClosed.setText(name);
+	}
+
 	/** Called when the value of the field has changed, to update the model. */
 	public abstract void onChange();
 	
 	/** Called when the field should update his value from the model. */
 	public abstract void update();
 	
-	public boolean open() {
-		return open;
-	}
-	
 	/** To override to react when the field is shown or hidden. */
 	public void setOpen(boolean open) {
-		this.open = open;
-		
-		//TODO: change triangle
-		
-	}
-	
-	// --- Some concrete simple fields ---
-
-	public class FloatField {
-		
-		//private final Float value;
-		
-		//TODO: think how we'll do that (no float pointer in java)
-		
-	}
-
-	public class BooleanField {
-		
-		//private final Boolean value;
-		
-		//TODO: think how we'll do that (no boolean pointer in java)
-		
-	}
-	
-	public class VectorField extends Field {
-
-		private final Vector vector;
-		
-		//TODO: array of 3 num fields (editable)
-		
-		public VectorField(Pane root, Vector vector) {
-			super(root);
-			this.vector = vector;
-		}
-
-		public void onChange() {
-
-			//TODO: update vector value
-			final float f = Float.parseFloat("-55.2");
-			vector.set(f, 0, 0);
-			
-		}
-
-		public void update() {
-			
-			//TODO: update gui values from vector
-			
-		}
-		
-		public void setOpen(boolean open) {
-			super.setOpen(open);
-			
-			//TODO: show/hide vector fields
-			
-		}
+		content.setManaged(open);
+	    content.setVisible(open);
+	    triangleButton.setState(open);
+	    hidedcontent.setManaged(!open);
+	    hidedcontent.setVisible(!open);
+	    this.open = open;
 	}
 }

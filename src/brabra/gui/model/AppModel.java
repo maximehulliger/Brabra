@@ -17,8 +17,6 @@ public class AppModel extends Observable implements Observer {
 
 	public final Brabra app;
 	
-	private String textValue = "yep !";
-	
 	public AppModel(Brabra app) {
 		this.app = app;
 	}
@@ -29,9 +27,6 @@ public class AppModel extends Observable implements Observer {
 		return app.verbosity;
 	}
 
-	public String textToPrint() {
-		return textValue;
-	}
 	
 	// --- Setters ---
 
@@ -40,12 +35,7 @@ public class AppModel extends Observable implements Observer {
 		setChanged();
 		notifyObservers();
 	}
-
-	public void setTextToPrint(String text) {
-		this.textValue = text;
-		setChanged();
-		notifyObservers();
-	}
+	
 	
 	// --- update ---
 	

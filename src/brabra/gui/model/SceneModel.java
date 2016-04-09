@@ -1,7 +1,5 @@
 package brabra.gui.model;
 
-import java.util.Observable;
-import java.util.Observer;
 import java.util.*;
 
 import brabra.game.scene.Scene;
@@ -37,6 +35,7 @@ public class SceneModel extends Observable implements Observer {
 	
 	public void update(Observable o, java.lang.Object arg) {
 		// when updated
+		setChanged();
 		notifyObservers();
 	}
 }

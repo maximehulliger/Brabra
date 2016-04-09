@@ -20,6 +20,7 @@ public class SceneView implements Observer {
 	public Label[] labels;
 	
 	public SceneView(Pane root, SceneModel sceneModel) {
+		
 		sceneModel.addObserver(this);
 		GridPane grid = new GridPane();
 		root.getChildren().add(grid);

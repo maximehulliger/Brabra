@@ -213,6 +213,11 @@ public abstract class Body extends Movable {
 	public boolean affectedByCollision() {
 		return inverseMass > 0;
 	}
+	
+	/** Return the mass of the body, bigger than 0 (can be Float.POSITIVE_INFINITY). */
+	public float mass() {
+		return inverseMass > 0 ? mass : Float.POSITIVE_INFINITY;
+	}
 
 	/** Add momentum to the body at this point (absolute). */
 	public void applyImpulse(Vector posAbs, Vector impulseAbs) {
