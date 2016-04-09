@@ -1,7 +1,13 @@
-#0. Misc (to do before)
-- (@Max) create shell classes (that do nothing but could if implemented) for the views 1 to 4. initialize them in ToolWindow.
-- (@Kei) implement the field + ValueField (before ElementField) classes (used in nearly every view)
-- (@both) schedule your work so that your view (1 for Max, 2 for Kei) are functional on friday. We'll meet Saturday if possible to finalize the screencast.
+#0. Misc 
+##To do (before)
+- (@Max) remove tab cross (that delete them)
+- (@Max) views 3 & 4. 
+- (@Kei) implement the Fields (used in nearly every view)
+
+##Later (maybe)
+- Vector field: only 2 digit after '.'.
+- Color field
+
 
 #1. Parameters View
 ## Functionality
@@ -37,6 +43,12 @@ all the following field:
 
 #3. Object Creation List View
 ## Functionality
+add the following object buttons:
+- Ball
+- Box
+- Plane
+- Object
+- Movable
 
 ## Detail/later
 
@@ -45,8 +57,17 @@ all the following field:
 
 #4. Object Creation View
 ## Functionality
+buttons to:
+- go back to #3
+- create the object
+- drag & drop it (does nothing for now)
+fields for the object
+- name, location, rotation
+- [if movable] velocity, rotVelotity
+- [if body] mass, affectedByCollision
 
 ## Detail/later
+- remove mass for infinite plan
 
 ## Done
 

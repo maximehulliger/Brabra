@@ -52,6 +52,13 @@ public abstract class Master {
 			val = constrain(val, min, max);
 		return (val - min)/(max - min);
 	}
+	
+	/** Return f % m for floats. f will be in [0, m[. m should be bigger than 0. */
+	public static float mod(float f, float m) {
+		assert(m>0);
+		final float res = f - ((int)(f/m))*m;
+		return res > 0 ? res : res+m;
+	}
 
 	/** [min, max] */
 	public static float random(float min, float max) {

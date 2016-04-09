@@ -10,7 +10,7 @@ import brabra.game.physic.geo.Sphere;
 public class Physic extends ProMaster {
 	
 	public static final float epsilon = 1E-5f;
-	
+
 	public float gravity = 0.8f;
 	
 	private int errCount = 0;
@@ -68,11 +68,16 @@ public class Physic extends ProMaster {
 
 	/** Return true if f is nearly zero. */
 	public static boolean isZeroEps(float f) {
-		return f==0 || isConstrained(f, -epsilon, epsilon);	
+		return equalsEps(f, 0, epsilon);
 	}
 
 	/** Return true if f1 is nearly equal to f2. */
 	public static boolean equalsEps(float f1, float f2) {
-		return isZeroEps(f1 - f2);
+		return equalsEps(f1, f2, epsilon);
+	}
+
+	/** Return true if f1 is nearly equal to f2. */
+	public static boolean equalsEps(float f1, float f2, float epsilon) {
+		return f1==f2 || isConstrained(f1-f2, -epsilon, epsilon);
 	}
 }

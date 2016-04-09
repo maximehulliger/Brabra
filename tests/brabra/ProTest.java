@@ -6,15 +6,13 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import brabra.ProMaster;
 import brabra.Brabra;
+import brabra.game.physic.Physic;
 import brabra.game.physic.geo.Quaternion;
 import brabra.game.physic.geo.Vector;
 import processing.core.PApplet;
 
 public class ProTest extends ProMaster {
 
-	public static final Vector[] directions = new Vector[] {
-			up, down, front, behind, right, left };
-	
 	public static void initApp() {
 		if (ProMaster.app == null) {
 			TestTangibleGame testApp = new TestTangibleGame();
@@ -45,18 +43,29 @@ public class ProTest extends ProMaster {
 	}
 
 	public static void assertEqualsEps(String msg, Quaternion q1, Quaternion q2) {
+		
+		//assertEquals(msg, q1.angle(), q2.angle(), Quaternion.epsilonAngle);
+		//assertEqualsEps(msg, q1.rotAxis(), q2.rotAxis(), Quaternion.epsilonRotAxis);
 		if (!q1.equalsEps(q2, false))
 			assertEquals(msg, q1, q2);
 	}
 
-	public static void assertEqualsEpsAxis(String msg, Quaternion q1, Quaternion q2) {
-		if (!q1.equalsEpsAxis(q2, false))
-			assertEquals(msg, q1, q2);
+	public static void assertEqualsEps(String msg, Vector p1, Vector p2) {
+		assertEqualsEps(msg, p1, p2, Physic.epsilon);
 	}
 
-	public static void assertEqualsEps(String msg, Vector p1, Vector p2) {
-		if (!(p1.equalsEps(p2, false)))
+	public static void assertEqualsEps(String msg, Vector p1, Vector p2, float epsilon) {
+		if (p1 == null)
+			assertEquals(p1, p2);
+		else if (!(p1.equalsEps(p2, false, epsilon)))
 			assertEquals(msg, p1, p2);
+	}
+
+	public Vector[] someVectors(int n) {
+		Vector[] ret = new Vector[n];
+		for (int i=0; i<n; i++)
+			ret[i] = Vector.randomVec(1);
+		return ret;
 	}
 
 	private static class TestTangibleGame extends Brabra {

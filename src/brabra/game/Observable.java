@@ -115,21 +115,20 @@ public interface Observable {
 			changed = changedCurrent = false;
 		}
 		
-		public Quaternion set(float w, float x, float y, float z) {
-			super.set(w,x,y,z);
-			return onChange();
+		public void setWXYZ(float w, float x, float y, float z, boolean normalize) {
+			super.setWXYZ(w,x,y,z,normalize);
+			onChange();
 		}
 
-		public Quaternion set(Quaternion quat) {
+		public void set(Quaternion quat) {
 			super.set(quat);
-			return onChange();
+			onChange();
 		}
 
-		private Quaternion onChange() {
+		private void onChange() {
 			if (onChange != null)
 				onChange.run();
 			changedCurrent = true;
-			return this;
 		}
 	}
 	
