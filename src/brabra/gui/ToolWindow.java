@@ -1,17 +1,24 @@
 package brabra.gui;
 
 import brabra.Brabra;
+import brabra.gui.controller.CreateViewController;
 import brabra.gui.controller.ParametersViewController;
 import brabra.gui.controller.SceneViewController;
 import brabra.gui.model.AppModel;
 import brabra.gui.model.SceneModel;
+import brabra.gui.view.CreateView;
 import brabra.gui.view.ParametersView;
 import brabra.gui.view.SceneView;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
+import javafx.scene.control.TabPane.TabClosingPolicy;
+import javafx.scene.control.ToggleButton;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.Pane;
@@ -24,9 +31,9 @@ public class ToolWindow extends Application {
 	
 	public static final String name = "Tool Window";
 	public static final int width = 300;
+	public static Brabra app;
 	
 	/** Reference to the main app. */
-	private static Brabra app;
 	private Stage stage;
 	private boolean visible = false;
 	
@@ -70,12 +77,14 @@ public class ToolWindow extends Application {
     	AppModel appModel = new AppModel(app);
     	SceneModel sceneModel = new SceneModel(app.game().scene);
     	StackPane root = new StackPane();
-    	Pane[] tabs = tabs(root, new String[] {"Scene", "Parameters"});
+    	Pane[] tabs = tabs(root, new String[] {"Scene", "Para","+"});
     	
     	SceneView sv = new SceneView(tabs[0], sceneModel);
     	new SceneViewController(sv, sceneModel);
     	ParametersView pv = new ParametersView(tabs[1], appModel);
     	new ParametersViewController(pv, appModel);
+    	CreateView cv = new CreateView(tabs[2]); 
+    	new CreateViewController(cv);
     	
     	//TODO (@max) add others views & controller.
     	
@@ -86,6 +95,7 @@ public class ToolWindow extends Application {
     private Pane[] tabs(Pane root, String[] names) {
     	//connect new tabs holder with root
     	TabPane tabs = new TabPane();
+    	tabs.setTabClosingPolicy(TabClosingPolicy.UNAVAILABLE);
     	root.getChildren().add(tabs);
     	//get result array
     	Pane[] tabsRoot = new Pane[names.length];

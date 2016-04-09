@@ -114,14 +114,18 @@ public class Brabra extends PApplet {
 	// --- Getters ---
 	
 	public String inputPath() {
-		return dataPathTo("input");
+		return pathTo("input");
 	}
-	
+
 	public String dataPath() {
-		return dataPathTo("data");
+		return pathTo("data");
+	}
+
+	public String dataPathTo(String ext) {
+		return pathTo(dataPath()+ext);
 	}
 	
-	public String dataPathTo(String ext) {
+	public String pathTo(String ext) {
 		return basePath+ext+"/";
 	}
 
