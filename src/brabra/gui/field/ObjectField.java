@@ -11,6 +11,7 @@ import brabra.game.physic.Body;
 import brabra.game.physic.Collider;
 import brabra.game.scene.Movable;
 import brabra.game.scene.Object;
+import brabra.game.scene.Object.Change;
 
 /** A field containing an object. */
 public class ObjectField extends Field implements Observer {
@@ -20,7 +21,6 @@ public class ObjectField extends Field implements Observer {
 	private final Movable asMovable;
 	private final Body asBody;
 	private final Collider asCollider;
-	private final UpdateNode updateNode = new UpdateNode();
 	
 	private float oldValidMass;
 	
@@ -32,13 +32,19 @@ public class ObjectField extends Field implements Observer {
 		// > first Object
 		this.object = object;
 		// location
-		fields.add(new VectorField("location rel", object.locationRel()));
+		fields.add(
+				new VectorField("location rel", object.locationRel())
+				.respondingTo(Change.Location)
+				);
 		// rotation
 		// > if Movable
 		asMovable = object.as(Movable.class);
 		if (asMovable != null) {
 			// velocity (rel)
-			fields.add(new VectorField("velocity rel", asMovable.velocityRel()));
+			fields.add(
+					new VectorField("velocity rel", asMovable.velocityRel())
+					.respondingTo(Change.Velocity)
+					);
 			// rotVelotity (still always relative)
 		}
 		// > if Body
@@ -46,21 +52,37 @@ public class ObjectField extends Field implements Observer {
 		if (asBody != null) {
 			// mass
 			oldValidMass = Master.min(asBody.mass(), 1);
-			fields.add(new FloatField("mass", 
-					m -> asBody.setMass(m), 
-					() -> asBody.mass()));
-			// affectedByCollision
-			fields.add(new BooleanField("affected by col", 
-					ac -> asBody.setMass(ac ? this.oldValidMass : -1), 
-					() -> asBody.affectedByCollision()));	
+			fields.add(
+					new FloatField("mass", 
+							m -> asBody.setMass(m), 
+							() -> asBody.mass())
+					.respondingTo(Change.Mass)
+					);
+			// affectedByCollision (mass)
+			fields.add(
+					new BooleanField("affected by col", 
+							ac -> {
+								if (ac != validMassForPhysic(asBody.mass())) { //if change, could be removed if model is well updated
+									final float newMass = ac ? this.oldValidMass : -1;
+									asBody.setMass(newMass);
+									if (validMassForPhysic(newMass))
+										oldValidMass = newMass;
+								}
+							}, 
+							() -> asBody.affectedByCollision())
+					.respondingTo(Change.Mass)
+					);
 		}
 		// > if Collider
 		asCollider = object.as(Collider.class);
 		if (asCollider != null) {
 			// display collider
-			fields.add(new BooleanField("display collider", 
-					dc -> asCollider.setDisplayCollider(dc), 
-					() -> asCollider.displayCollider()));
+			fields.add(
+					new BooleanField("display collider", 
+							dc -> asCollider.setDisplayCollider(dc), 
+							() -> asCollider.displayCollider())
+					.respondingTo(Change.DisplayCollider)
+					);
 		}
 
 		//--- View:
@@ -70,23 +92,15 @@ public class ObjectField extends Field implements Observer {
 		grid.add(labels[i],1,i);*/
 		
 		//--- Control:
-		fields.forEach(f -> updateNode.addObserver(f));
+		object.addObserver(this);
+		fields.forEach(f -> object.addObserver(f));
 	}
 
 	public void update(Observable o, java.lang.Object arg) {
-		if (arg == this.object) {
-			if (asBody != null && asBody.mass() > 0)
-				oldValidMass = asBody.mass();
-			// let the fields update themselves
-			updateNode.update(this);
-		}
+		
 	}
 	
-	/** A simple observer that the fields will follow. */
-	private class UpdateNode extends Observable {
-		public void update(java.lang.Object arg) {
-			setChanged();
-			notifyObservers(arg);
-		}
+	private boolean validMassForPhysic(float mass) {
+		return mass > 0 && mass < Float.POSITIVE_INFINITY;
 	}
 }

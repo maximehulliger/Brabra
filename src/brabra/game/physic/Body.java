@@ -143,6 +143,7 @@ public abstract class Body extends Movable {
 			this.inertiaMom = null;
 			this.inverseInertiaMom = null;
 		}
+		model.notifyChange(Change.Mass);
 	}
 	
 	public void setColor(Color color) {
@@ -307,7 +308,7 @@ public abstract class Body extends Movable {
 		if (mass == -1)
 			//throw new IllegalArgumentException("un objet de mass infini ne devrait pas peser !"); now tolerated :)
 			return;
-		applyForce( Physic.gravity.multBy(mass) );
+		applyForce( app.para.gravity().multBy(mass) );
 	}
 	
 	public void avance(float forceFront) {

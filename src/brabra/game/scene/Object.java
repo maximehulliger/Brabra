@@ -2,6 +2,8 @@ package brabra.game.scene;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Observable;
+import java.util.Observer;
 import java.util.function.Function;
 
 import brabra.ProMaster;
@@ -14,6 +16,7 @@ import brabra.game.physic.geo.Quaternion;
 import processing.core.PMatrix;
 import processing.core.PMatrix3D;
 import brabra.game.physic.geo.Vector;
+import brabra.gui.ToolWindow;
 
 /** 
  * A movable object with transforms (location, rotation) 
@@ -440,8 +443,10 @@ public class Object extends ProMaster implements Debugable {
 			rotationRel.update();
 			rotationAbs.update();
 			// update flags
-			rotationChanged = rotationRel.hasChanged() || rotationAbs.hasChanged();
-			locationChanged = locationRel.hasChanged() || locationAbs.hasChanged();
+			if (rotationChanged = rotationRel.hasChanged() || rotationAbs.hasChanged())
+				model.notifyChange(Change.Rotation);
+			if (locationChanged = locationRel.hasChanged() || locationAbs.hasChanged())
+				model.notifyChange(Change.Location);
 			transformChanged = rotationChanged || locationChanged;
 			if (transformChanged)
 				absValid = false;
@@ -502,11 +507,6 @@ public class Object extends ProMaster implements Debugable {
 			return false;
 	}
 	
-	/** To notify the scene (model) that this object has changed. */
-	public void notifyChanged() {
-		scene.changedObjects.add(this);
-	}
-	
 	// --- conversion position local <-> *absolute* <-> relative ---
 	
 	/** Retourne la position de rel, un point relatif au body en absolu. */
@@ -564,6 +564,30 @@ public class Object extends ProMaster implements Debugable {
 	/** Return the local direction in the object space regardless of this' direction. result is only rotated -> same norm. */
 	public Vector localDirFromRel(Vector dirRel) {
 		return absolute(localDir(dirRel), zero, rotationRel);
+	}
+	
+	// --- Observation ---
+	
+	public enum Change {
+		Location, Rotation, Velocity, RotVelocity, DisplayCollider, Mass
+	}
+	
+	protected final ObjectModel model = new ObjectModel();
+	
+	public void addObserver(Observer o) {
+		model.addObserver(o);
+	}
+	
+	/** To let someone watch this object */
+	protected final static class ObjectModel extends Observable {
+		public void notifyChange(Change change) {
+			ToolWindow.run(() -> {
+				synchronized (this) {
+					setChanged();
+					notifyObservers(change);
+				}
+			});
+		}
 	}
 	
 	// --- syntactic sugar for space change ---

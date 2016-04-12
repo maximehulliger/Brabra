@@ -35,6 +35,7 @@ public class Brabra extends PApplet {
 	//--- Public
 	/** Static reference to the app. valid once initLock is released. */
 	public static Brabra app;
+	public final Parameters para = new Parameters();
 	public final Debug debug = new Debug();
 	public final PVector stageLoc;
 	public ImageAnalyser imgAnalyser = null;

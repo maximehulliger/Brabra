@@ -9,6 +9,7 @@ public class BooleanField extends ValueField<Boolean> {
 	private final CheckBox cboxClosed = new CheckBox(), cboxOpen = new CheckBox();
 	private final Consumer<Boolean> setModelValue;
 	private final Supplier<Boolean> getModelValue;
+	private boolean boolValue = false;
 	
 	public BooleanField(String name, Consumer<Boolean> setModelValue, Supplier<Boolean> getModelValue) {
 		super(name);
@@ -24,6 +25,10 @@ public class BooleanField extends ValueField<Boolean> {
 		cboxOpen.setOnAction(e -> this.onChange());
 		cboxClosed.setOnAction(e -> this.onChange());
 	}
+	
+	public void setOpen(boolean open) {
+		super.setOpen(open);
+	}
 
 	protected void setModelValue(Boolean val) {
 		setModelValue.accept(val);
@@ -38,7 +43,7 @@ public class BooleanField extends ValueField<Boolean> {
 	}
 
 	protected void updateValue(Boolean newVal) {
-		cboxOpen.setSelected(newVal);
-		cboxClosed.setSelected(newVal);
+		cboxOpen.setSelected(boolValue);
+		cboxClosed.setSelected(boolValue);	
 	}
 }

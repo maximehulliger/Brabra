@@ -12,8 +12,6 @@ public abstract class Collider extends Body {
 	
 	public final static Color colliderColor = new Color(255, 0, 0, 150, 255, 0, 0);
 	
-	public static boolean displayAllColliders = false;
-	
 	private final float radiusEnveloppe;
 	private boolean displayCollider = false;
 	
@@ -31,7 +29,7 @@ public abstract class Collider extends Body {
 	// --- Getters ---
 
 	public boolean displayCollider() {
-		return displayCollider || displayAllColliders;
+		return displayCollider || app.para.displayAllColliders();
 	}
 
 	public float radiusEnveloppe() {
@@ -46,6 +44,7 @@ public abstract class Collider extends Body {
 	
 	public void setDisplayCollider(boolean displayCollider) {
 		this.displayCollider = displayCollider;
+		model.notifyChange(Change.DisplayCollider);
 	}
 	
 	// --- Collider ---

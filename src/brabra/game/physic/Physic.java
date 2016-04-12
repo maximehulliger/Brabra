@@ -5,15 +5,12 @@ import java.util.ArrayList;
 import java.util.List;
 import brabra.ProMaster;
 import brabra.game.physic.geo.Sphere;
-import brabra.game.physic.geo.Vector;
 import brabra.game.scene.Scene;
 
 
 public class Physic extends ProMaster {
 	
 	public static final float epsilon = 1E-5f;
-	
-	public static Vector gravity = down(0.8f);
 	
 	private static int errCount = 0;
 	
@@ -60,7 +57,7 @@ public class Physic extends ProMaster {
 			app.debug.err("physical error :/");
 			e.printStackTrace();
 			if (++errCount >= 3) {
-				game.setRunning(false);
+				app.para.setRunning(false);
 				app.debug.msg(1, "physic paused (after 3 errors)");
 			}
 		}

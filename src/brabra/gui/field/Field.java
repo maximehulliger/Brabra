@@ -16,7 +16,6 @@ import javafx.scene.layout.VBox;
 /** A common class for all the fields. a field can be closed and display in text his value or open and is editable. */
 public abstract class Field extends GridPane implements Observer {
 
-	
 	protected final HBox contentClosed = new HBox(), contentOpen = new HBox();
 	protected final VBox subfieldHolder = new VBox();
 	private final Label nameText = new Label();
@@ -27,11 +26,12 @@ public abstract class Field extends GridPane implements Observer {
 	
 	
 	public Field(String name) {
-		setName(name);
+		this.setName(name);
+	    this.setOpenForMe(open);
 		
 	    //--- View:
-		super.setPadding(new Insets(2,0,2,4));
-		super.setAlignment(Pos.CENTER_LEFT);
+		setPadding(new Insets(2,0,2,4));
+		setAlignment(Pos.CENTER_LEFT);
 		//super.setPadding(new Insets(0,0,0,4));
 		//super.setSpacing(10);
 		//contentClose.setSpacing(10);
@@ -47,9 +47,7 @@ public abstract class Field extends GridPane implements Observer {
 	    add(subfieldHolder, 1, 1); 
 	    
 	    //--- Control:
-	    setOnMouseClicked(e -> { this.setOpen(!open); e.consume();});
-	    
-	    setOpen(open);
+	    setOnMouseClicked(e -> { this.setOpen(!this.open); e.consume();});
 	}
 
 	public void setName(String name){
@@ -61,6 +59,10 @@ public abstract class Field extends GridPane implements Observer {
 
 	/** To override to react when the field is shown or hidden. Should be called. */
 	public void setOpen(boolean open) {
+		setOpenForMe(open);
+	}
+
+	private void setOpenForMe(boolean open) {
 	    this.open = open;
 	    triangleButton.setOpen(open);
 	    contentClosed.setVisible(!open);
@@ -69,6 +71,5 @@ public abstract class Field extends GridPane implements Observer {
 	    contentOpen.setManaged(open);
 	    subfieldHolder.setVisible(open);
 	    subfieldHolder.setManaged(open);
-		
 	}
 }

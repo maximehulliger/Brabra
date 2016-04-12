@@ -6,10 +6,16 @@ import java.util.Observable;
 public abstract class ValueField<T> extends Field {
 	
 	final String name; //TODO 4 debug only: to remove (when working)
+	private Object triggerArg = null;
 	
 	public ValueField(String name) {
 		super(name);
 		this.name = name; //TODO 4 debug only: to remove
+	}
+	
+	public ValueField<T> respondingTo(Object triggerArg) {
+		this.triggerArg = triggerArg;
+		return this;
 	}
 
 	/** Set the model value. */
@@ -30,8 +36,10 @@ public abstract class ValueField<T> extends Field {
 	}
 
 	public final void update(Observable o, java.lang.Object arg) {
-		T newVal = getModelValue();
-		if (!getNewValue().equals(newVal))
-			updateValue(newVal);
+		if (triggerArg == null || arg == triggerArg) {
+			final T newVal = getModelValue();
+			if (!getNewValue().equals(newVal))
+				updateValue(newVal);
+		}
 	}
 }

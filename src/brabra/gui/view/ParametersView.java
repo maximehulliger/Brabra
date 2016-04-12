@@ -5,10 +5,9 @@ import javafx.scene.control.*;
 import java.util.ArrayList;
 import java.util.List;
 
-import brabra.game.physic.Collider;
+import brabra.Parameters;
 import brabra.gui.field.BooleanField;
 import brabra.gui.field.Field;
-import brabra.gui.model.AppModel;
 
 
 /** View for the parameters. Listen to the app model. */
@@ -16,26 +15,26 @@ public class ParametersView extends View {
 	
 	int currentRow = 0;
 	
-	public ParametersView(AppModel appModel) {
+	public ParametersView(Parameters para) {
 		//--- Fields:
 		final List<Field> fields = new ArrayList<>();
 		// running
 		fields.add(new BooleanField("running",
-					run -> appModel.app.game.setRunning(run), 
-					() -> appModel.app.game.running()));
+					run -> para.setRunning(run), 
+					() -> para.running()));
 		// display all collider
 		fields.add(new BooleanField("display all collider", 
-				dc -> {Collider.displayAllColliders=dc;}, 
-				() -> Collider.displayAllColliders));
+				dc -> para.setDisplayAllColliders(dc), 
+				() -> para.displayAllColliders()));
 		
 		//--- View:
 		// title
 		super.add(new Label("parameters:"), 0, currentRow++);
 		// fields
-		fields.forEach(f -> super.add(f, 0, currentRow++));
-		
-		//--- Control:
-		fields.forEach(f -> appModel.addObserver(f));
+		fields.forEach(f -> {
+			super.add(f, 0, currentRow++);
+			para.addObserver(f);
+		});
 	}
 }
 

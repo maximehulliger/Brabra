@@ -136,7 +136,7 @@ public class Movable extends Object {
 					moving = false;
 				}
 				velocityRel.update();
-				notifyChanged();
+				model.notifyChange(Change.Velocity);
 			}
 			// 2. rotation
 			if (rotating || rotationRelVel.hasChangedCurrent()) {
@@ -151,7 +151,7 @@ public class Movable extends Object {
 					rotating = false;
 				}
 				rotationRelVel.update();
-				notifyChanged();
+				model.notifyChange(Change.RotVelocity);
 			}
 			return super.update();
 		} else

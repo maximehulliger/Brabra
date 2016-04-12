@@ -1,9 +1,7 @@
 package brabra.game.scene;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Observable;
-import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -20,19 +18,24 @@ import brabra.game.scene.fun.Starship;
 import brabra.game.scene.weapons.MissileLauncher;
 import brabra.game.scene.weapons.Target;
 import brabra.game.scene.weapons.Weaponry;
+import brabra.gui.ToolWindow;
 
 /** 
  * Object representing the scene (model). 
- * Will pass to observer the object changed, argObjectAdded or argObjectRemoved  */
+ * Will pass to observer argObjectAdded or argObjectRemoved  */
 public class Scene extends Observable {
-
-	public static final java.lang.Object argObjectAdded = "arg object added";
-	public static final java.lang.Object argObjectRemoved = "arg object removed";
+	public enum Change { ObjectAdded, ObjectRemoved }
+	public static class Arg {
+		public final Object object;
+		public final Change change;
+		public Arg(Object object, Change modif) {
+			this.object = object;
+			this.change = modif;
+		}
+	}
+	
 	public final ConcurrentLinkedDeque<Object> objects = new ConcurrentLinkedDeque<Object>();
 	public final ConcurrentLinkedDeque<Collider> colliders = new ConcurrentLinkedDeque<Collider>();
-	
-	/** To let the objects let known that they have been changed. */
-	protected final Set<Object> changedObjects = new HashSet<>();
 	
 	private final ConcurrentLinkedDeque<Object> toRemove = new ConcurrentLinkedDeque<Object>();
 	private final ConcurrentLinkedDeque<Object> toAdd = new ConcurrentLinkedDeque<Object>();
@@ -67,8 +70,7 @@ public class Scene extends Observable {
 			o.scene = this;
 			if (o instanceof Collider)
 				colliders.add((Collider)o);
-			setChanged();
-			notifyObservers(argObjectAdded);
+			notifyChange(o, Change.ObjectAdded);
 		}
 		return o;
 	}
@@ -140,10 +142,6 @@ public class Scene extends Observable {
 		game.debug.setCurrentWork("objects update");
 		for (Object o : objects)
 			o.update();
-		for (Object o : changedObjects) {
-			setChanged();
-			notifyObservers(o);
-		}
 		updateObjectLists();
 	}
 
@@ -161,14 +159,24 @@ public class Scene extends Observable {
 		if (toRemove.size() > 0) {
 			objects.removeAll(toRemove);
 			colliders.removeAll(toRemove);
-			toRemove.forEach(o -> o.onDelete());
+			toRemove.forEach(o -> {
+				o.onDelete();
+				notifyChange(o, Change.ObjectRemoved);
+			});
 			toRemove.clear();
-			setChanged();
-			notifyObservers(argObjectRemoved);
 		}
 		if (toAdd.size() > 0) {
 			toAdd.forEach(o->addNow(o));
 			toAdd.clear();
 		}
+	}
+
+	private void notifyChange(Object o, Change change) {
+		ToolWindow.run(() -> {
+			synchronized (this) {
+				this.setChanged();
+				this.notifyObservers(new Arg(o, Change.ObjectAdded));
+			}
+		});
 	}
 }
