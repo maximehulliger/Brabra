@@ -24,7 +24,11 @@ import brabra.gui.ToolWindow;
  * Object representing the scene (model). 
  * Will pass to observer argObjectAdded or argObjectRemoved  */
 public class Scene extends Observable {
+
+	// --- Observable ---
+	
 	public enum Change { ObjectAdded, ObjectRemoved }
+	
 	public static class Arg {
 		public final Object object;
 		public final Change change;
@@ -33,6 +37,8 @@ public class Scene extends Observable {
 			this.change = modif;
 		}
 	}
+	
+	// --- Scene ---
 	
 	public final ConcurrentLinkedDeque<Object> objects = new ConcurrentLinkedDeque<Object>();
 	public final ConcurrentLinkedDeque<Collider> colliders = new ConcurrentLinkedDeque<Collider>();
@@ -45,13 +51,13 @@ public class Scene extends Observable {
 		this.game = game;
 	}
 
-	// --- getters ---
+	// --- Getters ---
 	
 	public List<Collider> activeColliders() {
 		return colliders.stream().filter(c -> !c.ghost()).collect(Collectors.toList());
 	}
 	
-	// --- modifiers ---
+	//--- Modifiers ---
 
 	public void forEachObjects(Consumer<Object> f) {
 		objects.forEach(f);
@@ -89,34 +95,36 @@ public class Scene extends Observable {
 	// --- Prefab help method ---
 	
 	/**
-	 *  Help method to add a new object into the scene.
+	 *  Help method to get a new object (not in the scene).
 	 *	Supported names: <p>
-	 *	camera, box, ball, floor, target, starship, weaponry, weapon.
+	 *	Object, Movable, Camera, Box, Ball, Floor, Target, Starship, Weaponry, missile_launcher.
 	 */
-	public Object addPrefab(String name, Vector location, Quaternion rotation) {
+	public Object getPrefab(String name, Vector location, Quaternion rotation) {
 		Object obj;
 		Body body;
-		if (name.equals("object"))
+		if (name.equals(Object.class.getSimpleName()))
 			obj = new Object(location, rotation);
-		else if (name.equals("movable"))
+		else if (name.equals(Movable.class.getSimpleName()))
 			obj = new Movable(location, rotation);
-		else if (name.equals("camera")) {
+		else if (name.equals(Camera.class.getSimpleName())) {
 			return game.camera; // already in scene
-		} else if (name.equals("box")) {
+		} else if (name.equals(Box.class.getSimpleName())) {
 			obj = body = new Box(location, rotation, new Vector(20,20,20));
 			body.setMass(1);
 			body.addOnUpdate(() -> body.pese());
-		} else if (name.equals("ball")) {
+		} else if (name.equals(Sphere.class.getSimpleName()) || name.equals("Ball")) {
 			obj = body = new Sphere(location, 10);
 			body.setMass(1);
 			body.addOnUpdate(() -> body.pese());
-		} else if (name.equals("floor"))
+		} else if (name.equals("Floor"))
 			obj = new Plane(location, rotation).withName("Floor");
-		else if (name.equals("targer"))
+		else if (name.equals(Plane.class.getSimpleName()))
+			obj = new Plane(location, rotation);
+		else if (name.equals(Target.class.getSimpleName()))
 			obj = new Target(location, rotation);
-		else if (name.equals("starship"))
+		else if (name.equals(Starship.class.getSimpleName()))
 			obj = new Starship(location, rotation);
-		else if (name.equals("weaponry"))
+		else if (name.equals(Weaponry.class.getSimpleName()))
 			obj = new Weaponry(location, rotation);
 		else if (name.equals("missile_launcher"))
 			obj = new MissileLauncher(location, rotation);
@@ -124,7 +132,7 @@ public class Scene extends Observable {
 			System.err.println("\""+name+"\" unknown, ignoring.");
 			return null;
 		}
-		return addNow(obj);
+		return obj;
 	}
 	
 	// --- on all methods ---

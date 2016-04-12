@@ -76,13 +76,12 @@ public class ToolWindow extends Application {
     /** Init the javaFX components (MVC). Return the root. */
     private Pane initRoot() {
     	StackPane root = new StackPane();
-    	Tab[] tabs = tabs(root, new String[] {"Scene", "Para", "+"});
     	
+    	Tab[] tabs = tabs(root, new String[] {"Scene", "Para", "+"});
+
     	tabs[0].setContent(new SceneView(app.game.scene));
     	tabs[1].setContent(new ParametersView(app.para));
     	tabs[2].setContent(new CreateView());
-    	
-    	//TODO (@max) add others views & controller.
     	
     	return root;
     }
