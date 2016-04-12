@@ -59,9 +59,9 @@ public final class XMLLoader extends ProMaster {
 		
 	    public void startElement(String namespaceURI, String localName,String qName, org.xml.sax.Attributes atts) 
 	    		throws SAXException {
-	    	if (localName.equals("scene"))
+	    	if (localName.equals("Scene"))
 	    		return;
-	    	else if (localName.equals("physic") || localName.equals("settings"))
+	    	else if (localName.equals("Settings") || localName.equals("Physic"))
 	    		app.para.validate(atts);
 	    	else {
 	    		// get loc & dir
@@ -70,7 +70,7 @@ public final class XMLLoader extends ProMaster {
 	    		final Vector loc = locString != null ? vec(locString) : zero;
 	    		final Quaternion rot = dirString != null ? Quaternion.fromDirection(vec(dirString)) : identity;
 	    		// create object
-	    		final Object newObj = game.scene.addPrefab(localName, loc, rot);
+	    		final Object newObj = game.scene.getPrefab(localName, loc, rot);
 				attrStack.push(new Attributes(atts, parentStack.empty() ? null : parentStack.peek()));
 				parentStack.push(newObj);
 	    	}
@@ -78,11 +78,13 @@ public final class XMLLoader extends ProMaster {
 	    
 		public void endElement(String uri, String localName, String qName) 
 				throws SAXException {
-			if (!localName.equals("scene") && !localName.equals("physic") && !localName.equals("settings")) {
+			if (!localName.equals("Scene") && !localName.equals("Physic") && !localName.equals("Settings")) {
 	    		final Object obj = parentStack.pop();
 	    		final Attributes atts = attrStack.pop();
-	    		if (obj != null)
+	    		if (obj != null) {
 	    			obj.validate(atts);
+	    			game.scene.add(obj);
+	    		}
 	    	}
 		}
 	}

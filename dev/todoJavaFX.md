@@ -3,18 +3,16 @@
 - the fields should have the same height open and closed.
 all the following field: 
 - displaySkybox
-
-## Detail/later
 - server location
 - server location test (ping)
 - put all the style in a css file (+id)
+
 
 #2. Scene View
 ## Functionality
 - Correct field initialization (at least BooleanField bugged)
 - Correct field update
 - Show only 4/5 digit of a float (create methode format in Master, after getFloat(float).
-- Correct 
 - String Field
 - Quaternion Field (rot axis + angle)
 - add ValueFields in ObjectField for 
@@ -24,36 +22,37 @@ all the following field:
   - Ball
   - Cube
   - Plane
+- make the window vertically dragable (pad on the right)
+- delete button for object field (if open, on the right, a cross)
 
 ## Detail/later
 - add make children under their parent
+- make the window vertically dragable (by click & drag, as on smartphone)
 
 
 #3. Object Creation List View
 ## Functionality
-
-## Detail/later
+- get other images
 
 
 #4. Object Creation View
 ## Functionality
-
-## Detail/later
+- implement method copy in Object (&sons)
+- selectBox(?) to set the parent of the object
+- comboBox to follow parent
 
 
 #5. My Scenes View
 ## Functionality
 
-## Detail/later
-
 
 #6. Scene Store View
 ## Functionality
-
-## Detail/later
+- create another project (& repository) for the server side
+	-> http://www.vogella.com/tutorials/REST/article.html
 
 
 <br>
 
 #Known bugs to fix
-- crash when close the javaFX window with the cross
+- crash when close the javaFX window with the cross.

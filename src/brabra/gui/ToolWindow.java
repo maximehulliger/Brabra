@@ -4,6 +4,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import brabra.Brabra;
+import brabra.gui.view.CreateView;
 import brabra.gui.view.ParametersView;
 import brabra.gui.view.SceneView;
 
@@ -75,12 +76,12 @@ public class ToolWindow extends Application {
     /** Init the javaFX components (MVC). Return the root. */
     private Pane initRoot() {
     	StackPane root = new StackPane();
-    	Tab[] tabs = tabs(root, new String[] {"Scene", "Parameters"});
     	
+    	Tab[] tabs = tabs(root, new String[] {"Scene", "Para", "+"});
+
     	tabs[0].setContent(new SceneView(app.game.scene));
     	tabs[1].setContent(new ParametersView(app.para));
-    	
-    	//TODO (@max) add others views & controller.
+    	tabs[2].setContent(new CreateView());
     	
     	return root;
     }

@@ -72,7 +72,7 @@ public class Object extends ProMaster implements Debugable {
 	protected Scene scene = null;
 	
 	// > Flags, other
-	private String name = "Unknown Stuff";
+	private String name;
 	private boolean transformChanged = false, locationChanged = false, rotationChanged = false;
 	/** Indicate if the children changed. */
 	private boolean childrenChanged = false, childrenChangedCurrent = false;
@@ -89,6 +89,7 @@ public class Object extends ProMaster implements Debugable {
 		if (rotation != null) {
 			rotationRel.set(rotation);
 		}
+		setName(getClass().getSimpleName());
 	}
 	
 	/** Create a Body with this location & no initial rotation. */
