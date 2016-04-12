@@ -48,6 +48,7 @@ public class RealGame extends Interface {
 	
 	// mother method of all life:
 	public void draw() {
+		// we place the camera before updating the objects to get a cool visual effect (camera is one frame late in position).
 		camera.place();
 		if (running) {
 			scene.beforeUpdateAll();

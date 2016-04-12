@@ -2,6 +2,7 @@ package brabra;
 
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import brabra.calibration.Calibration;
 import brabra.game.RealGame;
@@ -41,6 +42,7 @@ public class Brabra extends PApplet {
 		
 	//--- Intern
 	private final String basePath;
+	private final ConcurrentLinkedQueue<Runnable> toExecuteInPro = new ConcurrentLinkedQueue<>();
 	private boolean imgAnalysisStarted = false, fxAppStarted = false;
 	private Interface currentInterface;
 	public final Interface intMenu, intTrivialGame, intCalibration;
@@ -79,15 +81,20 @@ public class Brabra extends PApplet {
 	/** Launch the whole software. */
 	public void launch() {
 		// start the other threads if needed.
-		Master.launch(() -> run());
 		setToolWindow(toolWindow);
         setImgAnalysis(imgAnalysis);
+        run();
 	}
 	
 	/** Run the processing thread. */
 	public void run() {
 		String[] sketchArgs = {"--location="+(int)stageLoc.x+","+(int)stageLoc.y, this.getClass().getName()};
 		PApplet.runSketch( sketchArgs, this );
+	}
+	
+	/** Execute this Runnable later in the processing (main) thread. */
+	public void runLater(Runnable r) {
+		toExecuteInPro.add(r);
 	}
 	
 	public void settings() {
@@ -120,6 +127,8 @@ public class Brabra extends PApplet {
 	}
 	
 	public void draw() {
+		// execute the code to execute in this thread.
+		processTasksInPro();
 		// interface
 		currentInterface.draw();
 		// gui
@@ -313,5 +322,13 @@ public class Brabra extends PApplet {
 		view.onShow();
 		if (focusGainedEventWaiting)
 			currentInterface.onFocusChange(true);
+	}
+
+	private void processTasksInPro() {
+		Runnable toRun = toExecuteInPro.poll();
+		while (toRun != null) {
+			toRun.run();
+			toRun = toExecuteInPro.poll();
+		}
 	}
 }

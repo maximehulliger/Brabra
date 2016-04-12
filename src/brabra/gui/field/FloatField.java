@@ -1,42 +1,48 @@
 package brabra.gui.field;
 
-import java.util.Observable;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
-
 import brabra.Master;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 
-public class FloatField extends Field {
+public class FloatField extends ValueField<Float> {
 	
 	private final TextField floatField;
-	private Label textValue;
-	private final Consumer<Float> onChange;
-	private final Supplier<Float> modelValue;
+	private final Label textValue;
+	private final Consumer<Float> setModelValue;
+	private final Supplier<Float> getModelValue;
 	
-	public FloatField(String name, Consumer<Float> onChange, Supplier<Float> onUpdate) {
-		super.setName(name);
-		this.onChange = onChange;
-		this.modelValue = onUpdate;
+	public FloatField(String name, Consumer<Float> setModelValue, Supplier<Float> getModelValue) {
+		super(name);
+		this.setModelValue = setModelValue;
+		this.getModelValue = getModelValue;
 		
 		//--- View:
-		floatField = new TextField(modelValue.get().toString());
+		final String val = getModelValue().toString();
+		floatField = new TextField(val);
+		textValue = new Label(val);
 		floatField.setPrefWidth(105);
-		textValue = new Label(modelValue.get().toString());
-		contentClose.getChildren().addAll(basicText, textValue);
-		contentOpen.getChildren().addAll(basicText, floatField);
+		contentClosed.getChildren().add(textValue);
+		contentOpen.getChildren().add(floatField);
 		
 		//--- Control:
-		floatField.setOnKeyTyped(e ->{this.onChange();});
+		floatField.setOnKeyTyped(e -> this.onChange());
 	}
 
-	public void onChange() {	
-		onChange.accept(Master.getFloat(floatField.getText(), true));
+	protected void setModelValue(Float val) {
+		setModelValue.accept(val);
 	}
 
-	public void update(Observable o, java.lang.Object arg) {
-		Float newVal = modelValue.get();
+	protected Float getModelValue() {
+		return getModelValue.get();
+	}
+
+	protected Float getNewValue() {
+		return Master.getFloat(floatField.getText(), true);
+	}
+
+	protected void updateValue(Float newVal) {
 		textValue.setText(newVal.toString());
 		floatField.setText(newVal.toString());
 	}

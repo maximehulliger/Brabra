@@ -1,16 +1,12 @@
 package brabra.gui.field;
 
-import javafx.collections.ObservableList;
-import javafx.scene.Node;
-import javafx.scene.layout.Pane;
-import javafx.scene.layout.VBox;
-
 import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
 
 import java.util.ArrayList;
 
+import brabra.Master;
 import brabra.game.physic.Body;
 import brabra.game.physic.Collider;
 import brabra.game.scene.Movable;
@@ -24,53 +20,37 @@ public class ObjectField extends Field implements Observer {
 	private final Movable asMovable;
 	private final Body asBody;
 	private final Collider asCollider;
+	private final UpdateNode updateNode = new UpdateNode();
 	
 	private float oldValidMass;
 	
-	// for the view
-	private final List<Field> fields = new ArrayList<>();
-	
 	public ObjectField(Object object) {
-		super.setName(object.toString());
+		super(object.toString());
 		
-		//--- View:
-		Pane fieldHolder = new VBox();
-		add(fieldHolder, 1, 1);
-		ObservableList<Node> children = fieldHolder.getChildren();
-		
-	    /*
-		
-		grid.add(btns[i],0,i);
-		
-		labels[i] = new Label();
-		labels[i].setId("objectName");
-		labels[i].setText(obj.toString());
-		grid.add(labels[i],1,i);*/
-		
-	    
 	    //--- Fields:
-	    // > first Object
+		final List<Field> fields = new ArrayList<>();
+		// > first Object
 		this.object = object;
 		// location
-		children.add(new VectorField("location rel", object.locationRel()));
+		fields.add(new VectorField("location rel", object.locationRel()));
 		// rotation
 		// > if Movable
 		asMovable = object.as(Movable.class);
 		if (asMovable != null) {
 			// velocity (rel)
-			children.add(new VectorField("velocity rel", asMovable.velocityRel()));
+			fields.add(new VectorField("velocity rel", asMovable.velocityRel()));
 			// rotVelotity (still always relative)
 		}
 		// > if Body
 		asBody = object.as(Body.class);
 		if (asBody != null) {
 			// mass
-			oldValidMass = asBody.mass();
-			children.add(new FloatField("mass", 
+			oldValidMass = Master.min(asBody.mass(), 1);
+			fields.add(new FloatField("mass", 
 					m -> asBody.setMass(m), 
 					() -> asBody.mass()));
 			// affectedByCollision
-			children.add(new BooleanField("affected by col", 
+			fields.add(new BooleanField("affected by col", 
 					ac -> asBody.setMass(ac ? this.oldValidMass : -1), 
 					() -> asBody.affectedByCollision()));	
 		}
@@ -78,10 +58,19 @@ public class ObjectField extends Field implements Observer {
 		asCollider = object.as(Collider.class);
 		if (asCollider != null) {
 			// display collider
-			children.add(new BooleanField("display collider", 
+			fields.add(new BooleanField("display collider", 
 					dc -> asCollider.setDisplayCollider(dc), 
 					() -> asCollider.displayCollider()));
 		}
+
+		//--- View:
+		subfieldHolder.getChildren().addAll(fields);
+		
+	    /*labels[i] = new Label();
+		grid.add(labels[i],1,i);*/
+		
+		//--- Control:
+		fields.forEach(f -> updateNode.addObserver(f));
 	}
 
 	public void update(Observable o, java.lang.Object arg) {
@@ -89,7 +78,15 @@ public class ObjectField extends Field implements Observer {
 			if (asBody != null && asBody.mass() > 0)
 				oldValidMass = asBody.mass();
 			// let the fields update themselves
-			fields.forEach(f -> f.update(o, arg));
+			updateNode.update(this);
+		}
+	}
+	
+	/** A simple observer that the fields will follow. */
+	private class UpdateNode extends Observable {
+		public void update(java.lang.Object arg) {
+			setChanged();
+			notifyObservers(arg);
 		}
 	}
 }

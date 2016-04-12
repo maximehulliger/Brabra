@@ -14,9 +14,9 @@ public class TriangleButton extends Polygon {
 
 	public void setOpen(boolean open) {
 		if (open)
-			getPoints().setAll(0d, triangleSize, 2*triangleSize-2, 0d, 0d, -triangleSize);
-		else
 			getPoints().setAll(triangleSize, 0d, 0d, 2*(triangleSize-1), -triangleSize, 0d);
+		else
+			getPoints().setAll(0d, triangleSize, 2*triangleSize-2, 0d, 0d, -triangleSize);
 			
 	}
 }

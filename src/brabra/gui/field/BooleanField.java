@@ -1,44 +1,44 @@
 package brabra.gui.field;
 
-import java.util.Observable;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
-
-import brabra.gui.field.Field;
 import javafx.scene.control.CheckBox;
 
-public class BooleanField extends Field {
+public class BooleanField extends ValueField<Boolean> {
 	
-	private final CheckBox cbox = new CheckBox();
-	private final Consumer<Boolean> onChange;
-	private final Supplier<Boolean> modelValue;
+	private final CheckBox cboxClosed = new CheckBox(), cboxOpen = new CheckBox();
+	private final Consumer<Boolean> setModelValue;
+	private final Supplier<Boolean> getModelValue;
 	
-	public BooleanField(String name, Consumer<Boolean> onChange, Supplier<Boolean> onUpdate) {
-		super.setName(name);
-		this.onChange = onChange;
-		this.modelValue = onUpdate;
+	public BooleanField(String name, Consumer<Boolean> setModelValue, Supplier<Boolean> getModelValue) {
+		super(name);
+		this.setModelValue = setModelValue;
+		this.getModelValue = getModelValue;
 		
 		//--- View:
-		contentOpen.getChildren().addAll(basicText, cbox);
-		contentClose.getChildren().addAll(basicText, cbox);
+		contentOpen.getChildren().add(cboxOpen);
+		contentClosed.getChildren().add(cboxClosed);
+		cboxClosed.setDisable(true);
 		
 		//--- Control:
-		cbox.setOnAction(
-			e -> { this.onChange();e.consume(); }
-		);
+		cboxOpen.setOnAction(e -> this.onChange());
+		cboxClosed.setOnAction(e -> this.onChange());
 	}
 
-	public void onChange() {
-		onChange.accept(cbox.isSelected());
+	protected void setModelValue(Boolean val) {
+		setModelValue.accept(val);
 	}
 
-	public void update(Observable o, java.lang.Object arg) {
-		cbox.setSelected(modelValue.get());
+	protected Boolean getModelValue() {
+		return getModelValue.get();
 	}
-	
-	public void setOpen(boolean open) {
-		super.setOpen(open);
-		if (cbox != null)
-			cbox.setDisable(!open);
+
+	protected Boolean getNewValue() {
+		return cboxOpen.isSelected();
+	}
+
+	protected void updateValue(Boolean newVal) {
+		cboxOpen.setSelected(newVal);
+		cboxClosed.setSelected(newVal);
 	}
 }

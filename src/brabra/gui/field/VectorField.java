@@ -1,14 +1,11 @@
 package brabra.gui.field;
 
-
-import java.util.Observable;
-
+import brabra.Master;
 import brabra.game.physic.geo.Vector;
-import brabra.gui.field.Field;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 
-public class VectorField extends Field {
+public class VectorField extends ValueField<Vector> {
 
 	private final Vector vector;
 	private final TextField xValue;
@@ -17,7 +14,7 @@ public class VectorField extends Field {
 	private final Label valueLabel;
 	
 	public VectorField(String name, Vector vector) {
-		super.setName(name);
+		super(name);
 		this.vector = vector;
 		
 		//--- View:
@@ -28,31 +25,31 @@ public class VectorField extends Field {
 		xValue.setPrefWidth(55);
 		yValue.setPrefWidth(55);
 		zValue.setPrefWidth(55);
-		contentClose.getChildren().addAll(basicText, valueLabel);
-		contentOpen.getChildren().addAll(basicText, xValue, yValue, zValue);
+		contentClosed.getChildren().add(valueLabel);
+		contentOpen.getChildren().addAll(xValue, yValue, zValue);
 		
 		//--- Control:
 		xValue.setOnAction(e -> this.onChange());
 		yValue.setOnAction(e -> this.onChange());
 		zValue.setOnAction(e -> this.onChange());
 	}
-	
-	private float getFloat(String input){
-		try {
-			return Float.parseFloat(input);
-		} catch (NumberFormatException e) {
-			return 0;
-		}
+
+	protected void setModelValue(Vector val) {
+		vector.set(val);
 	}
 
-	public void onChange() {
-		final Float x = getFloat(xValue.getText());
-		final Float y = getFloat(yValue.getText());
-		final Float z = getFloat(zValue.getText());
-		vector.set(x,y,z);
+	protected Vector getModelValue() {
+		return vector;
 	}
 
-	public void update(Observable o, java.lang.Object arg) {
+	protected Vector getNewValue() {
+		final Float x = Master.getFloat(xValue.getText(), true);
+		final Float y = Master.getFloat(yValue.getText(), true);
+		final Float z = Master.getFloat(zValue.getText(), true);
+		return new Vector(x,y,z);
+	}
+
+	protected void updateValue(Vector newVal) {
 		valueLabel.setText(vector.toString());
 		xValue.setText(Float.toString(vector.x));
 		xValue.setText(Float.toString(vector.y));
