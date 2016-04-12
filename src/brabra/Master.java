@@ -30,6 +30,15 @@ public abstract class Master {
 		System.out.println(s);
 	}
 	
+	/** If maybeFloat is valid, return a Float or a default value (if floatOnly 0 otherwise null). */
+	public static Float getFloat(String maybeFloat, boolean floatOnly) {
+		try {
+	        return Float.parseFloat(maybeFloat);
+        } catch (NumberFormatException e) {
+        	return floatOnly ? 0f : null;
+	    }
+	}
+	
 	public static void println(float[] array) {
 		println(Arrays.toString(array));
 	}

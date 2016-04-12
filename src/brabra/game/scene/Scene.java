@@ -1,10 +1,12 @@
 package brabra.game.scene;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Observable;
+import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-import brabra.ProMaster;
+import brabra.game.RealGame;
 import brabra.game.physic.Body;
 import brabra.game.physic.Collider;
 import brabra.game.physic.geo.Box;
@@ -16,31 +18,44 @@ import brabra.game.scene.fun.Starship;
 import brabra.game.scene.weapons.MissileLauncher;
 import brabra.game.scene.weapons.Target;
 import brabra.game.scene.weapons.Weaponry;
+import brabra.gui.ToolWindow;
 
-public class Scene extends ProMaster {
-
-	private List<Object> objects = new ArrayList<Object>();
-	private List<Collider> colliders = new ArrayList<Collider>();
-	private List<Object> toRemove = new ArrayList<Object>();
-	private List<Object> toAdd = new ArrayList<Object>();
-
-	// --- getters ---
-
-	/** Return all the objects in the scene. */
-	public List<Object> objects() {
-		return objects;
+/** 
+ * Object representing the scene (model). 
+ * Will pass to observer argObjectAdded or argObjectRemoved  */
+public class Scene extends Observable {
+	public enum Change { ObjectAdded, ObjectRemoved }
+	public static class Arg {
+		public final Object object;
+		public final Change change;
+		public Arg(Object object, Change modif) {
+			this.object = object;
+			this.change = modif;
+		}
 	}
 	
-	/** Return all the colliders in the scene. */
-	public List<Collider> colliders() {
-		return colliders;
+	public final ConcurrentLinkedDeque<Object> objects = new ConcurrentLinkedDeque<Object>();
+	public final ConcurrentLinkedDeque<Collider> colliders = new ConcurrentLinkedDeque<Collider>();
+	
+	private final ConcurrentLinkedDeque<Object> toRemove = new ConcurrentLinkedDeque<Object>();
+	private final ConcurrentLinkedDeque<Object> toAdd = new ConcurrentLinkedDeque<Object>();
+	private final RealGame game;
+	
+	public Scene(RealGame game) {
+		this.game = game;
 	}
+
+	// --- getters ---
 	
 	public List<Collider> activeColliders() {
 		return colliders.stream().filter(c -> !c.ghost()).collect(Collectors.toList());
 	}
 	
 	// --- modifiers ---
+
+	public void forEachObjects(Consumer<Object> f) {
+		objects.forEach(f);
+	}
 
 	/** Add an object to the scene (on next update). */
 	public Object add(Object o) {
@@ -50,9 +65,13 @@ public class Scene extends ProMaster {
 
 	/** Add an object immediately into the scene. return the object. */
 	public Object addNow(Object o) {
-		objects.add(o);
-		if (o instanceof Collider)
-			colliders.add((Collider)o);
+		if (!objects.contains(o)) {
+			objects.add(o);
+			o.scene = this;
+			if (o instanceof Collider)
+				colliders.add((Collider)o);
+			notifyChange(o, Change.ObjectAdded);
+		}
 		return o;
 	}
 	
@@ -60,6 +79,11 @@ public class Scene extends ProMaster {
 	public Object remove(Object o) {
 		toRemove.add(o);
 		return o;
+	}
+	
+	/** Remove all object from the scene. */
+	public void reset() {
+		toRemove.addAll(objects);
 	}
 	
 	// --- Prefab help method ---
@@ -79,7 +103,7 @@ public class Scene extends ProMaster {
 		else if (name.equals("camera")) {
 			return game.camera; // already in scene
 		} else if (name.equals("box")) {
-			obj = body = new Box(location, rotation, vec(20,20,20));
+			obj = body = new Box(location, rotation, new Vector(20,20,20));
 			body.setMass(1);
 			body.addOnUpdate(() -> body.pese());
 		} else if (name.equals("ball")) {
@@ -135,12 +159,24 @@ public class Scene extends ProMaster {
 		if (toRemove.size() > 0) {
 			objects.removeAll(toRemove);
 			colliders.removeAll(toRemove);
-			toRemove.forEach(o -> o.onDelete());
+			toRemove.forEach(o -> {
+				o.onDelete();
+				notifyChange(o, Change.ObjectRemoved);
+			});
 			toRemove.clear();
 		}
 		if (toAdd.size() > 0) {
 			toAdd.forEach(o->addNow(o));
 			toAdd.clear();
 		}
+	}
+
+	private void notifyChange(Object o, Change change) {
+		ToolWindow.run(() -> {
+			synchronized (this) {
+				this.setChanged();
+				this.notifyObservers(new Arg(o, Change.ObjectAdded));
+			}
+		});
 	}
 }

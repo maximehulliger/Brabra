@@ -1,6 +1,7 @@
 package brabra.imageprocessing;
 
 import java.util.ArrayList;
+import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import brabra.ProMaster;
@@ -17,6 +18,8 @@ import processing.core.PApplet;
 
 /** Maestro Class of the image processing part of the project. */
 public class ImageAnalyser extends ProMaster {
+	public static final Lock readyLock = new ReentrantLock();
+	
 	///--- parameters
 	public static final float maxAcceptedAngle = 65f/360*PApplet.TWO_PI; //65°
 	public static boolean displayQuadRejectionCause = false;
@@ -66,7 +69,11 @@ public class ImageAnalyser extends ProMaster {
 	
 	public ImageAnalyser() {
 		app.imgAnalyser = this;
-		
+		buttonDetection = new ButtonDetection();
+	}
+	
+	public void launch() {
+		readyLock.lock();
 		// preloaded pixel int value (to avoid weird processing shit with multiple threads.) loaded by ImageAnalyser
 		ImageProcessing.color0 = app.color(0);
 		ImageProcessing.color255 = app.color(255);
@@ -83,7 +90,10 @@ public class ImageAnalyser extends ProMaster {
 		else
 			parametres = paraCamera;
 		
-		buttonDetection = new ButtonDetection();
+		// ready to play with!
+		readyLock.unlock();
+		
+		run();
 	}
 	
 	// --- getters ---
@@ -106,7 +116,7 @@ public class ImageAnalyser extends ProMaster {
 	}
 
 	// --- main loop ---
-	public void run() {
+	private void run() {
 		while (!app.isOver()) {
 			boolean newImage = false;
 			boolean once = false;

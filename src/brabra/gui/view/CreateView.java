@@ -5,7 +5,6 @@ import brabra.game.physic.geo.Plane;
 import brabra.game.physic.geo.Sphere;
 import brabra.game.scene.Movable;
 import brabra.game.scene.Object;
-import brabra.gui.ToolWindow;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
@@ -14,17 +13,15 @@ import javafx.scene.control.ContentDisplay;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 
-public class CreateView {
+public class CreateView extends View {
 
-	
 	GridPane objectButtons = new GridPane(); //first
 	GridPane creationControlButtons = new GridPane();	//second
 	StackPane secondView = new StackPane();
 	
-	private <T extends Object> void loadCreateDetails(Pane root, Class <T> type) {
+	private <T extends Object> void loadCreateDetails(Class <T> type) {
 		// hide current view  
 		// create new root´ & add it to root
     	secondView.getChildren().remove(objectButtons);
@@ -44,10 +41,7 @@ public class CreateView {
 		
 	}
 	
-	public CreateView(Pane root) {
-		
-		// TODO (@Maxime) picture loading
-
+	public CreateView() {
 		//System.out.println("path: "+ToolWindow.app.dataPathTo("gui/ball.png"));
 		//Image imageDecline = new Image(getClass().getResourceAsStream(ToolWindow.app.dataPathTo("gui/ball.png")));
 		//Button button5 = new Button();
@@ -125,25 +119,25 @@ public class CreateView {
         creationControlButtons.add(placeBtn, 2, 1);
       
         secondView.getChildren().add(objectButtons);
-        root.getChildren().add(secondView);  
+        // TODO getChildren().add(secondView);  
          
         // --- Controller ---
         
         sphereBtn.setOnAction(new EventHandler<ActionEvent>() {
             public void handle(ActionEvent event) {
-            	loadCreateDetails(root,Sphere.class);
+            	loadCreateDetails(Sphere.class);
             }
         });
         
         boxBtn.setOnAction(new EventHandler<ActionEvent>() {
             public void handle(ActionEvent event) {
-            	loadCreateDetails(root,Box.class);
+            	loadCreateDetails(Box.class);
             }
         });
         
         planeBtn.setOnAction(new EventHandler<ActionEvent>() {
             public void handle(ActionEvent event) {
-            	loadCreateDetails(root,Plane.class);
+            	loadCreateDetails(Plane.class);
             }
         });
         

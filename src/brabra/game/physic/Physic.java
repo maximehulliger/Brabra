@@ -5,23 +5,22 @@ import java.util.ArrayList;
 import java.util.List;
 import brabra.ProMaster;
 import brabra.game.physic.geo.Sphere;
+import brabra.game.scene.Scene;
 
 
 public class Physic extends ProMaster {
 	
 	public static final float epsilon = 1E-5f;
 	
-	public float gravity = 0.8f;
+	private static int errCount = 0;
 	
-	private int errCount = 0;
-	
-	/** Just... do Magic  :D <p>Actually resolve collisions. */
-	public void doMagic() {
-		game.debug.setCurrentWork("physic magic");
+	/** Just... do Magic  :D <p> Actually resolve collisions in the scene. */
+	public static void doMagic(Scene scene) {
+		app.debug.setCurrentWork("physic magic");
 		try {
 			//2. on détermine et filtre les collisions pour chaque paire possible (c, o).
 			List<Collision> collisions = new ArrayList<>();
-			forAllPairs(game.scene.activeColliders(), (c,o)-> {
+			forAllPairs(scene.activeColliders(), (c,o)-> {
 				if ( (o.affectedByCollision() || c.affectedByCollision())
 						&& !c.isRelated(o) 
 						&& (o.doCollideFast(c) && c.doCollideFast(o)) ) {
@@ -55,11 +54,11 @@ public class Physic extends ProMaster {
 				col.apply();
 
 		} catch (Exception e) {
-			game.debug.err("physical error :/");
+			app.debug.err("physical error :/");
 			e.printStackTrace();
 			if (++errCount >= 3) {
-				game.setRunning(false);
-				game.debug.msg(1, "physic paused (after 3 errors)");
+				app.para.setRunning(false);
+				app.debug.msg(1, "physic paused (after 3 errors)");
 			}
 		}
 	}

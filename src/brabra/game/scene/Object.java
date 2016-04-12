@@ -2,6 +2,8 @@ package brabra.game.scene;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Observable;
+import java.util.Observer;
 import java.util.function.Function;
 
 import brabra.ProMaster;
@@ -14,6 +16,7 @@ import brabra.game.physic.geo.Quaternion;
 import processing.core.PMatrix;
 import processing.core.PMatrix3D;
 import brabra.game.physic.geo.Vector;
+import brabra.gui.ToolWindow;
 
 /** 
  * A movable object with transforms (location, rotation) 
@@ -63,8 +66,10 @@ public class Object extends ProMaster implements Debugable {
 	private Object parent = null;
 	private ParentRelationship parentRel = ParentRelationship.None;
 	private final List<Object> children = new ArrayList<>();
+	
 	/** Flag used during the main update loop. */
 	protected boolean updated = false;
+	protected Scene scene = null;
 	
 	// > Flags, other
 	private String name = "Unknown Stuff";
@@ -145,10 +150,6 @@ public class Object extends ProMaster implements Debugable {
 	public String toString() {
 		return name;
 	}
-
-	public boolean inScene() {
-		return game.scene.objects().contains(this);
-	}
 	
 	/** Return true if the object should consider his parent. */
 	public boolean hasParent() {
@@ -163,7 +164,7 @@ public class Object extends ProMaster implements Debugable {
 	@SuppressWarnings("unchecked")
 	/** To cast this object easily. return null if invalid. */
 	public <T extends Object> T as(Class <T> as) {
-		return (as.getClass().isInstance(this)) ? (T)this : null;
+		return as.isInstance(this) ? (T)this : null;
 	}
 
 	/** Return the absolute location of the object. update things if needed. */
@@ -427,6 +428,8 @@ public class Object extends ProMaster implements Debugable {
 	 * 	Return true if the object was updated or false if it already was for this frame.
 	 **/
 	protected boolean update() {
+		if (scene == null)
+			throw new IllegalArgumentException("The object \""+toString()+"\" should be added to the scene before updating it.");
 		if (hasParent() && !parent.updated) {
 			boolean pu = parent.update();
 			assert(pu);
@@ -440,8 +443,10 @@ public class Object extends ProMaster implements Debugable {
 			rotationRel.update();
 			rotationAbs.update();
 			// update flags
-			rotationChanged = rotationRel.hasChanged() || rotationAbs.hasChanged();
-			locationChanged = locationRel.hasChanged() || locationAbs.hasChanged();
+			if (rotationChanged = rotationRel.hasChanged() || rotationAbs.hasChanged())
+				model.notifyChange(Change.Rotation);
+			if (locationChanged = locationRel.hasChanged() || locationAbs.hasChanged())
+				model.notifyChange(Change.Location);
 			transformChanged = rotationChanged || locationChanged;
 			if (transformChanged)
 				absValid = false;
@@ -502,12 +507,6 @@ public class Object extends ProMaster implements Debugable {
 			return false;
 	}
 	
-	/** Force this object to call update. */
-	public void forceUpdate() {
-		updated = false;
-		update();
-	}
-	
 	// --- conversion position local <-> *absolute* <-> relative ---
 	
 	/** Retourne la position de rel, un point relatif au body en absolu. */
@@ -565,6 +564,30 @@ public class Object extends ProMaster implements Debugable {
 	/** Return the local direction in the object space regardless of this' direction. result is only rotated -> same norm. */
 	public Vector localDirFromRel(Vector dirRel) {
 		return absolute(localDir(dirRel), zero, rotationRel);
+	}
+	
+	// --- Observation ---
+	
+	public enum Change {
+		Location, Rotation, Velocity, RotVelocity, DisplayCollider, Mass
+	}
+	
+	protected final ObjectModel model = new ObjectModel();
+	
+	public void addObserver(Observer o) {
+		model.addObserver(o);
+	}
+	
+	/** To let someone watch this object */
+	protected final static class ObjectModel extends Observable {
+		public void notifyChange(Change change) {
+			ToolWindow.run(() -> {
+				synchronized (this) {
+					setChanged();
+					notifyObservers(change);
+				}
+			});
+		}
 	}
 	
 	// --- syntactic sugar for space change ---
