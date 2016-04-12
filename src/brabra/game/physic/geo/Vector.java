@@ -126,7 +126,7 @@ public class Vector extends PVector {
 		super.set(x,y,z);
 		return this;
 	}
-	
+
 	/** Add some vectors to this. */
 	public Vector add(Vector... vs) {
 		for (int i=0; i<vs.length; i++)
@@ -138,7 +138,7 @@ public class Vector extends PVector {
 		super.sub(v);
 		return this;
 	}
-
+	
 	public Vector mult(float f) {
 		super.mult(f);
 		return this;

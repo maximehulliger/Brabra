@@ -28,12 +28,13 @@ public class Calibration extends Interface {
 	
 	public Calibration() {
 		ia = app.imgAnalyser;
-		fontLabel = app.createFont("Arial", 18, true);
-		fontImages = app.createFont("Arial", (Brabra.height - 275)/17, true);
 	}
 
 	public void init() {
-		
+		if (fontLabel == null) {
+			fontLabel = app.createFont("Arial", 18, true);
+			fontImages = app.createFont("Arial", (Brabra.height - 275)/17, true);
+		}
 	}
 	
 	public void wakeUp() {

@@ -60,9 +60,9 @@ public class Plane extends PseudoPolyedre {
 	// --- Setters ---
 
 	public void setMass(float mass) {
-		super.setMass(mass);
-		if (!finite && mass!=-1)
+		if(mass > 0 && !finite)
 			throw new IllegalArgumentException("An infinite plane without an infinite mass is a bad idea :/");
+		super.setMass(mass);
 		if (inverseMass > 0) {
 			float fact = mass/12;
 			super.inertiaMom = new Vector(
@@ -73,7 +73,7 @@ public class Plane extends PseudoPolyedre {
 					1/inertiaMom.x,
 					1/inertiaMom.y,
 					1/inertiaMom.z );
-		}
+		} 
 	}
 
 	/** Set the size taking x & z from size2d. The plane should not be infinite. */

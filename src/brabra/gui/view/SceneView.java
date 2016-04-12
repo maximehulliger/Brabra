@@ -1,51 +1,69 @@
 package brabra.gui.view;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
+import java.util.stream.Collectors;
 
-import javafx.geometry.Insets;
 import javafx.scene.control.Label;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.Pane;
 import brabra.game.scene.Object;
-import brabra.gui.TriangleButton;
-import brabra.gui.model.SceneModel;
+import brabra.game.scene.Scene;
+import brabra.gui.field.ObjectField;
 
-public class SceneView implements Observer {
+public final class SceneView extends View implements Observer {
+	
+	private static final String defaultTitle = "Empty Scene.";
+	private final Label title;
+	private final List<ObjectField> objectFields = new ArrayList<>();
+	private final Scene sceneModel;
 
-	private List<Object> lists;
+	private int currentRow = 0;
 	
-	public TriangleButton[] btns;
-	public Label[] labels;
-	
-	public SceneView(Pane root, SceneModel sceneModel) {
+	public SceneView(Scene sceneModel) {
+		this.sceneModel = sceneModel;
+		
+		//--- View:
+		//super.setHgap(8);
+		//super.setVgap(8);
+		this.title = new Label(defaultTitle);
+		super.add(title, 0, currentRow++);
+		
+		assert(sceneModel.objects.size() == 0);
+		/*for (Object o : sceneModel.objects()) {
+			ObjectField newField = new ObjectField(o);
+			objectFields.add(newField);
+			sceneModel.addObserver(newField);
+			super.add(newField, 0, currentRow++);
+		}*/
+
+		//--- Control:
 		sceneModel.addObserver(this);
-		GridPane grid = new GridPane();
-		root.getChildren().add(grid);
-		
-		this.lists = sceneModel.objects();
-		this.labels = new Label[sceneModel.objectCount()];
-		this.btns = new TriangleButton[sceneModel.objectCount()];
-		grid.setHgap(8);
-		grid.setVgap(8);
-		
-		for (int i=0; i<lists.size(); i++) {
-			Object obj = lists.get(i);
-			btns[i] = new TriangleButton();
-			grid.setPadding(new Insets(2,0,2,4));
-			grid.add(btns[i],0,i);
-			
-			labels[i] = new Label();
-			labels[i].setId("objectName");
-			labels[i].setText(obj.toString());
-			grid.add(labels[i],1,i);
-		}
 	}
 
-	public void update(Observable o, java.lang.Object updated) {
-		
-		// TODO update object field with object == updated
-		
+	public void update(Observable o, java.lang.Object arg) {
+		Scene.Arg sceneArg = (Scene.Arg)arg;
+		Object obj = sceneArg.object;
+		Scene.Change change = sceneArg.change;
+		// the view only react to object addition or deletion.
+		if (change == Scene.Change.ObjectAdded || change == Scene.Change.ObjectRemoved) {
+			// update the title
+			final int nbObj = sceneModel.objects.size();
+			title.setText(nbObj > 0 ? "Scene with "+nbObj+" objects:" : defaultTitle);
+			// add or remove fields
+			if (change == Scene.Change.ObjectAdded) {
+				ObjectField newField = new ObjectField(obj);
+				objectFields.add(newField);
+				sceneModel.addObserver(newField);
+				super.add(newField, 0, currentRow++);
+			} else if (change == Scene.Change.ObjectRemoved) {
+				// we remove the object field of the object that is no longer in the scene.
+				List<ObjectField> deadFields = objectFields.stream().filter(of -> of.object == obj).collect(Collectors.toList());
+				assert(deadFields.size() == 1);
+				getChildren().removeAll(deadFields);
+				objectFields.removeAll(deadFields);
+				currentRow--;
+			}
+		}
 	}
 }

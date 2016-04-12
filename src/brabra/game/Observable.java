@@ -2,6 +2,7 @@ package brabra.game;
 
 import brabra.game.physic.geo.Quaternion;
 import brabra.game.physic.geo.Vector;
+import processing.core.PVector;
 
 /** Observable/Notifying classes with update (state flag per frame) */
 public interface Observable {
@@ -60,12 +61,12 @@ public interface Observable {
 		}
 		
 		// first apply, set changed to true, then notify.
-		public Vector set(Vector v) { super.set(v); return onChange(); }
+		public Vector set(PVector v) { super.set(v); return onChange(); }
 		public Vector set(float[] source) { super.set(source); return onChange(); }
 		public Vector set(float x, float y, float z) { super.set(x,y,z); return onChange(); }
 		public Vector set(float x, float y) { super.set(x,y); return onChange(); }
-		public Vector add(Vector v) { super.add(v); return onChange(); }
-		public Vector sub(Vector v) { super.sub(v); return onChange(); }
+		public Vector add(PVector v) { super.add(v); return onChange(); }
+		public Vector sub(PVector v) { super.sub(v); return onChange(); }
 		public Vector mult(float f) { super.mult(f); return onChange(); }
 		public Vector div(float f) { super.mult(f); return onChange(); }
 		public Vector limit(float f) { super.mult(f); return onChange(); }

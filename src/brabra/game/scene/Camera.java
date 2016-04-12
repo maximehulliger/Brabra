@@ -67,16 +67,10 @@ public class Camera extends Object {
 	private boolean stateChanged = false, stateChangedCurrent = false;
 	private boolean absValid = false;
 	
-	/** Creates a new camera and add it to the physic objects. */
+	/** Creates a new camera. */
 	public Camera() {
 		super(Vector.cube(100));
 		setName("Camera");
-		game.scene.addNow(this);
-		// load resources
-		if (skybox == null) {
-			skybox = app.loadShape("skybox.obj");
-			skybox.scale(far/90);
-		}
 	}
 	
 	// --- Getters ---
@@ -247,7 +241,7 @@ public class Camera extends Object {
 		updateAbs();
 		
 		// we remove the objects too far away.
-		game.scene.objects().forEach(o -> {
+		game.scene.forEachObjects(o -> {
 			if (ProMaster.distSq(focus, o.location()) > distSqBeforeRemove)
 				game.scene.remove(o);
 		});
@@ -260,7 +254,7 @@ public class Camera extends Object {
 		if (displaySkybox) {
 			app.pushMatrix();
 				translate(locationAbs);
-				app.shape(skybox);
+				app.shape(skybox());
 			app.popMatrix();
 		} else {
 			//app.directionalLight(50, 100, 125, 0, -1, 0);
@@ -355,6 +349,14 @@ public class Camera extends Object {
 	
 	// --- private ---
 
+	private static PShape skybox() {
+		if (skybox == null) {
+			skybox = app.loadShape("skybox.obj");
+			skybox.scale(far/90);
+		}
+		return skybox;
+	}
+	
 	private Vector getDist(FollowMode mode) {
 		switch(followMode) {
 		case Static:

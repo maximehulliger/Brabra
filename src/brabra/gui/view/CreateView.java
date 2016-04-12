@@ -1,171 +1,118 @@
 package brabra.gui.view;
 
+import brabra.Brabra;
 import brabra.game.physic.geo.Box;
 import brabra.game.physic.geo.Plane;
+import brabra.game.physic.geo.Quaternion;
 import brabra.game.physic.geo.Sphere;
+import brabra.game.physic.geo.Vector;
 import brabra.game.scene.Movable;
 import brabra.game.scene.Object;
-import brabra.gui.ToolWindow;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
+import brabra.game.scene.fun.Starship;
+import brabra.gui.field.ObjectField;
 import javafx.geometry.Insets;
 import javafx.scene.control.Button;
 import javafx.scene.control.ContentDisplay;
+import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.Pane;
-import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 
-public class CreateView {
+public class CreateView extends View {
 
+	private VBox choiceView = new VBox();
+	private GridPane creationControlButtons = new GridPane();
+	private Object currentNewObject = null;
 	
-	GridPane objectButtons = new GridPane(); //first
-	GridPane creationControlButtons = new GridPane();	//second
-	StackPane secondView = new StackPane();
-	
-	private <T extends Object> void loadCreateDetails(Pane root, Class <T> type) {
-		// hide current view  
-		// create new root´ & add it to root
-    	secondView.getChildren().remove(objectButtons);
-    	secondView.getChildren().add(creationControlButtons);
-		// add button already have
+	public CreateView() {
 		
-		// create object
-		Object newObject = null;
+		//--- View:
 		
-		// add fields
+		// > choice view
+		choiceView.setPadding(new Insets(5));
+		//choiceView.setHgap(10);
+        //choiceView.setVgap(10);
+		// title
+		final Label title = new Label("Select an object to create:");
+		choiceView.getChildren().add(title);
+        // object choice buttons
+		final GridPane objectChoiceButtons = new GridPane();
+		int currentRow = 0;
+		objectChoiceButtons.add(getButton(null, Object.class), 0, currentRow);
+        objectChoiceButtons.add(getButton(null, Movable.class), 1, currentRow++);
+        objectChoiceButtons.add(getButton("data/gui/ball.png", Sphere.class), 0, currentRow);
+        objectChoiceButtons.add(getButton("data/gui/box.png", Box.class), 1, currentRow++);
+        objectChoiceButtons.add(getButton("data/gui/plane.png", Plane.class), 0, currentRow);
+        objectChoiceButtons.add(getButton(null, Starship.class), 1, currentRow++);
+        choiceView.getChildren().add(objectChoiceButtons);
 		
-		// object
-		
-		if (Movable.class.isInstance(newObject)) {
-			//add movable fields
-		}
-		
-	}
-	
-	public CreateView(Pane root) {
-		
-		// TODO (@Maxime) picture loading
-
-		//System.out.println("path: "+ToolWindow.app.dataPathTo("gui/ball.png"));
-		//Image imageDecline = new Image(getClass().getResourceAsStream(ToolWindow.app.dataPathTo("gui/ball.png")));
-		//Button button5 = new Button();
-		//button5.setGraphic(new ImageView(imageDecline));
-
-        objectButtons.setPadding(new Insets(5));
-        objectButtons.setHgap(10);
-        objectButtons.setVgap(10);
+        // > creation view
+        // control buttons
         creationControlButtons.setPadding(new Insets(5));
         creationControlButtons.setHgap(10);
         creationControlButtons.setVgap(10);
-        
-        //create first view
-        
-		ImageView ballimage = new ImageView(new Image("data/gui/ball.png"));
-		ballimage.setFitHeight(50);
-		ballimage.setFitWidth(50);
-        Button sphereBtn = new Button("Ball", ballimage);
-        sphereBtn.setContentDisplay(ContentDisplay.TOP);
-        sphereBtn.setPrefWidth(150);
-        sphereBtn.setPrefHeight(150);
-        
-        objectButtons.add(sphereBtn, 0, 1);
-        
-		ImageView boximage = new ImageView(new Image("data/gui/box.png"));
-		boximage.setFitHeight(50);
-		boximage.setFitWidth(50);
-        Button boxBtn = new Button("Box", boximage);
-        boxBtn.setContentDisplay(ContentDisplay.TOP);
-        boxBtn.setPrefWidth(150);
-        boxBtn.setPrefHeight(150);
-        
-        objectButtons.add(boxBtn, 2, 1);
-        
-		ImageView planeimage = new ImageView(new Image("data/gui/plane.png"));
-		planeimage.setFitHeight(50);
-		planeimage.setFitWidth(50);
-        Button planeBtn = new Button("Plane", planeimage);
-        planeBtn.setContentDisplay(ContentDisplay.TOP);
-        planeBtn.setPrefWidth(150);
-        planeBtn.setPrefHeight(150);
-        
-        objectButtons.add(planeBtn, 0, 2);
-        
-        //Create second view
-        
-		ImageView returnimage = new ImageView(new Image("data/gui/return.png"));
-		returnimage.setFitHeight(50);
-		returnimage.setFitWidth(50);
-        Button returnBtn = new Button("Return", returnimage);
-        returnBtn.setContentDisplay(ContentDisplay.TOP);
-        returnBtn.setPrefWidth(150);
-        returnBtn.setPrefHeight(150);
-        
+        final Button returnBtn = getButton("data/gui/return.png", "Return");
         creationControlButtons.add(returnBtn, 0, 1);
-        
-		ImageView createimage = new ImageView(new Image("data/gui/hammer.png"));
-		createimage.setFitHeight(50);
-		createimage.setFitWidth(50);
-        Button createBtn = new Button("Create", createimage);
-        createBtn.setContentDisplay(ContentDisplay.TOP);
-        createBtn.setPrefWidth(150);
-        createBtn.setPrefHeight(150);
-       
+        final Button createBtn = getButton("data/gui/hammer.png", "Create");
         creationControlButtons.add(createBtn, 1, 1);
+        final Button dragBtn = getButton("data/gui/drag.png", "Place");
+        creationControlButtons.add(dragBtn, 2, 1);
         
-		ImageView placeimage = new ImageView(new Image("data/gui/drag.png"));
-		placeimage.setFitHeight(50);
-		placeimage.setFitWidth(50);
-        Button placeBtn = new Button("Place", placeimage);
-        placeBtn.setContentDisplay(ContentDisplay.TOP);
-        placeBtn.setPrefWidth(150);
-        placeBtn.setPrefHeight(150);
-        
-        creationControlButtons.add(placeBtn, 2, 1);
-      
-        secondView.getChildren().add(objectButtons);
-        root.getChildren().add(secondView);  
+        // > at start choice view
+        getChildren().add(choiceView);
          
-        // --- Controller ---
+        //--- Control:
         
-        sphereBtn.setOnAction(new EventHandler<ActionEvent>() {
-            public void handle(ActionEvent event) {
-            	loadCreateDetails(root,Sphere.class);
-            }
-        });
+        // > choice view
+		//		in getButton(String, Class<T>)
         
-        boxBtn.setOnAction(new EventHandler<ActionEvent>() {
-            public void handle(ActionEvent event) {
-            	loadCreateDetails(root,Box.class);
-            }
+        // > creation view
+        returnBtn.setOnAction(e -> {
+        	getChildren().clear();
+        	getChildren().add(choiceView);
         });
-        
-        planeBtn.setOnAction(new EventHandler<ActionEvent>() {
-            public void handle(ActionEvent event) {
-            	loadCreateDetails(root,Plane.class);
-            }
+        createBtn.setOnAction(e -> {
+        	Brabra.app.game.scene.add(currentNewObject);
+        	onButtonClickFor(currentNewObject.getClass());
         });
-        
-        returnBtn.setOnAction(new EventHandler<ActionEvent>() {
-            public void handle(ActionEvent event) {
-            	secondView.getChildren().remove(creationControlButtons);
-            	secondView.getChildren().add(objectButtons);
-            }
-        });
-        
-        createBtn.setOnAction(new EventHandler<ActionEvent>() {
-            public void handle(ActionEvent event) {
-            	//tabPane.getTabs().remove( aboutTab );
-            }
-        });
-        
-        placeBtn.setOnAction(new EventHandler<ActionEvent>() {
-            public void handle(ActionEvent event) {
-            	//tabPane.getTabs().remove( aboutTab );
-            }
-        });
-		
 	}
 	
+	private <T extends Object> Button getButton(String imgPath, Class<T> type) {
+		Button button = getButton(imgPath, type.getSimpleName());
+		button.setOnAction(e -> onButtonClickFor(type));
+        return button;
+	}
+
+	private Button getButton(String imgPath, String buttonText) {
+		final Button button;
+		if (imgPath == null)
+			button = new Button(buttonText);
+		else {
+			final ImageView img = new ImageView(new Image(imgPath));
+			img.setFitHeight(50);
+			img.setFitWidth(50);
+	        button = new Button(buttonText, img);
+		}
+        button.setContentDisplay(ContentDisplay.TOP);
+        button.setPrefWidth(150);
+        button.setPrefHeight(150);
+        return button;
+	}
+
+	/** Remove the choice view and create+add the creation view. */
+	private <T extends Object> void onButtonClickFor(Class <T> type) {
+		// create the object
+		currentNewObject = Brabra.app.game.scene.getPrefab(type.getSimpleName(), Vector.zero, Quaternion.identity);
+		// get all the fields (in one object field)
+		ObjectField objectField = new ObjectField(currentNewObject);
+		objectField.setOpen(true);
+		
+		//--- View:
+		// remove the old choice view
+		getChildren().clear();
+		// control buttons & all the fields (under objectField)
+		add(creationControlButtons, 0, 0);
+		add(objectField, 0, 1);
+	}
 }

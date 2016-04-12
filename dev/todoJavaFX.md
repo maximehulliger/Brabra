@@ -10,15 +10,16 @@ all the following field:
 - running
 - displayAllColliders
 - displaySkybox
-
-## Detail/later
 - server location
 - server location test (ping)
+
+## Detail/later
 
 ## Done
 
 #2. Scene View
 ## Functionality
+- make the window vertically dragable (pad on the right)
 - vector, float & boolean Field
 - SceneView
 - ObjectField
@@ -29,14 +30,17 @@ all the following field:
   - Ball
   - Cube
   - Plane
+- delete button for object field (if open, on the right, a cross)
 
 ## Detail/later
 - add make children under their parent
+- make the window vertically dragable (by click & drag, as on smartphone)
 
 ## Done
 
 #3. Object Creation List View
 ## Functionality
+- get other images
 
 ## Detail/later
 
@@ -45,10 +49,11 @@ all the following field:
 
 #4. Object Creation View
 ## Functionality
+- implement method copy in Object (&sons)
+- selectBox(?) to set the parent of the object
+- comboBox to follow parent
 
 ## Detail/later
-
-## Done
 
 
 #5. My Scenes View

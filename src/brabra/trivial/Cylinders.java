@@ -53,45 +53,48 @@ public class Cylinders extends ProMaster {
 	void printCylinder(PVector cylinderPos) {
 		app.pushMatrix();
 		app.translate(cylinderPos.x, cylinderPos.y, cylinderPos.z);
-		app.shape(cylinder);
+		app.shape(cylinder());
 		app.popMatrix();
 	}
 
-	static void initCylinder() {
-		app.noStroke();
-		app.fill(102, 102, 102);
-		//les points du cerlce du cylindre
-		float angle;
-		float[] x = new float[cylinderResolution + 1];
-		float[] z = new float[cylinderResolution + 1];
-		//get the x and y position on a circle for all the sides
-		for(int i = 0; i < x.length; i++) {
-			angle = (PApplet.TWO_PI / cylinderResolution) * i;
-			x[i] = PApplet.sin(angle) * cylinderRadius;
-			z[i] = PApplet.cos(angle) * cylinderRadius;
+	private static PShape cylinder() {
+		if (cylinder == null) {
+			app.noStroke();
+			app.fill(102, 102, 102);
+			//les points du cerlce du cylindre
+			float angle;
+			float[] x = new float[cylinderResolution + 1];
+			float[] z = new float[cylinderResolution + 1];
+			//get the x and y position on a circle for all the sides
+			for(int i = 0; i < x.length; i++) {
+				angle = (PApplet.TWO_PI / cylinderResolution) * i;
+				x[i] = PApplet.sin(angle) * cylinderRadius;
+				z[i] = PApplet.cos(angle) * cylinderRadius;
+			}
+	
+			//le tube
+			PShape openCylinder = app.createShape();
+			openCylinder.beginShape(PApplet.QUAD_STRIP);
+			for(int i = 0; i < x.length; i++) {
+				openCylinder.vertex(x[i], 0, z[i]);
+				openCylinder.vertex(x[i], cylinderHeight, z[i]);
+			}
+			openCylinder.endShape();
+	
+			//le fond (dessus)
+			PShape topCylinder = app.createShape();
+			topCylinder.beginShape(PApplet.TRIANGLE_FAN);
+			topCylinder.vertex(0, cylinderHeight, 0);
+			for(int i = 0; i < x.length; i++) {
+				topCylinder.vertex(x[i], cylinderHeight, z[i]);
+			}
+			topCylinder.endShape();
+	
+			//on groupe le tout en cylindre
+			cylinder = app.createShape(PApplet.GROUP);
+			cylinder.addChild(topCylinder);
+			cylinder.addChild(openCylinder);
 		}
-
-		//le tube
-		PShape openCylinder = app.createShape();
-		openCylinder.beginShape(PApplet.QUAD_STRIP);
-		for(int i = 0; i < x.length; i++) {
-			openCylinder.vertex(x[i], 0, z[i]);
-			openCylinder.vertex(x[i], cylinderHeight, z[i]);
-		}
-		openCylinder.endShape();
-
-		//le fond (dessus)
-		PShape topCylinder = app.createShape();
-		topCylinder.beginShape(PApplet.TRIANGLE_FAN);
-		topCylinder.vertex(0, cylinderHeight, 0);
-		for(int i = 0; i < x.length; i++) {
-			topCylinder.vertex(x[i], cylinderHeight, z[i]);
-		}
-		topCylinder.endShape();
-
-		//on groupe le tout en cylindre
-		cylinder = app.createShape(PApplet.GROUP);
-		cylinder.addChild(topCylinder);
-		cylinder.addChild(openCylinder);
+		return cylinder;
 	}
 }

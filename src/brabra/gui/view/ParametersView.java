@@ -1,21 +1,40 @@
 package brabra.gui.view;
 
-import java.util.Observable;
-import java.util.Observer;
 import javafx.scene.control.*;
-import javafx.scene.layout.Pane;
-import brabra.gui.model.AppModel;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import brabra.Parameters;
+import brabra.gui.field.BooleanField;
+import brabra.gui.field.Field;
+
 
 /** View for the parameters. Listen to the app model. */
-public class ParametersView implements Observer {
+public class ParametersView extends View {
 	
-	public ParametersView(Pane root, AppModel appModel) {
-		appModel.addObserver(this);
-    	root.getChildren().add(new Label("parameters tab"));
-	}
-
-	public void update(Observable o, java.lang.Object arg) {
-		/*btn.setText("Say '"+((AppModel)o).textToPrint()+"'");*/
+	int currentRow = 0;
+	
+	public ParametersView(Parameters para) {
+		//--- Fields:
+		final List<Field> fields = new ArrayList<>();
+		// running
+		fields.add(new BooleanField("running",
+					run -> para.setRunning(run), 
+					() -> para.running()));
+		// display all collider
+		fields.add(new BooleanField("display all collider", 
+				dc -> para.setDisplayAllColliders(dc), 
+				() -> para.displayAllColliders()));
+		
+		//--- View:
+		// title
+		super.add(new Label("parameters:"), 0, currentRow++);
+		// fields
+		fields.forEach(f -> {
+			super.add(f, 0, currentRow++);
+			para.addObserver(f);
+		});
 	}
 }
 

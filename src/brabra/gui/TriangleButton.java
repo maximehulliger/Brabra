@@ -8,14 +8,15 @@ public class TriangleButton extends Polygon {
 	private final static double triangleSize = 8;
 	
 	public TriangleButton() {
-		super.getPoints().setAll(0d, triangleSize, 2*triangleSize-2, 0d, 0d, -triangleSize);
 		super.setFill(Color.GREY);
+		setOpen(false);
 	}
 
-	public void setState(boolean open) {
+	public void setOpen(boolean open) {
 		if (open)
-			this.getPoints().setAll(0d, triangleSize, 2*triangleSize-2, 0d, 0d, -triangleSize);
+			getPoints().setAll(triangleSize, 0d, 0d, 2*(triangleSize-1), -triangleSize, 0d);
 		else
-			this.getPoints().setAll(triangleSize, 0d, 0d, 2*(triangleSize-1), -triangleSize, 0d);
+			getPoints().setAll(0d, triangleSize, 2*triangleSize-2, 0d, 0d, -triangleSize);
+			
 	}
 }

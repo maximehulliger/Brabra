@@ -1,23 +1,23 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
-<scene>
-	<settings gravity="0.2" running="true" verbosity="max" displayAllColliders="false"></settings>
+<Scene>
+	<Settings gravity="0.2" running="true" verbosity="max" displayAllColliders="false"></Settings>
 	
-	<camera displaySkybox="true" mode="not" dist="(300,300,300)" debug="false"></camera>
+	<Camera displaySkybox="true" mode="not" dist="(300,300,300)" debug="false"></Camera>
 	
-	<floor pos="zero" color="grass"></floor> 
+	<Floor pos="zero" color="grass"></Floor> 
 	
 	
-	<starship pos="(0,200,0)" focus="true" force="72" camera="static" debug="true" displayCollider="false">
-		<box pos="(40,0,-20)" name="pink box" mass="0" color="pink">
-			<ball pos="(0,40,0)" name="upper ball" color="blue" mass="0"></ball>
-		</box>
+	<Starship pos="(0,200,0)" focus="true" force="72" camera="static" debug="true" displayCollider="false">
+		<Box pos="(40,0,-20)" name="pink box" mass="0" color="pink">
+			<Ball pos="(0,40,0)" name="upper ball" color="blue" mass="0"></Ball>
+		</Box>
 		
-		<weaponry puissance="400" prefab="none" displayColliders="false">
+		<Weaponry puissance="400" prefab="none" displayColliders="false">
 			<missile_launcher pos="(30,-10,0)" tier="2" upgrade="1.2"></missile_launcher>
 			<missile_launcher pos="(0,-15,0)" tier="3" upgrade="1.2"></missile_launcher>
 			<missile_launcher pos="(-30,-10,0)" tier="2" upgrade="0.8" displayColliders="false"></missile_launcher>
-		</weaponry>
-	</starship>
+		</Weaponry>
+	</Starship>
 	
 	<!--  
 	<ball pos="(10,5,5)" mass="5" color="yellow" impulse="(0,5,0)"></ball>
@@ -34,4 +34,4 @@
 	<target pos="(2000, 2000,-1000)" life="10" color="yellow"></target>
 	<target pos="(1000,100,-1000)" life="10" color="yellow"></target>
 	-->
-</scene>
+</Scene>
