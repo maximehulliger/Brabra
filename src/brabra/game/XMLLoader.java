@@ -13,6 +13,7 @@ import org.xml.sax.helpers.DefaultHandler;
 
 import brabra.ProMaster;
 import brabra.game.physic.Collider;
+import brabra.game.physic.Physic;
 import brabra.game.physic.geo.Quaternion;
 import brabra.game.physic.geo.Vector;
 import brabra.game.scene.Object;
@@ -103,8 +104,10 @@ public final class XMLLoader extends ProMaster {
 		if (displayAllColliders != null)
 			Collider.displayAllColliders = Boolean.parseBoolean(displayAllColliders);
 		final String gravity = atts.getValue("gravity");
-		if (gravity != null)
-		  	game.physic.gravity = Float.parseFloat(gravity);
+		if (gravity != null) {
+			Float justFloat = getFloat(gravity, false);
+		  	Physic.gravity = justFloat == null ? vec(gravity) : down(justFloat);
+		}
 		final String running = atts.getValue("running");
 	  	if (running != null)
 	  		game.setRunning(Boolean.parseBoolean(running));

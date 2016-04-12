@@ -1,8 +1,12 @@
+
 package brabra.gui.model;
 
-import java.util.*;
+import java.util.Observable;
+import java.util.Observer;
+import java.util.concurrent.ConcurrentLinkedDeque;
 
 import brabra.game.scene.Scene;
+import brabra.gui.ToolWindow;
 import brabra.game.scene.Object;
 
 /** 
@@ -16,26 +20,27 @@ public class SceneModel extends Observable implements Observer {
 	
 	public SceneModel(Scene scene) {
 		this.scene = scene;
+		scene.addObserver(this);
 	}
 	
 	// --- Getters ---
 	
 	public int objectCount() {
-		return scene.objects().size();
+		return scene.objects.size();
 	}
 	
-	public List<Object> objects(){
-		return scene.objects();
+	/** Return the list (thread-safe) of all the objects in the scene. */
+	public ConcurrentLinkedDeque<Object> objects(){
+		return scene.objects;
 	}
-
-	// --- Setters ---
-
 
 	// --- update ---
 	
 	public void update(Observable o, java.lang.Object arg) {
 		// when updated
-		setChanged();
-		notifyObservers();
+		ToolWindow.run(() -> {
+			this.setChanged();
+			this.notifyObservers(arg);
+		});
 	}
 }

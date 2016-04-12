@@ -135,6 +135,8 @@ public class Movable extends Object {
 					game.debug.log(6, this+" stopped moving.");
 					moving = false;
 				}
+				velocityRel.update();
+				notifyChanged();
 			}
 			// 2. rotation
 			if (rotating || rotationRelVel.hasChangedCurrent()) {
@@ -148,10 +150,9 @@ public class Movable extends Object {
 					game.debug.log(6, this+" stopped rotating.");
 					rotating = false;
 				}
+				rotationRelVel.update();
+				notifyChanged();
 			}
-			// 3. update changes
-			velocityRel.update();
-			rotationRelVel.update();
 			return super.update();
 		} else
 			return false;

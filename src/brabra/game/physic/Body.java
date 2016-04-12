@@ -18,11 +18,12 @@ import brabra.game.scene.Movable;
  **/
 public abstract class Body extends Movable {
 	
-	private static final boolean displayInteractions = true; //forces et impulse
+	public static final float infiniteMass = -1, ghostMass = -2; //TODO change all -1 & -2
+	private static final boolean displayInteractions = true; //forces & impulse
 	private static final Color interactionColor = new Color("white", true);
 	
 	/** Mass of the body. -2 for ghost, -1 for infinite or bigger than 0 (never equals 0).*/
-	protected float mass = -2;
+	protected float mass = ghostMass;
 	/** Inverse of the body mass. 0 for infinite mass or bigger than 0. */
 	protected float inverseMass = 0;
 	protected Vector inertiaMom = null;
@@ -306,7 +307,7 @@ public abstract class Body extends Movable {
 		if (mass == -1)
 			//throw new IllegalArgumentException("un objet de mass infini ne devrait pas peser !"); now tolerated :)
 			return;
-		applyForce( up(-game.physic.gravity*mass) );
+		applyForce( Physic.gravity.multBy(mass) );
 	}
 	
 	public void avance(float forceFront) {

@@ -63,8 +63,10 @@ public class Object extends ProMaster implements Debugable {
 	private Object parent = null;
 	private ParentRelationship parentRel = ParentRelationship.None;
 	private final List<Object> children = new ArrayList<>();
+	
 	/** Flag used during the main update loop. */
 	protected boolean updated = false;
+	protected Scene scene = null;
 	
 	// > Flags, other
 	private String name = "Unknown Stuff";
@@ -145,10 +147,6 @@ public class Object extends ProMaster implements Debugable {
 	public String toString() {
 		return name;
 	}
-
-	public boolean inScene() {
-		return game.scene.objects().contains(this);
-	}
 	
 	/** Return true if the object should consider his parent. */
 	public boolean hasParent() {
@@ -163,7 +161,7 @@ public class Object extends ProMaster implements Debugable {
 	@SuppressWarnings("unchecked")
 	/** To cast this object easily. return null if invalid. */
 	public <T extends Object> T as(Class <T> as) {
-		return (as.getClass().isInstance(this)) ? (T)this : null;
+		return as.isInstance(this) ? (T)this : null;
 	}
 
 	/** Return the absolute location of the object. update things if needed. */
@@ -427,6 +425,8 @@ public class Object extends ProMaster implements Debugable {
 	 * 	Return true if the object was updated or false if it already was for this frame.
 	 **/
 	protected boolean update() {
+		if (scene == null)
+			throw new IllegalArgumentException("The object \""+toString()+"\" should be added to the scene before updating it.");
 		if (hasParent() && !parent.updated) {
 			boolean pu = parent.update();
 			assert(pu);
@@ -502,10 +502,9 @@ public class Object extends ProMaster implements Debugable {
 			return false;
 	}
 	
-	/** Force this object to call update. */
-	public void forceUpdate() {
-		updated = false;
-		update();
+	/** To notify the scene (model) that this object has changed. */
+	public void notifyChanged() {
+		scene.changedObjects.add(this);
 	}
 	
 	// --- conversion position local <-> *absolute* <-> relative ---

@@ -52,6 +52,7 @@ public class Weaponry extends Object {
 		if (w.validated())
 			assert(w.master() == this);
 		else {
+			game.scene.add(w);
 			w.setParent(this);
 			w.setMaster(this);
 		}
@@ -151,17 +152,6 @@ public class Weaponry extends Object {
 						assert(false);
 				}
 			}
-			return true;
-		} else
-			return false;
-	}
-	
-	protected boolean update() {
-		if (super.update()) {
-			// we make sure all the weapons are updated (in case they're not in the scene).
-			for (Weapon w : weapons)
-				if (!w.inScene())
-					w.forceUpdate();
 			return true;
 		} else
 			return false;

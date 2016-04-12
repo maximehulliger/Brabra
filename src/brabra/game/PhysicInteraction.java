@@ -24,9 +24,9 @@ public final class PhysicInteraction extends ProMaster {
 	private float force = 70, ratioTrans = 10, ratioRot = 0.004f;
 	private float forceTrans = force*ratioTrans, forceRot = force*ratioRot;
 	
-	private Object focused = null;
-	private Body focusedBody = null;
-	private Weaponry armement = null;
+	private Object focused;
+	private Body focusedBody;
+	private Weaponry weaponry;
 
 	/** Set focused and force (except if force = -1). displayState. */
 	public void setFocused(Object focused, float force) {
@@ -37,7 +37,7 @@ public final class PhysicInteraction extends ProMaster {
 
 	public void displayState() {
 		if (hasFocused()) {
-			String armed = armement != null ? "armed " : "";
+			String armed = weaponry != null ? "armed " : "";
 			game.debug.info(2, "interaction focused on "+armed+"\""+focused+"\" with force = "+force);
 		} else
 			game.debug.info(2, "interaction not focused");
@@ -52,7 +52,7 @@ public final class PhysicInteraction extends ProMaster {
 		game.debug.setCurrentWork("interaction");
 		//check for armement changes (in focused children)
 		if (hasFocused() && focused.childrenChanged()) {
-			updateWeaponry();
+			weaponry = getWeaponry();
 		}
 		
 		// force change
@@ -65,21 +65,21 @@ public final class PhysicInteraction extends ProMaster {
 		// apply forces to focused
 		applyForces();
 		// fire if needed
-		if (armement != null) {
+		if (weaponry != null) {
 			if (app.imgAnalyser.running()) {
 				float leftScore = app.imgAnalyser.buttonDetection.leftScore();
 				if (leftScore > 0)
-					armement.fire(-1, leftScore);
+					weaponry.fire(-1, leftScore);
 			}
 			if (game.input.fire || game.input.fireDown)
-				armement.fire(game.input.fireSlot);
+				weaponry.fire(game.input.fireSlot);
 		}
 	}
 	
 	public void gui() {
 		game.debug.setCurrentWork("interaction gui");
-		if (armement != null)
-			armement.displayGui();
+		if (weaponry != null)
+			weaponry.displayGui();
 	}
 
 	private void applyForces() {
@@ -192,8 +192,8 @@ public final class PhysicInteraction extends ProMaster {
 
 	// --- private ---
 	
-	private void updateWeaponry() {
-		armement = (Weaponry)focused.childThat(c -> c instanceof Weaponry);
+	private Weaponry getWeaponry() {
+		return focused == null ? null : (Weaponry)focused.childThat(c -> c instanceof Weaponry);
 	}
 	
 	/** Set the force of interaction. if displayIfChange & changed, displayState. */
@@ -219,7 +219,7 @@ public final class PhysicInteraction extends ProMaster {
 	private void setFocused(Object focused) {
 		this.focused = focused;
 		this.focusedBody = focused instanceof Body ? (Body)focused : null;
-		updateWeaponry();
+		this.weaponry = getWeaponry();
 		displayState();
 	}
 }

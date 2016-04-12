@@ -1,12 +1,14 @@
 package brabra.gui;
 
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
 import brabra.Brabra;
-import brabra.gui.controller.ParametersViewController;
-import brabra.gui.controller.SceneViewController;
 import brabra.gui.model.AppModel;
 import brabra.gui.model.SceneModel;
 import brabra.gui.view.ParametersView;
 import brabra.gui.view.SceneView;
+
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.Scene;
@@ -23,24 +25,27 @@ import javafx.stage.WindowEvent;
 public class ToolWindow extends Application {
 	
 	public static final String name = "Tool Window";
-	public static final int width = 300;
+	public static final int width = 360;
+	public static final Lock readyLock = new ReentrantLock();
 	
-	/** Reference to the main app. */
-	private static Brabra app;
+	private Brabra app;
 	private Stage stage;
+	private Scene scene;
 	private boolean visible = false;
 	
 	/** Launch the JavaFX app and run it. */
-	public static void run(Brabra app) {
-		ToolWindow.app = app;
-		launch(new String[] { name });
+	public static void launch() {
+		Application.launch();
 	}
 	
 	/** Called to start the JavaFX application. */
     public void start(Stage stage) {
-    	stage.setTitle("ToolSelection");
-    	app.fxApp = this;
+    	readyLock.lock();
     	this.stage = stage;
+    	this.app = Brabra.app;
+    	Brabra.app.fxApp = this;
+    	
+    	//--- Control:
     	// to keep both windows shown (at least tool -> game)
     	stage.addEventHandler(WindowEvent.WINDOW_SHOWN, e -> app.setVisible(true));
     	// to exit main app when  the tool window is closed
@@ -54,28 +59,30 @@ public class ToolWindow extends Application {
     			app.setToolWindow(!visible);
     		}
     	});
-    	updateStageLoc();
-    	// init the scene    
-    	Scene scene = new Scene(initRoot(), width, Brabra.height);
+
+    	//--- View: 
+    	stage.setTitle(name);
+    	// init the scene/show (but doesn't show it)
+    	scene = new Scene(initRoot(), width, Brabra.height);
+        stage.setScene(scene);
         scene.getStylesheets().add("data/gui.css");
-        stage.setScene(scene);
-    	// show
-        stage.setScene(scene);
-    	stage.show();
+        // intitialized:
     	app.debug.info(3, "tool window ready");
+    	updateStageLoc();
+    	stage.show();
+    	
+    	readyLock.unlock();
     }
 
     /** Init the javaFX components (MVC). Return the root. */
     private Pane initRoot() {
     	AppModel appModel = new AppModel(app);
-    	SceneModel sceneModel = new SceneModel(app.game().scene);
+    	SceneModel sceneModel = new SceneModel(app.game.scene);
     	StackPane root = new StackPane();
-    	Pane[] tabs = tabs(root, new String[] {"Scene", "Parameters"});
+    	Tab[] tabs = tabs(root, new String[] {"Scene", "Parameters"});
     	
-    	SceneView sv = new SceneView(tabs[0], sceneModel);
-    	new SceneViewController(sv, sceneModel);
-    	ParametersView pv = new ParametersView(tabs[1], appModel);
-    	new ParametersViewController(pv, appModel);
+    	tabs[0].setContent(new SceneView(sceneModel));
+    	tabs[1].setContent(new ParametersView(appModel));
     	
     	//TODO (@max) add others views & controller.
     	
@@ -83,22 +90,16 @@ public class ToolWindow extends Application {
     }
     
     /** Create the tabs and return an array of the tabs root. */
-    private Pane[] tabs(Pane root, String[] names) {
-    	//connect new tabs holder with root
-    	TabPane tabs = new TabPane();
-    	root.getChildren().add(tabs);
-    	//get result array
-    	Pane[] tabsRoot = new Pane[names.length];
-    	// we have to add a root in each 
+    private Tab[] tabs(Pane root, String[] names) {
+    	TabPane tabsHolder = new TabPane();
+    	root.getChildren().add(tabsHolder);
+    	Tab[] tabs = new Tab[names.length];
     	for (int i=0; i<names.length; i++) {
-        	Tab tab = new Tab();
-        	tabsRoot[i] = new StackPane();
-        	tabs.getTabs().add(tab);
-        	tab.setText(names[i]);
-        	//tabsRoot.setAlignment(Pos.CENTER);
-        	tab.setContent(tabsRoot[i]);
+        	tabs[i] = new Tab();
+        	tabsHolder.getTabs().add(tabs[i]);
+        	tabs[i].setText(names[i]);
     	}
-    	return tabsRoot;
+    	return tabs;
     }
     
     // --- Window with Processing managment ---
@@ -108,7 +109,7 @@ public class ToolWindow extends Application {
     }
 
     /** Ask for something to run on the JavaFX Application Thread. */
-    public void run(Runnable f) {
+    public static void run(Runnable f) {
     	Platform.runLater(f);
     }
     
@@ -122,9 +123,12 @@ public class ToolWindow extends Application {
     
     /** Set the window location according to the main Processing window. */
     private void updateStageLoc() {
-    	if (visible) {
-			stage.setX(app.windowLoc.x - ToolWindow.width - 18); // for window borders.
-			stage.setY(app.windowLoc.y);
-    	}
+    	//TODO generalize insets for all os (now just windows)
+    	final double borderTop = 38;//(scene.getWindow().getWidth() - scene.getWidth() - scene.getX());
+    	final double borderRight = 8;//(scene.getWindow().getHeight() - scene.getHeight() - scene.getY());
+    	stage.setX(app.stageLoc.x - ToolWindow.width - borderRight*3); // for window borders.
+		stage.setY(app.stageLoc.y - borderTop);
 	}
+    
+    
 }

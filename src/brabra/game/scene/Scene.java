@@ -1,10 +1,14 @@
 package brabra.game.scene;
 
-import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Observable;
+import java.util.Set;
+import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-import brabra.ProMaster;
+import brabra.game.RealGame;
 import brabra.game.physic.Body;
 import brabra.game.physic.Collider;
 import brabra.game.physic.geo.Box;
@@ -17,30 +21,38 @@ import brabra.game.scene.weapons.MissileLauncher;
 import brabra.game.scene.weapons.Target;
 import brabra.game.scene.weapons.Weaponry;
 
-public class Scene extends ProMaster {
+/** 
+ * Object representing the scene (model). 
+ * Will pass to observer the object changed, argObjectAdded or argObjectRemoved  */
+public class Scene extends Observable {
 
-	private List<Object> objects = new ArrayList<Object>();
-	private List<Collider> colliders = new ArrayList<Collider>();
-	private List<Object> toRemove = new ArrayList<Object>();
-	private List<Object> toAdd = new ArrayList<Object>();
+	public static final java.lang.Object argObjectAdded = "arg object added";
+	public static final java.lang.Object argObjectRemoved = "arg object removed";
+	public final ConcurrentLinkedDeque<Object> objects = new ConcurrentLinkedDeque<Object>();
+	public final ConcurrentLinkedDeque<Collider> colliders = new ConcurrentLinkedDeque<Collider>();
+	
+	/** To let the objects let known that they have been changed. */
+	protected final Set<Object> changedObjects = new HashSet<>();
+	
+	private final ConcurrentLinkedDeque<Object> toRemove = new ConcurrentLinkedDeque<Object>();
+	private final ConcurrentLinkedDeque<Object> toAdd = new ConcurrentLinkedDeque<Object>();
+	private final RealGame game;
+	
+	public Scene(RealGame game) {
+		this.game = game;
+	}
 
 	// --- getters ---
-
-	/** Return all the objects in the scene. */
-	public List<Object> objects() {
-		return objects;
-	}
-	
-	/** Return all the colliders in the scene. */
-	public List<Collider> colliders() {
-		return colliders;
-	}
 	
 	public List<Collider> activeColliders() {
 		return colliders.stream().filter(c -> !c.ghost()).collect(Collectors.toList());
 	}
 	
 	// --- modifiers ---
+
+	public void forEachObjects(Consumer<Object> f) {
+		objects.forEach(f);
+	}
 
 	/** Add an object to the scene (on next update). */
 	public Object add(Object o) {
@@ -50,9 +62,14 @@ public class Scene extends ProMaster {
 
 	/** Add an object immediately into the scene. return the object. */
 	public Object addNow(Object o) {
-		objects.add(o);
-		if (o instanceof Collider)
-			colliders.add((Collider)o);
+		if (!objects.contains(o)) {
+			objects.add(o);
+			o.scene = this;
+			if (o instanceof Collider)
+				colliders.add((Collider)o);
+			setChanged();
+			notifyObservers(argObjectAdded);
+		}
 		return o;
 	}
 	
@@ -60,6 +77,11 @@ public class Scene extends ProMaster {
 	public Object remove(Object o) {
 		toRemove.add(o);
 		return o;
+	}
+	
+	/** Remove all object from the scene. */
+	public void reset() {
+		toRemove.addAll(objects);
 	}
 	
 	// --- Prefab help method ---
@@ -79,7 +101,7 @@ public class Scene extends ProMaster {
 		else if (name.equals("camera")) {
 			return game.camera; // already in scene
 		} else if (name.equals("box")) {
-			obj = body = new Box(location, rotation, vec(20,20,20));
+			obj = body = new Box(location, rotation, new Vector(20,20,20));
 			body.setMass(1);
 			body.addOnUpdate(() -> body.pese());
 		} else if (name.equals("ball")) {
@@ -118,6 +140,10 @@ public class Scene extends ProMaster {
 		game.debug.setCurrentWork("objects update");
 		for (Object o : objects)
 			o.update();
+		for (Object o : changedObjects) {
+			setChanged();
+			notifyObservers(o);
+		}
 		updateObjectLists();
 	}
 
@@ -137,6 +163,8 @@ public class Scene extends ProMaster {
 			colliders.removeAll(toRemove);
 			toRemove.forEach(o -> o.onDelete());
 			toRemove.clear();
+			setChanged();
+			notifyObservers(argObjectRemoved);
 		}
 		if (toAdd.size() > 0) {
 			toAdd.forEach(o->addNow(o));
