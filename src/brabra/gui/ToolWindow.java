@@ -126,6 +126,4 @@ public class ToolWindow extends Application {
     	stage.setX(app.stageLoc.x - ToolWindow.width - borderRight*3); // for window borders.
 		stage.setY(app.stageLoc.y - borderTop);
 	}
-    
-    
 }
