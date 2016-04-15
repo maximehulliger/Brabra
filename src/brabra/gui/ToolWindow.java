@@ -39,8 +39,21 @@ public class ToolWindow extends Application {
 	/** Called to start the JavaFX application. */
     public void start(Stage stage) {
     	stage.setTitle("ToolSelection");
-    	app.fxApp = this;
     	this.stage = stage;
+    	
+    	//--- View:
+    	updateStageLoc();
+    	// init the scene    
+    	Scene scene = new Scene(initRoot(), width, Brabra.height);
+        scene.getStylesheets().add("data/gui.css");
+        stage.setScene(scene);
+    	// show
+        stage.setScene(scene);
+    	stage.show();
+    	// ready:
+    	app.fxApp = this;
+    	
+    	//--- Control:
     	// to keep both windows shown (at least tool -> game)
     	stage.addEventHandler(WindowEvent.WINDOW_SHOWN, e -> app.setVisible(true));
     	// to exit main app when  the tool window is closed
@@ -54,14 +67,7 @@ public class ToolWindow extends Application {
     			app.setToolWindow(!visible);
     		}
     	});
-    	updateStageLoc();
-    	// init the scene    
-    	Scene scene = new Scene(initRoot(), width, Brabra.height);
-        scene.getStylesheets().add("data/gui.css");
-        stage.setScene(scene);
-    	// show
-        stage.setScene(scene);
-    	stage.show();
+    	
     	app.debug.info(3, "tool window ready");
     }
 

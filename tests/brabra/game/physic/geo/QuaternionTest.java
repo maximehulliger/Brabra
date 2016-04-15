@@ -29,7 +29,6 @@ public class QuaternionTest extends ProTest {
 			final Quaternion q3 = new Quaternion(w, x, y, z);
 			final Quaternion q4 = new Quaternion(q3.rotAxis(), q3.angle());
 			
-			assertTrue(q3.equalsAxis(q4));
 			assertEqualsEps("", q3.rotAxisAngle(), q4.rotAxisAngle(), Quaternion.epsilonRotAxis);
 			assertEqualsEps("", q3, q4);
 			assertTrue(isConstrained(q3.angle(), -pi, pi));
@@ -87,6 +86,18 @@ public class QuaternionTest extends ProTest {
 			// init by rot axis.
 			final Quaternion q1 = new Quaternion(v, random(-pi, pi));
 			final Quaternion q2 = new Quaternion(q1.rotAxis(), q1.angle());
+			
+			assertEqualsEps("", q1, q2);
+		}
+	}
+
+	@Test
+	public void reverseTest() {
+		for (Vector v : someVectors(10)) {
+			// init by rot axis.
+			final float angle = random(-pi, pi);
+			final Quaternion q1 = new Quaternion(v, angle);
+			final Quaternion q2 = new Quaternion(v, -angle).withOppositeAngle();
 			
 			assertEqualsEps("", q1, q2);
 		}

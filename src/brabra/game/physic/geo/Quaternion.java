@@ -50,8 +50,8 @@ public class Quaternion extends ProMaster {
 	
 	/** Set the quaternion from WXYZ, normalize this, unvalidate rot axis and return it. */
 	public Quaternion set(float w, float x, float y, float z) {
-		validRotAxis = false;
 		setWXYZ(w, x, y, z, true);
+		validRotAxis = false;
 		return this;
 	}
 	
@@ -60,7 +60,7 @@ public class Quaternion extends ProMaster {
 		angle = mod(angle, twoPi);
 		assert(isConstrained(angle, 0, twoPi));
 		
-		assert( !(rotAxis!=null && rotAxis.equals(zero)) );
+		assert( !(rotAxis!=null && (rotAxis.equals(zero) || angle==0)) );
 		if (rotAxis==null || angle == 0)
 			reset();
 		else {
@@ -69,9 +69,7 @@ public class Quaternion extends ProMaster {
 			if (s == 0)
 				reset();
 			else {
-				this.rotAxis = rotAxis.normalized();
-				this.angle = entrePiEtMoinsPi(angle);
-				this.validRotAxis = false;
+				setRotAxisAngle(rotAxis, angle, true);
 				setWXYZ(PApplet.cos(omega),
 					s*this.rotAxis.x,
 					s*this.rotAxis.y,
@@ -90,10 +88,9 @@ public class Quaternion extends ProMaster {
 	/** Set the quaternion from another quaternion (deep copy). */
 	public void set(Quaternion quat) {
 		// we trust that the quat is valid.
-		this.angle = quat.angle;
-		this.rotAxis = quat.rotAxis;
-		this.validRotAxis = quat.validRotAxis;
 		setWXYZ(quat.w, quat.x, quat.y, quat.z, false);
+		if (quat.validRotAxis)
+			setRotAxisAngle(quat.rotAxis, quat.angle, false);
 	}
 
 	/** set to identity & validRotAxis to true. */
@@ -104,7 +101,7 @@ public class Quaternion extends ProMaster {
 	}
 	
 	public Quaternion setAngle(float angle) {
-		set(rotAxis, angle);
+		set(rotAxis(), angle);
 		return this;
 	}
 	
@@ -134,8 +131,22 @@ public class Quaternion extends ProMaster {
 		set( newRotAxis, newRotAxis.mag() );
 	}
 
+	public boolean equalsEps(Quaternion other, boolean clean) {
+		return equalsEpsWXYZ(other, clean);
+	}
+
 	/** Check if this (wxyz) nearly equals other and if so & clean set it to other. */
 	public boolean equalsEpsWXYZ(Quaternion other, boolean clean) {
+		return equalsEpsWXYZSimple(other, clean) || equalsEpsWXYZSimple(other.contrary(), clean);
+	}
+
+	/** Check if this (axis & angle) nearly equals other and if so & clean set it to other. */
+	public boolean equalsEpsAxis(Quaternion other, boolean clean) {
+		return equalsEpsAxisSimple(other, clean) || equalsEpsAxisSimple(other.contrary(), clean);
+	}
+
+	/** Check if this (wxyz) nearly equals other and if so & clean set it to other. */
+	private boolean equalsEpsWXYZSimple(Quaternion other, boolean clean) {
 		if (Physic.equalsEps(this.w, other.w, epsilonWXYZ) && 
 				Physic.equalsEps(this.x, other.x, epsilonWXYZ) && 
 				Physic.equalsEps(this.y, other.y, epsilonWXYZ) && 
@@ -148,20 +159,20 @@ public class Quaternion extends ProMaster {
 	}
 
 	/** Check if this (axis & angle) nearly equals other and if so & clean set it to other. */
-	public boolean equalsEpsAxis(Quaternion other, boolean clean) {
-		if (rotAxisAngle().equals(other.rotAxisAngle()))
+	private boolean equalsEpsAxisSimple(Quaternion other, boolean clean) {
+		final Vector rMe = rotAxis(), rOther = other.rotAxis();
+		final float aMe = angle(), aOther = other.angle();
+		final boolean anglesEquEps = anglesEquEps(aMe, aOther);
+		if (rMe == null || rOther == null)
+			return anglesEquEps;
+		if (rMe == rOther || rMe.equals(rOther))
 			return true;
-		else if (rotAxis().equalsEps(other.rotAxis(), false, epsilonRotAxis) && 
-				Physic.equalsEps(angle(), other.angle(), epsilonAngle)) {
+		else if (rMe.equalsEps(rOther, false, epsilonRotAxis) && anglesEquEps) {
 			if (clean && !equals(other))
 				set(other);
 			return true;
 		} else
 			return false;
-	}
-	
-	public boolean equalsEps(Quaternion other, boolean clean) {
-		return equalsEpsWXYZ(other, clean);
 	}
 
 	/** Check if rotation is null and if so & clean reset it. */
@@ -173,6 +184,15 @@ public class Quaternion extends ProMaster {
 
 	public Quaternion copy() {
 		return new Quaternion(this);
+	}
+	
+	/** return the equivalent opposite quaternion (minus rotAxis & minus angle is the same rotation). */
+	private Quaternion contrary() {
+		Quaternion q = new Quaternion();
+		q.setWXYZ(-w, -x, -y, -z, false);
+		if (validRotAxis)
+			q.setRotAxisAngle(rotAxis.multBy(-1), -angle, false);
+		return q;
 	}
 
 	/** return the rot axis or null if identity. */
@@ -195,6 +215,8 @@ public class Quaternion extends ProMaster {
 	
 	public boolean isIdentity() {
 		boolean wxyzNull = w == 1 && x == 0 && y == 0 && z == 0;
+		if (wxyzNull)
+			assert (!validRotAxis || rotAxis == null);
 		return wxyzNull;
 	}
 	
@@ -218,11 +240,11 @@ public class Quaternion extends ProMaster {
 	}
 	public static boolean printEverything = true;
 	public String toString() {
-		if (printEverything) 
-			return toStringAll();
+		if (isIdentity())
+			return "quat identity"; 
 		else{
-			if (isIdentity())
-				return "quat identity"; 
+			if (printEverything) 
+				return toStringAll();
 			else {
 				updateAxis();
 				return "quat axis: "+rotAxis+" angle: "+(angle*180/pi)+"°";
@@ -310,9 +332,7 @@ public class Quaternion extends ProMaster {
 	private void updateAxis() {
 		if (!validRotAxis) {
 			if (equalsWXYZ(identity)) {
-				angle = 0;
-				rotAxis = null;
-				validRotAxis = true;
+				setRotAxisAngle(null, 0, false);
 			} else {
 				final float halfomega = PApplet.acos(w);
 				final float s = PApplet.sin(halfomega);
@@ -320,10 +340,10 @@ public class Quaternion extends ProMaster {
 					reset();
 				} else {
 					final float invSinHO = 1/s;
-					angle = entrePiEtMoinsPi(halfomega*2);
-					rotAxis = new Vector( x*invSinHO, y*invSinHO, z*invSinHO );
-					rotAxis.normalize();
-					validRotAxis = true;
+					setRotAxisAngle(
+							new Vector( x*invSinHO, y*invSinHO, z*invSinHO ),
+							halfomega*2,
+							true);
 				}
 			}
 		}
@@ -331,7 +351,7 @@ public class Quaternion extends ProMaster {
 	
 	// --- Private ---
 
-	/** Set the quaternion from WXYZ. Normalize WXYZ if normalize. */
+	/** Set WXYZ of the quaternion. Normalize WXYZ if normalize. */
 	protected void setWXYZ(float w, float x, float y, float z, boolean normalize) {
 		this.w = w;
 		this.x = x;
@@ -339,6 +359,35 @@ public class Quaternion extends ProMaster {
 		this.z = z;
 		if (normalize)
 			normalizeWXYZ();
+	}
+
+	/** Set the rotation axis and angle of the quaternion (set validRotAxis to true). Normalize rotAxis if normalize. */
+	protected void setRotAxisAngle(Vector rotAxis, float angle, boolean normalize) {
+		this.rotAxis = rotAxis;
+		if (rotAxis == null) {
+			assert(angle == 0);
+			this.angle = 0;
+		} else {
+			this.angle = validAngle(angle);
+			if (Physic.isZeroEps(epsilonAngle))
+				reset();
+			if (normalize)
+				rotAxis.normalize();
+		}
+		
+		assert (rotAxis == null) == (angle == 0);
+		assert !(rotAxis!=null && rotAxis.equals(zero) );
+	}
+	
+	/** Return an angle in radian in [-pi;pi[*/
+	private float validAngle(float angle) {
+		while (angle < 0)
+			angle+=twoPi;
+		return mod(angle+pi, twoPi)-pi;
+	}
+	
+	private boolean anglesEquEps(float a1, float a2) {
+		return Physic.equalsEps(a1, a2, epsilonAngle) || Physic.equalsEps(validAngle(max(a1, a2)+epsilonAngle)-epsilonAngle, min(a1, a2));
 	}
 	
 	/** Normalize the WXYZ components. */
