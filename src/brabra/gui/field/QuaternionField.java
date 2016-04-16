@@ -73,11 +73,11 @@ public class QuaternionField extends ValueField<Quaternion> {
 
 	protected void updateGUI(Quaternion newVal) {
 		super.updateGUI(newVal);
-		valueLabel.setText(newVal.toString());	//TODO override the toString to cut the digits
+		valueLabel.setText(newVal.toString());
 		final Vector rotAxis = newVal.rotAxis();
-		xValue.setText(quaternion.isIdentity() ? "0" : Float.toString(rotAxis.x));
-		yValue.setText(quaternion.isIdentity() ? "0" : Float.toString(rotAxis.x));
-		zValue.setText(quaternion.isIdentity() ? "0" : Float.toString(rotAxis.x));
+		xValue.setText(quaternion.isIdentity() ? "0" : getFloatValue(rotAxis.x));
+		yValue.setText(quaternion.isIdentity() ? "0" : getFloatValue(rotAxis.x));
+		zValue.setText(quaternion.isIdentity() ? "0" : getFloatValue(rotAxis.x));
 		angleValue.setText(getFloatValue(newVal.angle()));
 	}
 }

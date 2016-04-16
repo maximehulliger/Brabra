@@ -90,20 +90,12 @@ public class Brabra extends PApplet {
 			while (fxApp == null)
 				Thread.sleep(1);
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
-//        Master.launch(()->run());
 		ToolWindow.readyLock.lock();
 		ToolWindow.readyLock.unlock();
 		
-//		try {
-//			Thread.sleep(400);
-//		} catch (InterruptedException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
         run();
 	}
 	
