@@ -8,7 +8,7 @@ import javafx.scene.control.TextField;
 
 public class VectorField extends ValueField<Vector> {
 
-	private final Vector vector;
+	private Vector vector;
 	private final TextField xValue;
 	private final TextField yValue;
 	private final TextField zValue;
@@ -63,7 +63,7 @@ public class VectorField extends ValueField<Vector> {
 	}
 
 	protected Vector getModelValue() {
-		return vector;
+		return vector.copy();
 	}
 
 	protected Vector getNewValue() {
@@ -73,10 +73,11 @@ public class VectorField extends ValueField<Vector> {
 		return new Vector(x,y,z);
 	}
 
-	protected void updateValue(Vector newVal) {
-		valueLabel.setText(toString(vector));
-		xValue.setText(getFloatValue(vector.x));
-		yValue.setText(getFloatValue(vector.y));
-		zValue.setText(getFloatValue(vector.z));
+	protected void updateGUI(Vector newVal) {
+		super.updateGUI(newVal);
+		valueLabel.setText(toString(newVal));
+		xValue.setText(getFloatValue(newVal.x));
+		yValue.setText(getFloatValue(newVal.y));
+		zValue.setText(getFloatValue(newVal.z));
 	}
 }

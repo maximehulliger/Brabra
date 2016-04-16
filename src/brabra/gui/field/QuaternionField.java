@@ -14,19 +14,18 @@ public class QuaternionField extends ValueField<Quaternion> {
 	private final TextField yValue;
 	private final TextField zValue;
 	private final TextField angleValue;
-	private final Vector rotate;
 	private final Label valueLabel;
 	private boolean clicked = false;
 	
 	public QuaternionField(String name, Quaternion quaternion) {
 		super(name);
 		this.quaternion = quaternion;
-		this.rotate = quaternion.rotAxis();
+		final Vector rotAxis = quaternion.rotAxis();
 		//--- View:
 		this.valueLabel = new Label(quaternion.toString());
-		this.xValue = new TextField(Float.toString(rotate.x));
-		this.yValue = new TextField(Float.toString(rotate.y));
-		this.zValue = new TextField(Float.toString(rotate.z));
+		this.xValue = new TextField(quaternion.isIdentity() ? "0" : Float.toString(rotAxis.x));
+		this.yValue = new TextField(quaternion.isIdentity() ? "0" : Float.toString(rotAxis.y));
+		this.zValue = new TextField(quaternion.isIdentity() ? "0" : Float.toString(rotAxis.z));
 		this.angleValue = new TextField(Float.toString(quaternion.angle()));
 		xValue.setPrefWidth(55);
 		yValue.setPrefWidth(55);
@@ -72,11 +71,13 @@ public class QuaternionField extends ValueField<Quaternion> {
 		return new Quaternion(newRotate,angle);
 	}
 
-	protected void updateValue(Quaternion newVal) {
-		valueLabel.setText(quaternion.toString());	//TODO override the toString to cut the digits
-		xValue.setText(getFloatValue(rotate.x));
-		yValue.setText(getFloatValue(rotate.y));
-		zValue.setText(getFloatValue(rotate.z));
-		angleValue.setText(getFloatValue(quaternion.angle()));
+	protected void updateGUI(Quaternion newVal) {
+		super.updateGUI(newVal);
+		valueLabel.setText(newVal.toString());	//TODO override the toString to cut the digits
+		final Vector rotAxis = newVal.rotAxis();
+		xValue.setText(quaternion.isIdentity() ? "0" : Float.toString(rotAxis.x));
+		yValue.setText(quaternion.isIdentity() ? "0" : Float.toString(rotAxis.x));
+		zValue.setText(quaternion.isIdentity() ? "0" : Float.toString(rotAxis.x));
+		angleValue.setText(getFloatValue(newVal.angle()));
 	}
 }

@@ -57,7 +57,8 @@ public class FloatField extends ValueField<Float> {
 		return Master.getFloat(floatField.getText(), true);
 	}
 
-	protected void updateValue(Float newVal) {
+	protected void updateGUI(Float newVal) {
+		super.updateGUI(newVal);
 		textValue.setText(getFloatValue(newVal));
 		floatField.setText(getFloatValue(newVal));
 	}

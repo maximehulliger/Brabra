@@ -320,6 +320,7 @@ public class Object extends ProMaster implements Debugable {
 	
 	public void setName(String name) {
 		this.name = name;
+		model.notifyChange(Change.Name);
 	}
 	
 	/** Set the name and return the object (for "new Object().withName("pope")"). */
@@ -571,7 +572,7 @@ public class Object extends ProMaster implements Debugable {
 	// --- Observation ---
 	
 	public enum Change {
-		Location, Rotation, Velocity, RotVelocity, DisplayCollider, Mass, Name, Quaternion
+		Location, Rotation, Velocity, RotVelocity, DisplayCollider, Mass, Name, Size
 	}
 	
 	protected final ObjectModel model = new ObjectModel();

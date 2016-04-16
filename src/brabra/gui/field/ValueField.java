@@ -6,6 +6,7 @@ import java.util.Observable;
 public abstract class ValueField<T> extends Field {
 	
 	final String name; //TODO 4 debug only: to remove (when working)
+	private T value = null;
 	private Object triggerArg = null;
 	
 	public ValueField(String name) {
@@ -27,20 +28,31 @@ public abstract class ValueField<T> extends Field {
 	/** Return the value from the gui. */
 	protected abstract T getNewValue();
 	
-	/** Update the text and field value in the gui. */
-	protected abstract void updateValue(T newVal);
+	/** Update the text and field value in the gui. Should be called. */
+	protected void updateGUI(T newVal){
+		this.value = newVal;
+	}
+	
+	protected final T value() {
+		return value;
+	}
 	
 	protected final void onChange() {
-		setModelValue(getNewValue());
+		final T newValue = getNewValue();
+		if ((this.value == null && newValue != this.value) || !this.value.equals(newValue)){
+			this.value = newValue;
+			setModelValue(value);
+		}
 		System.out.println(name + " changed"); //TODO 4 debug only: to remove
 	}
 
 	public final void update(Observable o, java.lang.Object arg) {
-		System.out.println(arg.toString() + "ready to update"); //TODO 4 debug
 		if (triggerArg == null || arg == triggerArg) {
 			final T newVal = getModelValue();
-//			if (!getNewValue().equals(newVal))
-				updateValue(newVal);
+//			if (!getNewValue().equals(newVal)){
+				updateGUI(newVal);
+				System.out.println(arg.toString() + "ready to update"); //TODO 4 debug
+//			}
 		}
 	}
 }

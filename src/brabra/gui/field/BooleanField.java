@@ -51,7 +51,8 @@ public class BooleanField extends ValueField<Boolean> {
 		return cboxOpen.isSelected();
 	}
 
-	protected void updateValue(Boolean newVal) {
+	protected void updateGUI(Boolean newVal) {
+		super.updateGUI(newVal);
 		cboxOpen.setSelected(boolValue);
 		cboxClosed.setSelected(boolValue);	
 	}

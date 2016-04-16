@@ -38,7 +38,6 @@ public class ToolWindow extends Application {
 	}
 	
 	public ToolWindow() {
-		System.out.println("called");
 		readyLock.lock();
     	
 	}

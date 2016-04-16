@@ -1,23 +1,29 @@
 package brabra.gui.field;
 
+import java.util.function.Consumer;
+import java.util.function.Supplier;
+
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 
 public class StringField extends ValueField<String> {
 
-	private String value;
+	private final Consumer<String> setModelValue;
+	private final Supplier<String> getModelValue;
 	private final TextField stringBox;
 	private final Label valueLabel;
 	private boolean clicked = false;
 	
-	public StringField(String name, String value) {
+	public StringField(String name, Consumer<String> setModelValue, Supplier<String> getModelValue) {
 		super(name);
-		this.value = value;
+		this.setModelValue = setModelValue;
+		this.getModelValue = getModelValue;
 		
 		//--- View:
-		this.valueLabel = new Label(value.toString());
-		this.stringBox = new TextField(value);
-		stringBox.setPrefWidth(55);
+		final String val = getModelValue().toString();
+		this.valueLabel = new Label(val);
+		this.stringBox = new TextField(val);
+		stringBox.setPrefWidth(105);
 		contentClosed.getChildren().add(valueLabel);
 		contentOpen.getChildren().addAll(stringBox);
 		
@@ -32,20 +38,20 @@ public class StringField extends ValueField<String> {
 	}
 
 	protected void setModelValue(String val) {
-		this.value = val;
+		setModelValue.accept(val);
 	}
 
 	protected String getModelValue() {
-		return value;
+		return getModelValue.get();
 	}
 
 	protected String getNewValue() {
 		return stringBox.getText();
 	}
 
-	protected void updateValue(String newVal) {
-		System.out.println(value); //TODO 4 debug
-		valueLabel.setText(value);
-		stringBox.setText(value);
+	protected void updateGUI(String newVal) {
+		super.updateGUI(newVal);
+		valueLabel.setText(newVal);
+		stringBox.setText(newVal);
 	}
 }

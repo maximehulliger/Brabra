@@ -31,12 +31,20 @@ public class ObjectField extends Field implements Observer {
 		final List<Field> fields = new ArrayList<>();
 		// > first Object
 		this.object = object;
+		//name
+		fields.add(
+				new StringField("name",
+						nm -> object.setName(nm),
+						() -> object.toString())
+				.respondingTo(Change.Name)
+				);
 		// location
 		fields.add(
 				new VectorField("location rel", object.locationRel())
 				.respondingTo(Change.Location)
 				);
 		// rotation
+		fields.add(new QuaternionField("quaternion",object.rotation()).respondingTo(Change.Rotation));
 		// > if Movable
 		asMovable = object.as(Movable.class);
 		if (asMovable != null) {
@@ -46,6 +54,7 @@ public class ObjectField extends Field implements Observer {
 					.respondingTo(Change.Velocity)
 					);
 			// rotVelotity (still always relative)
+			fields.add(new QuaternionField("quaternion",asMovable.rotationRelVel()).respondingTo(Change.RotVelocity));
 		}
 		// > if Body
 		asBody = object.as(Body.class);
@@ -84,11 +93,6 @@ public class ObjectField extends Field implements Observer {
 					.respondingTo(Change.DisplayCollider)
 					);
 		}
-		//String test
-		fields.add(new StringField("Name","test").respondingTo(Change.Name));
-		
-		//Quaternion test
-//		fields.add(new QuaternionField("Test",quaternion).respondingTo(Change.Quaternion));
 
 		//--- View:
 		subfieldHolder.getChildren().addAll(fields);
@@ -99,7 +103,8 @@ public class ObjectField extends Field implements Observer {
 	}
 
 	public void update(Observable o, java.lang.Object arg) {
-		
+		if (arg == Change.Name) 
+			super.setName(object.toString());
 	}
 	
 	private boolean validMassForPhysic(float mass) {

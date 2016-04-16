@@ -39,10 +39,15 @@ public class Movable extends Object {
 	public boolean isRotating() {
 		return rotating || (movableParent != null && movableParent.isRotating());
 	}
-	
+
 	/** Return the velocity relative to the parent at the center of mass. */
 	public Vector velocityRel() {
 		return velocityRel;
+	}
+
+	/** Return the rotational velocity relative to the parent. */
+	public Quaternion rotationRelVel() {
+		return rotationRelVel;
 	}
 	
 	/** Return the absolute velocity at the center of mass. */
