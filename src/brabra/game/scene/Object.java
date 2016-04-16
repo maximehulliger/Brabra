@@ -392,6 +392,7 @@ public class Object extends ProMaster implements Debugable {
 			assert(oldChild.parent == this);
 			childrenChangedCurrent = true;
 			oldChild.parent = null;
+			oldChild.parentRel = ParentRelationship.None;
 			oldChild.absValid = false;
 		}
 	}
@@ -570,7 +571,7 @@ public class Object extends ProMaster implements Debugable {
 	// --- Observation ---
 	
 	public enum Change {
-		Location, Rotation, Velocity, RotVelocity, DisplayCollider, Mass
+		Location, Rotation, Velocity, RotVelocity, DisplayCollider, Mass, Name, Quaternion
 	}
 	
 	protected final ObjectModel model = new ObjectModel();

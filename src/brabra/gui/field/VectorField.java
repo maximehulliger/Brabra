@@ -1,6 +1,7 @@
 package brabra.gui.field;
 
 import brabra.Master;
+import brabra.game.physic.Physic;
 import brabra.game.physic.geo.Vector;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
@@ -12,6 +13,7 @@ public class VectorField extends ValueField<Vector> {
 	private final TextField yValue;
 	private final TextField zValue;
 	private final Label valueLabel;
+	private boolean clicked = false;
 	
 	public VectorField(String name, Vector vector) {
 		super(name);
@@ -29,9 +31,31 @@ public class VectorField extends ValueField<Vector> {
 		contentOpen.getChildren().addAll(xValue, yValue, zValue);
 		
 		//--- Control:
-		xValue.setOnAction(e -> this.onChange());
-		yValue.setOnAction(e -> this.onChange());
-		zValue.setOnAction(e -> this.onChange());
+		xValue.setOnAction(e -> this.clicked = true);
+		yValue.setOnAction(e -> this.clicked = true);
+		zValue.setOnAction(e -> this.clicked = true);
+		this.setOnMouseExited(e-> {
+			if (this.clicked) {
+				this.onChange();
+				this.clicked = false;
+			}
+		});
+	}
+	
+	private String getFloatValue(Float val){
+		if (Math.abs(val) < Physic.epsilon) return "0.0";
+		final String a = val.toString();
+		if (a.length() > 5) return a.substring(0, 5);
+		else return a;
+	}
+	
+	private String toString(Vector vector){
+		String vectorValue = "[ ";
+		vectorValue = vectorValue + getFloatValue(vector.x) + ", ";
+		vectorValue = vectorValue + getFloatValue(vector.y) + ", ";
+		vectorValue = vectorValue + getFloatValue(vector.z);
+		vectorValue = vectorValue + " ]";
+		return vectorValue;
 	}
 
 	protected void setModelValue(Vector val) {
@@ -50,9 +74,9 @@ public class VectorField extends ValueField<Vector> {
 	}
 
 	protected void updateValue(Vector newVal) {
-		valueLabel.setText(vector.toString());
-		xValue.setText(Float.toString(vector.x));
-		xValue.setText(Float.toString(vector.y));
-		xValue.setText(Float.toString(vector.z));
+		valueLabel.setText(toString(vector));
+		xValue.setText(getFloatValue(vector.x));
+		yValue.setText(getFloatValue(vector.y));
+		zValue.setText(getFloatValue(vector.z));
 	}
 }

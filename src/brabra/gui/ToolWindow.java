@@ -37,13 +37,29 @@ public class ToolWindow extends Application {
 		Application.launch();
 	}
 	
+	public ToolWindow() {
+		System.out.println("called");
+		readyLock.lock();
+    	
+	}
+	
 	/** Called to start the JavaFX application. */
     public void start(Stage stage) {
-    	readyLock.lock();
     	this.stage = stage;
     	this.app = Brabra.app;
-    	Brabra.app.fxApp = this;
     	
+    	//--- View: 
+    	stage.setTitle(name);
+    	// init the scene/show (but doesn't show it)
+    	scene = new Scene(initRoot(), width, Brabra.height);
+        stage.setScene(scene);
+        scene.getStylesheets().add("data/gui.css");
+        // intitialized:
+    	app.debug.info(3, "tool window ready");
+    	updateStageLoc();
+    	stage.show();
+    	Brabra.app.fxApp = this;
+
     	//--- Control:
     	// to keep both windows shown (at least tool -> game)
     	stage.addEventHandler(WindowEvent.WINDOW_SHOWN, e -> app.setVisible(true));
@@ -59,17 +75,6 @@ public class ToolWindow extends Application {
     		}
     	});
 
-    	//--- View: 
-    	stage.setTitle(name);
-    	// init the scene/show (but doesn't show it)
-    	scene = new Scene(initRoot(), width, Brabra.height);
-        stage.setScene(scene);
-        scene.getStylesheets().add("data/gui.css");
-        // intitialized:
-    	app.debug.info(3, "tool window ready");
-    	updateStageLoc();
-    	stage.show();
-    	
     	readyLock.unlock();
     }
 
@@ -107,7 +112,8 @@ public class ToolWindow extends Application {
 
     /** Ask for something to run on the JavaFX Application Thread. */
     public static void run(Runnable f) {
-    	Platform.runLater(f);
+    	if (Brabra.app.fxApp != null)
+    		Platform.runLater(f);
     }
     
     /** To set the window visible or invisible (iconified). */

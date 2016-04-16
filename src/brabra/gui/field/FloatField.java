@@ -3,6 +3,7 @@ package brabra.gui.field;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import brabra.Master;
+import brabra.game.physic.Physic;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 
@@ -12,6 +13,7 @@ public class FloatField extends ValueField<Float> {
 	private final Label textValue;
 	private final Consumer<Float> setModelValue;
 	private final Supplier<Float> getModelValue;
+	private boolean clicked = false;
 	
 	public FloatField(String name, Consumer<Float> setModelValue, Supplier<Float> getModelValue) {
 		super(name);
@@ -27,7 +29,20 @@ public class FloatField extends ValueField<Float> {
 		contentOpen.getChildren().add(floatField);
 		
 		//--- Control:
-		floatField.setOnKeyTyped(e -> this.onChange());
+		floatField.setOnKeyTyped(e -> this.clicked = true);
+		this.setOnMouseExited(e-> {
+			if (this.clicked) {
+				this.onChange();
+				this.clicked = false;
+			}
+		});
+	}
+	
+	private String getFloatValue(Float val){
+		if (Math.abs(val) < Physic.epsilon) return "0.0";
+		final String a = val.toString();
+		if (a.length() > 5) return a.substring(0, 5);
+		else return a;
 	}
 
 	protected void setModelValue(Float val) {
@@ -43,7 +58,7 @@ public class FloatField extends ValueField<Float> {
 	}
 
 	protected void updateValue(Float newVal) {
-		textValue.setText(newVal.toString());
-		floatField.setText(newVal.toString());
+		textValue.setText(getFloatValue(newVal));
+		floatField.setText(getFloatValue(newVal));
 	}
 }

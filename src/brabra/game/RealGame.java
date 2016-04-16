@@ -24,7 +24,7 @@ public class RealGame extends Interface {
 		clearConsole();
 		debug.info(0, "loading scene");
 		scene.reset();
-		scene.addNow(camera);
+		scene.add(camera);
 		debug.followed.clear();
 		physicInteraction.setFocused(null, -1);
 		xmlFile.load();

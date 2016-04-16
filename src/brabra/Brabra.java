@@ -82,8 +82,28 @@ public class Brabra extends PApplet {
 	/** Launch the whole software. */
 	public void launch() {
 		// start the other threads if needed.
+		setImgAnalysis(imgAnalysis);
 		setToolWindow(toolWindow);
-        setImgAnalysis(imgAnalysis);
+		
+		// we wait for the javaFX thread to init (beacause of m).
+		try {
+			while (fxApp == null)
+				Thread.sleep(1);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+//        Master.launch(()->run());
+		ToolWindow.readyLock.lock();
+		ToolWindow.readyLock.unlock();
+		
+//		try {
+//			Thread.sleep(400);
+//		} catch (InterruptedException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
         run();
 	}
 	
@@ -118,8 +138,6 @@ public class Brabra extends PApplet {
         // > init main window view (when everything is ready)
 		// app is now fully ready
 		// we wait for other components
-		ToolWindow.readyLock.lock();
-		ToolWindow.readyLock.unlock();
 		ImageAnalyser.readyLock.lock();
 		ImageAnalyser.readyLock.unlock();
 		

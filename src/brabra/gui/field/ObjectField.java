@@ -84,12 +84,14 @@ public class ObjectField extends Field implements Observer {
 					.respondingTo(Change.DisplayCollider)
 					);
 		}
+		//String test
+		fields.add(new StringField("Name","test").respondingTo(Change.Name));
+		
+		//Quaternion test
+//		fields.add(new QuaternionField("Test",quaternion).respondingTo(Change.Quaternion));
 
 		//--- View:
 		subfieldHolder.getChildren().addAll(fields);
-		
-	    /*labels[i] = new Label();
-		grid.add(labels[i],1,i);*/
 		
 		//--- Control:
 		object.addObserver(this);

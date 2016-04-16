@@ -36,9 +36,10 @@ public abstract class ValueField<T> extends Field {
 	}
 
 	public final void update(Observable o, java.lang.Object arg) {
+		System.out.println(arg.toString() + "ready to update"); //TODO 4 debug
 		if (triggerArg == null || arg == triggerArg) {
 			final T newVal = getModelValue();
-			if (!getNewValue().equals(newVal))
+//			if (!getNewValue().equals(newVal))
 				updateValue(newVal);
 		}
 	}
