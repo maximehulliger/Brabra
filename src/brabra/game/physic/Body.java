@@ -84,7 +84,7 @@ public abstract class Body extends Movable {
 			//2. rotation, vitesse angulaire, on prend rotation axis comme L/I
 			Vector dL = torquesLocToAdd.multElementsBy(inverseInertiaMom);
 			if (!dL.equals(zero))
-				rotationRelVel.addAngularMomentum( dL );
+				addAngularMomentum( dL );
 
 			forcesLocToAdd.set(zero);
 			torquesLocToAdd.set(zero);
@@ -233,7 +233,7 @@ public abstract class Body extends Movable {
 			// for rotation, we want to stay coherent with inertia moment.
 			Vector dL = inverseInertiaMom.multElementsBy(posLoc.cross(impulseLoc));
 			if (!dL.equals(zero))
-				rotationRelVel.addAngularMomentum( dL );
+				addAngularMomentum( dL );
 		}
 	}
 	
@@ -292,6 +292,16 @@ public abstract class Body extends Movable {
 		assert(!torqueLoc.equals(zero));
 		if (!torqueLoc.equals(zero))
 			torquesLocToAdd.add(torqueLoc);
+	}
+	
+	private void addAngularMomentum(Vector dL) {
+		assert (!dL.equals(zero));
+		if (rotationRelVel.isIdentity())
+			rotationRelVel.set(dL, dL.mag());
+		else {
+			final Vector newRotAxis = rotationRelVel.rotAxisAngle().plus(dL);
+			rotationRelVel.set(newRotAxis, newRotAxis.mag());
+		}
 	}
 	
 	// --- cooked methods to apply forces

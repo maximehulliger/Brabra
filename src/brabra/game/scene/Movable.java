@@ -94,7 +94,7 @@ public class Movable extends Object {
 	}
 
 	/** Set the velocity of this object relative to his parent. */
-	public void setRotationVelRel(Vector rotationVelRel) {
+	public void setRotationVelRel(Quaternion rotationVelRel) {
 		this.rotationRelVel.set(rotationVelRel);
 	}
 	
@@ -112,10 +112,10 @@ public class Movable extends Object {
 		if (super.validate(atts)) {
 			final String velocity = atts.getValue("velocity");
 			if (velocity != null)
-				setRotationVelRel(vec(velocity));
-			final String rotVelocity = atts.getValue("rot_velocity");
-			if (velocity != null)
-				setRotationVelRel(vec(rotVelocity));
+				setVelocityRel(vec(velocity));
+			//final String rotVelocity = atts.getValue("rot_velocity");
+			//if (velocity != null)
+			//	setRotationVelRel(vec(rotVelocity));
 			return true;
 		} else
 			return false;

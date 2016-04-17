@@ -43,10 +43,10 @@ public class ProTest extends ProMaster {
 	}
 
 	public static void assertEqualsEps(String msg, Quaternion q1, Quaternion q2) {
-		
-		//assertEquals(msg, q1.angle(), q2.angle(), Quaternion.epsilonAngle);
-		//assertEqualsEps(msg, q1.rotAxis(), q2.rotAxis(), Quaternion.epsilonRotAxis);
 		if (!q1.equalsEpsAxis(q2, false))
+			assertEquals(msg, q1, q2);
+
+		if (!q1.equalsEpsWXYZ(q2, false))
 			assertEquals(msg, q1, q2);
 	}
 

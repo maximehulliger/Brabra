@@ -36,7 +36,7 @@ public class Calibration extends Interface {
 		
 	}
 	
-	public void wakeUp() {
+	public void onShow() {
 		ia.inputLock.lock();
 		ImageAnalyser.displayQuadRejectionCause = true;
 		ia.forced = true;

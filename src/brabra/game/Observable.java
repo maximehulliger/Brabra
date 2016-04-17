@@ -37,7 +37,9 @@ public interface Observable {
 		public NVector(Vector v) { 
 			this(v, null);
 		}
-		
+
+		// --- From observable ---
+
 		public void setOnChange(Runnable onChange) {
 			this.onChange = onChange;
 		}
@@ -58,6 +60,8 @@ public interface Observable {
 		public void reset() {
 			changed = changedCurrent = false;
 		}
+
+		// --- Overload ---
 		
 		// first apply, set changed to true, then notify.
 		public Vector set(Vector v) { super.set(v); return onChange(); }
@@ -71,7 +75,9 @@ public interface Observable {
 		public Vector limit(float f) { super.mult(f); return onChange(); }
 		public Vector setMag(float f) { super.mult(f); return onChange(); }
 		public Vector normalize() { super.normalize(); return onChange(); }
-		
+
+		// --- On Change ---
+
 		private Vector onChange() {
 			changedCurrent=true;
 			if (onChange != null)
@@ -93,6 +99,8 @@ public interface Observable {
 		public NQuaternion(Quaternion q) {
 			this(q, null);
 		}
+		
+		// --- From observable ---
 
 		public void setOnChange(Runnable onChange) {
 			this.onChange = onChange;
@@ -115,24 +123,20 @@ public interface Observable {
 			changed = changedCurrent = false;
 		}
 		
-		public void setWXYZ(float w, float x, float y, float z, boolean normalize) {
-			super.setWXYZ(w,x,y,z,normalize);
-			onChange();
-		}
+		// --- Overload ---
+		
+		public void set(float w, Vector xyz) { super.set(w,xyz); onChange(); }
+		public void set(Vector rotAxis, float angle) { super.set(rotAxis, angle); onChange(); }
+		public void set(Quaternion quat) { super.set(quat); onChange(); }
+		public void setAngle(float angle) { super.setAngle(angle); onChange(); }
+		public void rotate(Quaternion r) { super.set(r); onChange(); }
 
-		public void set(Quaternion quat) {
-			super.set(quat);
-			onChange();
-		}
-
+		// --- On Change ---
+		
 		private void onChange() {
 			if (onChange != null)
 				onChange.run();
 			changedCurrent = true;
 		}
 	}
-	
-	/*public class Flag implements Notifying {
-		
-	}*/
 }
