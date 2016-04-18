@@ -96,7 +96,7 @@ public class Brabra extends PApplet {
 		ToolWindow.readyLock.lock();
 		ToolWindow.readyLock.unlock();
 		
-        run();
+		run();
 	}
 	
 	/** Run the processing thread. */
@@ -107,7 +107,18 @@ public class Brabra extends PApplet {
 	
 	/** Execute this Runnable later in the processing (main) thread. */
 	public void runLater(Runnable r) {
-		toExecuteInPro.add(r);
+		toExecuteInPro.add(runSafe(r));
+	}
+	
+	private Runnable runSafe(Runnable r) {
+		return () -> {
+			try {
+				r.run();
+			} catch (Exception e) {
+				e.printStackTrace();
+				dispose();
+			}
+		};
 	}
 	
 	public void settings() {
@@ -115,51 +126,63 @@ public class Brabra extends PApplet {
 	}
 
 	public void setup() {
-		// > processing stuff.
-		frameRate(frameRate);
-		//float camZ = height / (2*tan(PI*60/360.0f));
-		perspective(PI/3, width/(float)height, 1, ProMaster.far);
-		surface.setTitle(name);
-		// enable the frame and correct windowLoc.
-		frame.pack();
-		
-		// > correct window lock
-        //Insets insets = frame.getInsets();
-        //windowLoc.sub(insets.left, insets.top);
-		
-        // > init main window view (when everything is ready)
-		// app is now fully ready
-		// we wait for other components
-		ImageAnalyser.readyLock.lock();
-		ImageAnalyser.readyLock.unlock();
-		
-		// and show the view
-		setView(View.RealGame);
+		try {
+			// > processing stuff.
+			frameRate(frameRate);
+			//float camZ = height / (2*tan(PI*60/360.0f));
+			perspective(PI/3, width/(float)height, 1, ProMaster.far);
+			surface.setTitle(name);
+			// enable the frame and correct windowLoc.
+			frame.pack();
+			
+			// > correct window lock
+	        //Insets insets = frame.getInsets();
+	        //windowLoc.sub(insets.left, insets.top);
+			
+	        // > init main window view (when everything is ready)
+			// app is now fully ready
+			// we wait for other components
+			ImageAnalyser.readyLock.lock();
+			ImageAnalyser.readyLock.unlock();
+			
+			// and show the view
+			setView(View.RealGame);
+		} catch (Exception e) {
+			e.printStackTrace();
+			this.dispose();
+		}
 	}
 	
 	public void draw() {
-		// execute the code to execute in this thread.
-		processTasksInPro();
-		// interface
-		currentInterface.draw();
-		// gui
-		hint(PApplet.DISABLE_DEPTH_TEST);
-		camera();
-		if (imgAnalysis && currentInterface!=intCalibration)
-			imgAnalyser.gui();
-		currentInterface.gui();
-		hint(PApplet.ENABLE_DEPTH_TEST);
-		// debug
-		debug.update();
+		try {
+			// execute the code to execute in this thread.
+			processTasksInPro();
+			// interface
+			currentInterface.draw();
+			// gui
+			hint(PApplet.DISABLE_DEPTH_TEST);
+			camera();
+			if (imgAnalysis && currentInterface!=intCalibration)
+				imgAnalyser.gui();
+			currentInterface.gui();
+			hint(PApplet.ENABLE_DEPTH_TEST);
+			// debug
+			debug.update();
+		} catch (Exception e) {
+			e.printStackTrace();
+			this.dispose();
+		}
 	}
 
 	public void dispose() {
-		debug.setCurrentWork("quiting");
-		over = true;
-		if (fxApp != null)
-			Platform.exit();
-		super.dispose();
-		System.out.println("bye bye !");
+		if (!over) {
+			debug.setCurrentWork("quiting");
+			over = true;
+			if (fxApp != null)
+				Platform.exit();
+			super.dispose();
+			System.out.println("bye bye !");
+		}
 	}
 	
 	// --- Getters ---
@@ -226,7 +249,7 @@ public class Brabra extends PApplet {
 			Master.launch(() -> ToolWindow.launch());
 			debug.info(3, "Tool Window thread started.");
 		} else if (fxAppStarted) {
-			Platform.runLater(() -> fxApp.setVisible(hasToolWindow));
+			Platform.runLater(runSafe(() -> fxApp.setVisible(hasToolWindow)));
 		}
 	}
 	
@@ -237,7 +260,7 @@ public class Brabra extends PApplet {
 			imgAnalyser = new ImageAnalyser();
 		if (imgAnalysisStarted && hasImgAnalysis) {
 			debug.info(3, "starting img analysis thread.");
-			Master.launch(() -> imgAnalyser.launch());
+			Master.launch(runSafe(() -> imgAnalyser.launch()));
 		}
 	}
 	

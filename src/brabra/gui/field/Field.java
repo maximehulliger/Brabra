@@ -15,38 +15,53 @@ import javafx.scene.layout.VBox;
 public abstract class Field extends GridPane implements Observer {
 
 	// first line
-	private final Label nameText = new Label();
+	private final Label nameText;
 	protected final HBox contentClosed = new HBox(), contentOpen = new HBox();
 	
 	// subfields / triangle
 	protected final VBox subfieldHolder;
 	private final TriangleButton triangleButton;
-	private boolean open = false;
+	private boolean open;
 	private final Label valueLabel = new Label();
 	
 	/** Create a field with this name. If subfields is false, no triangle or subfields (null) and the field is always open. */
 	public Field(String name, boolean withSubfields) {
-		this.setName(name);
 		
 	    //--- View:
+		
 		setPadding(new Insets(2,0,2,4));
 		setAlignment(Pos.CENTER_LEFT);
+		
 		// a horizontal box containing open and closed content (the first line).
 		final HBox firstLine = new HBox();
 		firstLine.setPadding(new Insets(2,0,2,4));
 		firstLine.setAlignment(Pos.CENTER_LEFT);
-			
-		// the triangle button
+		
+		// the name label
+		if (name != null) {
+			nameText = new Label();
+			this.setName(name);
+			firstLine.getChildren().add(nameText);
+		} else {
+			nameText = null;
+		}
+		
+		// the value label
+		contentClosed.getChildren().add(valueLabel);
+		
+		// the triangle button (if exist)
 		if (withSubfields) {
 			this.triangleButton = new TriangleButton();
 			this.subfieldHolder = new VBox();
+			this.open = false;
 			add(triangleButton, 0, 0);
 			add(firstLine, 1, 0);
 			add(subfieldHolder, 1, 1);			
 		} else {
+			// or just the first line, no subfields
 			this.triangleButton = null;
 			this.subfieldHolder = null;
-			// just the first line, no subfields
+			this.open = true;
 			add(firstLine, 0, 0);
 		}
 		
@@ -54,19 +69,25 @@ public abstract class Field extends GridPane implements Observer {
 		this.setOpenForMe(open || !withSubfields);
 		
 		// link the contents
-		contentClosed.getChildren().add(valueLabel);
-		firstLine.getChildren().addAll(nameText, contentClosed, contentOpen);
+		firstLine.getChildren().addAll(contentClosed, contentOpen);
 		
 		//--- Control:
-	    setOnMouseClicked(e -> { 
-	    	if (triangleButton != null)
-		    	this.setOpen(!this.open); 
-		    e.consume();
-	    });
+		
+		// close on click if openable (without triangle buttons is always open)
+		if (triangleButton != null)
+		    setOnMouseClicked(e -> { 
+		    	this.setOpen(!open()); 
+			    e.consume();
+		    });
+	}
+	
+	protected boolean open() {
+		return open;
 	}
 
 	public void setName(String name){
-		nameText.setText(name+":");
+		if (nameText != null && name != null)
+			nameText.setText(name+":");
 	}
 	
 	protected final void setValue(String textValue) {
@@ -93,4 +114,7 @@ public abstract class Field extends GridPane implements Observer {
 	    contentOpen.setVisible(open);
 	    contentOpen.setManaged(open);
 	}
+
+	/** Interface to discriminate the field modeled in the processing thread. */
+	public static interface Pro {};
 }

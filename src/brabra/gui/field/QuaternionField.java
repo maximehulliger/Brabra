@@ -1,39 +1,41 @@
 package brabra.gui.field;
 
-import brabra.Master;
-import brabra.game.physic.Physic;
+import java.util.Observable;
+
+import brabra.Brabra;
 import brabra.game.physic.geo.Quaternion;
 import brabra.game.physic.geo.Vector;
-import javafx.scene.control.TextField;
 
 public class QuaternionField extends ValueField<Quaternion> {
 
 	private final Quaternion quaternion;
-	private final TextField xValue = new TextField();
-	private final TextField yValue = new TextField();
-	private final TextField zValue = new TextField();
-	private final TextField angleField = new TextField();
+	private final VectorField rotAxisField;
+	private final FloatField angleField;
 	
-	//private Vector rotAxisValue;
-	//private float angleValue;
+	private float angleValue;
+	private final Quaternion lastValidValue;
+	
+	private final Vector rotAxisValue;
 	
 	public QuaternionField(String name, Quaternion quaternion) {
-		super(name, true);
-		this.quaternion = quaternion;
-		//rotAxisValue = quaternion.rotAxis();
-		//angleValue = quaternion.angle();
-		//--- View:
-		xValue.setPrefWidth(55);
-		yValue.setPrefWidth(55);
-		zValue.setPrefWidth(55);
-		angleField.setPrefWidth(70);
-		contentOpen.getChildren().addAll(xValue,yValue,zValue, angleField);
+		super(name, quaternion, true);
+		super.setDefaultValue(Quaternion.identity);
 		
-		//--- Control:
-		xValue.setOnAction(e -> onChange());
-		yValue.setOnAction(e -> onChange());
-		zValue.setOnAction(e -> onChange());
-		angleField.setOnAction(e -> onChange());
+		// get quaternion, rotAxis & angle
+		this.quaternion = quaternion;
+		this.lastValidValue = quaternion.copy();
+		final Vector vec = quaternion.rotAxis() == null ? Vector.zero : quaternion.rotAxis(); // TODO: quaternion.isIdentity()
+		rotAxisValue = vec;
+		angleValue = quaternion.angle();
+		
+		// create the 2 fields
+		rotAxisField = new VectorField(null, rotAxisValue, false);
+		rotAxisField.setDefaultValue(null);
+		rotAxisField.addOnChange(() -> this.onChange());
+		angleField = new FloatField(name, a -> {angleValue = a; onChange();}, () -> angleValue, false);
+				
+		//--- View:
+		contentOpen.getChildren().addAll(rotAxisField, angleField);
 	}
 
 	protected void setModelValue(Quaternion val) {
@@ -45,21 +47,47 @@ public class QuaternionField extends ValueField<Quaternion> {
 	}
 
 	protected Quaternion getNewValue() {
-		final Float x = Master.getFloat(xValue.getText(), true);
-		final Float y = Master.getFloat(yValue.getText(), true);
-		final Float z = Master.getFloat(zValue.getText(), true);
-		final Float angle = Master.getFloat(angleField.getText(), true);
-		final Vector newRotate = new Vector(x,y,z);
-		return new Quaternion(newRotate,angle);
+		if (inputDifferent(rotAxisValue, angleValue)) 
+			lastValidValue.set(rotAxisValue,angleValue);
+		
+		return lastValidValue;
+		
+	}
+	
+	private boolean inputDifferent(Vector rotAxis, float angle) {
+		if (lastValidValue.isIdentity())
+			return !rotAxis.equals(Vector.zero) && angle != 0;
+		else
+			return true;
+	}
+	
+	public void update(Observable o, java.lang.Object arg) {
+		super.update(o, arg);
+		//rotAxisField.update(o, arg);
+		//angleField.update(o, arg);
 	}
 
-	protected void updateGUI(Quaternion newVal) {
-		super.updateGUI(newVal);
+	protected void setDisplayValue(Quaternion newVal) {
 		setValue(newVal.formated());
-		final Vector rotAxis = newVal.rotAxis();
-		xValue.setText(quaternion.isIdentity() ? "0" : Master.formatFloat(rotAxis.x, Physic.epsilon));
-		yValue.setText(quaternion.isIdentity() ? "0" : Master.formatFloat(rotAxis.y, Physic.epsilon));
-		zValue.setText(quaternion.isIdentity() ? "0" : Master.formatFloat(rotAxis.z, Physic.epsilon));
-		angleField.setText(Master.formatFloat(newVal.angle(), Physic.epsilon));
+		if (rotAxisField != null) {
+			rotAxisField.setDisplayValue(newVal.rotAxis());
+			angleField.setDisplayValue(newVal.angle());
+		}
+	}
+
+	public static class Pro extends QuaternionField implements Field.Pro {
+
+		public Pro(String name, Quaternion quaternion) {
+			super(name, quaternion);
+		}
+
+		protected void setModelValue(final Quaternion val) {
+			Brabra.app.runLater(() -> super.setModelValue(val));
+		}
+		
+		public Pro respondingTo(Object triggerArg) {
+			super.respondingTo(triggerArg);
+			return this;
+		}
 	}
 }

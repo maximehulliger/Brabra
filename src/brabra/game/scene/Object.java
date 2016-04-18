@@ -81,8 +81,8 @@ public class Object extends ProMaster implements Debugable {
 	
 	/** Create a Body with this location & rotation. rotation can be null. */
 	public Object(Vector location, Quaternion rotation) {
-		locationRel.setOnChange(() -> {absValid=false;});
-		rotationRel.setOnChange(() -> {absValid=false;});
+		locationRel.addOnChange(() -> {absValid=false;});
+		rotationRel.addOnChange(() -> {absValid=false;});
 		//locationAbs.setOnChange(() -> {});
 		// we only set rel variables cause !absValid.
 		locationRel.set(location);
@@ -593,9 +593,13 @@ public class Object extends ProMaster implements Debugable {
 	}
 	
 	protected final ObjectModel model = new ObjectModel();
-	
+
 	public void addObserver(Observer o) {
 		model.addObserver(o);
+	}
+
+	public <O extends Observer> void addObservers(Iterable<O> obss) {
+		obss.forEach(o -> model.addObserver(o));
 	}
 	
 	/** To let someone watch this object */

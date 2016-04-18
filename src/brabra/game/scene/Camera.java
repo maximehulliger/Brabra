@@ -71,6 +71,7 @@ public class Camera extends Object {
 	public Camera() {
 		super(Vector.cube(100));
 		setName("Camera");
+		locationRel.addOnChange(()-> setDist(followMode, locationRel));
 	}
 	
 	// --- Getters ---

@@ -76,6 +76,23 @@ public class ToolWindow extends Application {
 
     	readyLock.unlock();
     }
+    
+    /** Display a message in the ToolWindow window. <p>
+     * 	ok: if true display the msg in green, or in red to announce an error. <p>
+     * 	time: the time in second during which the msg should be displayed. */
+    public static void displayMessage(String msg, boolean ok, float time) {
+    	System.out.println((ok?"-ok":"-err")+": "+msg);
+    }
+    
+    /** The default time during which a msg should be displayed. */
+    private static final float defaultMsgTime = 2f;
+    
+    /** Display a message in the ToolWindow window. <p>
+     * 	ok: if true display the msg in green, or in red to announce an error. <p>
+     * 	time: the time in second to display the msg. */
+    public static void displayMessage(String msg, boolean ok) {
+    	displayMessage(msg, ok, defaultMsgTime);
+    }
 
     /** Init the javaFX components (MVC). Return the root. */
     private Pane initRoot() {

@@ -3,55 +3,48 @@ package brabra.gui.field;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-import javafx.scene.control.Label;
+import brabra.Brabra;
 import javafx.scene.control.TextField;
 
-public class StringField extends ValueField<String> {
+public class StringField extends ValueField.WithCustomValue<String> {
 
-	private final Consumer<String> setModelValue;
-	private final Supplier<String> getModelValue;
-	private final TextField stringBox;
-	private final Label valueLabel;
-	private boolean clicked = false;
+	private TextField stringBox;
 	
 	public StringField(String name, Consumer<String> setModelValue, Supplier<String> getModelValue, boolean withTriangle) {
-		super(name, withTriangle);
-		this.setModelValue = setModelValue;
-		this.getModelValue = getModelValue;
+		super(name, setModelValue, getModelValue, withTriangle);
 		
 		//--- View:
-		final String val = getModelValue().toString();
-		this.valueLabel = new Label(val);
-		this.stringBox = new TextField(val);
 		stringBox.setPrefWidth(105);
-		contentClosed.getChildren().add(valueLabel);
 		contentOpen.getChildren().addAll(stringBox);
 		
 		//--- Control:
-		stringBox.setOnAction(e -> this.clicked = true);
-		this.setOnMouseExited(e-> {
-			if (this.clicked) {
-				this.onChange();
-				this.clicked = false;
-			}
-		});
-	}
-
-	protected void setModelValue(String val) {
-		setModelValue.accept(val);
-	}
-
-	protected String getModelValue() {
-		return getModelValue.get();
+		stringBox.setOnAction(e -> onChange());
 	}
 
 	protected String getNewValue() {
 		return stringBox.getText();
 	}
 
-	protected void updateGUI(String newVal) {
-		super.updateGUI(newVal);
-		valueLabel.setText(newVal);
+	protected void setDisplayValue(String newVal) {
+		setValue(newVal);
+		if (notInitialized())
+			stringBox = new TextField();
+		
 		stringBox.setText(newVal);
+	}
+
+	public static class Pro extends StringField implements Field.Pro {
+		
+		public Pro(String name, Consumer<String> setModelValue, Supplier<String> getModelValue, boolean withTriangle) {
+			super(name, setModelValue, getModelValue, withTriangle);
+		}
+
+		protected void setModelValue(final String val) {
+			Brabra.app.runLater(() -> super.setModelValue(val));
+		}
+		public Pro respondingTo(Object triggerArg) {
+			super.respondingTo(triggerArg);
+			return this;
+		}
 	}
 }
