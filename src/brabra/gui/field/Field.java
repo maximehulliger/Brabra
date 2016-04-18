@@ -4,10 +4,8 @@ import java.util.Observable;
 import java.util.Observer;
 
 import brabra.gui.TriangleButton;
-import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
@@ -16,39 +14,63 @@ import javafx.scene.layout.VBox;
 /** A common class for all the fields. a field can be closed and display in text his value or open and is editable. */
 public abstract class Field extends GridPane implements Observer {
 
-	protected final HBox contentClosed = new HBox(), contentOpen = new HBox();
-	protected final VBox subfieldHolder = new VBox();
+	// first line
 	private final Label nameText = new Label();
+	protected final HBox contentClosed = new HBox(), contentOpen = new HBox();
 	
-	protected final ObservableList<Node> firstLine;
-    private final TriangleButton triangleButton = new TriangleButton();
+	// subfields / triangle
+	protected final VBox subfieldHolder;
+	private final TriangleButton triangleButton;
 	private boolean open = false;
+	private final Label valueLabel = new Label();
 	
-	
-	public Field(String name) {
+	/** Create a field with this name. If subfields is false, no triangle or subfields (null) and the field is always open. */
+	public Field(String name, boolean withSubfields) {
 		this.setName(name);
-	    this.setOpenForMe(open);
 		
 	    //--- View:
 		setPadding(new Insets(2,0,2,4));
 		setAlignment(Pos.CENTER_LEFT);
-		// the triangle button
-		add(triangleButton, 0, 0);
-		// a pane containing open and closed content.
+		// a horizontal box containing open and closed content (the first line).
 		final HBox firstLine = new HBox();
-		this.firstLine = firstLine.getChildren();
-		add(firstLine, 1, 0);
-		// the contents
 		firstLine.setPadding(new Insets(2,0,2,4));
 		firstLine.setAlignment(Pos.CENTER_LEFT);
-		this.firstLine.addAll(nameText, contentClosed, contentOpen);
-		add(subfieldHolder, 1, 1);
-	    //--- Control:
-	    setOnMouseClicked(e -> { this.setOpen(!this.open); e.consume();});
+			
+		// the triangle button
+		if (withSubfields) {
+			this.triangleButton = new TriangleButton();
+			this.subfieldHolder = new VBox();
+			add(triangleButton, 0, 0);
+			add(firstLine, 1, 0);
+			add(subfieldHolder, 1, 1);			
+		} else {
+			this.triangleButton = null;
+			this.subfieldHolder = null;
+			// just the first line, no subfields
+			add(firstLine, 0, 0);
+		}
+		
+		// close or open everything
+		this.setOpenForMe(open || !withSubfields);
+		
+		// link the contents
+		contentClosed.getChildren().add(valueLabel);
+		firstLine.getChildren().addAll(nameText, contentClosed, contentOpen);
+		
+		//--- Control:
+	    setOnMouseClicked(e -> { 
+	    	if (triangleButton != null)
+		    	this.setOpen(!this.open); 
+		    e.consume();
+	    });
 	}
 
 	public void setName(String name){
 		nameText.setText(name+":");
+	}
+	
+	protected final void setValue(String textValue) {
+		valueLabel.setText(textValue);
 	}
 
 	/** Called when the field should update his value from the model. */
@@ -61,14 +83,14 @@ public abstract class Field extends GridPane implements Observer {
 
 	private void setOpenForMe(boolean open) {
 	    this.open = open;
-	    triangleButton.setOpen(open);
-//	    nameText.setScaleX(contentOpen.getScaleX());
-//	    nameText.setScaleY(contentOpen.getScaleY());
+	    if (triangleButton != null) {
+	    	triangleButton.setOpen(open);
+	    	subfieldHolder.setVisible(open);
+		    subfieldHolder.setManaged(open);
+	    }
 	    contentClosed.setVisible(!open);
 	    contentClosed.setManaged(!open);
 	    contentOpen.setVisible(open);
 	    contentOpen.setManaged(open);
-	    subfieldHolder.setVisible(open);
-	    subfieldHolder.setManaged(open);
 	}
 }

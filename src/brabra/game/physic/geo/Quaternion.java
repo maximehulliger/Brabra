@@ -1,7 +1,9 @@
 package brabra.game.physic.geo;
 
+import brabra.Master;
 import brabra.ProMaster;
 import processing.core.PApplet;
+import brabra.game.physic.Physic;
 import brabra.game.physic.geo.Vector;
 import brabra.game.Observable.NQuaternion;
 
@@ -212,14 +214,8 @@ public class Quaternion extends ProMaster {
 	public String toString() {
 		if (app != null && app.debug.testMode) 
 			return toStringAll();
-		else{
-			updateAxis();
-			boolean id = isIdentity();
-			boolean rotAxisCool = (rotAxis == null) == (angle == 0);
-			assert(rotAxisCool && (rotAxis == null) == id);
-			//assert((rotAxis == null) == id);
-			return "quat "+ (id ? "identity" : "axis: "+rotAxis+" angle: "+angle*180/pi+"°");
-		}
+		else
+			return "quat "+ (isIdentity() ? "identity" : "axis: "+rotAxis()+" angle: "+angle()*180/pi+"°");
 	}
 	
 	public String toStringAll() {
@@ -228,6 +224,11 @@ public class Quaternion extends ProMaster {
 				+ "  norm: "+PApplet.sqrt(normSq())+" age: "+age+" valitRotAxis: "+validRotAxis+"\n"
 				+ "  axis: "+rotAxis+"\n"
 				+ "  angle: "+angle;
+	}
+	
+	public String formated() {
+		//TODO not good epsilon
+		return "quat "+ (rotAxis()==null ? "identity" : "axis: "+rotAxis().formated(Physic.epsilon)+" angle: "+Master.formatFloat(angle()*180/pi, Physic.epsilon)+"°");
 	}
 
 	public Quaternion rotatedBy(Quaternion r) {

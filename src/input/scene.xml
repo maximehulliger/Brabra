@@ -6,8 +6,7 @@
 	
 	<Floor pos="zero" color="grass"></Floor> 
 	
-	
-	<Starship pos="(0,200,0)" focus="true" force="72" camera="static" debug="true" displayCollider="false">
+	<Starship pos="(0,200,0)" focus="true" force="72" camera="static" debug="false" displayCollider="false">
 		<Box pos="(40,0,-20)" name="pink box" mass="0" color="pink">
 			<Ball pos="(0,40,0)" name="upper ball" color="blue" mass="0"></Ball>
 		</Box>

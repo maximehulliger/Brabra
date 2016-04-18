@@ -2,6 +2,7 @@ package brabra.game.physic;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 import brabra.game.Color;
 import brabra.game.XMLLoader.Attributes;
@@ -9,6 +10,7 @@ import brabra.game.physic.geo.Line;
 import brabra.game.physic.geo.Quaternion;
 import brabra.game.physic.geo.Vector;
 import brabra.game.scene.Movable;
+import brabra.game.scene.Object;
 
 /** 
  * An movable object obeying to the laws of physics. 
@@ -37,13 +39,26 @@ public abstract class Body extends Movable {
 	/** Will be added on next update. */
 	private Vector forcesLocToAdd = zero.copy(), torquesLocToAdd = zero.copy();
 	/** Executed before updating the body. */
-	private Runnable onUpdate = null;
+	private Consumer<Body> onUpdate = null;
 	private List<Line> interactionsRel = new ArrayList<>();
 	
 	
 	/** create a Body with this location & location and infinite mass. rotation can be null */
 	public Body(Vector location, Quaternion rotation) {
 		super(location, rotation);
+	}
+	
+	public void copy(Object o) {
+		super.copy(o);
+		Body ob = this.as(Body.class);
+		if (ob != null) {
+			setMass(ob.mass);
+			onUpdate = ob.onUpdate;
+			maxLife = ob.maxLife;
+			life = ob.life;
+			color = ob.color;
+			restitution = ob.restitution;
+		}
 	}
 
 	/** to add force to the body every frame */
@@ -74,21 +89,23 @@ public abstract class Body extends Movable {
 	/** applique les forces et update l'etat. return true if this was updated. */
 	public boolean update() {
 		if (!updated) {
-			//0. before update
-			addForces();
-			if (onUpdate != null)
-				onUpdate.run();
-			//1. translation
-			Vector acceleration = forcesLocToAdd.multBy(inverseMass);
-			if (!acceleration.equals(zero))
-				velocityRel.add( acceleration );
-			//2. rotation, vitesse angulaire, on prend rotation axis comme L/I
-			Vector dL = torquesLocToAdd.multElementsBy(inverseInertiaMom);
-			if (!dL.equals(zero))
-				rotationRelVel.addAngularMomentum( dL );
-
-			forcesLocToAdd.set(zero);
-			torquesLocToAdd.set(zero);
+			if (inverseMass > 0) {
+				// before update
+				addForces();
+				if (onUpdate != null)
+					onUpdate.accept(this);
+				// translation
+				Vector acceleration = forcesLocToAdd.multBy(inverseMass);
+				if (!acceleration.equals(zero))
+					velocityRel.add( acceleration );
+				// rotation, vitesse angulaire, on prend rotation axis comme L/I
+				Vector dL = torquesLocToAdd.multElementsBy(inverseInertiaMom);
+				if (!dL.equals(zero))
+					rotationRelVel.addAngularMomentum( dL );
+				// reset
+				forcesLocToAdd.set(zero);
+				torquesLocToAdd.set(zero);
+			}
 			return super.update(); //always true
 		} else
 			return false;
@@ -110,10 +127,11 @@ public abstract class Body extends Movable {
 
 	// --- some setters
 	
-	public void addOnUpdate(Runnable onUpdate) {
-		final Runnable oldAddForce = this.onUpdate;
+	/** To execute some code before this body is updated (for example to apply some forces). */
+	public void addOnUpdate(Consumer<Body> onUpdate) {
+		final Consumer<Body> oldAddForce = this.onUpdate;
 		this.onUpdate = this.onUpdate == null ?
-				onUpdate : () -> { oldAddForce.run(); onUpdate.run(); };
+				onUpdate : b -> { oldAddForce.accept(b); onUpdate.accept(b); };
 	}
 
 	/** 

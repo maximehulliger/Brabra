@@ -25,7 +25,7 @@ public class ObjectField extends Field implements Observer {
 	private float oldValidMass;
 	
 	public ObjectField(Object object) {
-		super(object.toString());
+		super(object.toString(), true);
 		
 	    //--- Fields:
 		final List<Field> fields = new ArrayList<>();
@@ -35,26 +35,27 @@ public class ObjectField extends Field implements Observer {
 		fields.add(
 				new StringField("name",
 						nm -> object.setName(nm),
-						() -> object.toString())
+						() -> object.toString(),
+						true)
 				.respondingTo(Change.Name)
 				);
 		// location
 		fields.add(
-				new VectorField("location rel", object.locationRel())
+				new VectorField("location", object.locationRel(), true)
 				.respondingTo(Change.Location)
 				);
 		// rotation
-		fields.add(new QuaternionField("quaternion",object.rotation()).respondingTo(Change.Rotation));
+		fields.add(new QuaternionField("rotation",object.rotation()).respondingTo(Change.Rotation));
 		// > if Movable
 		asMovable = object.as(Movable.class);
 		if (asMovable != null) {
 			// velocity (rel)
 			fields.add(
-					new VectorField("velocity rel", asMovable.velocityRel())
+					new VectorField("velocity", asMovable.velocityRel(), true)
 					.respondingTo(Change.Velocity)
 					);
 			// rotVelotity (still always relative)
-			fields.add(new QuaternionField("quaternion",asMovable.rotationRelVel()).respondingTo(Change.RotVelocity));
+			fields.add(new QuaternionField("rot vel",asMovable.rotationRelVel()).respondingTo(Change.RotVelocity));
 		}
 		// > if Body
 		asBody = object.as(Body.class);
@@ -103,8 +104,10 @@ public class ObjectField extends Field implements Observer {
 	}
 
 	public void update(Observable o, java.lang.Object arg) {
-		if (arg == Change.Name) 
-			super.setName(object.toString());
+		if (isVisible()) {
+			if (arg == Change.Name)
+				super.setName(object.toString());
+		}
 	}
 	
 	private boolean validMassForPhysic(float mass) {

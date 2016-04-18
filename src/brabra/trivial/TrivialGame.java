@@ -31,18 +31,13 @@ public class TrivialGame extends Interface {
 		Cylinders.trivialGame = this;
 	}
 	
-	public void init() {
-		mover = new Mover(this);
-		cylinders = new Cylinders();
-		mode = Mode.Jeu;
-		etat = 0; //entre 0 (jeu) et 1 (controle)
-		tiltSpeed = 1;
-		platRot = zero.copy();
-	}
-	
 	public void wakeUp() {
 		app.imgAnalyser.detectButtons = false;
 		app.imgAnalyser.play(true);
+		mover = new Mover(this);
+		cylinders = new Cylinders();
+		tiltSpeed = 1;
+		platRot = zero.copy();
 		mode = Mode.Jeu;
 		etat = 0; //entre 0 (jeu) et 1 (controle)
 	}

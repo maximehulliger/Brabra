@@ -73,6 +73,13 @@ public class Vector extends PVector {
 	public Vector copy() {
 		return new Vector(this);
 	}
+	
+	public String formated(float epsilon) {
+		return isZeroEps(false) ? "zero" : "[ " //TODO add epsilon
+				+ Master.formatFloat(x, epsilon) + ", "
+				+ Master.formatFloat(y, epsilon) + ", "
+				+ Master.formatFloat(z, epsilon) + " ]";
+	}
 
 	public Vector normalized() {
 		return new Vector(copy().normalize());

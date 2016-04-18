@@ -30,14 +30,11 @@ public class Calibration extends Interface {
 		ia = app.imgAnalyser;
 	}
 
-	public void init() {
+	public void wakeUp() {
 		if (fontLabel == null) {
 			fontLabel = app.createFont("Arial", 18, true);
 			fontImages = app.createFont("Arial", (Brabra.height - 275)/17, true);
 		}
-	}
-	
-	public void wakeUp() {
 		ia.inputLock.lock();
 		ImageAnalyser.displayQuadRejectionCause = true;
 		ia.forced = true;

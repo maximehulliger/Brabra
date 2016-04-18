@@ -14,8 +14,8 @@ public class StringField extends ValueField<String> {
 	private final Label valueLabel;
 	private boolean clicked = false;
 	
-	public StringField(String name, Consumer<String> setModelValue, Supplier<String> getModelValue) {
-		super(name);
+	public StringField(String name, Consumer<String> setModelValue, Supplier<String> getModelValue, boolean withTriangle) {
+		super(name, withTriangle);
 		this.setModelValue = setModelValue;
 		this.getModelValue = getModelValue;
 		

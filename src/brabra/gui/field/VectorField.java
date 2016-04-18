@@ -3,59 +3,33 @@ package brabra.gui.field;
 import brabra.Master;
 import brabra.game.physic.Physic;
 import brabra.game.physic.geo.Vector;
-import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 
 public class VectorField extends ValueField<Vector> {
 
-	private Vector vector;
-	private final TextField xValue;
-	private final TextField yValue;
-	private final TextField zValue;
-	private final Label valueLabel;
-	private boolean clicked = false;
+	private final Vector vector;
+	private final TextField 
+			xValue = new TextField(),
+			yValue = new TextField(),
+			zValue = new TextField();
 	
-	public VectorField(String name, Vector vector) {
-		super(name);
+	public VectorField(String name, Vector vector, boolean withTriangle) {
+		super(name, withTriangle);
 		this.vector = vector;
 		
 		//--- View:
-		this.valueLabel = new Label(vector.toString());
-		this.xValue = new TextField(Float.toString(vector.x));
-		this.yValue = new TextField(Float.toString(vector.y));
-		this.zValue = new TextField(Float.toString(vector.z));
 		xValue.setPrefWidth(55);
 		yValue.setPrefWidth(55);
 		zValue.setPrefWidth(55);
-		contentClosed.getChildren().add(valueLabel);
 		contentOpen.getChildren().addAll(xValue, yValue, zValue);
 		
+		// set text
+		updateGUI(vector.copy());
+		
 		//--- Control:
-		xValue.setOnAction(e -> this.clicked = true);
-		yValue.setOnAction(e -> this.clicked = true);
-		zValue.setOnAction(e -> this.clicked = true);
-		this.setOnMouseExited(e-> {
-			if (this.clicked) {
-				this.onChange();
-				this.clicked = false;
-			}
-		});
-	}
-	
-	private String getFloatValue(Float val){
-		if (Math.abs(val) < Physic.epsilon) return "0.0";
-		final String a = val.toString();
-		if (a.length() > 5) return a.substring(0, 5);
-		else return a;
-	}
-	
-	private String toString(Vector vector){
-		String vectorValue = "[ ";
-		vectorValue = vectorValue + getFloatValue(vector.x) + ", ";
-		vectorValue = vectorValue + getFloatValue(vector.y) + ", ";
-		vectorValue = vectorValue + getFloatValue(vector.z);
-		vectorValue = vectorValue + " ]";
-		return vectorValue;
+		xValue.setOnAction(e -> this.onChange());
+		yValue.setOnAction(e -> this.onChange());
+		zValue.setOnAction(e -> this.onChange());
 	}
 
 	protected void setModelValue(Vector val) {
@@ -75,9 +49,9 @@ public class VectorField extends ValueField<Vector> {
 
 	protected void updateGUI(Vector newVal) {
 		super.updateGUI(newVal);
-		valueLabel.setText(toString(newVal));
-		xValue.setText(getFloatValue(newVal.x));
-		yValue.setText(getFloatValue(newVal.y));
-		zValue.setText(getFloatValue(newVal.z));
+		setValue(newVal.formated(Physic.epsilon));
+		xValue.setText(Master.formatFloat(newVal.x, Physic.epsilon));
+		yValue.setText(Master.formatFloat(newVal.y, Physic.epsilon));
+		zValue.setText(Master.formatFloat(newVal.z, Physic.epsilon));
 	}
 }

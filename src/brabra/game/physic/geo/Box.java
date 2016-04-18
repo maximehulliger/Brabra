@@ -19,9 +19,17 @@ public class Box extends PseudoPolyedre {
 
 	/** Create a cube with arretes of lenght dim. */
 	public Box(Vector location, Quaternion rotation, Vector size) {
-	    super(location, rotation, size.mag()/2);
+	    super(location, rotation);
 	    super.setName("Cube");
 	    setSize(size);
+	}
+
+	public void copy(Object o) {
+		super.copy(o);
+		Box ob = this.as(Box.class);
+		if (ob != null) {
+			setSize(size);
+		}
 	}
 	
 	// --- Getters ---
@@ -49,6 +57,7 @@ public class Box extends PseudoPolyedre {
 		this.faces = getFaces(size, this);
 		this.verticesRel = verticesRel(dim);
 	    this.edgesRel = edgesRel(verticesRel);
+	    super.setRadiusEnveloppe(dim.mag());
 	}
 	
 	public void setMass(float mass) {

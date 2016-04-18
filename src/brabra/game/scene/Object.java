@@ -97,6 +97,15 @@ public class Object extends ProMaster implements Debugable {
 		this(location, identity);
 	}
 	
+	/** Set this to the other object. should be overridden to make the copy complete & called. */
+	public void copy(Object other) {
+		locationRel.set(other.locationRel);
+		rotationRel.set(other.rotationRel);
+		setName(other.name);
+		setParent(other.parent);
+		setParentRel(other.parentRel);
+	}
+	
 	// --- Methods to override if wanted (of course basically everything is ;) ) ---
 
 	/** Override it to display the object. */
@@ -207,6 +216,12 @@ public class Object extends ProMaster implements Debugable {
 	/** Return true if this object was validated once in his life. */
 	public boolean validated() {
 		return validated;
+	}
+
+	/** Unvalidate this object (this should be updated). */
+	public void unvalidate() {
+		assert(validated);
+		validated = false;
 	}
 
 	/** Return if the transforms of the object or one of his parent changed during last frame. */
@@ -335,8 +350,10 @@ public class Object extends ProMaster implements Debugable {
 	 **/
 	public void setParentRel(ParentRelationship rel) {
 		assert (rel != null);
+		if (parent == null)
+			assert(rel == ParentRelationship.None);
+			
 		if (rel != parentRel) {
-			assert(rel == ParentRelationship.None || parent != null);
 			final boolean hadParent = hasParent();
 			parentRel = rel;
 			final boolean hasParent = hasParent();
@@ -392,9 +409,7 @@ public class Object extends ProMaster implements Debugable {
 		if (children.remove(oldChild)) {
 			assert(oldChild.parent == this);
 			childrenChangedCurrent = true;
-			oldChild.parent = null;
-			oldChild.parentRel = ParentRelationship.None;
-			oldChild.absValid = false;
+			oldChild.setParent(null);
 		}
 	}
 
@@ -470,6 +485,8 @@ public class Object extends ProMaster implements Debugable {
 			// 1. ask for the parent
 			if (hasParent())
 				parent.updateAbs();
+			else
+				assert (parentRel == ParentRelationship.None);
 			app.pushMatrix();
 			app.resetMatrix(); //we're working clean here !
 			switch(parentRel) {

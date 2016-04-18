@@ -27,6 +27,18 @@ public class Movable extends Object {
 		super(location, rotation);
 	}
 	
+	public void copy(Object o) {
+		super.copy(o);
+		Movable om = this.as(Movable.class);
+		if (om != null) {
+			velocityRel.set(om.velocityRel);
+			rotationRelVel.set(om.rotationRelVel);
+			movableParent = om.movableParent;
+			moving = om.moving;
+			rotating = om.rotating;
+		}
+	}
+	
 	// --- Getters ---
 	
 	/** Return true if the object has moved during last frame (by velocity or parent's rotational velocity). */

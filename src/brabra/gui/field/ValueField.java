@@ -9,8 +9,8 @@ public abstract class ValueField<T> extends Field {
 	private T value = null;
 	private Object triggerArg = null;
 	
-	public ValueField(String name) {
-		super(name);
+	public ValueField(String name, boolean withTriangle) {
+		super(name, withTriangle);
 		this.name = name; //TODO 4 debug only: to remove
 	}
 	
@@ -47,12 +47,14 @@ public abstract class ValueField<T> extends Field {
 	}
 
 	public final void update(Observable o, java.lang.Object arg) {
-		if (triggerArg == null || arg == triggerArg) {
-			final T newVal = getModelValue();
-//			if (!getNewValue().equals(newVal)){
-				updateGUI(newVal);
-				System.out.println(arg.toString() + "ready to update"); //TODO 4 debug
-//			}
+		if (isVisible()) {
+			if (triggerArg == null || arg == triggerArg) {
+				final T newVal = getModelValue();
+				//if (newVal != value || !getNewValue().equals(newVal)){
+					updateGUI(newVal);
+					System.out.println(arg.toString() + " updated"); //TODO 4 debug
+				//}
+			}
 		}
 	}
 }

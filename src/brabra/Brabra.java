@@ -245,24 +245,20 @@ public class Brabra extends PApplet {
 	public void setView(View view) {
 		switch (view) {
 		case Menu:
-			intMenu.init();
 			setInterface(intMenu);
 			return;
 		case Calibration:
-			intCalibration.init();
 			setInterface(intCalibration);
 			return;
 		case RealGame:
-			game.init();
 			setInterface(game);
 			return;
 		case TrivialGame:
-			intTrivialGame.init();
 			setInterface(intTrivialGame);
 			return;
 		case None:
 			setInterface(new Interface() {
-				public void init() {background(0);}
+				public void onShow() {background(0);}
 				public void draw() {}
 			});
 			return;
@@ -280,9 +276,11 @@ public class Brabra extends PApplet {
 				exit();
 		} else if (key == 'l')
 			debug.log("parameters loading still to implement");//imgAnalyser.imgProc.selectParameters(); TODO
-		else if (key == 'q')
-			currentInterface.init();
-		else if (key == 'Q')
+		else if (key == 'r') {
+			currentInterface.onHide();
+			currentInterface.onShow();
+			para.setRunning(false);
+		} else if (key == 'Q')
 			imgAnalyser.resetAllParameters(true);
 		else if (key == 'p')
 			imgAnalyser.playOrPause();
@@ -294,16 +292,18 @@ public class Brabra extends PApplet {
 		currentInterface.keyPressed();
 	}
 
+	public void keyReleased() {
+		if (key == 'r')
+			para.setRunning(true);
+		currentInterface.keyReleased();
+	}
+	
 	public void mouseDragged() {
 		currentInterface.mouseDragged();
 	}
 
 	public void mouseWheel(MouseEvent event) {
 		currentInterface.mouseWheel(event);
-	}
-
-	public void keyReleased() {
-		currentInterface.keyReleased();
 	}
 
 	public void mousePressed() {
@@ -334,7 +334,7 @@ public class Brabra extends PApplet {
 		if (currentInterface != null)
 			currentInterface.onHide();
 		currentInterface = view;
-		view.onShow();
+		currentInterface.onShow();
 		if (focusGainedEventWaiting)
 			currentInterface.onFocusChange(true);
 	}
