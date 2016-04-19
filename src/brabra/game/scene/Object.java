@@ -152,6 +152,11 @@ public class Object extends ProMaster implements Debugable {
 		return name;
 	}
 	
+	public Object copy() {
+		Object a = new Object(locationAbs);
+		return a;
+	}
+	
 	/** Return true if the object should consider his parent. */
 	public boolean hasParent() {
 		return parent != null && parentRel != ParentRelationship.None;
