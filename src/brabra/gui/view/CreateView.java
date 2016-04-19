@@ -45,7 +45,7 @@ public class CreateView extends View {
         objectChoiceButtons.add(getButton("data/gui/ball.png", Sphere.class), 0, currentRow);
         objectChoiceButtons.add(getButton("data/gui/box.png", Box.class), 1, currentRow++);
         objectChoiceButtons.add(getButton("data/gui/plane.png", Plane.class), 0, currentRow);
-        objectChoiceButtons.add(getButton(null, Starship.class), 1, currentRow++);
+        objectChoiceButtons.add(getButton("data/gui/starship.png", Starship.class), 1, currentRow++);
         choiceView.getChildren().add(objectChoiceButtons);
 		
         // > creation view
