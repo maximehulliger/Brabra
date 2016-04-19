@@ -440,8 +440,8 @@ public class Object extends ProMaster implements Debugable {
 			rotationRel.update();
 			rotationAbs.update();
 			// update flags
-			rotationChanged = rotationRel.hasChanged() || rotationAbs.hasChanged();
 			locationChanged = locationRel.hasChanged() || locationAbs.hasChanged();
+			rotationChanged = rotationRel.hasChanged() || rotationAbs.hasChanged();
 			transformChanged = rotationChanged || locationChanged;
 			if (transformChanged)
 				absValid = false;

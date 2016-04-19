@@ -69,7 +69,7 @@ public final class XMLLoader extends ProMaster {
 	    		final String locString = atts.getValue("pos");
 	    		final String dirString = atts.getValue("dir");
 	    		final Vector loc = locString != null ? vec(locString) : zero;
-	    		final Quaternion rot = dirString != null ? Quaternion.fromDirection(vec(dirString)) : identity;
+	    		final Quaternion rot = dirString != null ? Quaternion.fromDirection(vec(dirString), Vector.up) : identity;
 	    		// create object
 	    		final Object newObj = game.scene.addPrefab(localName, loc, rot);
 				attrStack.push(new Attributes(atts, parentStack.empty() ? null : parentStack.peek()));

@@ -63,8 +63,10 @@ public class ProTest extends ProMaster {
 
 	public Vector[] someVectors(int n) {
 		Vector[] ret = new Vector[n];
-		for (int i=0; i<n; i++)
-			ret[i] = Vector.randomVec(1);
+		for (int i=0; i<n; i++) {
+			if ((ret[i] = Vector.randomVec(1)).equals(zero))
+				i--;
+		}
 		return ret;
 	}
 

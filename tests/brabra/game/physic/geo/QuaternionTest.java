@@ -1,5 +1,6 @@
 package brabra.game.physic.geo;
 
+import static org.junit.Assert.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,13 +21,13 @@ public class QuaternionTest extends ProTest {
 	}
 
 	@Test
-	public void quickTest() {
+	public void allTest() {
 		consistencyTest(someQuats(10));
 	}
 
 	@Test
 	public void initWXYZTest() {
-		consistencyTest(someQuatsFromWXYZ(10));
+		consistencyTest(someQuatsFromWXYZ(100));
 	}
 	
 	@Test
@@ -36,7 +37,7 @@ public class QuaternionTest extends ProTest {
 
 	@Test
 	public void initAxisTest() {
-		consistencyTest(someQuatsFromAxis(10));
+		consistencyTest(someQuatsFromAxis(100));
 	}
 
 	private void consistencyTest(Iterable<Quaternion> quatsToTest) {
@@ -52,27 +53,36 @@ public class QuaternionTest extends ProTest {
 
 	@Test
 	public void rotateTest() {
-		for (Quaternion r2 : someQuats(10)) {
+		for (Quaternion r2 : someQuats(100)) {
 			iter++;
 			final Quaternion r1 = r2.withAngle( r2.angle()/2 );
 			final Quaternion r4 = r2.withAngle( r2.angle()*2 );
+			final Quaternion r12 = r1.rotatedBy(r1);
+			final Quaternion r24 = r2.rotatedBy(r2);
 			
-			assertEqualsEps("at iter "+iter, r2, r1.rotatedBy(r1));
-			assertEqualsEps("at iter "+iter, r4, r2.rotatedBy(r2));
+			assertFalse("at iter "+iter, r1.equals(identity));
+			assertFalse("at iter "+iter, r4.equals(identity));
+			assertFalse("at iter "+iter, r12.equals(identity));
+			assertFalse("at iter "+iter, r24.equals(identity));
+			assertEqualsEps("at iter "+iter, r2, r12);
+			assertEqualsEps("at iter "+iter, r4, r24);
 		}
 	}
 	
 	@Test
 	public void rotate360Test() {
-		for (Vector v : both(Vector.directions, someVectors(10))) {
+		for (Vector v : both(Vector.directions, someVectors(100))) {
 			iter++;
-			final int steps = random(4, 12);
+			final int steps = random(2, 64);
 			// rotate to make a 360° turn
 			final float angle = twoPi/steps;
 			Quaternion r = new Quaternion(v, angle);
 			Quaternion acc = identity.copy();
-			for (int i=0; i<steps; i++)
+			for (int i=0; i<steps; i++) {
 				acc.rotate(r);
+				if (i>0 && i<steps-1)
+					assertFalse("at mult "+(i+1)+"/"+(steps+1), acc.equals(identity));
+			}
 			
 			assertEqualsEps("at iter "+iter+", "+steps+" steps ("+angle*toDegrees+") around "+v+"\n", identity, acc);
 		}
@@ -90,7 +100,7 @@ public class QuaternionTest extends ProTest {
 	public void unityTest() {
 		assertEqualsEps("unity contrary", Quaternion.identity.contrary(), Quaternion.identity);
 		
-		for (Vector v : someVectors(10)) {
+		for (Vector v : both(Vector.directions, someVectors(10))) {
 			iter++;
 			final Quaternion u2 = new Quaternion(v, twoPi);
 			final Quaternion u3 = new Quaternion(null, pi);
@@ -108,12 +118,12 @@ public class QuaternionTest extends ProTest {
 	
 	@Test
 	public void oppositeAngleTest() {
-		for (Quaternion q : someQuats(10)) {
+		for (Quaternion q : someQuats(50)) {
 			iter++;
 			final float qa = q.angle();
 			final Quaternion qOp1 = q.withOppositeAngle();
 			final Quaternion qOp2 = q.withAngle(-qa);
-			final Quaternion q1 = qOp1.withAngle(qa);
+			final Quaternion q1 = qOp1.withAngle(-qOp1.angle());
 			final Quaternion q2 = qOp2.withOppositeAngle();
 
 			assertEqualsEps("at iter "+iter+" with angle = "+q.angle(), qOp1, qOp2);
@@ -124,7 +134,7 @@ public class QuaternionTest extends ProTest {
 
 	@Test
 	public void rotateOppositeTest() {
-		for (Quaternion q : someQuats(10)) {
+		for (Quaternion q : someQuats(50)) {
 			iter++;
 			final Quaternion q2 = q.withOppositeAngle();
 			
@@ -135,29 +145,56 @@ public class QuaternionTest extends ProTest {
 	private List<Quaternion> quatsFromDir() {
 		List<Quaternion> l = new ArrayList<Quaternion>(6);
 		for (Vector dir : Vector.directions)
-			l.add(Quaternion.fromDirection(dir));
+			l.add(Quaternion.fromDirection(dir, Vector.up));
+		assertTrue(l.size() == 6);
+		return l;
+	}
+
+	private List<Quaternion> quatsFromDirNonId() {
+		List<Quaternion> l = new ArrayList<Quaternion>(6);
+		Quaternion q;
+		for (Vector dir : Vector.directions)
+			if (!(q = Quaternion.fromDirection(dir, Vector.up)).isIdentity())
+				l.add(q);
+		assertTrue(l.size() == 5);
 		return l;
 	}
 
 	private List<Quaternion> someQuatsFromWXYZ(int n) {
 		List<Quaternion> l = new ArrayList<Quaternion>(n);
 		for (int i=0; i<n; i++) {
-			final float w = randomBi(), x = randomBi(), y = randomBi(), z = randomBi();
-			if (w!=0 && x!=0 && y!=0 && z!=0)
-				l.add(new Quaternion(w, x, y, z));
+			Quaternion qm = null;
+			while (qm == null || qm.isIdentity()) {
+				qm = new Quaternion(randomBi(), randomBi(), randomBi(), randomBi());
+			}
+			l.add(qm);
 		}
+		assertTrue(l.size() == n);
 		return l;
 	}
 
 	private List<Quaternion> someQuatsFromAxis(int n) {
 		List<Quaternion> l = new ArrayList<Quaternion>(n);
-		for (Vector v : someVectors(10)) {
-			l.add(new Quaternion(v, random(-pi, pi)));
+		for (Vector v : someVectors(n)) {
+			Quaternion qm = null;
+			while (qm == null || qm.isIdentity())
+				qm = new Quaternion(v, random(-pi, pi));
+			l.add(qm);
 		}
+		assertTrue(l.size() == n);
 		return l;
 	}
 	
-	private Iterable<Quaternion> someQuats(int n) {
-		return both(quatsFromDir(), both(someQuatsFromWXYZ(n), someQuatsFromAxis(n)));
+	private List<Quaternion> someQuats(int n) {
+		final int sampleCount = 5 + 2 * n;
+		final List<Quaternion> sample =  new ArrayList<>(sampleCount);
+		for (Quaternion q : both(quatsFromDirNonId(), both(someQuatsFromWXYZ(n), someQuatsFromAxis(n)))) {
+			if (!q.isIdentity())
+				sample.add(q);
+		}
+		
+		assertTrue("problem with quats test sample: have only "+sample.size()+" over "+sampleCount+".", sample.size() == sampleCount);
+		
+		return sample;
 	}
 }

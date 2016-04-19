@@ -176,8 +176,10 @@ public class Movable extends Object {
 	/** Force the object to lose some rotational velocity. reset after eps. */
 	public void brakeRot(float loss) {
 		if (isRotating()) {
-			rotationRelVel.setAngle(rotationRelVel.angle() * (1 - loss));
-			rotationRelVel.isZeroEps(true);
+			float angle = rotationRelVel.angle();
+			assert(angle != 0);
+			rotationRelVel.setAngle(angle * (1 - loss));
+			assert(angle != rotationRelVel.angle());
 		}
 	}
 }

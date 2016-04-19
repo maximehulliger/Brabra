@@ -186,7 +186,7 @@ public abstract class Master {
 	
 	/** a random value in [-1, 1] */ 
 	public static float randomBi() {
-		return random(-1, 1);
+		return random(-1f, 1f);
 	}
 	
 	public static float sq(float t) {
