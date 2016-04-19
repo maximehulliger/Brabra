@@ -29,7 +29,8 @@ public class ParametersView extends View {
 		
 		//--- View:
 		// title
-		super.add(new Label("parameters:"), 0, currentRow++);
+		title.setText("parameters:");
+		super.add(title, 0, currentRow++);
 		// fields
 		fields.forEach(f -> {
 			super.add(f, 0, currentRow++);

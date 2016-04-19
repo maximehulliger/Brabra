@@ -1,7 +1,38 @@
 #objectName{
-	-fx-font-family:"Courier New";
-	-fx-font-size:18px;
+	-fx-font-family:"selif";
+	-fx-font-size:14px;
 }
-.text-field{
-	-fx-max-height: 0.3;
+
+.title-text{
+	-fx-font-family : "selif";
+	-fx-font-size : 18px;
+	-fx-padding: 4px;
 }
+
+.parameter-label{
+	-fx-font-family : "selif";
+	-fx-font-size : 14px;
+	-fx-padding: 2px;
+}
+
+.parameter-value-open{
+	-fx-font-family : "serif";
+	-fx-font-size : 14px;
+	-fx-padding: 2px;
+}
+
+.parameter-value-closed{
+	-fx-font-family : "serif";
+	-fx-font-size : 14px;
+	-fx-padding: 2px;
+}
+
+.creation-button{
+	-fx-font-family : "Helvetica";
+	-fx-font-size : 14px;
+}
+
+.creation-holder{
+	
+}
+

@@ -35,7 +35,7 @@ public class CreateView extends View {
 		//choiceView.setHgap(10);
         //choiceView.setVgap(10);
 		// title
-		final Label title = new Label("Select an object to create:");
+		title.setText("Select an object to create:");
 		choiceView.getChildren().add(title);
         // object choice buttons
 		final GridPane objectChoiceButtons = new GridPane();

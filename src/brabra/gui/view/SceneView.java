@@ -14,7 +14,6 @@ import brabra.gui.field.ObjectField;
 public final class SceneView extends View implements Observer {
 	
 	private static final String defaultTitle = "Empty Scene.";
-	private final Label title;
 	private final List<ObjectField> objectFields = new ArrayList<>();
 	private final Scene sceneModel;
 
@@ -26,7 +25,7 @@ public final class SceneView extends View implements Observer {
 		//--- View:
 		//super.setHgap(8);
 		//super.setVgap(8);
-		this.title = new Label(defaultTitle);
+		title.setText(defaultTitle);
 		super.add(title, 0, currentRow++);
 		
 		assert(sceneModel.objects.size() == 0);
