@@ -110,12 +110,12 @@ public abstract class ValueField<T> extends Field {
 		}
 	}
 
-	public static abstract class WithCustomValue<T> extends ValueField<T> {
+	public static abstract class WithCustomModel<T> extends ValueField<T> {
 		
 		private final Consumer<T> setModelValue;
 		private final Supplier<T> getModelValue;
 		
-		public WithCustomValue(String name, Consumer<T> setModelValue, Supplier<T> getModelValue, boolean withTriangle) {
+		public WithCustomModel(String name, Consumer<T> setModelValue, Supplier<T> getModelValue, boolean withTriangle) {
 			super(name, getModelValue.get(), withTriangle);
 			this.setModelValue = setModelValue;
 			this.getModelValue = getModelValue;

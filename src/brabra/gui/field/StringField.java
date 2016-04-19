@@ -8,7 +8,7 @@ import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.scene.control.TextField;
 
-public class StringField extends ValueField.WithCustomValue<String> {
+public class StringField extends ValueField.WithCustomModel<String> {
 
 	private TextField stringBox;
 	

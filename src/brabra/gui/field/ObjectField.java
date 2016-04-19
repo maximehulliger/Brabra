@@ -27,7 +27,9 @@ public class ObjectField extends Field implements Observer {
 		super(object.toString(), true);
 		
 	    //--- Fields:
+		
 		final ArrayList<Field.Pro> fieldsList = new ArrayList<>(16);
+		
 		// > first Object
 		this.object = object;
 		//name
@@ -42,6 +44,7 @@ public class ObjectField extends Field implements Observer {
 		fieldsList.add(new VectorField.Pro("location", object.locationRel(), true).respondingTo(Change.Location));
 		// rotation
 		fieldsList.add(new QuaternionField.Pro("rotation",object.rotation()).respondingTo(Change.Rotation));
+		
 		// > if Movable
 		asMovable = object.as(Movable.class);
 		if (asMovable != null) {
@@ -50,6 +53,7 @@ public class ObjectField extends Field implements Observer {
 			// rotVelotity (still always relative)
 			fieldsList.add(new QuaternionField.Pro("rot vel",asMovable.rotationRelVel()).respondingTo(Change.RotVelocity));
 		}
+		
 		// > if Body
 		asBody = object.as(Body.class);
 		if (asBody != null) {
@@ -78,6 +82,7 @@ public class ObjectField extends Field implements Observer {
 					.respondingTo(Change.Mass)
 					);
 		}
+		
 		// > if Collider
 		asCollider = object.as(Collider.class);
 		if (asCollider != null) {
@@ -89,8 +94,10 @@ public class ObjectField extends Field implements Observer {
 					.respondingTo(Change.DisplayCollider)
 					);
 		}
-		// get them back as Fields
 		
+		// TODO: add fields for Box, Sphere & Plan.
+		
+		// get them back as Fields
 		List<Field> fields = new ArrayList<>();
 		fieldsList.forEach(fPro -> fields.add((Field)fPro));
 		
