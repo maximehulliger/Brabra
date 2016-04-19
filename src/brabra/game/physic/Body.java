@@ -2,6 +2,7 @@ package brabra.game.physic;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 import brabra.game.Color;
 import brabra.game.XMLLoader.Attributes;
@@ -9,6 +10,7 @@ import brabra.game.physic.geo.Line;
 import brabra.game.physic.geo.Quaternion;
 import brabra.game.physic.geo.Vector;
 import brabra.game.scene.Movable;
+import brabra.game.scene.Object;
 
 /** 
  * An movable object obeying to the laws of physics. 
@@ -18,11 +20,12 @@ import brabra.game.scene.Movable;
  **/
 public abstract class Body extends Movable {
 	
-	private static final boolean displayInteractions = true; //forces et impulse
+	public static final float infiniteMass = -1, ghostMass = -2; //TODO change all -1 & -2
+	private static final boolean displayInteractions = true; //forces & impulse
 	private static final Color interactionColor = new Color("white", true);
 	
 	/** Mass of the body. -2 for ghost, -1 for infinite or bigger than 0 (never equals 0).*/
-	protected float mass = -2;
+	protected float mass = ghostMass;
 	/** Inverse of the body mass. 0 for infinite mass or bigger than 0. */
 	protected float inverseMass = 0;
 	protected Vector inertiaMom = null;
@@ -36,13 +39,26 @@ public abstract class Body extends Movable {
 	/** Will be added on next update. */
 	private Vector forcesLocToAdd = zero.copy(), torquesLocToAdd = zero.copy();
 	/** Executed before updating the body. */
-	private Runnable onUpdate = null;
+	private Consumer<Body> onUpdate = null;
 	private List<Line> interactionsRel = new ArrayList<>();
 	
 	
 	/** create a Body with this location & location and infinite mass. rotation can be null */
 	public Body(Vector location, Quaternion rotation) {
 		super(location, rotation);
+	}
+	
+	public void copy(Object o) {
+		super.copy(o);
+		Body ob = this.as(Body.class);
+		if (ob != null) {
+			setMass(ob.mass);
+			onUpdate = ob.onUpdate;
+			maxLife = ob.maxLife;
+			life = ob.life;
+			color = ob.color;
+			restitution = ob.restitution;
+		}
 	}
 
 	/** to add force to the body every frame */
@@ -73,21 +89,25 @@ public abstract class Body extends Movable {
 	/** applique les forces et update l'etat. return true if this was updated. */
 	public boolean update() {
 		if (!updated) {
-			//0. before update
-			addForces();
-			if (onUpdate != null)
-				onUpdate.run();
-			//1. translation
-			Vector acceleration = forcesLocToAdd.multBy(inverseMass);
-			if (!acceleration.equals(zero))
-				velocityRel.add( acceleration );
-			//2. rotation, vitesse angulaire, on prend rotation axis comme L/I
-			Vector dL = torquesLocToAdd.multElementsBy(inverseInertiaMom);
-			if (!dL.equals(zero))
-				addAngularMomentum( dL );
-
-			forcesLocToAdd.set(zero);
-			torquesLocToAdd.set(zero);
+			if (inverseMass > 0) {
+				// before update
+				addForces();
+				if (onUpdate != null)
+					onUpdate.accept(this);
+				// translation
+				Vector acceleration = forcesLocToAdd.multBy(inverseMass);
+				if (!acceleration.equals(zero))
+					velocityRel.add( acceleration );
+				// rotation, vitesse angulaire, on prend rotation axis comme L/I
+				Vector dL = torquesLocToAdd.multElementsBy(inverseInertiaMom);
+//				TODO: if (!dL.equals(zero))
+//					rotationRelVel.addAngularMomentum( dL );
+				if (!dL.equals(zero))
+					addAngularMomentum( dL );
+				// reset
+				forcesLocToAdd.set(zero);
+				torquesLocToAdd.set(zero);
+			}
 			return super.update(); //always true
 		} else
 			return false;
@@ -109,10 +129,11 @@ public abstract class Body extends Movable {
 
 	// --- some setters
 	
-	public void addOnUpdate(Runnable onUpdate) {
-		final Runnable oldAddForce = this.onUpdate;
+	/** To execute some code before this body is updated (for example to apply some forces). */
+	public void addOnUpdate(Consumer<Body> onUpdate) {
+		final Consumer<Body> oldAddForce = this.onUpdate;
 		this.onUpdate = this.onUpdate == null ?
-				onUpdate : () -> { oldAddForce.run(); onUpdate.run(); };
+				onUpdate : b -> { oldAddForce.accept(b); onUpdate.accept(b); };
 	}
 
 	/** 
@@ -142,6 +163,7 @@ public abstract class Body extends Movable {
 			this.inertiaMom = null;
 			this.inverseInertiaMom = null;
 		}
+		model.notifyChange(Change.Mass);
 	}
 	
 	public void setColor(Color color) {
@@ -212,6 +234,11 @@ public abstract class Body extends Movable {
 	/** If false, the body doesn't react to the collision but others do. */
 	public boolean affectedByCollision() {
 		return inverseMass > 0;
+	}
+	
+	/** Return the mass of the body, bigger than 0 (can be Float.POSITIVE_INFINITY). */
+	public float mass() {
+		return inverseMass > 0 ? mass : Float.POSITIVE_INFINITY;
 	}
 
 	/** Add momentum to the body at this point (absolute). */
@@ -311,7 +338,7 @@ public abstract class Body extends Movable {
 		if (mass == -1)
 			//throw new IllegalArgumentException("un objet de mass infini ne devrait pas peser !"); now tolerated :)
 			return;
-		applyForce( up(-game.physic.gravity*mass) );
+		applyForce( app.para.gravity().multBy(mass) );
 	}
 	
 	public void avance(float forceFront) {

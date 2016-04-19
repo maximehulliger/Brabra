@@ -4,10 +4,7 @@ import processing.event.MouseEvent;
 
 public abstract class Interface extends ProMaster {
 	
-	/** Initialize all dynamic stuff */
-	public abstract void init();
-	
-	/** On view change, when this interface is set. */
+	/** On view change or reset, to (re)load everything. */
 	public void onShow() {}
 
 	/** On view change, when another interface is set. */

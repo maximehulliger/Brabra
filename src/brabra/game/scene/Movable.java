@@ -27,6 +27,18 @@ public class Movable extends Object {
 		super(location, rotation);
 	}
 	
+	public void copy(Object o) {
+		super.copy(o);
+		Movable om = this.as(Movable.class);
+		if (om != null) {
+			velocityRel.set(om.velocityRel);
+			rotationRelVel.set(om.rotationRelVel);
+			movableParent = om.movableParent;
+			moving = om.moving;
+			rotating = om.rotating;
+		}
+	}
+	
 	// --- Getters ---
 	
 	/** Return true if the object has moved during last frame (by velocity or parent's rotational velocity). */
@@ -39,10 +51,15 @@ public class Movable extends Object {
 	public boolean isRotating() {
 		return rotating || (movableParent != null && movableParent.isRotating());
 	}
-	
+
 	/** Return the velocity relative to the parent at the center of mass. */
 	public Vector velocityRel() {
 		return velocityRel;
+	}
+
+	/** Return the rotational velocity relative to the parent. */
+	public Quaternion rotationRelVel() {
+		return rotationRelVel;
 	}
 	
 	/** Return the absolute velocity at the center of mass. */
@@ -135,6 +152,8 @@ public class Movable extends Object {
 					game.debug.log(6, this+" stopped moving.");
 					moving = false;
 				}
+				velocityRel.update();
+				model.notifyChange(Change.Velocity);
 			}
 			// 2. rotation
 			if (rotating || rotationRelVel.hasChangedCurrent()) {
@@ -148,10 +167,9 @@ public class Movable extends Object {
 					game.debug.log(6, this+" stopped rotating.");
 					rotating = false;
 				}
+				rotationRelVel.update();
+				model.notifyChange(Change.RotVelocity);
 			}
-			// 3. update changes
-			velocityRel.update();
-			rotationRelVel.update();
 			return super.update();
 		} else
 			return false;

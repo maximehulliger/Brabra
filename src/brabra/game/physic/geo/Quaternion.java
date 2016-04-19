@@ -1,5 +1,6 @@
 package brabra.game.physic.geo;
 
+import brabra.Master;
 import brabra.ProMaster;
 import processing.core.PApplet;
 import brabra.game.physic.Physic;
@@ -162,6 +163,12 @@ public class Quaternion extends ProMaster {
 			}
 		}
 		testThis();
+	}
+	
+	public String formated() {
+		//TODO not good epsilon
+		return rotAxis()==null ? "identity" 
+				: "around "+rotAxis().formated(Physic.epsilon)+" with angle "+Master.formatFloat(angle()*180/pi, Physic.epsilon)+"°";
 	}
 
 	/** wxyz -> (rotAxis, angle). update rot axis & angle if needed (!validRotAxis). set validRotAxis to true. */

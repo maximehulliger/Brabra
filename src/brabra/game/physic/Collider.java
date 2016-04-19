@@ -5,6 +5,7 @@ import brabra.game.XMLLoader.Attributes;
 import brabra.game.physic.geo.Line;
 import brabra.game.physic.geo.Quaternion;
 import brabra.game.physic.geo.Line.Projection;
+import brabra.game.scene.Object;
 import brabra.game.physic.geo.Vector;
 
 /** A class able to init and react to a collision. */
@@ -12,44 +13,55 @@ public abstract class Collider extends Body {
 	
 	public final static Color colliderColor = new Color(255, 0, 0, 150, 255, 0, 0);
 	
-	public static boolean displayAllColliders = false;
-	
-	private final float radiusEnveloppe;
+	private float radiusEnveloppe;
 	private boolean displayCollider = false;
 	
-	public Collider(Vector location, Quaternion rotation, float radiusEnveloppe) {
-	  super(location, rotation);
-	  assert(radiusEnveloppe > 0);
-	  this.radiusEnveloppe = radiusEnveloppe;
+	public Collider(Vector location, Quaternion rotation) {
+		super(location, rotation);
 	}
-	
+
 	public Collider withName(String name) {
 		super.setName(name);
 		return this;
 	}
 	
-	public float radiusEnveloppe() {
-		return radiusEnveloppe;
+	/** Set the radius of the enveloppe sphere used to check if collide fast. */
+	protected final void setRadiusEnveloppe(float radiusEnveloppe) {
+		this.radiusEnveloppe = radiusEnveloppe;
+		assert(radiusEnveloppe > 0);
 	}
 
-	public boolean validate(Attributes atts) {
-		if (super.validate(atts)) {
-			final String displayCollider = atts.getValue("displayCollider");
-			if (displayCollider != null)
-				setDisplayCollider( Boolean.parseBoolean(displayCollider) );
-			return true;
-		} else
-			return false;
+	public void copy(Object o) {
+		super.copy(o);
+		Collider oc = this.as(Collider.class);
+		if (oc != null) {
+			displayCollider = oc.displayCollider;
+		}
 	}
 	
-	public void setDisplayCollider(boolean displayCollider) {
-		this.displayCollider = displayCollider;
+	// --- Getters ---
+
+	public boolean displayCollider() {
+		return displayCollider || app.para.displayAllColliders();
+	}
+
+	public float radiusEnveloppe() {
+		return radiusEnveloppe;
 	}
 	
 	public boolean doCollideFast(Collider c) {
 		return this.location().minus(c.location()).magSq() < sq(this.radiusEnveloppe + c.radiusEnveloppe);
 	}
 	
+	// --- Setters ---
+	
+	public void setDisplayCollider(boolean displayCollider) {
+		this.displayCollider = displayCollider;
+		model.notifyChange(Change.DisplayCollider);
+	}
+	
+	// --- Collider ---
+
 	/** To display the shape of the collider (without color, in relative space). */
 	public abstract void displayShape();
 	
@@ -62,12 +74,22 @@ public abstract class Collider extends Body {
 	 * Return true if the collider was displayed.
 	 **/
 	protected boolean displayColliderMaybe() {
-		final boolean display = displayCollider || displayAllColliders;
+		final boolean display = displayCollider();
 		if (display) {
 			colliderColor.fill();
 			displayShape();
 		}
 		return display;
+	}
+
+	public boolean validate(Attributes atts) {
+		if (super.validate(atts)) {
+			final String displayCollider = atts.getValue("displayCollider");
+			if (displayCollider != null)
+				setDisplayCollider( Boolean.parseBoolean(displayCollider) );
+			return true;
+		} else
+			return false;
 	}
 	
 	// --- obstacle --- ?

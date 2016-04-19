@@ -2,6 +2,8 @@ package brabra.game.scene;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Observable;
+import java.util.Observer;
 import java.util.function.Function;
 
 import brabra.ProMaster;
@@ -14,6 +16,7 @@ import brabra.game.physic.geo.Quaternion;
 import processing.core.PMatrix;
 import processing.core.PMatrix3D;
 import brabra.game.physic.geo.Vector;
+import brabra.gui.ToolWindow;
 
 /** 
  * A movable object with transforms (location, rotation) 
@@ -63,11 +66,13 @@ public class Object extends ProMaster implements Debugable {
 	private Object parent = null;
 	private ParentRelationship parentRel = ParentRelationship.None;
 	private final List<Object> children = new ArrayList<>();
+	
 	/** Flag used during the main update loop. */
 	protected boolean updated = false;
+	protected Scene scene = null;
 	
 	// > Flags, other
-	private String name = "Unknown Stuff";
+	private String name;
 	private boolean transformChanged = false, locationChanged = false, rotationChanged = false;
 	/** Indicate if the children changed. */
 	private boolean childrenChanged = false, childrenChangedCurrent = false;
@@ -76,19 +81,29 @@ public class Object extends ProMaster implements Debugable {
 	
 	/** Create a Body with this location & rotation. rotation can be null. */
 	public Object(Vector location, Quaternion rotation) {
-		locationRel.setOnChange(() -> {absValid=false;});
-		rotationRel.setOnChange(() -> {absValid=false;});
+		locationRel.addOnChange(() -> {absValid=false;});
+		rotationRel.addOnChange(() -> {absValid=false;});
 		//locationAbs.setOnChange(() -> {});
 		// we only set rel variables cause !absValid.
 		locationRel.set(location);
 		if (rotation != null) {
 			rotationRel.set(rotation);
 		}
+		setName(getClass().getSimpleName());
 	}
 	
 	/** Create a Body with this location & no initial rotation. */
 	public Object(Vector location) {
 		this(location, identity);
+	}
+	
+	/** Set this to the other object. should be overridden to make the copy complete & called. */
+	public void copy(Object other) {
+		locationRel.set(other.locationRel);
+		rotationRel.set(other.rotationRel);
+		setName(other.name);
+		setParent(other.parent);
+		setParentRel(other.parentRel);
 	}
 	
 	// --- Methods to override if wanted (of course basically everything is ;) ) ---
@@ -145,9 +160,10 @@ public class Object extends ProMaster implements Debugable {
 	public String toString() {
 		return name;
 	}
-
-	public boolean inScene() {
-		return game.scene.objects().contains(this);
+	
+	public Object copy() {
+		Object a = new Object(locationAbs);
+		return a;
 	}
 	
 	/** Return true if the object should consider his parent. */
@@ -163,7 +179,7 @@ public class Object extends ProMaster implements Debugable {
 	@SuppressWarnings("unchecked")
 	/** To cast this object easily. return null if invalid. */
 	public <T extends Object> T as(Class <T> as) {
-		return (as.getClass().isInstance(this)) ? (T)this : null;
+		return as.isInstance(this) ? (T)this : null;
 	}
 
 	/** Return the absolute location of the object. update things if needed. */
@@ -205,6 +221,12 @@ public class Object extends ProMaster implements Debugable {
 	/** Return true if this object was validated once in his life. */
 	public boolean validated() {
 		return validated;
+	}
+
+	/** Unvalidate this object (this should be updated). */
+	public void unvalidate() {
+		assert(validated);
+		validated = false;
 	}
 
 	/** Return if the transforms of the object or one of his parent changed during last frame. */
@@ -318,6 +340,7 @@ public class Object extends ProMaster implements Debugable {
 	
 	public void setName(String name) {
 		this.name = name;
+		model.notifyChange(Change.Name);
 	}
 	
 	/** Set the name and return the object (for "new Object().withName("pope")"). */
@@ -332,8 +355,10 @@ public class Object extends ProMaster implements Debugable {
 	 **/
 	public void setParentRel(ParentRelationship rel) {
 		assert (rel != null);
+		if (parent == null)
+			assert(rel == ParentRelationship.None);
+			
 		if (rel != parentRel) {
-			assert(rel == ParentRelationship.None || parent != null);
 			final boolean hadParent = hasParent();
 			parentRel = rel;
 			final boolean hasParent = hasParent();
@@ -389,8 +414,7 @@ public class Object extends ProMaster implements Debugable {
 		if (children.remove(oldChild)) {
 			assert(oldChild.parent == this);
 			childrenChangedCurrent = true;
-			oldChild.parent = null;
-			oldChild.absValid = false;
+			oldChild.setParent(null);
 		}
 	}
 
@@ -427,6 +451,8 @@ public class Object extends ProMaster implements Debugable {
 	 * 	Return true if the object was updated or false if it already was for this frame.
 	 **/
 	protected boolean update() {
+		if (scene == null)
+			throw new IllegalArgumentException("The object \""+toString()+"\" should be added to the scene before updating it.");
 		if (hasParent() && !parent.updated) {
 			boolean pu = parent.update();
 			assert(pu);
@@ -440,8 +466,10 @@ public class Object extends ProMaster implements Debugable {
 			rotationRel.update();
 			rotationAbs.update();
 			// update flags
-			locationChanged = locationRel.hasChanged() || locationAbs.hasChanged();
-			rotationChanged = rotationRel.hasChanged() || rotationAbs.hasChanged();
+			if (rotationChanged = rotationRel.hasChanged() || rotationAbs.hasChanged())
+				model.notifyChange(Change.Rotation);
+			if (locationChanged = locationRel.hasChanged() || locationAbs.hasChanged())
+				model.notifyChange(Change.Location);
 			transformChanged = rotationChanged || locationChanged;
 			if (transformChanged)
 				absValid = false;
@@ -462,6 +490,8 @@ public class Object extends ProMaster implements Debugable {
 			// 1. ask for the parent
 			if (hasParent())
 				parent.updateAbs();
+			else
+				assert (parentRel == ParentRelationship.None);
 			app.pushMatrix();
 			app.resetMatrix(); //we're working clean here !
 			switch(parentRel) {
@@ -500,12 +530,6 @@ public class Object extends ProMaster implements Debugable {
 			return true;
 		} else
 			return false;
-	}
-	
-	/** Force this object to call update. */
-	public void forceUpdate() {
-		updated = false;
-		update();
 	}
 	
 	// --- conversion position local <-> *absolute* <-> relative ---
@@ -565,6 +589,34 @@ public class Object extends ProMaster implements Debugable {
 	/** Return the local direction in the object space regardless of this' direction. result is only rotated -> same norm. */
 	public Vector localDirFromRel(Vector dirRel) {
 		return absolute(localDir(dirRel), zero, rotationRel);
+	}
+	
+	// --- Observation ---
+	
+	public enum Change {
+		Location, Rotation, Velocity, RotVelocity, DisplayCollider, Mass, Name, Size
+	}
+	
+	protected final ObjectModel model = new ObjectModel();
+
+	public void addObserver(Observer o) {
+		model.addObserver(o);
+	}
+
+	public <O extends Observer> void addObservers(Iterable<O> obss) {
+		obss.forEach(o -> model.addObserver(o));
+	}
+	
+	/** To let someone watch this object */
+	protected final static class ObjectModel extends Observable {
+		public void notifyChange(Change change) {
+			ToolWindow.run(() -> {
+				synchronized (this) {
+					setChanged();
+					notifyObservers(change);
+				}
+			});
+		}
 	}
 	
 	// --- syntactic sugar for space change ---

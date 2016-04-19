@@ -20,7 +20,7 @@ public class TrivialGame extends Interface {
 		TransDown,	//revient à jeu
 		Placement  
 	};
-	private final Mover mover;
+	private Mover mover;
 	private Mode mode;
 	private float etat; //entre 0 (jeu) et 1 (controle)
 	private float tiltSpeed;
@@ -29,21 +29,15 @@ public class TrivialGame extends Interface {
 	
 	public TrivialGame() {
 		Cylinders.trivialGame = this;
-		this.mover = new Mover(this);
-		Cylinders.initCylinder();
-	}
-	
-	public void init() {
-		cylinders = new Cylinders();
-		mode = Mode.Jeu;
-		etat = 0; //entre 0 (jeu) et 1 (controle)
-		tiltSpeed = 1;
-		platRot = zero.copy();
 	}
 	
 	public void wakeUp() {
 		app.imgAnalyser.detectButtons = false;
 		app.imgAnalyser.play(true);
+		mover = new Mover(this);
+		cylinders = new Cylinders();
+		tiltSpeed = 1;
+		platRot = zero.copy();
 		mode = Mode.Jeu;
 		etat = 0; //entre 0 (jeu) et 1 (controle)
 	}
