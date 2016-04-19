@@ -119,7 +119,6 @@ public abstract class ValueField<T> extends Field {
 			super(name, getModelValue.get(), withTriangle);
 			this.setModelValue = setModelValue;
 			this.getModelValue = getModelValue;
-			setDisplayValue(getModelValue());
 		}
 
 		protected void setModelValue(T val) {

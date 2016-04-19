@@ -4,6 +4,8 @@ import brabra.Brabra;
 import brabra.Master;
 import brabra.game.physic.Physic;
 import brabra.game.physic.geo.Vector;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.scene.control.TextField;
 
 public class VectorField extends ValueField<Vector> {
@@ -12,7 +14,7 @@ public class VectorField extends ValueField<Vector> {
 	private TextField[] valueFields;
 	
 	public VectorField(String name, Vector vector, boolean withTriangle) {
-		super(name, vector, withTriangle);
+		super(name, vector.copy(), withTriangle);
 		super.setDefaultValue(Vector.zero);
 		this.vector = vector;
 	}
@@ -40,7 +42,17 @@ public class VectorField extends ValueField<Vector> {
 				//--- View:
 				field.setPrefWidth(55);
 				//--- Control:
-				field.setOnAction(e -> this.onChange());
+				field.setOnAction(e->this.onChange());
+				field.focusedProperty().addListener(new ChangeListener<Boolean>()
+				{
+				    @Override
+				    public void changed(ObservableValue<? extends Boolean> arg0, Boolean oldPropertyValue, Boolean newPropertyValue)
+				    {
+				        if (!newPropertyValue){
+				            onChange();
+				        }
+				    }
+				});
 			}
 			
 			contentOpen.getChildren().addAll(valueFields);
