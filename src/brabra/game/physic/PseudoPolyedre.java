@@ -16,8 +16,8 @@ public abstract class PseudoPolyedre extends Collider {
 	/** Edges in absolute. */
 	private Line[] edges = null;
 	
-	public PseudoPolyedre(Vector loc, Quaternion rot, float radiusEnveloppe) {
-		super(loc, rot, radiusEnveloppe);
+	public PseudoPolyedre(Vector loc, Quaternion rot) {
+		super(loc, rot);
 	}
 	
 	public abstract void display();

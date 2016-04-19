@@ -43,8 +43,8 @@ public class Scene extends Observable {
 	public final ConcurrentLinkedDeque<Object> objects = new ConcurrentLinkedDeque<Object>();
 	public final ConcurrentLinkedDeque<Collider> colliders = new ConcurrentLinkedDeque<Collider>();
 	
-	private final ConcurrentLinkedDeque<Object> toRemove = new ConcurrentLinkedDeque<Object>();
-	private final ConcurrentLinkedDeque<Object> toAdd = new ConcurrentLinkedDeque<Object>();
+	//private final ConcurrentLinkedDeque<Object> toRemove = new ConcurrentLinkedDeque<Object>();
+	//private final ConcurrentLinkedDeque<Object> toAdd = new ConcurrentLinkedDeque<Object>();
 	private final RealGame game;
 	
 	public Scene(RealGame game) {
@@ -65,7 +65,8 @@ public class Scene extends Observable {
 
 	/** Add an object to the scene (on next update). */
 	public Object add(Object o) {
-		toAdd.add(o);
+		addNow(o);
+		//toAdd.add(o); TODO
 		return o;
 	}
 
@@ -81,15 +82,25 @@ public class Scene extends Observable {
 		return o;
 	}
 	
+	/** Remove an object from the scene immediately. */
+	public void removeNow(Object o) {
+		objects.remove(o);
+		colliders.remove(o);
+		o.onDelete();
+		notifyChange(o, Change.ObjectRemoved);
+	}
+	
 	/** Remove an object from the scene (on next update). return the object. */
 	public Object remove(Object o) {
-		toRemove.add(o);
+		removeNow(o);
+		//toRemove.add(o);
 		return o;
 	}
 	
 	/** Remove all object from the scene. */
 	public void reset() {
-		toRemove.addAll(objects);
+		objects.forEach(o -> remove(o));
+		//toRemove.addAll(objects);
 	}
 	
 	// --- Prefab help method ---
@@ -111,11 +122,11 @@ public class Scene extends Observable {
 		} else if (name.equals(Box.class.getSimpleName())) {
 			obj = body = new Box(location, rotation, new Vector(20,20,20));
 			body.setMass(1);
-			body.addOnUpdate(() -> body.pese());
+			body.addOnUpdate(b -> b.pese());
 		} else if (name.equals(Sphere.class.getSimpleName()) || name.equals("Ball")) {
 			obj = body = new Sphere(location, 10);
 			body.setMass(1);
-			body.addOnUpdate(() -> body.pese());
+			body.addOnUpdate(b -> b.pese());
 		} else if (name.equals("Floor"))
 			obj = new Plane(location, rotation).withName("Floor");
 		else if (name.equals(Plane.class.getSimpleName()))
@@ -140,7 +151,7 @@ public class Scene extends Observable {
 	/** To call before all update methods. */
 	public void beforeUpdateAll() {
 		game.debug.setCurrentWork("objects pre-update");
-		updateObjectLists();
+		//updateObjectLists();
 		for (Object o : objects) 
 			o.beforeUpdate();
 	}
@@ -150,7 +161,7 @@ public class Scene extends Observable {
 		game.debug.setCurrentWork("objects update");
 		for (Object o : objects)
 			o.update();
-		updateObjectLists();
+		//updateObjectLists();
 	}
 
 	/** Display all colliders and effects in the scene. */
@@ -163,7 +174,7 @@ public class Scene extends Observable {
 	// --- private stuff ---
 
 	/** Effectively remove / add objects to the lists. */
-	private void updateObjectLists() {
+	/*private void updateObjectLists() {
 		if (toRemove.size() > 0) {
 			objects.removeAll(toRemove);
 			colliders.removeAll(toRemove);
@@ -177,13 +188,13 @@ public class Scene extends Observable {
 			toAdd.forEach(o->addNow(o));
 			toAdd.clear();
 		}
-	}
+	}*/
 
 	private void notifyChange(Object o, Change change) {
 		ToolWindow.run(() -> {
 			synchronized (this) {
 				this.setChanged();
-				this.notifyObservers(new Arg(o, Change.ObjectAdded));
+				this.notifyObservers(new Arg(o, change));
 			}
 		});
 	}

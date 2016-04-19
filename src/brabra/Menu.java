@@ -57,17 +57,6 @@ public class Menu extends Interface {
 	private int rainbow = 0;
 	private float etatInfo = 0;
 	
-	public void init() {
-		if(imgBoutonUp == null) {
-			imgBoutonUp = app.loadImage("boutonUp.png");
-			imgBoutonDown = app.loadImage("boutonDown.png");
-			fontMainTitle = app.createFont("Arial", titleFontSize, true);
-			fontButton = app.createFont("Arial", buttonFontSize, true);
-			fontHelpButtonText = app.createFont("Arial", helpButtonSizeY*3/5, true);
-			fontHelpText = app.createFont("Arial", helpFontSize, true);
-		}
-	}
-	
 	public void wakeUp() {
 		app.imgAnalyser.play(false);
 		app.imgAnalyser.forced = false;
@@ -76,6 +65,14 @@ public class Menu extends Interface {
 	}
 
 	public void draw() {
+		if(imgBoutonUp == null) {
+			imgBoutonUp = app.loadImage("boutonUp.png");
+			imgBoutonDown = app.loadImage("boutonDown.png");
+			fontMainTitle = app.createFont("Arial", titleFontSize, true);
+			fontButton = app.createFont("Arial", buttonFontSize, true);
+			fontHelpButtonText = app.createFont("Arial", helpButtonSizeY*3/5, true);
+			fontHelpText = app.createFont("Arial", helpFontSize, true);
+		}
 		app.background(0, 75, 150);
 		app.textAlign(PApplet.CENTER, PApplet.CENTER);
 		// les 3 boutons

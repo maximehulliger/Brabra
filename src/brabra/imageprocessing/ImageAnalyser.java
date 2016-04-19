@@ -177,7 +177,7 @@ public class ImageAnalyser extends ProMaster {
 							rotation = newRot;
 							gameRotation = lastRotation.plus(rotation).div(2); //moyenne des 2 derniÃ¨res entrÃ©es
 							gameRotation.mult(-Brabra.inclinaisonMax / maxAcceptedAngle);
-							//on adoucis les angles d'entrée (pour + de contrôle proche de 0)
+							//on adoucis les angles d'entrï¿½e (pour + de contrï¿½le proche de 0)
 							float r = 360/PApplet.TWO_PI;
 							System.out.printf("rot: x: %.1f y: %.1f z: %.1f (Â°)\n", rotation.x*r, rotation.y*r, rotation.z*r);	
 						}

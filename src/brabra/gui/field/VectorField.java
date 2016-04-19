@@ -1,37 +1,20 @@
 package brabra.gui.field;
 
+import brabra.Brabra;
 import brabra.Master;
+import brabra.game.physic.Physic;
 import brabra.game.physic.geo.Vector;
-import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 
 public class VectorField extends ValueField<Vector> {
 
 	private final Vector vector;
-	private final TextField xValue;
-	private final TextField yValue;
-	private final TextField zValue;
-	private final Label valueLabel;
+	private TextField[] valueFields;
 	
-	public VectorField(String name, Vector vector) {
-		super(name);
+	public VectorField(String name, Vector vector, boolean withTriangle) {
+		super(name, vector, withTriangle);
+		super.setDefaultValue(Vector.zero);
 		this.vector = vector;
-		
-		//--- View:
-		this.valueLabel = new Label(vector.toString());
-		this.xValue = new TextField(Float.toString(vector.x));
-		this.yValue = new TextField(Float.toString(vector.y));
-		this.zValue = new TextField(Float.toString(vector.z));
-		xValue.setPrefWidth(55);
-		yValue.setPrefWidth(55);
-		zValue.setPrefWidth(55);
-		contentClosed.getChildren().add(valueLabel);
-		contentOpen.getChildren().addAll(xValue, yValue, zValue);
-		
-		//--- Control:
-		xValue.setOnAction(e -> this.onChange());
-		yValue.setOnAction(e -> this.onChange());
-		zValue.setOnAction(e -> this.onChange());
 	}
 
 	protected void setModelValue(Vector val) {
@@ -39,20 +22,55 @@ public class VectorField extends ValueField<Vector> {
 	}
 
 	protected Vector getModelValue() {
-		return vector;
+		return vector.copy();
 	}
 
 	protected Vector getNewValue() {
-		final Float x = Master.getFloat(xValue.getText(), true);
-		final Float y = Master.getFloat(yValue.getText(), true);
-		final Float z = Master.getFloat(zValue.getText(), true);
+		final Float x = Master.getFloat(valueFields[0].getText(), true);
+		final Float y = Master.getFloat(valueFields[1].getText(), true);
+		final Float z = Master.getFloat(valueFields[2].getText(), true);
 		return new Vector(x,y,z);
 	}
 
-	protected void updateValue(Vector newVal) {
-		valueLabel.setText(vector.toString());
-		xValue.setText(Float.toString(vector.x));
-		xValue.setText(Float.toString(vector.y));
-		xValue.setText(Float.toString(vector.z));
+	protected void setDisplayValue(Vector newVal) {
+		if (notInitialized()) {
+			valueFields = new TextField[] {new TextField(), new TextField(), new TextField()};
+			
+			for (TextField field : valueFields) {
+				//--- View:
+				field.setPrefWidth(55);
+				//--- Control:
+				field.setOnAction(e -> this.onChange());
+			}
+			
+			contentOpen.getChildren().addAll(valueFields);
+			
+		}
+		if (newVal == null) {
+			setValue("null");
+			for (TextField field : valueFields)
+				field.setText("0");
+		} else {
+			setValue(newVal.formated(Physic.epsilon));
+			valueFields[0].setText(Master.formatFloat(newVal.x, Physic.epsilon));
+			valueFields[1].setText(Master.formatFloat(newVal.y, Physic.epsilon));
+			valueFields[2].setText(Master.formatFloat(newVal.z, Physic.epsilon));
+		}
+	}
+	
+	public static class Pro extends VectorField implements Field.Pro {
+
+		public Pro(String name, Vector vector, boolean withTriangle) {
+			super(name, vector, withTriangle);
+		}
+
+		protected void setModelValue(final Vector val) {
+			Brabra.app.runLater(() -> super.setModelValue(val));
+		}
+
+		public Pro respondingTo(Object triggerArg) {
+			super.respondingTo(triggerArg);
+			return this;
+		}
 	}
 }

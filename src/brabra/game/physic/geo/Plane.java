@@ -4,6 +4,7 @@ import brabra.game.XMLLoader.Attributes;
 import brabra.game.physic.Collider;
 import brabra.game.physic.PseudoPolyedre;
 import brabra.game.physic.geo.Line.Projection;
+import brabra.game.scene.Object;
 import brabra.game.physic.geo.Vector;
 import processing.core.PApplet;
 
@@ -22,20 +23,23 @@ public class Plane extends PseudoPolyedre {
 
 	/** Create a plan (quad) of size size2d (x,z). */
 	public Plane(Vector loc, Quaternion rot, Vector size2d) {
-		super( loc, rot, size2d.mag()/2 );
-		this.finite = true;
+		super(loc, rot);
+		super.setName("Quad");
 		setSize(size2d);
-		setName("Quad");
 	}
 	
 	/** Create an infinite plan (with infinite mass). */
 	public Plane(Vector loc, Quaternion rot) {
-		super( loc, rot, Float.MAX_VALUE );
-		this.finite = false;
-		this.size = null;
-		this.natCo = getNatCo(new Vector(1, 0, 1));
-		setName("Plane");
-		setMass(-1);
+		super(loc, rot);
+		super.setName("Plane");
+		setSize(null);
+	}
+	
+	public void copy(Object o) {
+		super.copy(o);
+		Plane op = this.as(Plane.class);
+		if (op != null)
+			setSize(op.size);
 	}
 	
 	// --- Getters --- 
@@ -76,12 +80,14 @@ public class Plane extends PseudoPolyedre {
 		} 
 	}
 
-	/** Set the size taking x & z from size2d. The plane should not be infinite. */
+	/** Set the size taking x & z from size2d. Set the plan to infinite if size2d is null. */
 	public void setSize(Vector size2d) {
-		if (!finite)
-			throw new IllegalArgumentException("can not set the size of an infinite plan !");
 		this.size = size2d;
-		this.natCo = getNatCo(size2d);
+		this.finite = size2d != null;
+		this.natCo = getNatCo(finite ? size2d : new Vector(1, 0, 1));
+		super.setRadiusEnveloppe(finite ? size2d.mag()/2 : Float.POSITIVE_INFINITY);
+		if (!finite && !ghost())
+			setMass(-1);
 	}
 
 	// --- life cycle ---

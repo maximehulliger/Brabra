@@ -1,10 +1,9 @@
 package brabra.gui.field;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
-
-import java.util.ArrayList;
 
 import brabra.Master;
 import brabra.game.physic.Body;
@@ -25,48 +24,54 @@ public class ObjectField extends Field implements Observer {
 	private float oldValidMass;
 	
 	public ObjectField(Object object) {
-		super(object.toString());
+		super(object.toString(), true);
 		
 	    //--- Fields:
-		final List<Field> fields = new ArrayList<>();
+		final ArrayList<Field.Pro> fieldsList = new ArrayList<>(16);
 		// > first Object
 		this.object = object;
-		// location
-		fields.add(
-				new VectorField("location rel", object.locationRel())
-				.respondingTo(Change.Location)
+		//name
+		fieldsList.add(
+				new StringField.Pro("name",
+						nm -> object.setName(nm),
+						() -> object.toString(),
+						true)
+				.respondingTo(Change.Name)
 				);
+		// location
+		fieldsList.add(new VectorField.Pro("location", object.locationRel(), true).respondingTo(Change.Location));
 		// rotation
+		fieldsList.add(new QuaternionField.Pro("rotation",object.rotation()).respondingTo(Change.Rotation));
 		// > if Movable
 		asMovable = object.as(Movable.class);
 		if (asMovable != null) {
 			// velocity (rel)
-			fields.add(
-					new VectorField("velocity rel", asMovable.velocityRel())
-					.respondingTo(Change.Velocity)
-					);
+			fieldsList.add(new VectorField.Pro("velocity", asMovable.velocityRel(), true).respondingTo(Change.Velocity));
 			// rotVelotity (still always relative)
+			fieldsList.add(new QuaternionField.Pro("rot vel",asMovable.rotationRelVel()).respondingTo(Change.RotVelocity));
 		}
 		// > if Body
 		asBody = object.as(Body.class);
 		if (asBody != null) {
 			// mass
 			oldValidMass = Master.min(asBody.mass(), 1);
-			fields.add(
-					new FloatField("mass", 
+			fieldsList.add(
+					new FloatField.Pro("mass", 
 							m -> asBody.setMass(m), 
-							() -> asBody.mass())
+							() -> asBody.mass(),
+							true)
 					.respondingTo(Change.Mass)
 					);
 			// affectedByCollision (mass)
-			fields.add(
-					new BooleanField("affected by col", 
+			fieldsList.add(
+					new BooleanField.Pro("affected by col", 
 							ac -> {
-								if (ac != validMassForPhysic(asBody.mass())) { //if change, could be removed if model is well updated
-									final float newMass = ac ? this.oldValidMass : -1;
+								final float oldMass = asBody.mass();
+								if (ac != validMassForPhysic(oldMass)) { //if change, could be removed if model is well updated
+									if (validMassForPhysic(oldMass))
+										oldValidMass = oldMass;
+									final float newMass = ac ? oldValidMass : -1;
 									asBody.setMass(newMass);
-									if (validMassForPhysic(newMass))
-										oldValidMass = newMass;
 								}
 							}, 
 							() -> asBody.affectedByCollision())
@@ -77,27 +82,31 @@ public class ObjectField extends Field implements Observer {
 		asCollider = object.as(Collider.class);
 		if (asCollider != null) {
 			// display collider
-			fields.add(
-					new BooleanField("display collider", 
+			fieldsList.add(
+					new BooleanField.Pro("display collider", 
 							dc -> asCollider.setDisplayCollider(dc), 
 							() -> asCollider.displayCollider())
 					.respondingTo(Change.DisplayCollider)
 					);
 		}
-
+		// get them back as Fields
+		
+		List<Field> fields = new ArrayList<>();
+		fieldsList.forEach(fPro -> fields.add((Field)fPro));
+		
 		//--- View:
 		subfieldHolder.getChildren().addAll(fields);
 		
-	    /*labels[i] = new Label();
-		grid.add(labels[i],1,i);*/
-		
 		//--- Control:
 		object.addObserver(this);
-		fields.forEach(f -> object.addObserver(f));
+		object.addObservers(fields);
 	}
 
 	public void update(Observable o, java.lang.Object arg) {
-		
+		if (isVisible()) {
+			if (arg == Change.Name)
+				super.setName(object.toString());
+		}
 	}
 	
 	private boolean validMassForPhysic(float mass) {

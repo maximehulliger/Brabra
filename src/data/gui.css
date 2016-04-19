@@ -2,3 +2,6 @@
 	-fx-font-family:"Courier New";
 	-fx-font-size:18px;
 }
+.text-field{
+	-fx-max-height: 0.3;
+}

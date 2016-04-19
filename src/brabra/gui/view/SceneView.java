@@ -30,12 +30,6 @@ public final class SceneView extends View implements Observer {
 		super.add(title, 0, currentRow++);
 		
 		assert(sceneModel.objects.size() == 0);
-		/*for (Object o : sceneModel.objects()) {
-			ObjectField newField = new ObjectField(o);
-			objectFields.add(newField);
-			sceneModel.addObserver(newField);
-			super.add(newField, 0, currentRow++);
-		}*/
 
 		//--- Control:
 		sceneModel.addObserver(this);

@@ -13,12 +13,7 @@ all the following field:
 - Correct field initialization (at least BooleanField bugged)
 - Correct field update
 - Show only 4/5 digit of a float (create methode format in Master, after getFloat(float).
-- String Field
-- Quaternion Field (rot axis + angle)
-- add ValueFields in ObjectField for 
-  - Object
-  - Movable
-  - Body
+- add ValueFields in ObjectField for
   - Ball
   - Cube
   - Plane
@@ -37,7 +32,6 @@ all the following field:
 
 #4. Object Creation View
 ## Functionality
-- implement method copy in Object (&sons)
 - selectBox(?) to set the parent of the object
 - comboBox to follow parent
 

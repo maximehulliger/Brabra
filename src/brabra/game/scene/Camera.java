@@ -71,6 +71,7 @@ public class Camera extends Object {
 	public Camera() {
 		super(Vector.cube(100));
 		setName("Camera");
+		locationRel.addOnChange(()-> setDist(followMode, locationRel));
 	}
 	
 	// --- Getters ---
@@ -144,6 +145,8 @@ public class Camera extends Object {
 	
 	/** To let parentRel be consistent with followMode. */
 	public void setParentRel(ParentRelationship rel) {
+		if (rel == ParentRelationship.None)
+			setMode(FollowMode.Not);
 		switch (followMode) {
 		case Not:
 			super.setParentRel(ParentRelationship.None);
@@ -304,6 +307,11 @@ public class Camera extends Object {
 			return false;
 	}
 	
+	public void onDelete() {
+		super.onDelete();
+		this.unvalidate();
+	}
+	
 	public boolean update() {
 		if (super.update()) {
 			stateChanged = stateChangedCurrent;
@@ -320,6 +328,11 @@ public class Camera extends Object {
 			Vector newFocus;
 			Vector newOrientation;
 			Vector newLocationRel = getDist(followMode);
+			
+			if (!hasParent() || parent()==null) {
+				assert (followMode == FollowMode.Not);
+			}
+			
 			switch(followMode) {
 			case Static:
 				newFocus = parent().location();

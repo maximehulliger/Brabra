@@ -2,6 +2,7 @@ package brabra;
 
 import java.awt.MouseInfo;
 import java.awt.Point;
+import java.text.DecimalFormat;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Map;
@@ -9,6 +10,7 @@ import java.util.Random;
 import java.util.function.BiConsumer;
 import java.util.regex.Pattern;
 
+import brabra.game.physic.Physic;
 import processing.core.PApplet;
 
 /** 
@@ -37,6 +39,17 @@ public abstract class Master {
         } catch (NumberFormatException e) {
         	return floatOnly ? 0f : null;
 	    }
+	}
+	
+	private static final DecimalFormat shortString = new DecimalFormat("####.###");
+	/** Return this float formated (string) to hold in 7 char. */
+	public static String formatFloat(float value, float epsilon) {
+		if (Physic.isZeroEps(value)) //TODO add epsilon option
+			return "0";
+		else {
+			final int intValue = (int) value;
+			return value == intValue ? Integer.toString(intValue) : shortString.format(value);
+		}
 	}
 	
 	public static void println(float[] array) {

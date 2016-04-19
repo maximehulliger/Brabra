@@ -5,6 +5,7 @@ import brabra.game.XMLLoader.Attributes;
 import brabra.game.physic.geo.Line;
 import brabra.game.physic.geo.Quaternion;
 import brabra.game.physic.geo.Line.Projection;
+import brabra.game.scene.Object;
 import brabra.game.physic.geo.Vector;
 
 /** A class able to init and react to a collision. */
@@ -12,20 +13,32 @@ public abstract class Collider extends Body {
 	
 	public final static Color colliderColor = new Color(255, 0, 0, 150, 255, 0, 0);
 	
-	private final float radiusEnveloppe;
+	private float radiusEnveloppe;
 	private boolean displayCollider = false;
 	
-	public Collider(Vector location, Quaternion rotation, float radiusEnveloppe) {
-	  super(location, rotation);
-	  assert(radiusEnveloppe > 0);
-	  this.radiusEnveloppe = radiusEnveloppe;
+	public Collider(Vector location, Quaternion rotation) {
+		super(location, rotation);
 	}
-	
+
 	public Collider withName(String name) {
 		super.setName(name);
 		return this;
 	}
+	
+	/** Set the radius of the enveloppe sphere used to check if collide fast. */
+	protected final void setRadiusEnveloppe(float radiusEnveloppe) {
+		this.radiusEnveloppe = radiusEnveloppe;
+		assert(radiusEnveloppe > 0);
+	}
 
+	public void copy(Object o) {
+		super.copy(o);
+		Collider oc = this.as(Collider.class);
+		if (oc != null) {
+			displayCollider = oc.displayCollider;
+		}
+	}
+	
 	// --- Getters ---
 
 	public boolean displayCollider() {

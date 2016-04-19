@@ -20,16 +20,20 @@ public class RealGame extends Interface {
 	
 	// --- life cycle ---
 	
-	public void init() {
+	public void onShow() {
 		clearConsole();
 		debug.info(0, "loading scene");
 		scene.reset();
-		scene.addNow(camera);
+		scene.add(camera);
 		debug.followed.clear();
 		physicInteraction.setFocused(null, -1);
 		xmlFile.load();
 		app.imgAnalyser.detectButtons = true;
 		app.imgAnalyser.play(false);
+	}
+	
+	public void onHide() {
+		scene.reset();
 	}
 	
 	// mother method of all life:
@@ -57,17 +61,11 @@ public class RealGame extends Interface {
 	
 	public void keyPressed() {
 		input.keyPressed();
-		if (app.key == 'r') {
-			init();
-			setRunning(false);
-		}
 	}
 	
 	public void keyReleased() {
 		input.keyReleased();
-		if (app.key == 'r')
-			setRunning(true);
-		else if (app.keyCode == PApplet.TAB)
+		if (app.keyCode == PApplet.TAB)
 			camera.nextMode();
 		else if (app.key == 'p') {
 			setRunning(!running());

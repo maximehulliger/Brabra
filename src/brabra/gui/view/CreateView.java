@@ -21,9 +21,10 @@ import javafx.scene.layout.VBox;
 
 public class CreateView extends View {
 
-	private VBox choiceView = new VBox();
-	private GridPane creationControlButtons = new GridPane();
-	private Object currentNewObject = null;
+	private final VBox choiceView = new VBox();
+	private final GridPane creationControlButtons = new GridPane();
+	
+	private ObjectField objectField = null;
 	
 	public CreateView() {
 		
@@ -73,8 +74,15 @@ public class CreateView extends View {
         	getChildren().add(choiceView);
         });
         createBtn.setOnAction(e -> {
-        	Brabra.app.game.scene.add(currentNewObject);
-        	onButtonClickFor(currentNewObject.getClass());
+        	// add the edited object in the scene
+        	final Object obj = objectField.object;
+        	Brabra.app.game.scene.add(obj);
+        	// remove the old field
+    		getChildren().remove(objectField);
+        	// create the object & his field
+    		final Object newObj = getNewObject(obj.getClass());
+    		newObj.copy(obj);
+    		setFieldsToCreate(obj);
         });
 	}
 	
@@ -102,17 +110,23 @@ public class CreateView extends View {
 
 	/** Remove the choice view and create+add the creation view. */
 	private <T extends Object> void onButtonClickFor(Class <T> type) {
-		// create the object
-		currentNewObject = Brabra.app.game.scene.getPrefab(type.getSimpleName(), Vector.zero, Quaternion.identity);
-		// get all the fields (in one object field)
-		ObjectField objectField = new ObjectField(currentNewObject);
-		objectField.setOpen(true);
-		
 		//--- View:
 		// remove the old choice view
 		getChildren().clear();
 		// control buttons & all the fields (under objectField)
 		add(creationControlButtons, 0, 0);
+		setFieldsToCreate(getNewObject(type));
+	}
+	
+	/** Set the field for this object in the creation view. */
+	private void setFieldsToCreate(Object obj) {
+		// create new
+		objectField = new ObjectField(obj);
 		add(objectField, 0, 1);
+		objectField.setOpen(true);
+	}
+	
+	private <T extends Object> Object getNewObject(Class<T> type) {
+		return Brabra.app.game.scene.getPrefab(type.getSimpleName(), Vector.zero, Quaternion.identity);
 	}
 }

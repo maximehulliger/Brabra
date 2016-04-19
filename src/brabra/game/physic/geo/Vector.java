@@ -56,6 +56,15 @@ public class Vector extends PVector {
 			return up;
 		else if (vec.equals("down"))
 			return down;
+		else 
+			return parseVector(vec, null);
+	}
+	
+	/** 
+	 * Get a Vector from a "(x[,y[,z]])" format string.
+	 * return defaultValue(directly) if the string is invalid.
+	 **/
+	public static Vector parseVector(String vec, Vector defaultValue) {
 		// 2. extract 3 float from string.
 		Matcher matcher = Master.floatPattern.matcher(vec);
 		float[] values = new float[3];
@@ -63,7 +72,7 @@ public class Vector extends PVector {
 			if (matcher.find())
 				values[i] = Float.parseFloat(matcher.group());
 			else
-				return null;
+				return defaultValue;
 		}
 		return new Vector(values[0],values[1],values[2]);
 	}
@@ -72,6 +81,13 @@ public class Vector extends PVector {
 
 	public Vector copy() {
 		return new Vector(this);
+	}
+	
+	public String formated(float epsilon) {
+		return isZeroEps(false) ? "zero" : "[ " //TODO add epsilon
+				+ Master.formatFloat(x, epsilon) + ", "
+				+ Master.formatFloat(y, epsilon) + ", "
+				+ Master.formatFloat(z, epsilon) + " ]";
 	}
 
 	public Vector normalized() {

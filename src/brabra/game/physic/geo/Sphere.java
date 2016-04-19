@@ -3,6 +3,7 @@ package brabra.game.physic.geo;
 import brabra.game.XMLLoader.Attributes;
 import brabra.game.physic.Collider;
 import brabra.game.physic.geo.Line.Projection;
+import brabra.game.scene.Object;
 
 /** A sphere. */
 public class Sphere extends Collider {
@@ -10,13 +11,21 @@ public class Sphere extends Collider {
 	private float radius;
 
 	public Sphere(Vector location, Quaternion rotation, float radius) {
-		super(location, rotation, radius);
+		super(location, rotation);
 	  	setName("Ball");
 		setRadius(radius);
 	}
 
 	public Sphere(Vector location, float radius) {
 		this(location, identity, radius);
+	}
+
+	public void copy(Object o) {
+		super.copy(o);
+		Sphere os = this.as(Sphere.class);
+		if (os != null) {
+			setRadius(os.radius);
+		}
 	}
 	
 	// --- Getters ---
@@ -33,6 +42,7 @@ public class Sphere extends Collider {
 	// --- Setters ---
 	
 	public void setRadius(float radius) {
+		super.setRadiusEnveloppe(radius);
 		this.radius = radius;
 	}
 	

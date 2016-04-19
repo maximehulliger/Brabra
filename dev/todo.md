@@ -7,11 +7,10 @@
 
 ## 2. Less important
 ### easy
-- DONE Sadd size xml support for geo shapes.
-- dont stop rotating
 - shoot with prefab 2.
 
 ### hard/?0'
+- Quat fix
 - export.bats
 
 <br>

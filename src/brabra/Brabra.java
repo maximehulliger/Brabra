@@ -82,9 +82,21 @@ public class Brabra extends PApplet {
 	/** Launch the whole software. */
 	public void launch() {
 		// start the other threads if needed.
+		setImgAnalysis(imgAnalysis);
 		setToolWindow(toolWindow);
-        setImgAnalysis(imgAnalysis);
-        run();
+		
+		// we wait for the javaFX thread to init (beacause of m).
+		try {
+			while (fxApp == null)
+				Thread.sleep(1);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+
+		ToolWindow.readyLock.lock();
+		ToolWindow.readyLock.unlock();
+		
+		run();
 	}
 	
 	/** Run the processing thread. */
@@ -95,7 +107,18 @@ public class Brabra extends PApplet {
 	
 	/** Execute this Runnable later in the processing (main) thread. */
 	public void runLater(Runnable r) {
-		toExecuteInPro.add(r);
+		toExecuteInPro.add(runSafe(r));
+	}
+	
+	private Runnable runSafe(Runnable r) {
+		return () -> {
+			try {
+				r.run();
+			} catch (Exception e) {
+				e.printStackTrace();
+				dispose();
+			}
+		};
 	}
 	
 	public void settings() {
@@ -103,53 +126,63 @@ public class Brabra extends PApplet {
 	}
 
 	public void setup() {
-		// > processing stuff.
-		frameRate(frameRate);
-		//float camZ = height / (2*tan(PI*60/360.0f));
-		perspective(PI/3, width/(float)height, 1, ProMaster.far);
-		surface.setTitle(name);
-		// enable the frame and correct windowLoc.
-		frame.pack();
-		
-		// > correct window lock
-        //Insets insets = frame.getInsets();
-        //windowLoc.sub(insets.left, insets.top);
-		
-        // > init main window view (when everything is ready)
-		// app is now fully ready
-		// we wait for other components
-		ToolWindow.readyLock.lock();
-		ToolWindow.readyLock.unlock();
-		ImageAnalyser.readyLock.lock();
-		ImageAnalyser.readyLock.unlock();
-		
-		// and show the view
-		setView(View.RealGame);
+		try {
+			// > processing stuff.
+			frameRate(frameRate);
+			//float camZ = height / (2*tan(PI*60/360.0f));
+			perspective(PI/3, width/(float)height, 1, ProMaster.far);
+			surface.setTitle(name);
+			// enable the frame and correct windowLoc.
+			frame.pack();
+			
+			// > correct window lock
+	        //Insets insets = frame.getInsets();
+	        //windowLoc.sub(insets.left, insets.top);
+			
+	        // > init main window view (when everything is ready)
+			// app is now fully ready
+			// we wait for other components
+			ImageAnalyser.readyLock.lock();
+			ImageAnalyser.readyLock.unlock();
+			
+			// and show the view
+			setView(View.RealGame);
+		} catch (Exception e) {
+			e.printStackTrace();
+			this.dispose();
+		}
 	}
 	
 	public void draw() {
-		// execute the code to execute in this thread.
-		processTasksInPro();
-		// interface
-		currentInterface.draw();
-		// gui
-		hint(PApplet.DISABLE_DEPTH_TEST);
-		camera();
-		if (imgAnalysis && currentInterface!=intCalibration)
-			imgAnalyser.gui();
-		currentInterface.gui();
-		hint(PApplet.ENABLE_DEPTH_TEST);
-		// debug
-		debug.update();
+		try {
+			// execute the code to execute in this thread.
+			processTasksInPro();
+			// interface
+			currentInterface.draw();
+			// gui
+			hint(PApplet.DISABLE_DEPTH_TEST);
+			camera();
+			if (imgAnalysis && currentInterface!=intCalibration)
+				imgAnalyser.gui();
+			currentInterface.gui();
+			hint(PApplet.ENABLE_DEPTH_TEST);
+			// debug
+			debug.update();
+		} catch (Exception e) {
+			e.printStackTrace();
+			this.dispose();
+		}
 	}
 
 	public void dispose() {
-		debug.setCurrentWork("quiting");
-		over = true;
-		if (fxApp != null)
-			Platform.exit();
-		super.dispose();
-		System.out.println("bye bye !");
+		if (!over) {
+			debug.setCurrentWork("quiting");
+			over = true;
+			if (fxApp != null)
+				Platform.exit();
+			super.dispose();
+			System.out.println("bye bye !");
+		}
 	}
 	
 	// --- Getters ---
@@ -216,7 +249,7 @@ public class Brabra extends PApplet {
 			Master.launch(() -> ToolWindow.launch());
 			debug.info(3, "Tool Window thread started.");
 		} else if (fxAppStarted) {
-			Platform.runLater(() -> fxApp.setVisible(hasToolWindow));
+			Platform.runLater(runSafe(() -> fxApp.setVisible(hasToolWindow)));
 		}
 	}
 	
@@ -227,7 +260,7 @@ public class Brabra extends PApplet {
 			imgAnalyser = new ImageAnalyser();
 		if (imgAnalysisStarted && hasImgAnalysis) {
 			debug.info(3, "starting img analysis thread.");
-			Master.launch(() -> imgAnalyser.launch());
+			Master.launch(runSafe(() -> imgAnalyser.launch()));
 		}
 	}
 	
@@ -235,24 +268,20 @@ public class Brabra extends PApplet {
 	public void setView(View view) {
 		switch (view) {
 		case Menu:
-			intMenu.init();
 			setInterface(intMenu);
 			return;
 		case Calibration:
-			intCalibration.init();
 			setInterface(intCalibration);
 			return;
 		case RealGame:
-			game.init();
 			setInterface(game);
 			return;
 		case TrivialGame:
-			intTrivialGame.init();
 			setInterface(intTrivialGame);
 			return;
 		case None:
 			setInterface(new Interface() {
-				public void init() {background(0);}
+				public void onShow() {background(0);}
 				public void draw() {}
 			});
 			return;
@@ -270,9 +299,11 @@ public class Brabra extends PApplet {
 				exit();
 		} else if (key == 'l')
 			debug.log("parameters loading still to implement");//imgAnalyser.imgProc.selectParameters(); TODO
-		else if (key == 'q')
-			currentInterface.init();
-		else if (key == 'Q')
+		else if (key == 'r') {
+			currentInterface.onHide();
+			currentInterface.onShow();
+			para.setRunning(false);
+		} else if (key == 'Q')
 			imgAnalyser.resetAllParameters(true);
 		else if (key == 'p')
 			imgAnalyser.playOrPause();
@@ -284,16 +315,18 @@ public class Brabra extends PApplet {
 		currentInterface.keyPressed();
 	}
 
+	public void keyReleased() {
+		if (key == 'r')
+			para.setRunning(true);
+		currentInterface.keyReleased();
+	}
+	
 	public void mouseDragged() {
 		currentInterface.mouseDragged();
 	}
 
 	public void mouseWheel(MouseEvent event) {
 		currentInterface.mouseWheel(event);
-	}
-
-	public void keyReleased() {
-		currentInterface.keyReleased();
 	}
 
 	public void mousePressed() {
@@ -324,7 +357,7 @@ public class Brabra extends PApplet {
 		if (currentInterface != null)
 			currentInterface.onHide();
 		currentInterface = view;
-		view.onShow();
+		currentInterface.onShow();
 		if (focusGainedEventWaiting)
 			currentInterface.onFocusChange(true);
 	}
