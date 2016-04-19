@@ -30,7 +30,7 @@ public class Brabra extends PApplet {
 	/** Frame per seconds wished by Brabra. */
 	public static final float frameRate = 30;
 	/** Indicates if this should be activated on start. */
-	public boolean imgAnalysis = false, toolWindow = false, runWithoutFocus = true;
+	public boolean imgAnalysis = false, toolWindow = true, runWithoutFocus = true;
 	
 	//--- Public
 	/** Static reference to the app. valid once initLock is released. */
@@ -84,18 +84,7 @@ public class Brabra extends PApplet {
 		// start the other threads if needed.
 		setImgAnalysis(imgAnalysis);
 		setToolWindow(toolWindow);
-		
-		// we wait for the javaFX thread to init (beacause of m).
-		try {
-			while (fxApp == null)
-				Thread.sleep(1);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
-
-		ToolWindow.readyLock.lock();
-		ToolWindow.readyLock.unlock();
-		
+		// start the processing thread.
 		run();
 	}
 	
@@ -127,26 +116,27 @@ public class Brabra extends PApplet {
 
 	public void setup() {
 		try {
-			// > processing stuff.
+			// > Processing stuff.
 			frameRate(frameRate);
 			//float camZ = height / (2*tan(PI*60/360.0f));
 			perspective(PI/3, width/(float)height, 1, ProMaster.far);
 			surface.setTitle(name);
-			// enable the frame and correct windowLoc.
+			// Enable the frame and correct windowLoc.
 			frame.pack();
 			
-			// > correct window lock
+			// > Correct window lock
 	        //Insets insets = frame.getInsets();
 	        //windowLoc.sub(insets.left, insets.top);
 			
-	        // > init main window view (when everything is ready)
-			// app is now fully ready
-			// we wait for other components
+	        // > Init main window view. App is now fully ready (at least the private stuff). we wait for other components.
 			ImageAnalyser.readyLock.lock();
 			ImageAnalyser.readyLock.unlock();
+			ToolWindow.readyLock.lock();
+			ToolWindow.readyLock.unlock();
 			
-			// and show the view
+			// And finally show the view (init content).
 			setView(View.RealGame);
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 			this.dispose();
@@ -248,6 +238,15 @@ public class Brabra extends PApplet {
 			fxAppStarted = true;
 			Master.launch(() -> ToolWindow.launch());
 			debug.info(3, "Tool Window thread started.");
+
+			// we wait for the javaFX thread to init (beacause of m).
+			try {
+				while (fxApp == null)
+					Thread.sleep(1);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			
 		} else if (fxAppStarted) {
 			Platform.runLater(runSafe(() -> fxApp.setVisible(hasToolWindow)));
 		}

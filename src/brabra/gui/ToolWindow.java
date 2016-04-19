@@ -38,28 +38,28 @@ public class ToolWindow extends Application {
 	}
 	
 	public ToolWindow() {
-		readyLock.lock();
     	
 	}
 	
 	/** Called to start the JavaFX application. */
     public void start(Stage stage) {
-    	this.stage = stage;
-    	this.app = Brabra.app;
+		readyLock.lock();
+		this.stage = stage;
+		Brabra.app.fxApp = this;	// let the pro thread go
+		this.app = Brabra.app;
     	
     	//--- View: 
     	
-    	stage.setTitle(name);
-    	// init the scene/show (but doesn't show it)
+    	// processing dependent stuff
     	scene = new Scene(initRoot(), width, Brabra.height);
-        stage.setScene(scene);
-        scene.getStylesheets().add("data/gui.css");
-        // intitialized:
-    	app.debug.info(3, "tool window ready");
     	updateStageLoc();
-    	stage.show();
-    	Brabra.app.fxApp = this;
-
+    	readyLock.unlock();
+    	
+    	// init the scene/show (but doesn't show it)
+    	stage.setTitle(name);
+    	stage.setScene(scene);
+        scene.getStylesheets().add("data/gui.css");
+    	
     	//--- Control:
     	
     	// to keep both windows shown (at least tool -> game)
@@ -76,7 +76,9 @@ public class ToolWindow extends Application {
     		}
     	});
 
-    	readyLock.unlock();
+        // intitialized:
+    	app.debug.info(3, "tool window ready");
+    	stage.show();
     }
     
     /** Display a message in the ToolWindow window. <p>
