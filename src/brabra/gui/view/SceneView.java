@@ -36,9 +36,10 @@ public final class SceneView extends View implements Observer {
 	}
 
 	public void update(Observable o, java.lang.Object arg) {
-		Scene.Arg sceneArg = (Scene.Arg)arg;
-		Object obj = sceneArg.object;
-		Scene.Change change = sceneArg.change;
+		// get correct argument
+		final Scene.Arg sceneArg = (Scene.Arg)arg;
+		final Object obj = sceneArg.object;
+		final Scene.Change change = sceneArg.change;
 		// the view only react to object addition or deletion.
 		if (change == Scene.Change.ObjectAdded || change == Scene.Change.ObjectRemoved) {
 			// update the title
@@ -52,10 +53,11 @@ public final class SceneView extends View implements Observer {
 				super.add(newField, 0, currentRow++);
 			} else if (change == Scene.Change.ObjectRemoved) {
 				// we remove the object field of the object that is no longer in the scene.
-				List<ObjectField> deadFields = objectFields.stream().filter(of -> of.object == obj).collect(Collectors.toList());
+				final List<ObjectField> deadFields = objectFields.stream().filter(of -> of.object == obj).collect(Collectors.toList());
 				assert(deadFields.size() == 1);
-				getChildren().removeAll(deadFields);
-				objectFields.removeAll(deadFields);
+				final ObjectField deadField = deadFields.get(0);
+				getChildren().remove(deadField);
+				objectFields.remove(deadField);
 				currentRow--;
 			}
 		}
