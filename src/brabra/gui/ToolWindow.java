@@ -7,12 +7,12 @@ import brabra.Brabra;
 import brabra.gui.view.CreateView;
 import brabra.gui.view.ParametersView;
 import brabra.gui.view.SceneView;
-
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
+import javafx.scene.control.TabPane.TabClosingPolicy;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.Pane;
@@ -98,24 +98,28 @@ public class ToolWindow extends Application {
     private Pane initRoot() {
     	StackPane root = new StackPane();
     	
-    	Tab[] tabs = tabs(root, new String[] {"Scene", "Para", "+"});
-
+    	Tab[] tabs = tabs(root, new String[] {"Scene", "Para", "+","MyScene","Store"});
+    	
     	tabs[0].setContent(new SceneView(app.game.scene));
     	tabs[1].setContent(new ParametersView(app.para));
     	tabs[2].setContent(new CreateView());
-    	
+    	//tabs[3].setContent(new MyScene() );
+    	//tabs[4].setContent(new Store() );
     	return root;
     }
     
     /** Create the tabs and return an array of the tabs root. */
     private Tab[] tabs(Pane root, String[] names) {
     	TabPane tabsHolder = new TabPane();
+    	tabsHolder.setTabClosingPolicy(TabClosingPolicy.UNAVAILABLE);
     	root.getChildren().add(tabsHolder);
     	Tab[] tabs = new Tab[names.length];
+    	
     	for (int i=0; i<names.length; i++) {
         	tabs[i] = new Tab();
         	tabsHolder.getTabs().add(tabs[i]);
         	tabs[i].setText(names[i]);
+        	
     	}
     	return tabs;
     }
