@@ -7,9 +7,12 @@ import brabra.Brabra;
 import brabra.gui.view.CreateView;
 import brabra.gui.view.ParametersView;
 import brabra.gui.view.SceneView;
+import brabra.gui.view.View;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.Scene;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TabPane.TabClosingPolicy;
@@ -100,9 +103,9 @@ public class ToolWindow extends Application {
     	
     	Tab[] tabs = tabs(root, new String[] {"Scene", "Para", "+","MyScene","Store"});
     	
-    	tabs[0].setContent(new SceneView(app.game.scene));
-    	tabs[1].setContent(new ParametersView(app.para));
-    	tabs[2].setContent(new CreateView());
+    	tabs[0].setContent(getScrollContent(new SceneView(app.game.scene)));
+    	tabs[1].setContent(getScrollContent(new ParametersView(app.para)));
+    	tabs[2].setContent(getScrollContent(new CreateView()));
     	//tabs[3].setContent(new MyScene() );
     	//tabs[4].setContent(new Store() );
     	return root;
@@ -122,6 +125,15 @@ public class ToolWindow extends Application {
         	
     	}
     	return tabs;
+    }
+    
+    /** Create the scroll pane of the views. */
+    private ScrollPane getScrollContent(View v){
+    	final ScrollPane scroll = new ScrollPane();
+    	scroll.setHbarPolicy(ScrollBarPolicy.ALWAYS);
+    	scroll.setVbarPolicy(ScrollBarPolicy.ALWAYS);
+    	scroll.setContent(v);
+    	return scroll;
     }
     
     // --- Window with Processing managment ---

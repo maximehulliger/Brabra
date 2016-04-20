@@ -12,7 +12,7 @@ all the following field:
 ## Functionality
 - Correct field initialization (at least BooleanField bugged)
 - Correct field update
-- Show only 4/5 digit of a float (create methode format in Master, after getFloat(float).
+- Show only 4/5 digit of a float (create method format in Master, after getFloat(float).
 - add ValueFields in ObjectField for
   - Ball
   - Cube

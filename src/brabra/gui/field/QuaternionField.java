@@ -18,13 +18,13 @@ public class QuaternionField extends ValueField<Quaternion> {
 	private final Vector rotAxisValue;
 	
 	public QuaternionField(String name, Quaternion quaternion) {
-		super(name, quaternion, true);
+		super(name, quaternion.copy(), true);
 		super.setDefaultValue(Quaternion.identity);
 		
 		// get quaternion, rotAxis & angle
 		this.quaternion = quaternion;
 		this.lastValidValue = quaternion.copy();
-		final Vector vec = quaternion.rotAxis() == null ? Vector.zero : quaternion.rotAxis(); // TODO: quaternion.isIdentity()
+		final Vector vec = quaternion.rotAxis() == null ? Vector.zero.copy() : quaternion.rotAxis().copy(); // TODO: quaternion.isIdentity()
 		rotAxisValue = vec;
 		angleValue = quaternion.angle();
 		
@@ -43,7 +43,7 @@ public class QuaternionField extends ValueField<Quaternion> {
 	}
 
 	protected Quaternion getModelValue() {
-		return quaternion;
+		return quaternion.copy();
 	}
 
 	protected Quaternion getNewValue() {
@@ -63,8 +63,6 @@ public class QuaternionField extends ValueField<Quaternion> {
 	
 	public void update(Observable o, java.lang.Object arg) {
 		super.update(o, arg);
-		//rotAxisField.update(o, arg);
-		//angleField.update(o, arg);
 	}
 
 	protected void setDisplayValue(Quaternion newVal) {

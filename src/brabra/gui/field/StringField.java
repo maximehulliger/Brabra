@@ -4,9 +4,11 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import brabra.Brabra;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.scene.control.TextField;
 
-public class StringField extends ValueField.WithCustomValue<String> {
+public class StringField extends ValueField.WithCustomModel<String> {
 
 	private TextField stringBox;
 	
@@ -18,6 +20,16 @@ public class StringField extends ValueField.WithCustomValue<String> {
 		contentOpen.getChildren().addAll(stringBox);
 		
 		//--- Control:
+		stringBox.focusedProperty().addListener(new ChangeListener<Boolean>()
+		{
+		    @Override
+		    public void changed(ObservableValue<? extends Boolean> arg0, Boolean oldPropertyValue, Boolean newPropertyValue)
+		    {
+		        if (!newPropertyValue){
+		            onChange();
+		        }
+		    }
+		});
 		stringBox.setOnAction(e -> onChange());
 	}
 

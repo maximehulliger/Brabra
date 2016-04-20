@@ -8,7 +8,7 @@ import brabra.Brabra;
 import brabra.Master;
 import brabra.game.physic.Physic;
 
-public class FloatField extends ValueField.WithCustomValue<Float> {
+public class FloatField extends ValueField.WithCustomModel<Float> {
 	
 	private StringField floatField;
 	

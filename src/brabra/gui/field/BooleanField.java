@@ -6,7 +6,7 @@ import java.util.function.Supplier;
 import brabra.Brabra;
 import javafx.scene.control.CheckBox;
 
-public class BooleanField extends ValueField.WithCustomValue<Boolean> {
+public class BooleanField extends ValueField.WithCustomModel<Boolean> {
 	
 	private CheckBox cboxClosed, cboxOpen;
 	
