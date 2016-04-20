@@ -13,7 +13,6 @@ import brabra.gui.field.ObjectField;
 import javafx.geometry.Insets;
 import javafx.scene.control.Button;
 import javafx.scene.control.ContentDisplay;
-import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
@@ -32,10 +31,12 @@ public class CreateView extends View {
 		
 		// > choice view
 		choiceView.setPadding(new Insets(5));
+		//choiceView.setAlignment(Pos.CENTER);
 		//choiceView.setHgap(10);
         //choiceView.setVgap(10);
 		// title
 		title.setText("Select an object to create:");
+		//title.setFont(Font.font("Cambria", 48));
 		choiceView.getChildren().add(title);
         // object choice buttons
 		final GridPane objectChoiceButtons = new GridPane();
@@ -53,6 +54,7 @@ public class CreateView extends View {
         creationControlButtons.setPadding(new Insets(5));
         creationControlButtons.setHgap(10);
         creationControlButtons.setVgap(10);
+        //creationControlButtons.setAlignment(Pos.CENTER);
         final Button returnBtn = getButton("data/gui/return.png", "Return");
         creationControlButtons.add(returnBtn, 0, 1);
         final Button createBtn = getButton("data/gui/hammer.png", "Create");
@@ -105,6 +107,7 @@ public class CreateView extends View {
         button.setContentDisplay(ContentDisplay.TOP);
         button.setPrefWidth(150);
         button.setPrefHeight(150);
+        //button.setTooltip(new Tooltip(buttonText));
         return button;
 	}
 

@@ -1,7 +1,5 @@
 package brabra.gui.view;
 
-import javafx.scene.control.*;
-
 import java.util.ArrayList;
 import java.util.List;
 

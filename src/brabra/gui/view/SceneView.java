@@ -6,7 +6,6 @@ import java.util.Observable;
 import java.util.Observer;
 import java.util.stream.Collectors;
 
-import javafx.scene.control.Label;
 import brabra.game.scene.Object;
 import brabra.game.scene.Scene;
 import brabra.gui.field.ObjectField;

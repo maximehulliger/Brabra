@@ -5,10 +5,10 @@ import javafx.scene.shape.Polygon;
 
 public class TriangleButton extends Polygon {
 	
-	private final static double triangleSize = 8;
+	private final static double triangleSize = 6;
 	
 	public TriangleButton() {
-		super.setFill(Color.GREY);
+		super.setFill(Color.BLACK);
 		setOpen(false);
 	}
 

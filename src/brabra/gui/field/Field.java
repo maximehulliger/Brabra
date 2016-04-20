@@ -40,7 +40,6 @@ public abstract class Field extends GridPane implements Observer {
 		// the name label
 		if (name != null) {
 			nameText = new Label();
-			nameText.getStyleClass().add("parameter-label");
 			this.setName(name);
 			firstLine.getChildren().add(nameText);
 		} else {
@@ -49,8 +48,7 @@ public abstract class Field extends GridPane implements Observer {
 		
 		// the value label
 		contentClosed.getChildren().add(valueLabel);
-		contentClosed.getStyleClass().add("parameter-value-closed");
-		contentOpen.getStyleClass().add("parameter-value-open");
+		
 		// the triangle button (if exist)
 		if (withSubfields) {
 			this.triangleButton = new TriangleButton();
