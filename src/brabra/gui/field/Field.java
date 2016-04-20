@@ -4,8 +4,8 @@ import java.util.Observable;
 import java.util.Observer;
 
 import brabra.gui.TriangleButton;
-import javafx.geometry.Insets;
-import javafx.geometry.Pos;
+import javafx.collections.ObservableList;
+import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
@@ -15,106 +15,124 @@ import javafx.scene.layout.VBox;
 public abstract class Field extends GridPane implements Observer {
 
 	// first line
-	private final Label nameText;
+	private final Label nameText = new Label(), valueLabel = new Label();
+	private final HBox firstLine = new HBox();
 	protected final HBox contentClosed = new HBox(), contentOpen = new HBox();
-	
 	// subfields / triangle
-	protected final VBox subfieldHolder;
-	private final TriangleButton triangleButton;
-	private boolean open;
-	private final Label valueLabel = new Label();
+	private final VBox subfieldHolder = new VBox();
+	private final TriangleButton triangleButton = new TriangleButton();
+	// current state
+	private boolean closable = false, withTriangle = false, open = true;
+	private String name = "";
+
 	
 	/** Create a field with this name. If subfields is false, no triangle or subfields (null) and the field is always open. */
-	public Field(String name, boolean withSubfields) {
+	public Field() {
 		
 	    //--- View:
 		
-		setPadding(new Insets(2,0,2,4));
-		setAlignment(Pos.CENTER_LEFT);
+		//TODO: in css firstLine.setPadding(new Insets(2,0,2,4));
+		//firstLine.setAlignment(Pos.CENTER_LEFT);
+		//setPadding(new Insets(2,0,2,4));
+		//setAlignment(Pos.CENTER_LEFT);
 		
-		// a horizontal box containing open and closed content (the first line).
-		final HBox firstLine = new HBox();
-		firstLine.setPadding(new Insets(2,0,2,4));
-		firstLine.setAlignment(Pos.CENTER_LEFT);
-		
+		// > first line: a horizontal box containing open and closed content.
 		// the name label
-		if (name != null) {
-			nameText = new Label();
-			nameText.getStyleClass().add("parameter-label");
-			this.setName(name);
-			firstLine.getChildren().add(nameText);
-		} else {
-			nameText = null;
-		}
-		
+		nameText.getStyleClass().add("parameter-label");
 		// the value label
 		contentClosed.getChildren().add(valueLabel);
 		contentClosed.getStyleClass().add("parameter-value-closed");
 		contentOpen.getStyleClass().add("parameter-value-open");
-		// the triangle button (if exist)
-		if (withSubfields) {
-			this.triangleButton = new TriangleButton();
-			this.subfieldHolder = new VBox();
-			this.open = false;
-			add(triangleButton, 0, 0);
-			add(firstLine, 1, 0);
-			add(subfieldHolder, 1, 1);			
-		} else {
-			// or just the first line, no subfields
-			this.triangleButton = null;
-			this.subfieldHolder = null;
-			this.open = true;
-			add(firstLine, 0, 0);
-		}
-		
-		// close or open everything
-		this.setOpenForMe(open || !withSubfields);
-		
-		// link the contents
-		firstLine.getChildren().addAll(contentClosed, contentOpen);
+		// open true by default
+		contentClosed.setVisible(false);
+	    contentClosed.setManaged(false);
+		// link the first line
+		firstLine.getChildren().addAll(nameText, contentClosed, contentOpen);
+		updateGrid();
 		
 		//--- Control:
 		
 		// close on click if openable (without triangle buttons is always open)
-		if (triangleButton != null)
-		    setOnMouseClicked(e -> { 
+	    setOnMouseClicked(e -> { 
+	    	if (closable)
 		    	this.setOpen(!open()); 
-			    e.consume();
-		    });
+	    	e.consume();
+	    });
 	}
 	
-	protected boolean open() {
-		return open;
-	}
-
-	public void setName(String name){
-		if (nameText != null && name != null)
-			nameText.setText(name+":");
-	}
-	
-	protected final void setValue(String textValue) {
-		valueLabel.setText(textValue);
-	}
-
 	/** Called when the field should update his value from the model. */
 	public abstract void update(Observable o, java.lang.Object arg);
 
 	/** To override to react when the field is shown or hidden. Should be called. */
 	public void setOpen(boolean open) {
-		setOpenForMe(open);
-	}
-
-	private void setOpenForMe(boolean open) {
 	    this.open = open;
-	    if (triangleButton != null) {
+	    if (withTriangle)
 	    	triangleButton.setOpen(open);
-	    	subfieldHolder.setVisible(open);
-		    subfieldHolder.setManaged(open);
-	    }
+	    subfieldHolder.setVisible(open);
+	    subfieldHolder.setManaged(open);
 	    contentClosed.setVisible(!open);
 	    contentClosed.setManaged(!open);
 	    contentOpen.setVisible(open);
 	    contentOpen.setManaged(open);
+	}
+
+	/** Set if the field should open/close itself on click. */
+	protected Field setClosable(boolean closable) {
+		this.closable = closable;
+		return this;
+	}
+	
+	/** Set if the field should have a triangle to indicate openness. */
+	protected Field setWithTriangle(boolean withTriangle) {
+		this.withTriangle = withTriangle;
+		updateGrid();
+		return this;
+	}
+	
+	private void updateGrid() {
+		getChildren().clear();
+		// We replace everything
+		if (withTriangle) {
+			add(triangleButton, 0, 0);
+			add(firstLine, 1, 0);
+			add(subfieldHolder, 1, 1);			
+		} else {
+			// or just the first line, no subfields
+			add(firstLine, 0, 0);
+		}
+	}
+
+	/** Set the name label. if name is null nothing is shown. */
+	public Field setName(String name){
+		this.name = name == null ? "" : name;
+		nameText.setText(this.name+": ");
+		return this;
+	}
+	
+	/** Reset the field with those settings. Return this for chain call. */
+	public Field set(String name, boolean open, boolean closable, boolean withTriangle) {
+		setWithTriangle(withTriangle);
+		setOpen(open);
+		setClosable(closable);
+		setName(name);
+		return this;
+	}
+
+
+	public ObservableList<Node> subfields() {
+		return subfieldHolder.getChildren();
+	}
+	
+	protected final void setTextValue(String textValue) {
+		valueLabel.setText(textValue);
+	}
+
+	protected boolean open() {
+		return open;
+	}
+	
+	protected String name() {
+		return name;
 	}
 
 	/** Interface to discriminate the field modeled in the processing thread. */

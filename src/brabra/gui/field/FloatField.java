@@ -10,10 +10,18 @@ import brabra.game.physic.Physic;
 
 public class FloatField extends ValueField.WithCustomModel<Float> {
 	
-	private StringField floatField;
+	private final StringField floatField;
 	
-	public FloatField(String name, Consumer<Float> setModelValue, Supplier<Float> getModelValue, boolean withTriangle) {
-		super(name, setModelValue, getModelValue, withTriangle);
+	public FloatField(Consumer<Float> setModelValue, Supplier<Float> getModelValue) {
+		super(setModelValue, getModelValue, 0f);
+		
+		//--- View (&control):
+		floatField = new StringField(s -> onChange(), () -> getModelValue().toString());
+		floatField.setPrefWidth(105);
+		floatField.setDefaultValue("0");
+		contentClosed.getChildren().add(floatField.contentClosed);
+		contentOpen.getChildren().add(floatField.contentOpen);
+		setValue(getModelValue());
 	}
 	
 	protected Float getNewValue() {
@@ -22,17 +30,7 @@ public class FloatField extends ValueField.WithCustomModel<Float> {
 
 	protected void setDisplayValue(Float newVal) {
 		final String newTextValue = Master.formatFloat(newVal, Physic.epsilon);
-		setValue(newTextValue);
-		if (notInitialized()) {
-			//--- View (&control):
-			floatField = new StringField(null, s -> onChange(), 
-					() -> value() == null ? "0" : value().toString(), false);
-			floatField.setPrefWidth(105);
-			floatField.setDefaultValue("0");
-			contentOpen.getChildren().add(floatField);
-			setDefaultValue(0f);
-		}
-			
+		setTextValue(newTextValue);
 		floatField.setDisplayValue(newTextValue);
 	}
 	
@@ -43,8 +41,8 @@ public class FloatField extends ValueField.WithCustomModel<Float> {
 
 	public static class Pro extends FloatField implements Field.Pro {
 
-		public Pro(String name, Consumer<Float> setModelValue, Supplier<Float> getModelValue, boolean withTriangle) {
-			super(name, setModelValue, getModelValue, withTriangle);
+		public Pro(Consumer<Float> setModelValue, Supplier<Float> getModelValue) {
+			super(setModelValue, getModelValue);
 		}
 
 		protected void setModelValue(final Float val) {

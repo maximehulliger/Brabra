@@ -5,21 +5,15 @@ import java.util.Observable;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
+
 /** An abstract field that define how to deal with one value. */
 public abstract class ValueField<T> extends Field {
 	
-	private final String name; //TODO 4 debug only: to remove (when working)
 	private T value = null, defaultValue = null;
 	private Object triggerArg = null;
 	private ArrayList<Runnable> onChange = new ArrayList<>(2);
-	
-	
-	public ValueField(String name, T value, boolean withTriangle) {
-		super(name, withTriangle);
-		this.name = name; //TODO 4 debug only: to remove
-		this.value = value;
-		setDisplayValue(value);
-	}
 	
 	// --- let to children ---
 	
@@ -39,33 +33,40 @@ public abstract class ValueField<T> extends Field {
 	protected final T value() {
 		return value;
 	}
+	
+	public ValueField(T defaultValue) {
+		this.value = this.defaultValue = defaultValue;
+	}
 
 	// --- Value field services ---
 
-	/** flag used to create the field on first setDisplayValue(). */
-	private boolean initialized = false;
+	/** To set the value of the field (what is null ?). */
+	protected void setDefaultValue(T defaultValue) {
+		// old was default
+		if (value==null || value.equals(this.defaultValue))
+			value = defaultValue;
+		this.defaultValue = defaultValue;
+			
+	}
 	
-	/** flag used to create the field on first setDisplayValue(). */
-	protected boolean notInitialized() {
-		if (!initialized) {
-			initialized = true;
+	/** Set the value of the field and update the gui (if changed). Return true if the value changed. */
+	protected boolean setValue(T value) {
+		value = value == null ? defaultValue : value;
+		
+		if (this.value == null ? this.value != value : !this.value.equals(value)){
+			this.value = value;
+			//System.out.println(name() + " updated to "+value);
+			setDisplayValue(value);
 			return true;
 		} else
 			return false;
 	}
 	
-	/** To set the value of the field when the */
-	protected void setDefaultValue(T defaultValue) {
-		if (this.defaultValue != defaultValue) {
-			final boolean oldValueWasDefault = value == this.defaultValue;
-			this.defaultValue = defaultValue;
-			if (oldValueWasDefault) {
-				value = defaultValue;
-				setDisplayValue(value);
-			}
-		}
+	public ValueField<T> respondingTo(Object triggerArg) {
+		this.triggerArg = triggerArg;
+		return this;
 	}
-	
+
 	public Runnable addOnChange(Runnable onChange) {
 		if (onChange != null)
 			this.onChange.add(onChange);
@@ -77,24 +78,15 @@ public abstract class ValueField<T> extends Field {
 			throw new IllegalArgumentException("onChange runnable wasn't to run !");
 	}
 
-	public ValueField<T> respondingTo(Object triggerArg) {
-		this.triggerArg = triggerArg;
-		return this;
-	}
-
 	public void update(Observable o, java.lang.Object arg) {
-		if (isVisible()) {
-			if (triggerArg == null || arg == triggerArg) {
-				final T newValRaw = getModelValue();
-				final T newVal = newValRaw == null ? defaultValue : newValRaw;
-				
-				if (newVal != value && (newVal == null || !newVal.equals(value))){
-					value = newVal;
-					setDisplayValue(newVal);
-					System.out.println(arg.toString() + " updated"); //TODO 4 debug
-				}
-			}
+		if (isVisible() && (triggerArg == null || arg == triggerArg)) {
+			setValue(getModelValue());
 		}
+	}
+	
+	public void setOpen(boolean open) {
+		super.setOpen(open);
+		setDisplayValue(value());
 	}
 
 	protected final void onChange() {
@@ -106,17 +98,27 @@ public abstract class ValueField<T> extends Field {
 			setModelValue(value);
 			if (onChange != null)
 				onChange.forEach(r -> r.run());
-			System.out.println(name + " changed"); //TODO 4 debug only: to remove
+			//System.out.println(name() + " changed");
 		}
 	}
+
+	/** Change listener that calls on change when se proprety is changed to false (for loose focus). */
+	protected class FieldChangeListener implements ChangeListener<Boolean> {
+	    public void changed(ObservableValue<? extends Boolean> arg0, Boolean oldPropertyValue, Boolean newPropertyValue) {
+	    	if (oldPropertyValue!=newPropertyValue &&  !newPropertyValue)
+	    		onChange();
+	    }
+	}
+	
+	// --- for the child fields
 
 	public static abstract class WithCustomModel<T> extends ValueField<T> {
 		
 		private final Consumer<T> setModelValue;
 		private final Supplier<T> getModelValue;
-		
-		public WithCustomModel(String name, Consumer<T> setModelValue, Supplier<T> getModelValue, boolean withTriangle) {
-			super(name, getModelValue.get(), withTriangle);
+
+		protected WithCustomModel(Consumer<T> setModelValue, Supplier<T> getModelValue, T defaultValue) {
+			super(defaultValue);
 			this.setModelValue = setModelValue;
 			this.getModelValue = getModelValue;
 		}

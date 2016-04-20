@@ -32,6 +32,18 @@ public abstract class Master {
 		System.out.println(s);
 	}
 	
+	@SuppressWarnings("unchecked")
+	/** To cast this object easily. return null if invalid. */
+	public static <S, T extends S> T as(S obj, Class <T> as) {
+		return as.isInstance(obj) ? (T)obj : null;
+	}
+	
+	@SuppressWarnings("unchecked")
+	/** To cast this object easily. return null if invalid. */
+	public static <S, T> T asMaybe(S obj, Class <T> as) {
+		return as.isInstance(obj) ? (T)obj : null;
+	}
+	
 	/** If maybeFloat is valid, return a Float or a default value (if floatOnly 0 otherwise null). */
 	public static Float getFloat(String maybeFloat, boolean floatOnly) {
 		try {

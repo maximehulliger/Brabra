@@ -8,10 +8,19 @@ import javafx.scene.control.CheckBox;
 
 public class BooleanField extends ValueField.WithCustomModel<Boolean> {
 	
-	private CheckBox cboxClosed, cboxOpen;
+	private final CheckBox cboxClosed = new CheckBox(), cboxOpen = new CheckBox();
 	
-	public BooleanField(String name, Consumer<Boolean> setModelValue, Supplier<Boolean> getModelValue) {
-		super(name, setModelValue, getModelValue, true);
+	public BooleanField(Consumer<Boolean> setModelValue, Supplier<Boolean> getModelValue) {
+		super(setModelValue, getModelValue, false);
+		
+		//--- View:
+		contentOpen.getChildren().add(cboxOpen);
+		contentClosed.getChildren().add(cboxClosed);
+		cboxClosed.setDisable(true);
+		setValue(getModelValue());
+
+		//--- Control:
+		cboxOpen.setOnAction(e -> onChange());
 	}
 
 	protected Boolean getNewValue() {
@@ -19,26 +28,14 @@ public class BooleanField extends ValueField.WithCustomModel<Boolean> {
 	}
 
 	protected void setDisplayValue(Boolean newVal) {
-		if (notInitialized()) {
-			//--- View:
-			cboxClosed = new CheckBox();
-			cboxOpen = new CheckBox();
-			contentOpen.getChildren().add(cboxOpen);
-			contentClosed.getChildren().add(cboxClosed);
-			cboxClosed.setDisable(true);
-			setDefaultValue(false);
-			
-			//--- Control:
-			cboxOpen.setOnAction(e -> onChange());
-		}
 		cboxOpen.setSelected(newVal);
 		cboxClosed.setSelected(newVal);
 	}
 
 	public static class Pro extends BooleanField implements Field.Pro {
 
-		public Pro(String name, Consumer<Boolean> setModelValue, Supplier<Boolean> getModelValue) {
-			super(name, setModelValue, getModelValue);
+		public Pro(Consumer<Boolean> setModelValue, Supplier<Boolean> getModelValue) {
+			super(setModelValue, getModelValue);
 		}
 
 		protected void setModelValue(final Boolean val) {
