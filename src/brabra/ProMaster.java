@@ -2,7 +2,6 @@ package brabra;
 
 import brabra.game.Color;
 import brabra.game.RealGame;
-import brabra.game.physic.Physic;
 import brabra.game.physic.geo.Quaternion;
 import processing.core.PApplet;
 import brabra.game.physic.geo.Vector;
@@ -34,6 +33,7 @@ public abstract class ProMaster extends Master {
 	protected static final float pi = PApplet.PI;
 	protected static final float halfPi = PApplet.HALF_PI;
 	protected static final float twoPi = PApplet.TWO_PI;
+	protected static final float toDegrees = 180/pi;
 	
 	// --- General syntactic sugar ---
 
@@ -52,10 +52,6 @@ public abstract class ProMaster extends Master {
 		color.fill();
 		app.sphere(radius);
 		app.popMatrix();
-	}
-
-	protected static int round(float f) {
-		return PApplet.round(f);
 	}
 
 	// --- Vector syntactic sugar ---
@@ -134,18 +130,6 @@ public abstract class ProMaster extends Master {
 	protected static Vector rollAxis(float lenght) { 
 		return z(lenght);
 	}	
-
-	// --- epsilon shortcut ---
-	
-	/** Return true if f is nearly zero. */
-	public static boolean isZeroEps(float f) {
-		return Physic.isZeroEps(f);
-	}
-
-	/** Return true if f1 is nearly equal to f2. */
-	public static boolean equalsEps(float f1, float f2) {
-		return Physic.equalsEps(f1, f2);
-	}
 	
 	// --- Vector help methods ---
 

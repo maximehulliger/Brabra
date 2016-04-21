@@ -24,16 +24,13 @@ all the following field:
 - add make children under their parent
 - make the window vertically dragable (by click & drag, as on smartphone)
 
-
-#3. Object Creation List View
-## Functionality
-- get other images
-
-
 #4. Object Creation View
 ## Functionality
 - selectBox(?) to set the parent of the object
 - comboBox to follow parent
+
+## Detail/later
+- remove mass for infinite plan
 
 
 #5. My Scenes View

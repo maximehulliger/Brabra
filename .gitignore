@@ -22,6 +22,7 @@ tmp/
 *~.nib
 # Locally stored "Eclipse launch configurations"
 *.launch
+*.log
 
 local.properties
 .metadata

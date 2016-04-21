@@ -86,10 +86,27 @@ public abstract class Master {
 			val = constrain(val, min, max);
 		return (val - min)/(max - min);
 	}
+	
+	/** Return f % m for floats. f will be in [0, m[. m should be bigger than 0. */
+	public static float mod(float f, float m) {
+		assert(m>0);
+		final float res = f - ((int)(f/m))*m;
+		return res >= 0 ? res : res+m;
+	}
 
 	/** [min, max] */
 	public static float random(float min, float max) {
 		return min + (max-min) * random.nextFloat();
+	}
+
+	/** [min, max) */
+	public static int random(int min, int max) {
+		return min + round((max-min) * random.nextFloat());
+	}
+	
+	/** Return the closest integer from f. */
+	public static int round(float f) {
+		return Math.round(f);
 	}
 	
 	/** Return the current mouse location in absolute (from the screen). */
@@ -118,10 +135,15 @@ public abstract class Master {
 			}
 		}
 	}
-	
+
 	/** To iterate over all of those */
 	public static <T> AllOfIter<T> both(Iterable<? extends T> first, Iterable<? extends T> second) {
 		return new AllOfIter<T>(first, second);
+	}
+
+	/** To iterate over all of those */
+	public static <T, N extends T, M extends T> AllOfIter<T> both(N[] first, M[] second) {
+		return new AllOfIter<T>(Arrays.asList(first), Arrays.asList(second));
 	}
 
 	/** Collection whose iterator iterates over all those collections */
@@ -198,7 +220,7 @@ public abstract class Master {
 	
 	/** a random value in [-1, 1] */ 
 	public static float randomBi() {
-		return random(-1, 1);
+		return random(-1f, 1f);
 	}
 	
 	public static float sq(float t) {

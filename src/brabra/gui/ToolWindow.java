@@ -52,18 +52,19 @@ public class ToolWindow extends Application {
     	this.stage = stage;
     	this.app = Brabra.app;
     	
-    	//--- View: 
-    	stage.setTitle(name);
-    	// init the scene/show (but doesn't show it)
-    	scene = new Scene(initRoot(), width, Brabra.height);
-        stage.setScene(scene);
-        scene.getStylesheets().add("data/gui.css");
-        // intitialized:
-    	app.debug.info(3, "tool window ready");
+    	//--- View:
+    	stage.setTitle("ToolSelection");
     	updateStageLoc();
+    	// init the scene    
+    	scene = new Scene(initRoot(), width, Brabra.height);
+        scene.getStylesheets().add("data/gui.css");
+        stage.setScene(scene);
+    	// show
+        stage.setScene(scene);
     	stage.show();
-    	Brabra.app.fxApp = this;
-
+    	// ready:
+    	app.fxApp = this;
+    	
     	//--- Control:
     	// to keep both windows shown (at least tool -> game)
     	stage.addEventHandler(WindowEvent.WINDOW_SHOWN, e -> app.setVisible(true));
@@ -79,6 +80,7 @@ public class ToolWindow extends Application {
     		}
     	});
 
+		app.debug.info(3, "tool window ready");
     	readyLock.unlock();
     }
     

@@ -230,9 +230,9 @@ public class Box extends PseudoPolyedre {
 		    	new Vector(0, size.y/2, 0), new Vector(0, -size.y/2, 0), 	//dessus, dessous  (y)
 		  	    new Vector(0, 0, size.z/2), new Vector(0, 0, -size.z/2)};	//devant, derriere (z)
 	    Quaternion[] facesRot = new Quaternion[] {
-				Quaternion.fromDirection(left), Quaternion.fromDirection(right),
-				Quaternion.fromDirection(up), Quaternion.fromDirection(down),
-				Quaternion.fromDirection(front), Quaternion.fromDirection(behind)};
+				Quaternion.fromDirection(left, up), Quaternion.fromDirection(right, up),
+				Quaternion.fromDirection(up, up), Quaternion.fromDirection(down, up),
+				Quaternion.fromDirection(front, up), Quaternion.fromDirection(behind, up)};
 	    Vector[] facesSize = new Vector[] {
 		    	new Vector(size.y, 0, size.z), new Vector(size.y, 0, size.z), 	//gauche,  droite  (x)
 		    	new Vector(size.x, 0, size.z), new Vector(size.x, 0, size.z), 	//dessus, dessous  (y)
