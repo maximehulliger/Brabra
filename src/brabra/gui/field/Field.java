@@ -28,13 +28,12 @@ public abstract class Field extends GridPane implements Observer {
 	
 	/** Create a field with this name. If subfields is false, no triangle or subfields (null) and the field is always open. */
 	public Field() {
-		
-	    //--- View:
-		
 		//TODO: in css firstLine.setPadding(new Insets(2,0,2,4));
 		//firstLine.setAlignment(Pos.CENTER_LEFT);
 		//setPadding(new Insets(2,0,2,4));
 		//setAlignment(Pos.CENTER_LEFT);
+		
+		//--- View:
 		
 		// > first line: a horizontal box containing open and closed content.
 		// the name label
@@ -64,58 +63,50 @@ public abstract class Field extends GridPane implements Observer {
 	public abstract void update(Observable o, java.lang.Object arg);
 
 	/** To override to react when the field is shown or hidden. Should be called. */
-	public void setOpen(boolean open) {
+	protected void setOpen(boolean open) {
 	    this.open = open;
-	    if (withTriangle)
-	    	triangleButton.setOpen(open);
+	    triangleButton.setOpen(open);
+	    contentOpen.setVisible(open);
+	    contentOpen.setManaged(open);
 	    subfieldHolder.setVisible(open);
 	    subfieldHolder.setManaged(open);
 	    contentClosed.setVisible(!open);
 	    contentClosed.setManaged(!open);
-	    contentOpen.setVisible(open);
-	    contentOpen.setManaged(open);
-	}
-
-	/** Set if the field should open/close itself on click. */
-	protected Field setClosable(boolean closable) {
-		this.closable = closable;
-		return this;
-	}
-	
-	/** Set if the field should have a triangle to indicate openness. */
-	protected Field setWithTriangle(boolean withTriangle) {
-		this.withTriangle = withTriangle;
-		updateGrid();
-		return this;
-	}
-	
-	private void updateGrid() {
-		getChildren().clear();
-		// We replace everything
-		if (withTriangle) {
-			add(triangleButton, 0, 0);
-			add(firstLine, 1, 0);
-			add(subfieldHolder, 1, 1);			
-		} else {
-			// or just the first line, no subfields
-			add(firstLine, 0, 0);
-		}
 	}
 
 	/** Set the name label. if name is null nothing is shown. */
-	public Field setName(String name){
+	protected Field setName(String name){
 		this.name = name == null ? "" : name;
 		nameText.setText(this.name+": ");
 		return this;
 	}
 	
-	/** Reset the field with those settings. Return this for chain call. */
+	/** Reset the field with those settings. Return this for convenience. <p>
+	 * name: Set the name label. If name is null nothing is shown. <p>
+	 * closable: Set if the field should open/close itself on click. <p>
+	 * withTriangle: Set if the field should have a triangle to indicate openness. 
+	 *  */
 	public Field set(String name, boolean open, boolean closable, boolean withTriangle) {
-		setWithTriangle(withTriangle);
+		this.withTriangle = withTriangle;
+		this.closable = closable;
 		setOpen(open);
-		setClosable(closable);
 		setName(name);
+		updateGrid();
 		return this;
+	}
+
+	public void updateGrid() {
+		getChildren().clear();
+		// We replace everything
+		int contentCol;
+		if (withTriangle) {
+			add(triangleButton, 0, 0);	
+			contentCol = 1;	
+		} else {
+			contentCol = 0;
+		}
+		add(firstLine, contentCol, 0);
+		add(subfieldHolder, contentCol, 1);	
 	}
 
 

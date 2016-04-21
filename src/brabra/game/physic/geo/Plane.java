@@ -64,8 +64,10 @@ public class Plane extends PseudoPolyedre {
 	// --- Setters ---
 
 	public void setMass(float mass) {
-		if(mass > 0 && !finite)
-			throw new IllegalArgumentException("An infinite plane without an infinite mass is a bad idea :/");
+		if(mass > 0 && !finite) {
+			game.debug.err("An infinite plane without an infinite mass is a bad idea :/");
+			mass = 0;
+		}
 		super.setMass(mass);
 		if (inverseMass > 0) {
 			float fact = mass/12;
