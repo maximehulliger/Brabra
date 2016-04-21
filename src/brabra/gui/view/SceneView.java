@@ -16,19 +16,14 @@ public final class SceneView extends View implements Observer {
 	private final List<ObjectField> objectFields = new ArrayList<>();
 	private final Scene sceneModel;
 
-	private int currentRow = 0;
-	
 	public SceneView(Scene sceneModel) {
 		this.sceneModel = sceneModel;
-		
-		//--- View:
-		//super.setHgap(8);
-		//super.setVgap(8);
-		title.setText(defaultTitle);
-		super.add(title, 0, currentRow++);
-		
+
 		assert(sceneModel.objects.size() == 0);
 
+		//--- View:
+		setTitle(defaultTitle);
+		
 		//--- Control:
 		sceneModel.addObserver(this);
 	}
@@ -42,21 +37,20 @@ public final class SceneView extends View implements Observer {
 		if (change == Scene.Change.ObjectAdded || change == Scene.Change.ObjectRemoved) {
 			// update the title
 			final int nbObj = sceneModel.objects.size();
-			title.setText(nbObj > 0 ? "Scene with "+nbObj+" objects:" : defaultTitle);
+			setTitle(nbObj > 0 ? "Scene with "+nbObj+" objects:" : defaultTitle);
 			// add or remove fields
 			if (change == Scene.Change.ObjectAdded) {
-				ObjectField newField = new ObjectField(obj);
+				ObjectField newField = new ObjectField(obj, true);
 				objectFields.add(newField);
 				sceneModel.addObserver(newField);
-				super.add(newField, 0, currentRow++);
+				addContent(newField);
 			} else if (change == Scene.Change.ObjectRemoved) {
 				// we remove the object field of the object that is no longer in the scene.
 				final List<ObjectField> deadFields = objectFields.stream().filter(of -> of.object == obj).collect(Collectors.toList());
-				assert(deadFields.size() == 1);
+				assert(deadFields.size() >= 1);
 				final ObjectField deadField = deadFields.get(0);
-				getChildren().remove(deadField);
+				removeContent(deadField);
 				objectFields.remove(deadField);
-				currentRow--;
 			}
 		}
 	}

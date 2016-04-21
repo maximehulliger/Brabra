@@ -6,6 +6,7 @@ import java.util.Observable;
 import java.util.Observer;
 import java.util.function.Function;
 
+import brabra.Master;
 import brabra.ProMaster;
 import brabra.Debug.Debugable;
 import brabra.game.Observable.NQuaternion;
@@ -176,10 +177,9 @@ public class Object extends ProMaster implements Debugable {
 		return parent;
 	}
 	
-	@SuppressWarnings("unchecked")
 	/** To cast this object easily. return null if invalid. */
 	public <T extends Object> T as(Class <T> as) {
-		return as.isInstance(this) ? (T)this : null;
+		return Master.as(this, as);
 	}
 
 	/** Return the absolute location of the object. update things if needed. */

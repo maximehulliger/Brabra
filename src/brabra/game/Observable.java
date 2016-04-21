@@ -35,12 +35,16 @@ public interface Observable {
 		private boolean changedCurrent = false, changed = false;
 		
 		public NVector(Vector v, Runnable onChange) { 
-			super(v.x,v.y,v.z); 
+			super(v); 
 			addOnChange(onChange); 
 		}
 
-		public NVector(Vector v) { 
-			this(v, null);
+		public NVector(Vector v) {
+			super(v);
+		}
+
+		public NVector() { 
+			this(zero);
 		}
 
 		public Runnable addOnChange(Runnable onChange) {
@@ -66,9 +70,16 @@ public interface Observable {
 		public boolean hasChangedCurrent() {
 			return changedCurrent;
 		}
-		
+
+		/** Set both flags to false. */
 		public void reset() {
 			changed = changedCurrent = false;
+		}
+
+		/** Set the value and reset the flags. */
+		public void reset(Vector newValue) {
+			super.set(newValue);
+			reset();
 		}
 		
 		// first apply, set changed to true, then notify.
@@ -86,8 +97,7 @@ public interface Observable {
 		
 		private Vector onChange() {
 			changedCurrent=true;
-			if (onChange != null)
-				onChange.forEach(r -> r.run());
+			onChange.forEach(r -> r.run());
 			return this;
 		}
 	}
@@ -103,12 +113,11 @@ public interface Observable {
 		}
 
 		public NQuaternion(Quaternion q) {
-			this(q, null);
+			super(q);
 		}
 
 		public Runnable addOnChange(Runnable onChange) {
-			if (onChange != null)
-				this.onChange.add(onChange);
+			this.onChange.add(onChange);
 			return onChange;
 		}
 		

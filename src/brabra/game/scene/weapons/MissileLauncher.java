@@ -65,6 +65,7 @@ public class MissileLauncher extends Weapon {
 			//super(location, rotation, vec(sizeRatio*2, sizeRatio*2, sizeRatio*7));
 			this.tier = tier0();
 			this.puissance = puissance();
+			super.addOnUpdate(m -> m.avance( puissance()*3 ));
 			super.setName("Missile t"+tier()+" p("+puissance+")");
 			super.setMass(puissance);
 			super.setParent(master().parent());
@@ -81,10 +82,6 @@ public class MissileLauncher extends Weapon {
 			app.scale(tiersSize[tier]);
 			app.shape(missile);
 			popLocal();
-		}
-
-		protected void addForces() {
-			avance( puissance()*3 );
 		}
 
 		public void onCollision(Collider col, Vector impact) {
