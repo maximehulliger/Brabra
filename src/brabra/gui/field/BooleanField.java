@@ -13,6 +13,10 @@ public class BooleanField extends ValueField.WithCustomModel<Boolean> {
 	public BooleanField(Consumer<Boolean> setModelValue, Supplier<Boolean> getModelValue) {
 		super(setModelValue, getModelValue, false);
 		
+		//--- Styles
+		cboxClosed.getStyleClass().add("fields-cBoxClosed");
+		cboxOpen.getStyleClass().add("fields-cBoxOpen");
+		
 		//--- View:
 		contentOpen.getChildren().add(cboxOpen);
 		contentClosed.getChildren().add(cboxClosed);

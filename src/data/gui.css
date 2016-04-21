@@ -16,15 +16,11 @@
 }
 
 .parameter-value-open{
-	-fx-font-family : "serif";
-	-fx-font-size : 14px;
-	-fx-padding: 2px;
+	.parameter-label
 }
 
 .parameter-value-closed{
-	-fx-font-family : "serif";
-	-fx-font-size : 14px;
-	-fx-padding: 2px;
+	.parameter-label
 }
 
 .creation-button{
@@ -32,7 +28,35 @@
 	-fx-font-size : 14px;
 }
 
-.creation-holder{
+.fields-subfieldHolder{
+
+}
+
+.fields-triangleButton{
 	
 }
 
+.fields-cBoxClosed{
+	
+}
+
+.fields-cBoxOpen{
+	
+}
+
+.fields-floatField{
+	-fx-width: 105px;
+}
+
+.fields-stringBox{
+	-fx-width: 105px;
+}
+
+.fields-valueFields{
+	-fx-width: 55px;
+}
+
+/*.fields-SelectionContent{
+	    -fx-margin: auto;
+	    -fx-padding: auto;
+}*/

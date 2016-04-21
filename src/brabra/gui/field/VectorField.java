@@ -13,6 +13,7 @@ public class VectorField extends ValueField<Vector> {
 			new TextField(), new TextField(), new TextField()};
 	
 	public VectorField(Vector vector) {
+		
 		super(Vector.zero.copy());
 		this.vector = vector;
 		
@@ -21,7 +22,7 @@ public class VectorField extends ValueField<Vector> {
 			field.setOnAction(e->this.onChange());
 			field.focusedProperty().addListener(new FieldChangeListener());
 			//--- View:
-			field.setPrefWidth(55);
+			field.getStyleClass().add("fields-valueFields");
 			contentOpen.getChildren().add(field);
 		}
 		setValue(getModelValue());

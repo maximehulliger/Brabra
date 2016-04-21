@@ -10,6 +10,7 @@ import brabra.gui.view.SceneView;
 import brabra.gui.view.View;
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ScrollPane.ScrollBarPolicy;

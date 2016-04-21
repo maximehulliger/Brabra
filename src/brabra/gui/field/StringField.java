@@ -18,7 +18,8 @@ public class StringField extends ValueField.WithCustomModel<String> {
 		stringBox.setOnAction(e -> onChange());
 
 		//--- View:
-		stringBox.setPrefWidth(105);
+		stringBox.getStyleClass().add("fields-stringBox");
+		//stringBox.setPrefWidth(105);
 		contentOpen.getChildren().add(stringBox);
 		setValue(getModelValue());
 	}
