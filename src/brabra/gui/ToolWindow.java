@@ -16,6 +16,7 @@ import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TabPane.TabClosingPolicy;
+import javafx.scene.control.Tooltip;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.Pane;
@@ -29,6 +30,7 @@ public class ToolWindow extends Application {
 	public static final String name = "Tool Window";
 	public static final int width = 360;
 	public static final Lock readyLock = new ReentrantLock();
+	public String[] Tooltip = {"Scene", "Para", "Create","MyScene","Store"};
 	
 	private Brabra app;
 	private Stage stage;
@@ -101,7 +103,7 @@ public class ToolWindow extends Application {
     private Pane initRoot() {
     	StackPane root = new StackPane();
     	
-    	Tab[] tabs = tabs(root, new String[] {"Scene", "Para", "+","MyScene","Store"});
+    	Tab[] tabs = tabs(root, new String[] {"Scene", "Para", "Create","MyScene","Store"});
     	
     	tabs[0].setContent(getScrollContent(new SceneView(app.game.scene)));
     	tabs[1].setContent(getScrollContent(new ParametersView(app.para)));
@@ -120,6 +122,7 @@ public class ToolWindow extends Application {
     	
     	for (int i=0; i<names.length; i++) {
         	tabs[i] = new Tab();
+    		tabs[i].setTooltip(new Tooltip(Tooltip[i]));
         	tabsHolder.getTabs().add(tabs[i]);
         	tabs[i].setText(names[i]);
         	

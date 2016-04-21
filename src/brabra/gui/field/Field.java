@@ -28,29 +28,27 @@ public abstract class Field extends GridPane implements Observer {
 	
 	/** Create a field with this name. If subfields is false, no triangle or subfields (null) and the field is always open. */
 	public Field() {
-		//TODO: in css firstLine.setPadding(new Insets(2,0,2,4));
-		//firstLine.setAlignment(Pos.CENTER_LEFT);
-		//setPadding(new Insets(2,0,2,4));
-		//setAlignment(Pos.CENTER_LEFT);
 		
 		//--- View:
-		
 		// > first line: a horizontal box containing open and closed content.
+		
 		// the name label
 		nameText.getStyleClass().add("parameter-label");
+		
 		// the value label
 		contentClosed.getChildren().add(valueLabel);
 		contentClosed.getStyleClass().add("parameter-value-closed");
 		contentOpen.getStyleClass().add("parameter-value-open");
+		
 		// open true by default
 		contentClosed.setVisible(false);
 	    contentClosed.setManaged(false);
-		// link the first line
+	    
+		// link the first line & the rest
 		firstLine.getChildren().addAll(nameText, contentClosed, contentOpen);
 		updateGrid();
 		
 		//--- Control:
-		
 		// close on click if openable (without triangle buttons is always open)
 	    setOnMouseClicked(e -> { 
 	    	if (closable)

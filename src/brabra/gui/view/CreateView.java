@@ -51,6 +51,7 @@ public class CreateView extends View {
         creationControlButtons.setPadding(new Insets(5));
         creationControlButtons.setHgap(10);
         creationControlButtons.setVgap(10);
+        //creationControlButtons.setAlignment(Pos.CENTER);
         final Button returnBtn = getButton("data/gui/return.png", "Return");
         creationControlButtons.add(returnBtn, 0, 1);
         final Button createBtn = getButton("data/gui/hammer.png", "Create");
@@ -119,6 +120,7 @@ public class CreateView extends View {
         button.setContentDisplay(ContentDisplay.TOP);
         button.setPrefWidth(150);
         button.setPrefHeight(150);
+        //button.setTooltip(new Tooltip(buttonText));
         return button;
 	}
 	
