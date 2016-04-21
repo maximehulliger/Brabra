@@ -80,7 +80,7 @@ public class Movable extends Object {
 	/** Return the absolute velocity (from a relative pos). */
 	public Vector velocityAtRel(Vector posRel) {
 		return (rotationRel.isZeroEps(false) || posRel.isZeroEps(false))
-			? velocity() : add(velocity(), rotationRelVel.rotAxisAngle().cross(posRel));
+			? velocity() : add(velocity(), rotationRelVel.isIdentity() ? zero : rotationRelVel.rotAxisAngle().cross(posRel));
 	}
 	
 	protected String state(boolean onlyChange) {

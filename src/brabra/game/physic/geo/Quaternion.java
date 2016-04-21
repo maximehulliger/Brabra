@@ -13,7 +13,7 @@ public class Quaternion extends ProMaster {
 								epsilonAngle = 1E-6f,//pi/(360*1000),
 								epsilonWXYZ = 1E-6f;
 	public static final Quaternion identity = new NQuaternion(new Quaternion(), 
-			() -> { throw new IllegalArgumentException("pas touche à l'identity /!\\"); });
+			() -> { throw new IllegalArgumentException("pas touche ï¿½ l'identity /!\\"); });
 
 	// components of a quaternion
 	private float w = 1;  
@@ -125,14 +125,14 @@ public class Quaternion extends ProMaster {
 			if (printEverything) 
 				return toStringDebug();
 			else
-				return "around "+rotAxis()+" with angle "+(angle()*toDegrees)+"°";
+				return "around "+rotAxis()+" with angle "+(angle()*toDegrees)+"ï¿½";
 		}
 	}
 	
 	public String toStringDebug() {
-		return    "  quat: (wxyz:"+w+", "+xyz.x+", "+xyz.y+", "+xyz.z+")"
+		return    "quat: (wxyz:"+w+", "+xyz.x+", "+xyz.y+", "+xyz.z+")"
 				+ (validRotAxis 
-					? " \naround "+rotAxis()+" with angle "+(angle()*toDegrees)+"°"
+					? " \naround "+rotAxis()+" with angle "+(angle()*toDegrees)+"ï¿½"
 					: " with unknown axis");
 	}
 	
@@ -168,7 +168,7 @@ public class Quaternion extends ProMaster {
 	public String formated() {
 		//TODO not good epsilon
 		return rotAxis()==null ? "identity" 
-				: "around "+rotAxis().formated(Physic.epsilon)+" with angle "+Master.formatFloat(angle()*180/pi, Physic.epsilon)+"°";
+				: "around "+rotAxis().formated(Physic.epsilon)+" with angle "+Master.formatFloat(angle()*180/pi, Physic.epsilon)+"ï¿½";
 	}
 
 	/** wxyz -> (rotAxis, angle). update rot axis & angle if needed (!validRotAxis). set validRotAxis to true. */

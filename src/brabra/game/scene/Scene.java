@@ -191,7 +191,7 @@ public class Scene extends Observable {
 	}*/
 
 	private void notifyChange(Object o, Change change) {
-		ToolWindow.run(() -> {
+		ToolWindow.runLater(() -> {
 			synchronized (this) {
 				this.setChanged();
 				this.notifyObservers(new Arg(o, change));

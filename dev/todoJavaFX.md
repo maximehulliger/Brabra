@@ -1,11 +1,9 @@
 #1. Parameters View
 ## Functionality
-- the fields should have the same height open and closed.
 all the following field: 
 - displaySkybox
 - server location
 - server location test (ping)
-- put all the style in a css file (+id)
 
 
 #2. Scene View
@@ -16,8 +14,12 @@ all the following field:
 
 #4. Object Creation View
 ## Functionality
-- selectBoxWithFilter class
-- interaction to: set the parent of the object to create
+- selectBox(?) to set the parent of the object
+- comboBox to follow parent
+
+## Detail/later
+- remove mass for infinite plan
+
 
 #5. My Scenes View
 ## Functionality
@@ -25,8 +27,6 @@ all the following field:
 
 #6. Scene Store View
 ## Functionality
-- create another project (& repository) for the server side
-	-> http://www.vogella.com/tutorials/REST/article.html
 
 
 <br>

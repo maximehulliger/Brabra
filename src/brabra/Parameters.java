@@ -88,7 +88,7 @@ public class Parameters extends Observable {
 	}
 	
 	private void notifyChange(Change change) {
-		ToolWindow.run(() -> {
+		ToolWindow.runLater(() -> {
 			synchronized (this) {
 				setChanged();
 				notifyObservers(change);

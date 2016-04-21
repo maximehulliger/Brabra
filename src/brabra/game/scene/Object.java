@@ -610,7 +610,7 @@ public class Object extends ProMaster implements Debugable {
 	/** To let someone watch this object */
 	protected final static class ObjectModel extends Observable {
 		public void notifyChange(Change change) {
-			ToolWindow.run(() -> {
+			ToolWindow.runLater(() -> {
 				synchronized (this) {
 					setChanged();
 					notifyObservers(change);

@@ -89,6 +89,7 @@ public abstract class Body extends Movable {
 		if (!updated) {
 			// before update
 			if (onUpdate != null)
+//<<<<<<< HEAD
 				onUpdate.accept(this);
 			
 			// apply if needed
@@ -103,6 +104,7 @@ public abstract class Body extends Movable {
 //				TODO: if (!dL.equals(zero))
 //					rotationRelVel.addAngularMomentum( dL );
 				if (!dL.equals(zero))
+					//rotationRelVel.addAngularMomentum( dL );
 					addAngularMomentum( dL );
 			}
 			
@@ -111,6 +113,20 @@ public abstract class Body extends Movable {
 				forcesLocToAdd.reset(zero);
 				torquesLocToAdd.reset(zero);
 			} 
+//======= TODO
+//				onUpdate.run();
+//			//1. translation
+//			Vector acceleration = forcesLocToAdd.multBy(inverseMass);
+//			if (!acceleration.equals(zero))
+//				velocityRel.add( acceleration );
+//			//2. rotation, vitesse angulaire, on prend rotation axis comme L/I
+//			Vector dL = torquesLocToAdd.multElementsBy(inverseInertiaMom);
+//			if (!dL.equals(zero))
+//				addAngularMomentum( dL );
+//
+//			forcesLocToAdd.set(zero);
+//			torquesLocToAdd.set(zero);
+//>>>>>>> refs/remotes/origin/master
 			return super.update(); //always true
 		} else
 			return false;

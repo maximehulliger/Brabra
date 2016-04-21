@@ -10,7 +10,6 @@ import brabra.gui.view.SceneView;
 import brabra.gui.view.View;
 import javafx.application.Application;
 import javafx.application.Platform;
-import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ScrollPane.ScrollBarPolicy;
@@ -36,7 +35,7 @@ public class ToolWindow extends Application {
 	private Brabra app;
 	private Stage stage;
 	private Scene scene;
-	private boolean visible = false;
+	private boolean visible = false, closing = false;
 	
 	/** Launch the JavaFX app and run it. */
 	public static void launch() {
@@ -64,19 +63,24 @@ public class ToolWindow extends Application {
     	// init the scene/show (but doesn't show it)
     	stage.setTitle(name);
     	stage.setScene(scene);
-        scene.getStylesheets().add("data/gui.css");
+        scene.getStylesheets().add("data/gui/gui.css");
     	
     	//--- Control:
     	
     	// to keep both windows shown (at least tool -> game)
     	stage.addEventHandler(WindowEvent.WINDOW_SHOWN, e -> app.setVisible(true));
     	// to exit main app when  the tool window is closed
-    	stage.setOnCloseRequest(e -> app.exit());
+    	//TODO catch the event
+    	stage.setOnCloseRequest(e -> {
+    		e.consume();
+    		app.runLater(() -> { this.closing = true; app.exit(); });
+    	});
+    	
     	// general keyboard events: alt-f4 to clean exit, h to hide/show.
     	stage.addEventFilter(KeyEvent.KEY_PRESSED, e -> {
     		if(e.getCode() == KeyCode.F4 && e.isAltDown()) {
-    			e.consume();
-    			app.exit();
+        		e.consume();
+        		app.runLater(() -> { this.closing = true; app.exit(); });
     		} else if (e.getCode() == KeyCode.H) {
     			app.setToolWindow(!visible);
     		}
@@ -151,17 +155,15 @@ public class ToolWindow extends Application {
     }
 
     /** Ask for something to run on the JavaFX Application Thread. */
-    public static void run(Runnable f) {
-    	if (Brabra.app.fxApp != null)
+    public static void runLater(Runnable f) {
+    	if (Brabra.app.fxApp != null && !Brabra.app.fxApp.closing)
     		Platform.runLater(f);
     }
     
     /** To set the window visible or invisible (iconified). */
     public void setVisible(boolean visible) {
-    	if (this.visible != visible) {
-    		this.visible = visible;
-        	run(() -> {updateStageLoc(); stage.setIconified(!visible);} );
-    	}
+    	if (this.visible != visible)
+        	runLater(() -> { this.visible = visible; updateStageLoc(); stage.setIconified(!visible); });
 	}
     
     /** Set the window location according to the main Processing window. */

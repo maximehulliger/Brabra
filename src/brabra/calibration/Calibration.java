@@ -31,10 +31,10 @@ public class Calibration extends Interface {
 	}
 
 	public void wakeUp() {
-//		if (fontLabel == null) {
-//			TODO fontLabel = app.createFont("Arial", 18, true);
-//			fontImages = app.createFont("Arial", (Brabra.height - 275)/17, true);
-//		}
+		if (fontLabel == null) {
+			fontLabel = app.createFont("Arial", 18, true);
+			fontImages = app.createFont("Arial", (Brabra.height - 275)/17, true);
+		}
 		ia.inputLock.lock();
 		ImageAnalyser.displayQuadRejectionCause = true;
 		ia.forced = true;
