@@ -4,51 +4,40 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import brabra.Brabra;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.scene.control.TextField;
 
-public class StringField extends ValueField.WithCustomValue<String> {
+public class StringField extends ValueField.WithCustomModel<String> {
 
-	private TextField stringBox;
+	private final TextField stringBox = new TextField();
 	
-	public StringField(String name, Consumer<String> setModelValue, Supplier<String> getModelValue, boolean withTriangle) {
-		super(name, setModelValue, getModelValue, withTriangle);
-		
-		//--- View:
-		stringBox.setPrefWidth(105);
-		contentOpen.getChildren().addAll(stringBox);
+	public StringField(Consumer<String> setModelValue, Supplier<String> getModelValue) {
+		super(setModelValue, getModelValue, "");
 		
 		//--- Control:
-		stringBox.focusedProperty().addListener(new ChangeListener<Boolean>()
-		{
-		    @Override
-		    public void changed(ObservableValue<? extends Boolean> arg0, Boolean oldPropertyValue, Boolean newPropertyValue)
-		    {
-		        if (!newPropertyValue){
-		            onChange();
-		        }
-		    }
-		});
+		stringBox.focusedProperty().addListener(new FieldChangeListener());
 		stringBox.setOnAction(e -> onChange());
-	}
 
+		//--- View:
+		stringBox.setPrefWidth(105);
+		contentOpen.getChildren().add(stringBox);
+		setValue(getModelValue());
+	}
+	
 	protected String getNewValue() {
 		return stringBox.getText();
 	}
 
 	protected void setDisplayValue(String newVal) {
-		setValue(newVal);
-		if (notInitialized())
-			stringBox = new TextField();
-		
-		stringBox.setText(newVal);
+		if (open())
+			stringBox.setText(newVal);
+		else
+			setTextValue(newVal);
 	}
 
 	public static class Pro extends StringField implements Field.Pro {
 		
-		public Pro(String name, Consumer<String> setModelValue, Supplier<String> getModelValue, boolean withTriangle) {
-			super(name, setModelValue, getModelValue, withTriangle);
+		public Pro(Consumer<String> setModelValue, Supplier<String> getModelValue) {
+			super(setModelValue, getModelValue);
 		}
 
 		protected void setModelValue(final String val) {

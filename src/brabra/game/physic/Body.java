@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.function.Consumer;
 
 import brabra.game.Color;
+import brabra.game.Observable.NVector;
 import brabra.game.XMLLoader.Attributes;
 import brabra.game.physic.geo.Line;
 import brabra.game.physic.geo.Quaternion;
@@ -37,7 +38,7 @@ public abstract class Body extends Movable {
 	protected int maxLife = -1;
 	
 	/** Will be added on next update. */
-	private Vector forcesLocToAdd = zero.copy(), torquesLocToAdd = zero.copy();
+	private NVector forcesLocToAdd = new NVector(), torquesLocToAdd = new NVector();
 	/** Executed before updating the body. */
 	private Consumer<Body> onUpdate = null;
 	private List<Line> interactionsRel = new ArrayList<>();
@@ -60,9 +61,6 @@ public abstract class Body extends Movable {
 			restitution = ob.restitution;
 		}
 	}
-
-	/** to add force to the body every frame */
-	protected void addForces() {}
 
 	/** to react to a collision */
 	protected void onCollision(Collider col, Vector impact) {}
@@ -89,11 +87,13 @@ public abstract class Body extends Movable {
 	/** applique les forces et update l'etat. return true if this was updated. */
 	public boolean update() {
 		if (!updated) {
-			if (inverseMass > 0) {
-				// before update
-				addForces();
-				if (onUpdate != null)
-					onUpdate.accept(this);
+			// before update
+			if (onUpdate != null)
+				onUpdate.accept(this);
+			
+			// apply if needed
+			final boolean touched = forcesLocToAdd.hasChangedCurrent() || torquesLocToAdd.hasChangedCurrent();
+			if (inverseMass > 0 && touched) {
 				// translation
 				Vector acceleration = forcesLocToAdd.multBy(inverseMass);
 				if (!acceleration.equals(zero))
@@ -104,10 +104,13 @@ public abstract class Body extends Movable {
 //					rotationRelVel.addAngularMomentum( dL );
 				if (!dL.equals(zero))
 					addAngularMomentum( dL );
-				// reset
-				forcesLocToAdd.set(zero);
-				torquesLocToAdd.set(zero);
 			}
+			
+			// reset
+			if (touched) {
+				forcesLocToAdd.reset(zero);
+				torquesLocToAdd.reset(zero);
+			} 
 			return super.update(); //always true
 		} else
 			return false;

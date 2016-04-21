@@ -4,6 +4,7 @@
 
 export/
 preferences.txt
+*.log
 
 #################
 ## Eclipse

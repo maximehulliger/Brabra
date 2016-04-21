@@ -17,25 +17,23 @@ public class QuaternionField extends ValueField<Quaternion> {
 	
 	private final Vector rotAxisValue;
 	
-	public QuaternionField(String name, Quaternion quaternion) {
-		super(name, quaternion.copy(), true);
-		super.setDefaultValue(Quaternion.identity);
-		
-		// get quaternion, rotAxis & angle
+	public QuaternionField(Quaternion quaternion) {
+		super(Quaternion.identity.copy());
 		this.quaternion = quaternion;
 		this.lastValidValue = quaternion.copy();
-		final Vector vec = quaternion.rotAxis() == null ? Vector.zero.copy() : quaternion.rotAxis().copy(); // TODO: quaternion.isIdentity()
-		rotAxisValue = vec;
-		angleValue = quaternion.angle();
+		// TODO: quaternion.isIdentity()
+		this.rotAxisValue = (quaternion.rotAxis() == null ? Vector.zero : quaternion.rotAxis()).copy();
+		this.angleValue = quaternion.angle();
 		
-		// create the 2 fields
-		rotAxisField = new VectorField(null, rotAxisValue, false);
+		//--- Fields (vector + float):
+		rotAxisField = new VectorField(rotAxisValue);
 		rotAxisField.setDefaultValue(null);
 		rotAxisField.addOnChange(() -> this.onChange());
-		angleField = new FloatField(name, a -> {angleValue = a; onChange();}, () -> angleValue, false);
+		angleField = new FloatField(a -> {angleValue = a; onChange();}, () -> this.angleValue);
 				
 		//--- View:
-		contentOpen.getChildren().addAll(rotAxisField, angleField);
+		contentOpen.getChildren().addAll(rotAxisField.contentOpen, angleField.contentOpen);
+		setValue(getModelValue());
 	}
 
 	protected void setModelValue(Quaternion val) {
@@ -66,7 +64,7 @@ public class QuaternionField extends ValueField<Quaternion> {
 	}
 
 	protected void setDisplayValue(Quaternion newVal) {
-		setValue(newVal.formated());
+		setTextValue(newVal.formated());
 		if (rotAxisField != null) {
 			rotAxisField.setDisplayValue(newVal.rotAxis());
 			angleField.setDisplayValue(newVal.angle());
@@ -75,8 +73,8 @@ public class QuaternionField extends ValueField<Quaternion> {
 
 	public static class Pro extends QuaternionField implements Field.Pro {
 
-		public Pro(String name, Quaternion quaternion) {
-			super(name, quaternion);
+		public Pro(Quaternion quaternion) {
+			super(quaternion);
 		}
 
 		protected void setModelValue(final Quaternion val) {
