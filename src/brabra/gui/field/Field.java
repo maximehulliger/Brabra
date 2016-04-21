@@ -15,7 +15,7 @@ import javafx.scene.layout.VBox;
 public abstract class Field extends GridPane implements Observer {
 
 	// first line
-	private final Label nameText = new Label(), valueLabel = new Label();
+	protected final Label nameText = new Label(), valueLabel = new Label();
 	private final HBox firstLine = new HBox();
 	protected final HBox contentClosed = new HBox(), contentOpen = new HBox();
 	// subfields / triangle
@@ -34,7 +34,8 @@ public abstract class Field extends GridPane implements Observer {
 		
 		// the name label
 		nameText.getStyleClass().add("parameter-label");
-		
+		subfieldHolder.getStyleClass().add("fields-subfieldHolder");
+		triangleButton.getStyleClass().add("fields-triangleButton");
 		// the value label
 		contentClosed.getChildren().add(valueLabel);
 		contentClosed.getStyleClass().add("parameter-value-closed");

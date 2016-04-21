@@ -17,7 +17,8 @@ public class FloatField extends ValueField.WithCustomModel<Float> {
 		
 		//--- View (&control):
 		floatField = new StringField(s -> onChange(), () -> getModelValue().toString());
-		floatField.setPrefWidth(105);
+		floatField.getStyleClass().add("fields-floatField");
+		//floatField.setPrefWidth(105);
 		floatField.setDefaultValue("0");
 		contentClosed.getChildren().add(floatField.contentClosed);
 		contentOpen.getChildren().add(floatField.contentOpen);

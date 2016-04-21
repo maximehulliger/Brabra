@@ -16,6 +16,8 @@ public class View extends VBox {
 		title.getStyleClass().add("title-text");
 		getChildren().addAll(title, content);
 		
+		content.getStyleClass().add("holding-tab");
+		
 		//super.setHgap(8);
 		//super.setVgap(8);
 	}

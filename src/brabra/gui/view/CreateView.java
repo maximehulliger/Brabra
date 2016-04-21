@@ -12,7 +12,9 @@ import brabra.game.scene.Movable;
 import brabra.game.scene.Object;
 import brabra.game.scene.fun.Starship;
 import brabra.gui.field.ObjectField;
+import javafx.geometry.HPos;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.ContentDisplay;
 import javafx.scene.image.Image;
@@ -29,7 +31,9 @@ public class CreateView extends View {
 	public CreateView() {
 		
 		//--- View:
-		
+		SelectionContent.setPadding(new Insets(20,20,20,20));
+
+		//SelectionContent.getStyleClass().add("fields-SelectionContent");
 		// > choice view
 		// get the object choice buttons
 		ArrayList<Button> buttons = new ArrayList<>();
