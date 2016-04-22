@@ -97,7 +97,7 @@ public class Camera extends Object {
 
 	private String state() {
 		updateAbs();
-		return (followMode == FollowMode.Not ? "fixed at "+locationAbs
+		return (followMode == FollowMode.Not ? "fixed at "+location()
 				: "at "+parent().location()+" from +"+locationRel+" in "+followMode+" mode.");
 				//+ " looking at "+focus+" orientation: "+orientation;
 	}
@@ -251,12 +251,13 @@ public class Camera extends Object {
 		
 		// draw all the stuff
 		app.background(200);
-		app.camera(locationAbs.x, locationAbs.y, locationAbs.z, 
+		final Vector location = location();
+		app.camera(location.x, location.y, location.z, 
 				focus.x, focus.y, focus.z, 
 				orientation.x, orientation.y, orientation.z);
 		if (displaySkybox) {
 			app.pushMatrix();
-				translate(locationAbs);
+				translate(location);
 				app.shape(skybox());
 			app.popMatrix();
 		} else {

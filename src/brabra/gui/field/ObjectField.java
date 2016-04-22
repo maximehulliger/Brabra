@@ -19,6 +19,9 @@ public class ObjectField extends Field implements Observer {
 	private final Movable asMovable;
 	private final Body asBody;
 	private final Collider asCollider;
+//	private final Collider asBox;
+//	private final Collider asSphere;
+//	private final Collider asPlane;
 
 	private float oldValidMass;
 
@@ -37,7 +40,7 @@ public class ObjectField extends Field implements Observer {
 				).respondingTo(Change.Name)
 				.set("Name", false, true, true));
 		// location
-		fields.add(new VectorField.Pro(object.locationRel())
+		fields.add(new VectorField.Pro(object.location())
 				.respondingTo(Change.Location)
 				.set("Location", false, true, true));
 		// rotation
@@ -108,8 +111,8 @@ public class ObjectField extends Field implements Observer {
 		set(object.toString(), !closable, closable, closable);
 
 		//--- Control:
-		object.addObserver(this);
-		object.addObservers(fields);
+		object.model.addObserver(this);
+		fields.forEach(f -> object.model.addObserver(f));
 	}
 
 	public void update(Observable o, java.lang.Object arg) {

@@ -40,21 +40,21 @@ public class Ellipsoide extends Sphere {
 	public Projection projetteSur(Line ligne) {
 		Vector n = ligne.norm;
 		Vector sc = vec(n.x*r.x, n.y*r.y, n.z*r.z);
-		Vector c1 = locationAbs.plus(sc);
-		Vector c2 = locationAbs.minus(sc);
+		Vector c1 = location().plus(sc);
+		Vector c2 = location().minus(sc);
 		return ligne.projette( new Vector[] { c1, c2 } );
 	}
 
 	public Line collisionLineFor(Vector p) {
-		Vector to = p.minus(locationAbs);
+		Vector to = p.minus(location());
 		Vector sc = vec(to.x/r.x, to.y/r.y, to.z/r.z); //en coordonees spheriques
 		sc.normalize();
-		Vector base = locationAbs.plus(sc.multElementsBy(r));
+		Vector base = location().plus(sc.multElementsBy(r));
 		return new Line(base , base.plus(sc), false);
 	}
 
 	public Vector projette(Vector point) {
-		Vector sproj = super.projette(point.minus(locationAbs).divElementsBy(r));
-		return sproj.multElementsBy(r).plus(locationAbs);
+		Vector sproj = super.projette(point.minus(location()).divElementsBy(r));
+		return sproj.multElementsBy(r).plus(location());
 	}
 }

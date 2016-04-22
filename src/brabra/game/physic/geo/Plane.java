@@ -171,7 +171,7 @@ public class Plane extends PseudoPolyedre {
 			return normale.multBy(Float.POSITIVE_INFINITY);
 		}
 		updateAbs();
-		return Vector.sumOf(locationAbs,
+		return Vector.sumOf(location(),
 				vx.norm.multBy(size.x * -0.5f * sgn(vx.norm.dot(normale))),
 				vz.norm.multBy(size.z * -0.5f * sgn(vz.norm.dot(normale))));
 	}

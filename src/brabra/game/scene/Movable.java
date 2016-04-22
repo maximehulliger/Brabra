@@ -43,8 +43,11 @@ public class Movable extends Object {
 	
 	/** Return true if the object has moved during last frame (by velocity or parent's rotational velocity). */
 	public boolean isMoving() {
-		return moving || (movableParent != null && 
-				(movableParent.isMoving() || (!locationRel.isZeroEps(false) && movableParent.isRotating())));
+		// flags already set ?
+		if (moving || (movableParent != null && movableParent.isMoving()))
+			return true;
+		else 
+			return movableParent != null && (movableParent.isRotating() && !location().minus(movableParent.location()).isZeroEps(false));
 	}
 	
 	/** Return true if the object has rotated during last frame (by this or parent's rotational velocity). */
@@ -62,14 +65,9 @@ public class Movable extends Object {
 		return rotationRelVel;
 	}
 	
-	/** Return the absolute velocity at the center of mass. */
 	public Vector velocity() {
-		if (!isMoving())
-			return zero;
-		else {
-			Vector forMe = absoluteDirFromLocal(velocityRel);
-			return hasParent() ? add(forMe , parent().velocityAtRel(locationRel)) : forMe;
-		}
+		Vector forMeAbs = isMoving() ? absoluteDirFromLocal(velocityRel) : zero;
+		return hasParent() ? add(forMeAbs , parent().velocityAtRel(location())) : forMeAbs;
 	}
 
 	/** Return the absolute velocity (from an absolute pos). */
@@ -79,8 +77,8 @@ public class Movable extends Object {
 
 	/** Return the absolute velocity (from a relative pos). */
 	public Vector velocityAtRel(Vector posRel) {
-		return (rotationRel.isZeroEps(false) || posRel.isZeroEps(false))
-			? velocity() : add(velocity(), rotationRelVel.isIdentity() ? zero : rotationRelVel.rotAxisAngle().cross(posRel));
+		final Vector fromTransAbs = hasParent() ? parent().velocityAtRel(posRel).plus(velocityRel) : velocityRel;
+		return rotationRelVel.isIdentity() ? fromTransAbs : fromTransAbs.plus(rotationRelVel.rotAxisAngle().cross(posRel));
 	}
 	
 	protected String state(boolean onlyChange) {
@@ -96,14 +94,6 @@ public class Movable extends Object {
 	}
 
 	// --- Setters ---
-
-	public void move(Vector deplAbs) {
-		locationRel.add(localDir(deplAbs));
-	}
-	
-	public void rotate(Quaternion rotAbs) {
-		rotationRel.rotate(rotAbs);
-	}
 	
 	/** Set the velocity of this object relative to his parent. */
 	public void setVelocityRel(Vector velocityRel) {

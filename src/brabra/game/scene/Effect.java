@@ -58,7 +58,7 @@ public abstract class Effect extends Object {
 		private Vector randomPos() {
 			Vector pos = new Vector(random.nextFloat(), random.nextFloat(), random.nextFloat());
 			pos.mult( radius * etatCrete() );
-			return locationAbs.plus(pos);
+			return location().plus(pos);
 		}
 		
 		public boolean update() {

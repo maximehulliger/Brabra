@@ -176,14 +176,12 @@ public class Weaponry extends Object {
 			puissanceRatio = puissance / puissanceWished;
 			basGauche.set((Brabra.width-guiWidth)/2, Brabra.height);
 			// weapons
-			weapons.sort((a,b) -> round(b.locationRel().x - a.locationRel().x));
+			weapons.sort((a,b) -> round(b.location().x - a.location().x));
 			weaponsOrdered.clear();
 			weaponsOrdered.addAll(weapons);
 			weaponsOrdered.sort((a,b) -> {
 				int score = round(a.puissance() - b.puissance());
-				if (score == 0)
-					score = round(abs(a.locationRel().x) - abs(b.locationRel().x));
-				return score;
+				return score == 0 ? round(abs(a.location().x) - abs(b.location().x)) : score;
 			});
 			valid = true;
 		}

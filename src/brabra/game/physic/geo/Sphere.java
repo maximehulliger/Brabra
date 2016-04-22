@@ -88,7 +88,7 @@ public class Sphere extends Collider {
 	// --- physic (collider) ---
 	
 	public Projection projetteSur(Line ligne) {
-	  float proj = ligne.projectionFactor(locationAbs);
+	  float proj = ligne.projectionFactor(location());
 	  return new Projection(proj-this.radius, proj+this.radius);
 	}
 	
@@ -99,9 +99,9 @@ public class Sphere extends Collider {
 	
 	public Line collisionLineFor(Vector p) {
 		//on prend le vecteur this->c. la ligne part du perimetre a  c.
-		Vector sc = p.minus(locationAbs);
+		Vector sc = p.minus(location());
 		sc.setMag(radius);
-		Vector base = locationAbs.plus(sc);
+		Vector base = location().plus(sc);
 		return new Line(base, base.plus(sc), false);
 	}
 }

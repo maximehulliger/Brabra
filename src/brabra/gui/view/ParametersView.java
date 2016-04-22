@@ -18,13 +18,18 @@ public class ParametersView extends View {
 		fields.add(new BooleanField(
 				run -> para.setRunning(run), 
 				() -> para.running())
-				.set("Running", false, true, true));
+				.set("Running", true, false, true));
 		// display all collider
+				fields.add(new BooleanField(
+						dc -> para.setDisplayAllColliders(dc), 
+						() -> para.displayAllColliders())
+						.set("Display all Colliders", true, false, true));
+		// braking in interaction
 		fields.add(new BooleanField(
-				dc -> para.setDisplayAllColliders(dc), 
-				() -> para.displayAllColliders())
-				.set("Display all Colliders", false, true, true));
-		
+				b -> para.setBraking(b), 
+				() -> para.braking())
+				.set("Braking focused object", true, false, true));
+				
 		//--- View:
 		// title
 		setTitle("Parameters:");

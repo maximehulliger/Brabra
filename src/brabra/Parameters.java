@@ -8,7 +8,9 @@ import brabra.gui.ToolWindow;
 /** Class containing all the parameters if the project (model). */
 public class Parameters extends Observable {
 	public enum Change {
-		Gravity, DisplayAllColliders, Running
+		Running,
+		Gravity, DisplayAllColliders, 
+		Braking, InteractionForce
 	}
 
 	// --- Game Running ---
@@ -26,7 +28,7 @@ public class Parameters extends Observable {
 			Brabra.app.game.debug.info(1, "game " + (running ? "running !" : "paused :)"));
 		}
 	}
-	
+
 	// --- Gravity ---
 	
 	private Vector gravity = ProMaster.down(0.8f);
@@ -56,7 +58,35 @@ public class Parameters extends Observable {
 			notifyChange(Change.DisplayAllColliders);
 		}
 	}
+
+	// --- Interaction: braking, interactionForce ---
 	
+	private boolean braking = false;
+
+	public boolean braking() {
+		return braking;
+	}
+	
+	public void setBraking(boolean braking) {
+		if (this.braking != braking) {
+			this.braking = braking;
+			notifyChange(Change.Braking);
+		}
+	}
+
+	private float interactionForce = 70;
+
+	public float interactionForce() {
+		return interactionForce;
+	}
+	
+	public void setInteractionForce(float interactionForce) {
+		if (this.interactionForce != interactionForce) {
+			this.interactionForce = interactionForce;
+			notifyChange(Change.InteractionForce);
+		}
+	}
+
 	// --- Validate ---
 
 	/** Validates the global settings of the program. */

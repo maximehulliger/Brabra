@@ -124,12 +124,12 @@ public class Box extends PseudoPolyedre {
 		return true;
 	}
 	
-	public Vector pointContre(Vector normale) {
-		Vector cNorm = normale.multBy(-1);
+	public Vector pointContre(Vector normaleAbs) {
+		Vector cNorm = normaleAbs.multBy(-1);
 		Vector proj = zero.copy();
 		for (int i=0; i<3; i++)
 			proj.add( Vector.mult( faces[i*2].normale().norm, dim.array()[i] * sgn(faces[i*2].normale().norm.dot(cNorm))) );
-		proj.add(locationAbs);
+		proj.add(location());
 		return proj;
 	}
 	
@@ -142,7 +142,7 @@ public class Box extends PseudoPolyedre {
 	}
 	
 	public Plane[] plansSeparationFor(Vector colliderLocation) {
-		Vector rel = colliderLocation.minus(locationAbs);
+		Vector rel = colliderLocation.minus(location());
 		Plane[] ret = new Plane[3];
 		for (int i=0; i<3; i++) {
 			ret[i] = rel.dot(faces[i*2].normale().norm) > 0
@@ -167,7 +167,7 @@ public class Box extends PseudoPolyedre {
 	}
 	
 	public Projection projetteSur(Line ligne) {
-	  float mid = ligne.projectionFactor(locationAbs);
+	  float mid = ligne.projectionFactor(location());
 	  float proj = abs(projetteSur(ligne.norm));
 	  return new Projection(mid-proj, mid+proj);
 	}

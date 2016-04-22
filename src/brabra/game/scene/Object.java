@@ -3,7 +3,6 @@ package brabra.game.scene;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Observable;
-import java.util.Observer;
 import java.util.function.Function;
 
 import brabra.Master;
@@ -54,9 +53,9 @@ public class Object extends ProMaster implements Debugable {
 	
 	// > absolute variable
 	/** Absolute position. Equals locationRel if no parent. */
-	protected final NVector locationAbs = new NVector(zero);
+	private final NVector locationAbs = new NVector(zero);
 	/** Absolute rotation. Equals rotationRel if no parent. */
-	protected final NQuaternion rotationAbs = new NQuaternion(identity);
+	private final NQuaternion rotationAbs = new NQuaternion(identity);
 	/** Matrix representing the matrix transformations till this object (lazy). */
 	private PMatrix matrix = null;
 	/** for the matrix and positions. */
@@ -158,20 +157,11 @@ public class Object extends ProMaster implements Debugable {
 		return other == this;
 	}
 
-	public String toString() {
-		return name;
-	}
-	
 	public Object copy() {
 		Object a = new Object(locationAbs);
 		return a;
 	}
 	
-	/** Return true if the object should consider his parent. */
-	public boolean hasParent() {
-		return parent != null && parentRel != ParentRelationship.None;
-	}
-
 	/** Return the parent of the object (even if parentRel is None -> can be null). */
 	public Object parent() {
 		return parent;
@@ -181,6 +171,8 @@ public class Object extends ProMaster implements Debugable {
 	public <T extends Object> T as(Class <T> as) {
 		return Master.as(this, as);
 	}
+	
+	// --- Physic getters ---
 
 	/** Return the absolute location of the object. update things if needed. */
 	public Vector location() {
@@ -188,18 +180,28 @@ public class Object extends ProMaster implements Debugable {
 		return locationAbs;
 	}
 	
-	/** Return the absolute location of the object. update things if needed. */
-	public Vector locationRel() {
-		updateAbs();
-		return locationRel;
-	}
-	
-	/** for now return the relative rotation. */
+	/** for now return the relative rotation. update things if needed. */
 	public Quaternion rotation() {
 		updateAbs();
 		return rotationAbs;
 	}
+
+	/** Move this object fom*/
+	public void move(Vector deplAbs) {
+		locationRel.add(localDir(deplAbs));
+		locationAbs.add(deplAbs);
+	}
 	
+	public void moveRel(Vector deplLoc) {
+		locationRel.add(deplLoc);
+	}
+
+	public void rotate(Quaternion rotAbs) {
+		rotationRel.rotate(rotAbs);
+		rotationAbs.rotate(rotAbs);
+	}
+	
+	/** Return the absolute velocity at the center of mass. */
 	public Vector velocity() {
 		return zero;
 	}
@@ -218,17 +220,6 @@ public class Object extends ProMaster implements Debugable {
 		return transformChanged;
 	}
 
-	/** Return true if this object was validated once in his life. */
-	public boolean validated() {
-		return validated;
-	}
-
-	/** Unvalidate this object (this should be updated). */
-	public void unvalidate() {
-		assert(validated);
-		validated = false;
-	}
-
 	/** Return if the transforms of the object or one of his parent changed during last frame. */
 	public boolean transformChanged() { 
 		return transformChanged;
@@ -243,6 +234,24 @@ public class Object extends ProMaster implements Debugable {
 	public boolean rotationChanged() { 
 		return rotationChanged;
 	}
+	
+	// --- State getters ---
+
+	/** Return true if the object should consider his parent. */
+	public boolean hasParent() {
+		return parent != null && parentRel != ParentRelationship.None;
+	}
+
+	/** Return true if this object was validated once in his life. */
+	public boolean validated() {
+		return validated;
+	}
+
+	/** Unvalidate this object (this should be updated). */
+	public void unvalidate() {
+		assert(validated);
+		validated = false;
+	}
 
 	/** Return true if the children list was changed during last frame. */
 	public boolean childrenChanged() {
@@ -253,7 +262,13 @@ public class Object extends ProMaster implements Debugable {
 	protected boolean absValid() {
 		return (hasParent() && !parent.absValid()) ? false : absValid;
 	}
+	
+	// --- String getters ---
 
+	public String toString() {
+		return name;
+	}
+	
 	/** To display the state of the object in the console. */
 	public void displayState() {
 		debug.info(2, presentation()+" "+state(false));
@@ -597,18 +612,10 @@ public class Object extends ProMaster implements Debugable {
 		Location, Rotation, Velocity, RotVelocity, DisplayCollider, Mass, Name, Size
 	}
 	
-	protected final ObjectModel model = new ObjectModel();
-
-	public void addObserver(Observer o) {
-		model.addObserver(o);
-	}
-
-	public <O extends Observer> void addObservers(Iterable<O> obss) {
-		obss.forEach(o -> model.addObserver(o));
-	}
+	public final ObjectModel model = new ObjectModel();
 	
 	/** To let someone watch this object */
-	protected final static class ObjectModel extends Observable {
+	public final static class ObjectModel extends Observable {
 		public void notifyChange(Change change) {
 			ToolWindow.runLater(() -> {
 				synchronized (this) {
