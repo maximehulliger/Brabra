@@ -81,6 +81,7 @@ public class Brabra extends PApplet {
 	
 	/** Launch the whole software. */
 	public void launch() {
+		
 		// start the other threads if needed.
 		setImgAnalysis(imgAnalysis);
 		setToolWindow(toolWindow);
