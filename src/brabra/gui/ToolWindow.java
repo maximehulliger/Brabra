@@ -5,6 +5,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import brabra.Brabra;
 import brabra.gui.view.CreateView;
+import brabra.gui.view.MySceneView;
 import brabra.gui.view.ParametersView;
 import brabra.gui.view.SceneView;
 import brabra.gui.view.View;
@@ -109,7 +110,7 @@ public class ToolWindow extends Application {
     	tabs[0].setContent(getScrollContent(new SceneView(app.game.scene)));
     	tabs[1].setContent(getScrollContent(new ParametersView(app.para)));
     	tabs[2].setContent(getScrollContent(new CreateView()));
-    	//tabs[3].setContent(new MyScene() );
+    	tabs[3].setContent(getScrollContent(new MySceneView()));
     	//tabs[4].setContent(new Store() );
     	return root;
     }
