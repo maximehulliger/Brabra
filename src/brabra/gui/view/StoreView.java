@@ -7,24 +7,26 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
-
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import brabra.gui.field.Field;
 
+public class StoreView extends View {
 
-public class MySceneView extends View {
-    
 	private final GridPane grid = new GridPane();
 	//private Field first;
 	//private ObjectField objectField = null;
 	Label desc = new Label("Name:"); 
 	final ImageView img = new ImageView(new Image("data/gui/ball.png"));
 	final List<Field> fields = new ArrayList<>();
+	private final VBox subfieldHolder = new VBox();
 	
-	public MySceneView() {
+	public StoreView() {
 		
 		//final List<Field> fields = new ArrayList<>();
 
@@ -32,6 +34,15 @@ public class MySceneView extends View {
 		
 		//fields.add(Field());
 		
+		//--- Search Box, only graphical
+		Label label1 = new Label("Look for scene");
+		TextField textField = new TextField ();
+		HBox hb = new HBox();
+		hb.getChildren().addAll(label1, textField);
+		hb.setSpacing(10);
+		hb.setPadding(new Insets(20, 20, 20, 20));
+		
+		//--- Fixed view
 	     grid.getColumnConstraints().add(new ColumnConstraints(150));
 	     grid.getColumnConstraints().add(new ColumnConstraints(150));
 		//--- View:
@@ -59,7 +70,8 @@ public class MySceneView extends View {
 		grid.add(buttons.get(0), 0, 1);
 		grid.add(buttons.get(1), 1, 1);
 		
-		
+		subfieldHolder.getChildren().addAll(hb,grid);
+
 		//final List<Field> fields = new ArrayList<>();
 		// running
 		//fields.add(objectField);
@@ -71,7 +83,7 @@ public class MySceneView extends View {
 	private void setSelectionMode() {
 		super.setTitle("Scene or w/e");
         content.getChildren().clear();
-    	content.add(grid, 0, 0);
+    	content.add(subfieldHolder, 0, 0);
     }
 	
 	private Button getButton(String buttonText) {
@@ -84,3 +96,4 @@ public class MySceneView extends View {
 	}
 	
 }
+
