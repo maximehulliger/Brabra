@@ -10,6 +10,7 @@ public class Parameters extends Observable {
 	public enum Change {
 		Running,
 		Gravity, DisplayAllColliders, 
+		DisplaySkybox, DisplayAxis, DisplayCenterPoint,
 		Braking, InteractionForce
 	}
 
@@ -59,6 +60,51 @@ public class Parameters extends Observable {
 		}
 	}
 
+	// --- Display Skybox ---
+
+	private boolean skybox = false;
+	
+	public boolean displaySkybox() {
+		return skybox;
+	}
+	
+	public void setDisplaySkybox(boolean skybox) {
+		if (this.skybox != skybox) {
+			this.skybox = skybox;
+			notifyChange(Change.DisplaySkybox);
+		}
+	}
+
+	// --- Display axis ---
+
+	private boolean displayAxis = true;
+	
+	public boolean displayAxis() {
+		return displayAxis;
+	}
+	
+	public void setDisplayAxis(boolean displayAxis) {
+		if (this.displayAxis != displayAxis) {
+			this.displayAxis = displayAxis;
+			notifyChange(Change.DisplayAxis);
+		}
+	}
+
+	// --- Display center point ---
+
+	private boolean displayCenterPoint = false;
+	
+	public boolean displayCenterPoint() {
+		return displayCenterPoint;
+	}
+	
+	public void setDisplayCenterPoint(boolean displayCenterPoint) {
+		if (this.displayCenterPoint != displayCenterPoint) {
+			this.displayCenterPoint = displayCenterPoint;
+			notifyChange(Change.DisplayCenterPoint);
+		}
+	}
+
 	// --- Interaction: braking, interactionForce ---
 	
 	private boolean braking = false;
@@ -105,6 +151,10 @@ public class Parameters extends Observable {
 		final String displayAllColliders =  atts.getValue("displayAllColliders");
 		if (displayAllColliders != null)
 			setDisplayAllColliders(Boolean.parseBoolean(displayAllColliders));
+		// > Skybox
+		final String skybox =  atts.getValue("displayAllColliders");
+		if (skybox != null)
+			setDisplaySkybox(Boolean.parseBoolean(skybox));
 		// > Gravity
 		final String gravity = atts.getValue("gravity");
 		if (gravity != null) {

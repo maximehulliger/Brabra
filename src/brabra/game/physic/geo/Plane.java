@@ -103,31 +103,26 @@ public class Plane extends PseudoPolyedre {
 		popLocal();
 	}
 
-	public boolean updateAbs() {
-		if (super.updateAbs()) {
-			// for plane
-			Vector[] vertices = absolute(natCo);
-			vx = new Line(vertices[0], vertices[1], finite); 	// x
-			vz = new Line(vertices[0], vertices[2], finite); 	// z
-			Vector norm = vz.norm.cross(vx.norm).normalized();
-			normale = new Line(location(), location().plus(norm), true);
-			// for polyhedron
-			Line v3 = new Line(vertices[1], vertices[3], true); // x'
-			Line v4 = new Line(vertices[2], vertices[3], true); // z'
-			setAbs(vertices, new Line[] { vx, vz, v3, v4 });
-			return true;
-		} else
-			return false;
+	public void updateAbs() {
+		super.updateAbs();
+		// for plane
+		Vector[] vertices = absolute(natCo);
+		vx = new Line(vertices[0], vertices[1], finite); 	// x
+		vz = new Line(vertices[0], vertices[2], finite); 	// z
+		Vector norm = vz.norm.cross(vx.norm).normalized();
+		normale = new Line(location(), location().plus(norm), true);
+		// for polyhedron
+		Line v3 = new Line(vertices[1], vertices[3], true); // x'
+		Line v4 = new Line(vertices[2], vertices[3], true); // z'
+		setAbs(vertices, new Line[] { vx, vz, v3, v4 });
 	}
 
-	public boolean validate(Attributes atts) {
-		if (super.validate(atts)) {
-			final String size = atts.getValue("size");
-			if (size != null)
-				setSize(vec(size));
-			return true;
-		} else
-			return false;
+	public void validate(Attributes atts) {
+		super.validate(atts);
+		
+		final String size = atts.getValue("size");
+		if (size != null)
+			setSize(vec(size));
 	}
 	
 	// --- Collider & physic implementation ---

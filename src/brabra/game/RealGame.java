@@ -25,7 +25,6 @@ public class RealGame extends Interface {
 		debug.info(0, "loading scene");
 		scene.reset();
 		scene.add(camera);
-		debug.followed.clear();
 		physicInteraction.setFocused(null, -1);
 		xmlFile.load();
 		app.imgAnalyser.detectButtons = true;
@@ -54,7 +53,7 @@ public class RealGame extends Interface {
 	public void gui() {
 		game.physicInteraction.gui();
 		input.gui();
-		game.debug.setCurrentWork("user events");
+		camera.gui();
 	}
 
 	// --- events ---

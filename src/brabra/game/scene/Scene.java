@@ -6,6 +6,7 @@ import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+import brabra.Brabra;
 import brabra.game.RealGame;
 import brabra.game.physic.Body;
 import brabra.game.physic.Collider;
@@ -25,27 +26,11 @@ import brabra.gui.ToolWindow;
  * Will pass to observer argObjectAdded or argObjectRemoved  */
 public class Scene extends Observable {
 
-	// --- Observable ---
-	
-	public enum Change { ObjectAdded, ObjectRemoved }
-	
-	public static class Arg {
-		public final Object object;
-		public final Change change;
-		public Arg(Object object, Change modif) {
-			this.object = object;
-			this.change = modif;
-		}
-	}
-	
-	// --- Scene ---
-	
 	public final ConcurrentLinkedDeque<Object> objects = new ConcurrentLinkedDeque<Object>();
 	public final ConcurrentLinkedDeque<Collider> colliders = new ConcurrentLinkedDeque<Collider>();
 	
-	//private final ConcurrentLinkedDeque<Object> toRemove = new ConcurrentLinkedDeque<Object>();
-	//private final ConcurrentLinkedDeque<Object> toAdd = new ConcurrentLinkedDeque<Object>();
 	private final RealGame game;
+	
 	
 	public Scene(RealGame game) {
 		this.game = game;
@@ -63,15 +48,8 @@ public class Scene extends Observable {
 		objects.forEach(f);
 	}
 
-	/** Add an object to the scene (on next update). */
+	/** Add an object to the scene. Return the object. */
 	public Object add(Object o) {
-		addNow(o);
-		//toAdd.add(o); TODO
-		return o;
-	}
-
-	/** Add an object immediately into the scene. return the object. */
-	public Object addNow(Object o) {
 		if (!objects.contains(o)) {
 			objects.add(o);
 			o.scene = this;
@@ -82,18 +60,12 @@ public class Scene extends Observable {
 		return o;
 	}
 	
-	/** Remove an object from the scene immediately. */
-	public void removeNow(Object o) {
+	/** Remove an object from the scene. Return the object. */
+	public Object remove(Object o) {
 		objects.remove(o);
 		colliders.remove(o);
 		o.onDelete();
 		notifyChange(o, Change.ObjectRemoved);
-	}
-	
-	/** Remove an object from the scene (on next update). return the object. */
-	public Object remove(Object o) {
-		removeNow(o);
-		//toRemove.add(o);
 		return o;
 	}
 	
@@ -103,6 +75,50 @@ public class Scene extends Observable {
 		//toRemove.addAll(objects);
 	}
 	
+	// --- life cycle ---
+	
+	/** To call before all update methods. */
+	public void beforeUpdateAll() {
+		game.debug.setCurrentWork("objects pre-update");
+		objects.forEach(o -> o.beforeUpdate());
+	}
+	
+	/** Update the colliders and effects (parents first (automatic)). */
+	public void updateAll() {
+		game.debug.setCurrentWork("objects update");
+		for (Object o : objects)
+			o.update();
+	}
+
+	/** Display all colliders and effects in the scene. */
+	public void displayAll() {
+		game.debug.setCurrentWork("display objects");
+		for(Object o : objects)
+			o.display();
+	}
+	
+	// --- Observable ---
+	
+	public enum Change { ObjectAdded, ObjectRemoved };
+	
+	public static class Arg {
+		public final Object object;
+		public final Change change;
+		public Arg(Object object, Change modif) {
+			this.object = object;
+			this.change = modif;
+		}
+	}
+	
+	private void notifyChange(Object o, Change change) {
+		ToolWindow.runLater(() -> {
+			synchronized (this) {
+				this.setChanged();
+				this.notifyObservers(new Arg(o, change));
+			}
+		});
+	}
+
 	// --- Prefab help method ---
 	
 	/**
@@ -140,62 +156,9 @@ public class Scene extends Observable {
 		else if (name.equals("missile_launcher"))
 			obj = new MissileLauncher(location, rotation);
 		else {
-			System.err.println("\""+name+"\" unknown, ignoring.");
+			Brabra.app.debug.err("\""+name+"\" unknown, ignoring.");
 			return null;
 		}
 		return obj;
-	}
-	
-	// --- on all methods ---
-	
-	/** To call before all update methods. */
-	public void beforeUpdateAll() {
-		game.debug.setCurrentWork("objects pre-update");
-		//updateObjectLists();
-		for (Object o : objects) 
-			o.beforeUpdate();
-	}
-	
-	/** Update the colliders and effects (parents first (automatic)). */
-	public void updateAll() {
-		game.debug.setCurrentWork("objects update");
-		for (Object o : objects)
-			o.update();
-		//updateObjectLists();
-	}
-
-	/** Display all colliders and effects in the scene. */
-	public void displayAll() {
-		game.debug.setCurrentWork("display objects");
-		for(Object o : objects)
-			o.display();
-	}
-	
-	// --- private stuff ---
-
-	/** Effectively remove / add objects to the lists. */
-	/*private void updateObjectLists() {
-		if (toRemove.size() > 0) {
-			objects.removeAll(toRemove);
-			colliders.removeAll(toRemove);
-			toRemove.forEach(o -> {
-				o.onDelete();
-				notifyChange(o, Change.ObjectRemoved);
-			});
-			toRemove.clear();
-		}
-		if (toAdd.size() > 0) {
-			toAdd.forEach(o->addNow(o));
-			toAdd.clear();
-		}
-	}*/
-
-	private void notifyChange(Object o, Change change) {
-		ToolWindow.runLater(() -> {
-			synchronized (this) {
-				this.setChanged();
-				this.notifyObservers(new Arg(o, change));
-			}
-		});
 	}
 }

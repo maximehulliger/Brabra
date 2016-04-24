@@ -54,10 +54,47 @@ public class Box extends PseudoPolyedre {
 	public void setSize(Vector size) {
 		this.size = size;
 	    this.dim = size.multBy(0.5f);
-		this.faces = getFaces(size, this);
-		this.verticesRel = verticesRel(dim);
-	    this.edgesRel = edgesRel(verticesRel);
+		
+	    // --- Physic things:
+	    this.verticesRel = new Vector[] {
+				new Vector(dim.x, dim.y, dim.z), new Vector(-dim.x, -dim.y, -dim.z), 	//+++
+				new Vector(dim.x, dim.y, -dim.z), new Vector(-dim.x, -dim.y, dim.z), 	//++-
+				new Vector(dim.x, -dim.y, dim.z), new Vector(-dim.x, dim.y, -dim.z),	//+-+
+				new Vector(dim.x, -dim.y, -dim.z), new Vector(-dim.x, dim.y, dim.z)};	//+--
+	
+		this.edgesRel = new Line[] {
+				// -x -> x
+				new Line(verticesRel[1], verticesRel[6], true), new Line(verticesRel[3], verticesRel[4], true),
+				new Line(verticesRel[5], verticesRel[2], true), new Line(verticesRel[7], verticesRel[0], true),
+				// -y -> y
+				new Line(verticesRel[1], verticesRel[5], true), new Line(verticesRel[3], verticesRel[7], true),
+				new Line(verticesRel[4], verticesRel[0], true), new Line(verticesRel[6], verticesRel[2], true),
+				// -z -> z
+				new Line(verticesRel[1], verticesRel[3], true), new Line(verticesRel[2], verticesRel[0], true),
+				new Line(verticesRel[5], verticesRel[7], true), new Line(verticesRel[6], verticesRel[4], true)};
+		
 	    super.setRadiusEnveloppe(dim.mag());
+	    
+
+		// --- Faces
+		this.faces =  new Plane[6];
+	    Vector[] facesLoc = new Vector[] {
+		    	new Vector(size.x/2, 0, 0), new Vector(-size.x/2, 0, 0), 	//gauche,  droite  (x)
+		    	new Vector(0, size.y/2, 0), new Vector(0, -size.y/2, 0), 	//dessus, dessous  (y)
+		  	    new Vector(0, 0, size.z/2), new Vector(0, 0, -size.z/2)};	//devant, derriere (z)
+	    Quaternion[] facesRot = new Quaternion[] {
+				Quaternion.fromDirection(left, up), Quaternion.fromDirection(right, up),
+				Quaternion.fromDirection(up, up), Quaternion.fromDirection(down, up),
+				Quaternion.fromDirection(front, up), Quaternion.fromDirection(behind, up)};
+	    Vector[] facesSize = new Vector[] {
+		    	new Vector(size.y, 0, size.z), new Vector(size.y, 0, size.z), 	//gauche,  droite  (x)
+		    	new Vector(size.x, 0, size.z), new Vector(size.x, 0, size.z), 	//dessus, dessous  (y)
+		  	    new Vector(size.x, 0, size.y), new Vector(size.x, 0, size.y)};	//devant, derriere (z)
+	    for (int i=0; i<6; i++) {
+	    	faces[i] = new Plane(facesLoc[i], facesRot[i], facesSize[i]);
+	    }
+	    for (Plane f : faces)
+	    	f.setParent(this, null);
 	}
 	
 	public void setMass(float mass) {
@@ -92,26 +129,21 @@ public class Box extends PseudoPolyedre {
 
 	// --- life cycle ---
 
-	public boolean validate(Attributes atts) {
-		if (super.validate(atts)) {
-			final String size = atts.getValue("size");
-			if (size != null)
-				setSize(vec(size));
-			return true;
-		} else
-			return false;
+	public void validate(Attributes atts) {
+		super.validate(atts);
+		
+		final String size = atts.getValue("size");
+		if (size != null)
+			setSize(vec(size));
 	}
 	
-	public boolean updateAbs() {
-		if (super.updateAbs()) {
-			// for Cube
-			for (Plane p : faces)
-				p.updateAbs();
-			// for polyhedron
-		  	super.setAbs(absolute(verticesRel), absolute(edgesRel));
-			return true;
-		} else
-			return false;
+	public void updateAbs() {
+		super.updateAbs();
+		// for Cube
+		for (Plane p : faces)
+			p.updateAbs();
+		// for polyhedron
+		super.setAbs(absolute(verticesRel), absolute(edgesRel));
 	}
 	
 	// --- from PseudoPolyedre ---
@@ -198,49 +230,5 @@ public class Box extends PseudoPolyedre {
 			}
 		}
 		return bestProj;
-	}
-	
-	// --- private stuff ---
-	
-	private static Vector[] verticesRel(Vector dim) {
-		return new Vector[] {
-				new Vector(dim.x, dim.y, dim.z), new Vector(-dim.x, -dim.y, -dim.z), 	//+++
-				new Vector(dim.x, dim.y, -dim.z), new Vector(-dim.x, -dim.y, dim.z), 	//++-
-				new Vector(dim.x, -dim.y, dim.z), new Vector(-dim.x, dim.y, -dim.z),	//+-+
-				new Vector(dim.x, -dim.y, -dim.z), new Vector(-dim.x, dim.y, dim.z)};	//+--
-	}
-	
-	private static Line[] edgesRel(Vector[] verRel) {
-		return new Line[] {
-				// -x -> x
-				new Line(verRel[1], verRel[6], true), new Line(verRel[3], verRel[4], true),
-				new Line(verRel[5], verRel[2], true), new Line(verRel[7], verRel[0], true),
-				// -y -> y
-				new Line(verRel[1], verRel[5], true), new Line(verRel[3], verRel[7], true),
-				new Line(verRel[4], verRel[0], true), new Line(verRel[6], verRel[2], true),
-				// -z -> z
-				new Line(verRel[1], verRel[3], true), new Line(verRel[2], verRel[0], true),
-				new Line(verRel[5], verRel[7], true), new Line(verRel[6], verRel[4], true)};
-	}
-	
-	private static Plane[] getFaces(Vector size, Object forMe) {
-	    Plane[] faces =  new Plane[6];
-	    Vector[] facesLoc = new Vector[] {
-		    	new Vector(size.x/2, 0, 0), new Vector(-size.x/2, 0, 0), 	//gauche,  droite  (x)
-		    	new Vector(0, size.y/2, 0), new Vector(0, -size.y/2, 0), 	//dessus, dessous  (y)
-		  	    new Vector(0, 0, size.z/2), new Vector(0, 0, -size.z/2)};	//devant, derriere (z)
-	    Quaternion[] facesRot = new Quaternion[] {
-				Quaternion.fromDirection(left, up), Quaternion.fromDirection(right, up),
-				Quaternion.fromDirection(up, up), Quaternion.fromDirection(down, up),
-				Quaternion.fromDirection(front, up), Quaternion.fromDirection(behind, up)};
-	    Vector[] facesSize = new Vector[] {
-		    	new Vector(size.y, 0, size.z), new Vector(size.y, 0, size.z), 	//gauche,  droite  (x)
-		    	new Vector(size.x, 0, size.z), new Vector(size.x, 0, size.z), 	//dessus, dessous  (y)
-		  	    new Vector(size.x, 0, size.y), new Vector(size.x, 0, size.y)};	//devant, derriere (z)
-	    for (int i=0; i<6; i++) {
-	    	faces[i] = new Plane(facesLoc[i], facesRot[i], facesSize[i]);
-	    	faces[i].setParent(forMe);
-	    }
-	    return faces;
 	}
 }

@@ -108,16 +108,16 @@ public interface Observable {
 	
 	/** Quaternion notifying on change (after change. not on creation). */
 	public static class NQuaternion extends Quaternion implements Observable {
-		private ArrayList<Runnable> onChange = new ArrayList<>(2);
-		private boolean changed = false, changedCurrent = false;
+		private ArrayList<Runnable> onChange = new ArrayList<>();
+		private boolean changed, changedCurrent;
 
 		public NQuaternion(Quaternion q, Runnable onChange) {
 			super(q);
-			addOnChange(onChange);
+			reset();
 		}
-
-		public NQuaternion(Quaternion q) {
-			super(q);
+		
+		public NQuaternion() {
+			this(identity, null);
 		}
 		
 		// --- From observable ---

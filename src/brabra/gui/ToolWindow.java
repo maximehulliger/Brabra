@@ -30,12 +30,13 @@ public class ToolWindow extends Application {
 	public static final String name = "Tool Window";
 	public static final int width = 360;
 	public static final Lock readyLock = new ReentrantLock();
-	public String[] Tooltip = {"Scene", "Para", "Create","MyScene","Store"};
+	public static final String[] Tooltip = {"Scene", "Para", "Create","MyScene","Store"};
+	public boolean closing = false;
 	
 	private Brabra app;
 	private Stage stage;
 	private Scene scene;
-	private boolean visible = false, closing = false;
+	private boolean visible = false;
 	
 	/** Launch the JavaFX app and run it. */
 	public static void launch() {
@@ -70,17 +71,19 @@ public class ToolWindow extends Application {
     	// to keep both windows shown (at least tool -> game)
     	stage.addEventHandler(WindowEvent.WINDOW_SHOWN, e -> app.setVisible(true));
     	// to exit main app when  the tool window is closed
-    	//TODO catch the event
+    	//TODO catch the close with cross event
     	stage.setOnCloseRequest(e -> {
     		e.consume();
-    		app.runLater(() -> { this.closing = true; app.exit(); });
+    		this.closing = true; 
+    		app.runLater(() -> { app.exit(); });
     	});
     	
     	// general keyboard events: alt-f4 to clean exit, h to hide/show.
     	stage.addEventFilter(KeyEvent.KEY_PRESSED, e -> {
     		if(e.getCode() == KeyCode.F4 && e.isAltDown()) {
         		e.consume();
-        		app.runLater(() -> { this.closing = true; app.exit(); });
+        		this.closing = true; 
+        		app.runLater(() -> { app.exit(); });
     		} else if (e.getCode() == KeyCode.H) {
     			app.setToolWindow(!visible);
     		}

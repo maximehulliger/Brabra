@@ -39,25 +39,33 @@ public class ObjectField extends Field implements Observer {
 				() -> object.toString()
 				).respondingTo(Change.Name)
 				.set("Name", false, true, true));
-		// location
+		// location abs (not modifiable)
 		fields.add(new VectorField.Pro(object.location())
 				.respondingTo(Change.Location)
-				.set("Location", false, true, true));
-		// rotation
+				.set("Absolute Location", false, false, false));
+		// location rel (not modifiable)
+		fields.add(new VectorField.Pro(object.locationRel)
+				.respondingTo(Change.Location)
+				.set("Relative Location", false, true, true));
+		// rotation abs (not modifiable)
 		fields.add(new QuaternionField.Pro(object.rotation())
 				.respondingTo(Change.Rotation)
-				.set("Rotation", false, true, true));
+				.set("Absolute Rotation", false, false, false));
+		// rotation rel
+		fields.add(new QuaternionField.Pro(object.rotationRel)
+				.respondingTo(Change.Rotation)
+				.set("Rotation rel", false, true, true));
 
 		// > if Movable
 		if ((asMovable = object.as(Movable.class)) != null) {
 			// velocity (rel)
 			fields.add(new VectorField.Pro(asMovable.velocityRel())
 					.respondingTo(Change.Velocity)
-					.set("Location", false, true, true));
+					.set("Velocity (rel)", false, true, true));
 			// rotVelotity (still always relative)
 			fields.add(new QuaternionField.Pro(asMovable.rotationRelVel())
 					.respondingTo(Change.RotVelocity)
-					.set("Rot Vel", false, true, true));
+					.set("Rotational vel (rel)", false, true, true));
 		}
 
 		// > if Body

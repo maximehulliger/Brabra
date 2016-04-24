@@ -7,26 +7,26 @@ import java.util.function.Function;
 
 import brabra.Master;
 import brabra.ProMaster;
-import brabra.Debug.Debugable;
 import brabra.game.Observable.NQuaternion;
 import brabra.game.Observable.NVector;
 import brabra.game.XMLLoader.Attributes;
 import brabra.game.physic.geo.Line;
 import brabra.game.physic.geo.Quaternion;
 import processing.core.PMatrix;
-import processing.core.PMatrix3D;
 import brabra.game.physic.geo.Vector;
 import brabra.gui.ToolWindow;
 
 /** 
  * A movable object with transforms (location, rotation) 
- * and family (parent, children). <p>
+ * and family (parent, children). 
+ * Abs variable only depends on relative variable and 
+ * shoudn't be used to change the object's transform. <p>
  * Gives methods to change a location between different space: <p>
  * - Absolute (abs): relative & local to the root. 
  * - Relative (rel): in this' space (relative to this). 
  * - Local (loc): in this space without this' rotation (with the parents' transforms).
  **/
-public class Object extends ProMaster implements Debugable {
+public class Object extends ProMaster {
 	/** 
 	 * ParentRelationship define some ways to get in local space (via pushLocal()). default is Full (if parent).<p>
 	 * Full: this will follow the parent (with the parent loc & rot). <p>
@@ -47,20 +47,18 @@ public class Object extends ProMaster implements Debugable {
 	
 	// > core
 	/** Position relative to the parent. */
-	protected final NVector locationRel = new NVector(zero);
+	public final NVector locationRel = new NVector();
 	/** Rotation relative to the parent. */
-	protected final NQuaternion rotationRel = new NQuaternion(identity);
+	public final NQuaternion rotationRel = new NQuaternion();
 	
 	// > absolute variable
 	/** Absolute position. Equals locationRel if no parent. */
-	private final NVector locationAbs = new NVector(zero);
+	private final NVector locationAbs = new NVector();
 	/** Absolute rotation. Equals rotationRel if no parent. */
-	private final NQuaternion rotationAbs = new NQuaternion(identity);
+	private final NQuaternion rotationAbs = new NQuaternion();
 	/** Matrix representing the matrix transformations till this object (lazy). */
 	private PMatrix matrix = null;
 	/** for the matrix and positions. */
-	private boolean absValid = false;
-	/** Indicate the modification of the body transform during the last frame. */
 	
 	// > Family managment
 	private Object parent = null;
@@ -73,23 +71,25 @@ public class Object extends ProMaster implements Debugable {
 	
 	// > Flags, other
 	private String name;
-	private boolean transformChanged = false, locationChanged = false, rotationChanged = false;
 	/** Indicate if the children changed. */
 	private boolean childrenChanged = false, childrenChangedCurrent = false;
-	/** Flag indicating if the object was ever validated via validate(Atts). */
-	private boolean validated = false;
 	
 	/** Create a Body with this location & rotation. rotation can be null. */
 	public Object(Vector location, Quaternion rotation) {
-		locationRel.addOnChange(() -> {absValid=false;});
-		rotationRel.addOnChange(() -> {absValid=false;});
-		//locationAbs.setOnChange(() -> {});
-		// we only set rel variables cause !absValid.
 		locationRel.set(location);
-		if (rotation != null) {
+		if (rotation != null)
 			rotationRel.set(rotation);
-		}
 		setName(getClass().getSimpleName());
+		
+		// to keep the object always valid:
+		locationRel.addOnChange(() -> {
+			updateAbs();
+			model.notifyChange(Change.Location);
+		});
+		rotationRel.addOnChange(() -> {
+			updateAbs();
+			model.notifyChange(Change.Location);
+		});
 	}
 	
 	/** Create a Body with this location & no initial rotation. */
@@ -102,8 +102,7 @@ public class Object extends ProMaster implements Debugable {
 		locationRel.set(other.locationRel);
 		rotationRel.set(other.rotationRel);
 		setName(other.name);
-		setParent(other.parent);
-		setParentRel(other.parentRel);
+		setParent(other.parent, other.parentRel);
 	}
 	
 	// --- Methods to override if wanted (of course basically everything is ;) ) ---
@@ -115,34 +114,24 @@ public class Object extends ProMaster implements Debugable {
 	 * Override it to validate the object when added from an xml file (after parent & children set). 
 	 * Return true when this was valdated (only once). 
 	 **/
-	public boolean validate(Attributes atts) {
-		if (!validated) {
-			// parent first !
-			setParent(atts.parent());
-			final String parentRel = atts.getValue("parentRel");
-			if (parentRel != null)
-				setParentRel(ParentRelationship.fromString(parentRel));
-			// other attributes
-			final String name = atts.getValue("name");
-			if (name != null)
-				setName(name);
-			final String cameraMode = atts.getValue("camera");
-			if (cameraMode != null)
-				game.camera.set(this, cameraMode, atts.getValue("cameraDist"));
-			// focus: here because we want to do that with the children set.
-			final String focus = atts.getValue("focus");
-			if (focus != null && Boolean.parseBoolean(focus)) {
-				final String force = atts.getValue("force");
-				game.physicInteraction.setFocused(this, force != null ? Float.parseFloat(force) : -1);
-			}
-			final String debug = atts.getValue("debug");
-		  	if (debug != null && Boolean.parseBoolean(debug)) {
-		  		assert(!game.debug.followed.contains(this));
-		  		game.debug.followed.add(this);
-		  	}
-		  	return validated = true;
-		} else
-			return false;
+	public void validate(Attributes atts) {
+		// parent first !
+		final String parentRel = atts.getValue("parentRel");
+		setParent(atts.parent(), parentRel != null ? ParentRelationship.fromString(parentRel) : null);
+
+		// other attributes
+		final String name = atts.getValue("name");
+		if (name != null)
+			setName(name);
+		final String cameraMode = atts.getValue("camera");
+		if (cameraMode != null)
+			game.camera.set(this, cameraMode, atts.getValue("cameraDist"));
+		// focus: here because we want to do that with the children set.
+		final String focus = atts.getValue("focus");
+		if (focus != null && Boolean.parseBoolean(focus)) {
+			final String force = atts.getValue("force");
+			game.physicInteraction.setFocused(this, force != null ? Float.parseFloat(force) : -1);
+		}
 	}
 	
 	/** To react when the object is removed from the scene. should be called. */
@@ -158,7 +147,7 @@ public class Object extends ProMaster implements Debugable {
 	}
 
 	public Object copy() {
-		Object a = new Object(locationAbs);
+		Object a = new Object(locationAbs, rotationAbs);
 		return a;
 	}
 	
@@ -174,19 +163,19 @@ public class Object extends ProMaster implements Debugable {
 	
 	// --- Physic getters ---
 
-	/** Return the absolute location of the object. update things if needed. */
+	/** Return the absolute location of the object. update things if needed. the Vector should not be modified. */
 	public Vector location() {
-		updateAbs();
-		return locationAbs;
+		//TODO updateAbs();
+		return locationAbs.copy();
 	}
 	
-	/** for now return the relative rotation. update things if needed. */
+	/** Return the absolute rotation. update things if needed. the Quaternion should not be modified. */
 	public Quaternion rotation() {
-		updateAbs();
-		return rotationAbs;
+		//TODO updateAbs();
+		return rotationAbs.copy();
 	}
 
-	/** Move this object fom*/
+	/** Move this object with an absolute depl. */
 	public void move(Vector deplAbs) {
 		locationRel.add(localDir(deplAbs));
 		locationAbs.add(deplAbs);
@@ -194,6 +183,7 @@ public class Object extends ProMaster implements Debugable {
 	
 	public void moveRel(Vector deplLoc) {
 		locationRel.add(deplLoc);
+		locationRel.add(absoluteDirFromLocal(deplLoc));
 	}
 
 	public void rotate(Quaternion rotAbs) {
@@ -216,23 +206,9 @@ public class Object extends ProMaster implements Debugable {
 		return zero;
 	}
 
-	public boolean stateChanged() {
-		return transformChanged;
-	}
-
 	/** Return if the transforms of the object or one of his parent changed during last frame. */
 	public boolean transformChanged() { 
-		return transformChanged;
-	}
-
-	/** Return if the transforms of the object or one of his parent changed during last frame. */
-	public boolean locationChanged() { 
-		return locationChanged;
-	}
-
-	/** Return if the transforms of the object or one of his parent changed during last frame. */
-	public boolean rotationChanged() { 
-		return rotationChanged;
+		return locationRel.hasChanged() || rotationRel.hasChanged() || (hasParent() && parent.transformChanged()) ;
 	}
 	
 	// --- State getters ---
@@ -242,25 +218,9 @@ public class Object extends ProMaster implements Debugable {
 		return parent != null && parentRel != ParentRelationship.None;
 	}
 
-	/** Return true if this object was validated once in his life. */
-	public boolean validated() {
-		return validated;
-	}
-
-	/** Unvalidate this object (this should be updated). */
-	public void unvalidate() {
-		assert(validated);
-		validated = false;
-	}
-
 	/** Return true if the children list was changed during last frame. */
 	public boolean childrenChanged() {
 		return childrenChanged;
-	}
-
-	/** Return true if the absolute variables are valid (check the parent). */
-	protected boolean absValid() {
-		return (hasParent() && !parent.absValid()) ? false : absValid;
 	}
 	
 	// --- String getters ---
@@ -269,43 +229,9 @@ public class Object extends ProMaster implements Debugable {
 		return name;
 	}
 	
-	/** To display the state of the object in the console. */
-	public void displayState() {
-		debug.info(2, presentation()+" "+state(false));
-	}
-	
 	/** return the presentation of the object with the name in evidence and the parent if exists. */
 	public String presentation() {
 		return "> "+this+" <" + (hasParent() ? " "+parentRel+" after \""+parent+"\"" : "");
-	}
-
-	public String getStateUpdate() {
-		if (stateChanged()) {
-			final String moveType = (locationAbs.hasChanged() ? "abs" : "")
-					+ ((locationAbs.hasChanged() && locationRel.hasChanged()) ? " + " : "")
-					+ (locationRel.hasChanged() ? "rel" : "");
-			final String transType = (rotationChanged ? "rot" : "")
-					+ ((rotationChanged && locationChanged) ? " + "+moveType : moveType);
-			final String changeName = "transforms("+transType+") changed";
-			final String changeStr = state(true);
-					
-			return presentation() + " " + changeName + " ---" + changeStr;
-		} else
-			return "";
-	}
-	
-	/** if onlyChange is false, return all the object's transforms for the console. */
-	protected String state(boolean onlyChange) {
-		boolean loc, rot;
-		if (onlyChange) {
-			loc = locationChanged;
-			rot = rotationChanged;
-		} else
-			loc = rot = false;
-		
-		return (loc ? "\nlocation: "+locationAbs : "")
-				+ (!hasParent() ? "" : "\nlocationRel: "+locationRel)
-				+ (rot ? "\nrotation rel: "+rotationRel : "");
 	}
 	
 	// --- Other getters ---
@@ -363,52 +289,46 @@ public class Object extends ProMaster implements Debugable {
 		setName(name);
 		return this;
 	}
-
-	/** 
-	 * Set the transform/push relationship from this with his parent (parent null -> root).
-	 * see ParentRelationship for more. does nothing if rel is null.
-	 **/
-	public void setParentRel(ParentRelationship rel) {
-		assert (rel != null);
-		if (parent == null)
-			assert(rel == ParentRelationship.None);
-			
-		if (rel != parentRel) {
-			final boolean hadParent = hasParent();
-			parentRel = rel;
-			final boolean hasParent = hasParent();
-			if (hadParent && !hasParent)
-				parent.children.remove(this);
-			else if (hasParent && ! hadParent)
-				parent.addChild(this);
-			absValid = false;
-		}
-	}
 	
 	/** 
 	 * Set the new parent object of this object. This will now follow the parent and 
 	 * apply this' and parent's loc and rot (depending on parentRel) to get in local space. 
-	 * Set parentRel to Full if it was None. Parent can be null (then parentRel -> None)
+	 * If newParent is null, parentRel should be None or null, otherwise set parentRel to Full if it was None. 
+	 * Set the transform/push relationship from this with his parent (no parent -> root).
 	 * Return true if the parent changed.
 	 **/
-	public boolean setParent(Object newParent) {
-		if (newParent != parent) {
+	public boolean setParent(Object newParent, ParentRelationship newParentRel) {
+		if (newParentRel == null)
+			newParentRel = ParentRelationship.None;
+		if (newParent == null)
+			assert newParentRel == ParentRelationship.None;
+		
+		final boolean parentChanged = newParent != this.parent;
+		final boolean parentRelChanged = newParentRel != this.parentRel;
+		if (parentChanged || parentRelChanged) {
+			// check input
 			if (newParent == this)
-				throw new IllegalArgumentException("Un objet ne sera pas son propre parent !");
-			if (newParent != null && isRelated(newParent))
-				throw new IllegalArgumentException(presentation()+": new parent "+newParent+" already related !");
-			// remove this child from old parent
-			if (hasParent())
-				parent.removeChild(this);
-			parent = newParent;
-			// update parentRel
-			if (newParent == null)
-				setParentRel(ParentRelationship.None);
-			else if (parentRel == ParentRelationship.None)
-				setParentRel(ParentRelationship.Full);
-			// add this child to new parent
-			if (hasParent())
-				parent.addChild(this);
+				game.debug.err("Un objet ne sera pas son propre parent !");
+			if (newParent != null && newParent.isChildOf(this))
+				game.debug.err(presentation()+": new parent "+newParent+" already related ! (plz no childhood vicious cylce)");
+			else {
+				// > ok, let's proceed !
+				
+				// remove this child from old parent
+				if (hasParent())
+					parent.children.remove(this);
+				
+				// update & changes
+				this.parentRel = newParentRel;
+				this.parent = newParent;
+				
+				// add this child to new parent
+				if (hasParent())
+					parent.addChild(this);
+				
+				// always valid
+				updateAbs();
+			}
 			return true;
 		} else
 			return false;
@@ -419,7 +339,6 @@ public class Object extends ProMaster implements Debugable {
 		if (!children.contains(newChild)) {
 			children.add(newChild);
 			childrenChangedCurrent = true;
-			newChild.absValid = false;
 		}
 		assert(newChild.parent == this);
 	}
@@ -429,7 +348,7 @@ public class Object extends ProMaster implements Debugable {
 		if (children.remove(oldChild)) {
 			assert(oldChild.parent == this);
 			childrenChangedCurrent = true;
-			oldChild.setParent(null);
+			oldChild.setParent(null, null);
 		}
 	}
 
@@ -440,8 +359,6 @@ public class Object extends ProMaster implements Debugable {
 	 * update the abs variables if needed (matrix & locationAbs). 
 	 **/
 	protected void pushLocal() {
-		updateAbs();
-		assert (!app.getMatrix().equals(new PMatrix3D())); //sinon app.resetMatrix();
 		app.pushMatrix();
 		app.applyMatrix(matrix);
 	}
@@ -477,21 +394,18 @@ public class Object extends ProMaster implements Debugable {
 			game.debug.setCurrentWork("physic: updating \""+presentation()+"\"");
 			// update changes
 			locationRel.update();
-			locationAbs.update();
 			rotationRel.update();
+			locationAbs.update();
 			rotationAbs.update();
-			// update flags
-			if (rotationChanged = rotationRel.hasChanged() || rotationAbs.hasChanged())
-				model.notifyChange(Change.Rotation);
-			if (locationChanged = locationRel.hasChanged() || locationAbs.hasChanged())
-				model.notifyChange(Change.Location);
-			transformChanged = rotationChanged || locationChanged;
-			if (transformChanged)
-				absValid = false;
+			//TODO updateAbs();
+			
 			return updated = true;
 		} else
 			return false;
 	}
+	
+	/** Flag used to avoid too much*/
+	//protected boolean updatingAbs = false;
 	
 	/** 
 	 * Update the local absolute variables if needed. check the parent (of course ^^). 
@@ -500,51 +414,44 @@ public class Object extends ProMaster implements Debugable {
 	 * Should be called at first by child class.
 	 * Return true if something was updated.
 	 **/
-	protected boolean updateAbs() {
-		if (!absValid()) {
-			// 1. ask for the parent
-			if (hasParent())
-				parent.updateAbs();
-			else
-				assert (parentRel == ParentRelationship.None);
-			app.pushMatrix();
-			app.resetMatrix(); //we're working clean here !
-			switch(parentRel) {
-			case Full:
-				parent.pushLocal();
-				translate(locationRel);
-				rotateBy(rotationRel);
-				locationAbs.set(model(zero));
-				rotationAbs.set( parent.rotation().rotatedBy(rotationRel) );
-				matrix = app.getMatrix();
-				parent.popLocal();
-				break;
-			case Static:
-				locationAbs.set( add(parent.location(), locationRel) );
-				rotationAbs.set(rotationRel);
-				translate(locationAbs);
-				rotateBy(rotationRel);
-				matrix = app.getMatrix();
-				break;
-			default: //None
-				translate(locationRel);
-				rotateBy(rotationRel);
-				matrix = app.getMatrix();
-				locationAbs.set(locationRel);
-				rotationAbs.set(rotationRel);
-				break;
-			}
-			app.popMatrix();
-			// caus' modification from inside -> no need of notif.
-			locationAbs.reset(); 
-			rotationAbs.reset();
-			// notify children
-			for (Object o : children)
-				o.absValid = false;
-			absValid = true;
-			return true;
-		} else
-			return false;
+	protected void updateAbs() {
+		assert !(locationAbs.hasChangedCurrent() || rotationAbs.hasChangedCurrent());
+		
+		// update abs variable from rel
+		app.pushMatrix();
+		app.resetMatrix(); //we're working clean here !
+		switch(parentRel) {
+		case Full:
+			parent.pushLocal();
+			translate(locationRel);
+			rotateBy(rotationRel);
+			locationAbs.set(model(zero));
+			rotationAbs.set( parent.rotation().rotatedBy(rotationRel) );
+			matrix = app.getMatrix();
+			parent.popLocal();
+			break;
+		case Static:
+			locationAbs.set( add(parent.location(), locationRel) );
+			rotationAbs.set(rotationRel);
+			translate(locationAbs);
+			rotateBy(rotationRel);
+			matrix = app.getMatrix();
+			break;
+		default: //None
+			translate(locationRel);
+			rotateBy(rotationRel);
+			matrix = app.getMatrix();
+			locationAbs.set(locationRel);
+			rotationAbs.set(rotationRel);
+			break;
+		}
+		app.popMatrix();
+		// caus' modification from inside -> no need of notif.
+		locationAbs.reset(); 
+		rotationAbs.reset();
+		// then the children
+		for (Object o : children)
+			o.updateAbs();
 	}
 	
 	// --- conversion position local <-> *absolute* <-> relative ---

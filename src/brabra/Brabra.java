@@ -84,6 +84,7 @@ public class Brabra extends PApplet {
 		// start the other threads if needed.
 		setImgAnalysis(imgAnalysis);
 		setToolWindow(toolWindow);
+					
 		// start the processing thread.
 		run();
 	}
@@ -99,13 +100,13 @@ public class Brabra extends PApplet {
 		toExecuteInPro.add(runSafe(r));
 	}
 	
-	private Runnable runSafe(Runnable r) {
+	private static Runnable runSafe(Runnable r) {
 		return () -> {
 			try {
 				r.run();
 			} catch (Exception e) {
 				e.printStackTrace();
-				dispose();
+				app.dispose();
 			}
 		};
 	}
@@ -128,14 +129,16 @@ public class Brabra extends PApplet {
 	        //Insets insets = frame.getInsets();
 	        //windowLoc.sub(insets.left, insets.top);
 			
-	        // > Init main window view. App is now fully ready (at least the private stuff). we wait for other components.
-			ImageAnalyser.readyLock.lock();
-			ImageAnalyser.readyLock.unlock();
-			ToolWindow.readyLock.lock();
-			ToolWindow.readyLock.unlock();
-			
+	        // > App (main thread) is now fully ready (at least the private stuff). we wait for other components.
+
 			// And finally show the view (init content).
 			setView(View.RealGame);
+			
+			ToolWindow.readyLock.lock();
+			ToolWindow.readyLock.unlock();
+			ImageAnalyser.readyLock.lock();
+			ImageAnalyser.readyLock.unlock();
+			
 			
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -168,7 +171,7 @@ public class Brabra extends PApplet {
 		if (!over) {
 			debug.setCurrentWork("quiting");
 			over = true;
-			if (fxApp != null)
+			if (fxApp != null && !fxApp.closing)
 				Platform.exit();
 			super.dispose();
 			System.out.println("bye bye !");
@@ -240,12 +243,13 @@ public class Brabra extends PApplet {
 			debug.info(3, "Tool Window thread started.");
 
 			// we wait for the javaFX thread to init (beacause of m).
-			try {
-				while (fxApp == null)
-					Thread.sleep(1);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
+			// TODO: remove maybe, to be tested on mac
+//			try {
+//				while (fxApp == null)
+//					Thread.sleep(1);
+//			} catch (InterruptedException e) {
+//				e.printStackTrace();
+//			}
 			
 		} else if (fxAppStarted) {
 			Platform.runLater(runSafe(() -> fxApp.setVisible(hasToolWindow)));

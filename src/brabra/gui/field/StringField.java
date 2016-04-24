@@ -8,29 +8,28 @@ import javafx.scene.control.TextField;
 
 public class StringField extends ValueField.WithCustomModel<String> {
 
-	private final TextField stringBox = new TextField();
+	protected final TextField textField = new TextField();
 	
 	public StringField(Consumer<String> setModelValue, Supplier<String> getModelValue) {
 		super(setModelValue, getModelValue, "");
 		
 		//--- Control:
-		stringBox.focusedProperty().addListener(new FieldChangeListener());
-		stringBox.setOnAction(e -> onChange());
+		textField.focusedProperty().addListener(new FieldChangeListener());
+		textField.setOnAction(e -> onChange());
 
 		//--- View:
-		stringBox.getStyleClass().add("fields-stringBox");
-		//stringBox.setPrefWidth(105);
-		contentOpen.getChildren().add(stringBox);
+		textField.getStyleClass().add("fields-stringBox");
+		contentOpen.getChildren().add(textField);
 		setValue(getModelValue());
 	}
 	
 	protected String getNewValue() {
-		return stringBox.getText();
+		return textField.getText();
 	}
 
 	protected void setDisplayValue(String newVal) {
 		if (open())
-			stringBox.setText(newVal);
+			textField.setText(newVal);
 		else
 			setTextValue(newVal);
 	}

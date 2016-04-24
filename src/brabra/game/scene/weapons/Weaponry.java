@@ -12,19 +12,19 @@ import brabra.game.scene.Object;
 
 /** Class holding some weapons (in the children or not). */
 public class Weaponry extends Object {
-	
+
 	//private static final float ratioUpgradeMax = 2, ratioUpgradeMin = 0.4f, ratioUpgradeToExist = 0.2f;
 	protected final static int tAffichageErreur = 15;
 	/** Threshold for the button input (from the plate) to fire a tier of weapon. */
 	private static final float[] etatThreshold = new float[] { 0, 0, 0.8f };
 	private static final int nbPrefab = 2;
 	private int guiWidthWished = 400, puissanceWished = 400;
-	
+
 	// for the weapons
 	protected float guiRatio = 1;
 	protected boolean displayColliders = false;
 	protected float puissanceRatio = 1;
-	
+
 	// intern
 	private final List<Weapon> weapons = new ArrayList<>();
 	/** in the order in which the weapons will be shot. */
@@ -34,28 +34,24 @@ public class Weaponry extends Object {
 	private int guiWidth = guiWidthWished;
 	private float puissance = puissanceWished;
 	private int prefab = 0;
-	
+
 	/** t0-2 : thresholds pour répartir la l'amélioration puissance sur les differents tiers d'armement. */
 	public Weaponry(Vector loc, Quaternion rot) {
 		super(loc, rot);
 		setName("Weaponry");
 	}
-	
+
 	// --- Modifiers ---
-	
+
 	/** 
 	 * Add a weapon to this weaponry. 
 	 * If w is validated then his master(me) should already be set,
 	 * otherwise I'll set him myself. 
 	 **/
 	protected void addWeapon(Weapon w) {
-		if (w.validated())
-			assert(w.master() == this);
-		else {
-			game.scene.add(w);
-			w.setParent(this);
-			w.setMaster(this);
-		}
+		game.scene.add(w);
+		w.setParent(this, null);
+		w.setMaster(this);
 		weapons.add(w);
 		valid = false;
 	}
@@ -65,17 +61,17 @@ public class Weaponry extends Object {
 		weapons.remove(w);
 		valid = false;
 	}
-	
+
 	public void setDisplayColliders(boolean displayColliders) {
 		this.displayColliders = displayColliders;
 	}
-	
+
 	public void setPuissance(float p) {
 		this.puissance = p;
 	}
-	
+
 	// --- Usage ---
-	
+
 	/** 
 	 * idx: -2 -> all, -1 -> any after threshold, [0-nbSlot[ -> that one. 
 	 * etat: filter weapons with etatThreshold. 
@@ -88,15 +84,15 @@ public class Weaponry extends Object {
 			for (Weapon w : weaponsOrdered)
 				if (etat >= etatThreshold[w.tier()-1] && w.fire())
 					return;
-		else if (idx < weapons.size() && idx >= 0)
-			weapons.get(idx).fire();
+				else if (idx < weapons.size() && idx >= 0)
+					weapons.get(idx).fire();
 	}
-	
+
 	/**  idx: -2: all, -1 -> any, [0-nbSlot] -> that one. */
 	public void fire(int idx) {
 		fire(idx, 1);
 	}
-	
+
 	/** display the state of the missiles in the gui */
 	public void displayGui() {
 		updateState();
@@ -104,61 +100,57 @@ public class Weaponry extends Object {
 		for(Weapon w : weapons)
 			basGaucheCurrent = w.displayGui(basGaucheCurrent);
 	}
-	
+
 	// --- life cycle ---
-	
-	public boolean validate(Attributes atts) {
-		if (super.validate(atts)) {
-			// display colliders & puissance
-			final String displayColliders = atts.getValue("displayColliders");
-			if (displayColliders != null)
-				setDisplayColliders(Boolean.parseBoolean(displayColliders));
-			final String puissance = atts.getValue("puissance");
-			if (puissance != null)
-				setPuissance(Float.parseFloat(puissance));
-			// prefab
-			final String prefabString = atts.getValue("prefab");
-			if (prefabString != null && !prefabString.equals("none") && !prefabString.equals("not")) {
-				prefab = Integer.parseInt(prefabString);
-				if (prefab != 0) {
-					if (prefab < 1 || prefab > nbPrefab) {
-						int newPrefab = constrain(prefab, 1, nbPrefab);
-						game.debug.err("prefab for weaponry should be in [1,"+nbPrefab+"] "
-								+ "("+prefab+") (0/not for nothing), taking "+newPrefab);
-						prefab = newPrefab;
-					}
-					if (weapons.size() > 0) {
-						game.debug.err("weaponry should not have weapons when prefab is set. removing them.");
-						for (Weapon w : weapons)
-							game.scene.remove(w);
-						weapons.clear();
-					}
-					setName("Weaponry prefab "+prefab);
-					final Collider parent = parent().as(Collider.class);
-					final float r = parent == null ? 5 : parent.radiusEnveloppe();
-					if (prefab == 1) {
-						addWeapon(new MissileLauncher(vec(r*-0.65f, -10, 0), null).withTier(1));
-						addWeapon(new MissileLauncher(vec(r*-0.25f, -10, 0), null).withTier(2));
-						addWeapon(new MissileLauncher(vec(r*+0.25f, -10, 0), null).withTier(2));
-						addWeapon(new MissileLauncher(vec(r*+0.65f, -10, 0), null).withTier(1));
-					} else if (prefab == 2) {
-						addWeapon(new MissileLauncher(vec(r*-0.55f, -10, 0), null).withTier(1));
-						addWeapon(new MissileLauncher(vec(r*+0.55f, -10, 0), null).withTier(1));
-						addWeapon(new MissileLauncher(vec(r*-0.30f, -5,  0), null).withTier(1));
-						addWeapon(new MissileLauncher(vec(r*+0.30f, -5,  0), null).withTier(1));
-						addWeapon(new MissileLauncher(vec(r*-0.20f, -15, 0), null).withTier(1));
-						addWeapon(new MissileLauncher(vec(r*+0.20f, -15, 0), null).withTier(1));
-					} else
-						assert(false);
+
+	public void validate(Attributes atts) {
+		// display colliders & puissance
+		final String displayColliders = atts.getValue("displayColliders");
+		if (displayColliders != null)
+			setDisplayColliders(Boolean.parseBoolean(displayColliders));
+		final String puissance = atts.getValue("puissance");
+		if (puissance != null)
+			setPuissance(Float.parseFloat(puissance));
+		// prefab
+		final String prefabString = atts.getValue("prefab");
+		if (prefabString != null && !prefabString.equals("none") && !prefabString.equals("not")) {
+			prefab = Integer.parseInt(prefabString);
+			if (prefab != 0) {
+				if (prefab < 1 || prefab > nbPrefab) {
+					int newPrefab = constrain(prefab, 1, nbPrefab);
+					game.debug.err("prefab for weaponry should be in [1,"+nbPrefab+"] "
+							+ "("+prefab+") (0/not for nothing), taking "+newPrefab);
+					prefab = newPrefab;
 				}
+				if (weapons.size() > 0) {
+					game.debug.err("weaponry should not have weapons when prefab is set. removing them.");
+					for (Weapon w : weapons)
+						game.scene.remove(w);
+					weapons.clear();
+				}
+				setName("Weaponry prefab "+prefab);
+				final Collider parent = parent().as(Collider.class);
+				final float r = parent == null ? 5 : parent.radiusEnveloppe();
+				if (prefab == 1) {
+					addWeapon(new MissileLauncher(vec(r*-0.65f, -10, 0), null).withTier(1));
+					addWeapon(new MissileLauncher(vec(r*-0.25f, -10, 0), null).withTier(2));
+					addWeapon(new MissileLauncher(vec(r*+0.25f, -10, 0), null).withTier(2));
+					addWeapon(new MissileLauncher(vec(r*+0.65f, -10, 0), null).withTier(1));
+				} else if (prefab == 2) {
+					addWeapon(new MissileLauncher(vec(r*-0.55f, -10, 0), null).withTier(1));
+					addWeapon(new MissileLauncher(vec(r*+0.55f, -10, 0), null).withTier(1));
+					addWeapon(new MissileLauncher(vec(r*-0.30f, -5,  0), null).withTier(1));
+					addWeapon(new MissileLauncher(vec(r*+0.30f, -5,  0), null).withTier(1));
+					addWeapon(new MissileLauncher(vec(r*-0.20f, -15, 0), null).withTier(1));
+					addWeapon(new MissileLauncher(vec(r*+0.20f, -15, 0), null).withTier(1));
+				} else
+					assert(false);
 			}
-			return true;
-		} else
-			return false;
+		}
 	}
-	
+
 	// --- private ---
-	
+
 	private void updateState() {
 		if (!valid) {
 			// gui + puissance
@@ -166,7 +158,7 @@ public class Weaponry extends Object {
 			guiRatio = 1;
 			puissanceRatio = 1;
 			for (Weapon w : weapons) {
-				assert(w.validated() || w.parent()==this);
+				assert(w.parent()==this);
 				guiWidthWished += w.imgWidth();
 				puissanceWished += w.puissance();
 			}

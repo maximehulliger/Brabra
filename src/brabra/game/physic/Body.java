@@ -65,23 +65,20 @@ public abstract class Body extends Movable {
 	/** to react to a collision */
 	protected void onCollision(Collider col, Vector impact) {}
 
-	public boolean validate(Attributes atts) {
-		if (super.validate(atts)) {
-			final String color = atts.getValue("color");
-			if (color != null)
-				setColor( new Color(color, atts.getValue("stroke")) );
-			final String mass = atts.getValue("mass");
-			if (mass != null)
-				setMass(Float.parseFloat(mass));
-			final String life = atts.getValue("life");
-			if (life != null)
-				setLife(life);
-			final String impulse = atts.getValue("impulse");
-			if (impulse != null)
-				applyImpulse(vec(impulse));
-			return true;
-		} else
-			return false;
+	public void validate(Attributes atts) {
+		final String color = atts.getValue("color");
+		if (color != null)
+			setColor( new Color(color, atts.getValue("stroke")) );
+		final String mass = atts.getValue("mass");
+		if (mass != null)
+			setMass(Float.parseFloat(mass));
+		final String life = atts.getValue("life");
+		if (life != null)
+			setLife(life);
+		final String impulse = atts.getValue("impulse");
+		if (impulse != null)
+			applyImpulse(vec(impulse));
+		super.validate(atts);
 	}
 	
 	/** applique les forces et update l'etat. return true if this was updated. */

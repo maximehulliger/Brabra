@@ -1,5 +1,8 @@
 package brabra.gui.field;
 
+import java.util.function.Consumer;
+import java.util.function.Supplier;
+
 import brabra.Brabra;
 import brabra.Master;
 import brabra.game.physic.Physic;
@@ -10,7 +13,8 @@ public class VectorField extends ValueField<Vector> {
 
 	private final Vector vector;
 	private TextField[] valueFields = new TextField[] {
-			new TextField(), new TextField(), new TextField()};
+			new TextField(), new TextField(), new TextField()
+	};
 	
 	public VectorField(Vector vector) {
 		
@@ -55,7 +59,7 @@ public class VectorField extends ValueField<Vector> {
 			valueFields[2].setText(Master.formatFloat(newVal.z, Physic.epsilon));
 		}
 	}
-	
+
 	public static class Pro extends VectorField implements Field.Pro {
 
 		public Pro(Vector vector) {
@@ -69,6 +73,29 @@ public class VectorField extends ValueField<Vector> {
 		public Pro respondingTo(Object triggerArg) {
 			super.respondingTo(triggerArg);
 			return this;
+		}
+	}
+
+	public static class ProCustom extends Pro implements Field.Pro {
+
+		private final static Vector defaultValue = Vector.zero;
+		
+		private final Consumer<Vector> setModelValue;
+		private final Supplier<Vector> getModelValue;
+		
+		public ProCustom(Consumer<Vector> setModelValue, Supplier<Vector> getModelValue) {
+			super(getModelValue.get());
+			this.setModelValue = setModelValue;
+			this.getModelValue = getModelValue;
+			this.setValue(defaultValue);
+		}
+
+		protected void setModelValue(Vector val) {
+			setModelValue.accept(val);
+		}
+
+		protected final Vector getModelValue() {
+			return getModelValue == null ? defaultValue : getModelValue.get();
 		}
 	}
 }

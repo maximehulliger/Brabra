@@ -70,19 +70,17 @@ public class Sphere extends Collider {
 		app.sphere(radius);
 	}
 
-	public boolean validate(Attributes atts) {
-		if (super.validate(atts)) {
-			final String tRadius = atts.getValue("radius");
-			if (tRadius != null)
-				setRadius(Float.parseFloat(tRadius));
-			else {
-				final String tSize = atts.getValue("size");
-				if (tSize != null)
-					setRadius(Float.parseFloat(tSize));
-			}
-			return true;
-		} else
-			return false;
+	public void validate(Attributes atts) {
+		super.validate(atts);
+		
+		final String tRadius = atts.getValue("radius");
+		if (tRadius != null)
+			setRadius(Float.parseFloat(tRadius));
+		else {
+			final String tSize = atts.getValue("size");
+			if (tSize != null)
+				setRadius(Float.parseFloat(tSize));
+		}
 	}
 	
 	// --- physic (collider) ---
