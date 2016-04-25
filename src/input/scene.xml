@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
 <Scene>
-	<Settings gravity="0.2" running="true" verbosity="max" displayAllColliders="false"></Settings>
+	<Settings gravity="0.2" running="false" verbosity="max" displayAllColliders="false"></Settings>
 	
 	<Camera displaySkybox="true" mode="not" dist="(300,300,300)" debug="false"></Camera>
 	

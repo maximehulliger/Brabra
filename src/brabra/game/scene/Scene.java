@@ -134,7 +134,7 @@ public class Scene extends Observable {
 		else if (name.equals(Movable.class.getSimpleName()))
 			obj = new Movable(location, rotation);
 		else if (name.equals(Camera.class.getSimpleName())) {
-			return game.camera; // already in scene
+			return game.camera(); // already in scene
 		} else if (name.equals(Box.class.getSimpleName())) {
 			obj = body = new Box(location, rotation, new Vector(20,20,20));
 			body.setMass(1);

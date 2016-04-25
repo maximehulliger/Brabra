@@ -57,7 +57,7 @@ public class Object extends ProMaster {
 	/** Absolute rotation. Equals rotationRel if no parent. */
 	private final NQuaternion rotationAbs = new NQuaternion();
 	/** Matrix representing the matrix transformations till this object (lazy). */
-	private PMatrix matrix = null;
+	private PMatrix matrixAbs = null;
 	/** for the matrix and positions. */
 	
 	// > Family managment
@@ -90,6 +90,10 @@ public class Object extends ProMaster {
 			updateAbs();
 			model.notifyChange(Change.Location);
 		});
+		
+		// init abs values
+		locationAbs.set(location);
+		rotationAbs.set(rotation);
 	}
 	
 	/** Create a Body with this location & no initial rotation. */
@@ -125,7 +129,7 @@ public class Object extends ProMaster {
 			setName(name);
 		final String cameraMode = atts.getValue("camera");
 		if (cameraMode != null)
-			game.camera.set(this, cameraMode, atts.getValue("cameraDist"));
+			game.camera().set(this, cameraMode, atts.getValue("cameraDist"));
 		// focus: here because we want to do that with the children set.
 		final String focus = atts.getValue("focus");
 		if (focus != null && Boolean.parseBoolean(focus)) {
@@ -298,10 +302,10 @@ public class Object extends ProMaster {
 	 * Return true if the parent changed.
 	 **/
 	public boolean setParent(Object newParent, ParentRelationship newParentRel) {
-		if (newParentRel == null)
+		if (newParent == null || newParentRel == null) {
 			newParentRel = ParentRelationship.None;
-		if (newParent == null)
-			assert newParentRel == ParentRelationship.None;
+			newParent = null;
+		}
 		
 		final boolean parentChanged = newParent != this.parent;
 		final boolean parentRelChanged = newParentRel != this.parentRel;
@@ -360,7 +364,7 @@ public class Object extends ProMaster {
 	 **/
 	protected void pushLocal() {
 		app.pushMatrix();
-		app.applyMatrix(matrix);
+		app.applyMatrix(matrixAbs);
 	}
 	
 	protected void popLocal() {
@@ -398,6 +402,11 @@ public class Object extends ProMaster {
 			locationAbs.update();
 			rotationAbs.update();
 			//TODO updateAbs();
+
+			if (transformChanged())
+				// update the children
+				for (Object o : children)
+					o.updateAbs();
 			
 			return updated = true;
 		} else
@@ -415,11 +424,10 @@ public class Object extends ProMaster {
 	 * Return true if something was updated.
 	 **/
 	protected void updateAbs() {
-		assert !(locationAbs.hasChangedCurrent() || rotationAbs.hasChangedCurrent());
-		
-		// update abs variable from rel
 		app.pushMatrix();
 		app.resetMatrix(); //we're working clean here !
+		
+		// depending on parent relation
 		switch(parentRel) {
 		case Full:
 			parent.pushLocal();
@@ -427,7 +435,7 @@ public class Object extends ProMaster {
 			rotateBy(rotationRel);
 			locationAbs.set(model(zero));
 			rotationAbs.set( parent.rotation().rotatedBy(rotationRel) );
-			matrix = app.getMatrix();
+			matrixAbs = app.getMatrix();
 			parent.popLocal();
 			break;
 		case Static:
@@ -435,23 +443,21 @@ public class Object extends ProMaster {
 			rotationAbs.set(rotationRel);
 			translate(locationAbs);
 			rotateBy(rotationRel);
-			matrix = app.getMatrix();
+			matrixAbs = app.getMatrix();
 			break;
 		default: //None
 			translate(locationRel);
 			rotateBy(rotationRel);
-			matrix = app.getMatrix();
+			matrixAbs = app.getMatrix();
 			locationAbs.set(locationRel);
 			rotationAbs.set(rotationRel);
 			break;
 		}
 		app.popMatrix();
+		
 		// caus' modification from inside -> no need of notif.
 		locationAbs.reset(); 
 		rotationAbs.reset();
-		// then the children
-		for (Object o : children)
-			o.updateAbs();
 	}
 	
 	// --- conversion position local <-> *absolute* <-> relative ---

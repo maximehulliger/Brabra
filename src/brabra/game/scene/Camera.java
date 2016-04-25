@@ -122,14 +122,15 @@ public class Camera extends Object {
 		}
 	}
 
-	/** Change the camera mode and location. call setParent. */
+	/** Change the camera mode and location. call setParent if needed. */
 	public void setMode(FollowMode mode) {
 		if (mode == followMode)
 			assert(locationRel.equals(getDist(mode))); //should already be set
 		else {
 			followMode = mode;
 			locationRel.set(getDist(mode));
-			setParent(this, null);
+			if (hasParent())
+				setParent(parent(), null);
 		}
 	}
 

@@ -13,8 +13,9 @@ public class RealGame extends Interface {
 	public final Input input = new Input();
 	public final Debug debug = new Debug();
 	public final PhysicInteraction physicInteraction = new PhysicInteraction();
-	public final Camera camera = new Camera();
 	public final Scene scene = new Scene(this);
+	
+	private Camera camera = null; //lazy to be independent of processing
 	
 	private final XMLLoader xmlFile = new XMLLoader();
 	
@@ -24,11 +25,18 @@ public class RealGame extends Interface {
 		clearConsole();
 		debug.info(0, "loading scene");
 		scene.reset();
-		scene.add(camera);
 		physicInteraction.setFocused(null, -1);
 		xmlFile.load();
 		app.imgAnalyser.detectButtons = true;
 		app.imgAnalyser.play(false);
+	}
+	
+	public Camera camera() {
+		if (camera == null) {
+			camera = new Camera();
+			scene.add(camera);
+		}
+		return camera;
 	}
 	
 	public void onHide() {
