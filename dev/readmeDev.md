@@ -66,6 +66,11 @@ Help -> Install New Software...
 
 Everything under collaboration should do the trick.
 
+##### 1.9 Server Installation
+When you do not have brabra.scene in project explorer, you should put them manually.
+Then convert brabra.scene Project into DynamicWebProject.
+Right click the brabra.scene and choose Property. You can now add DynamicWebModule and Java from Project Facet. For futher information, follow the instruction below.
+http://www.mkyong.com/java/how-to-convert-java-project-to-web-project-in-eclipse/
 <br>
 
 # Project structure
