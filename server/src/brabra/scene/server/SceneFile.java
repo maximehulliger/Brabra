@@ -1,4 +1,4 @@
-package brabra.server;
+package brabra.scene.server;
 
 import javax.xml.bind.annotation.XmlRootElement;
 

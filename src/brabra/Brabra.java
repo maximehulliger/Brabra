@@ -8,6 +8,7 @@ import brabra.calibration.Calibration;
 import brabra.game.RealGame;
 import brabra.gui.ToolWindow;
 import brabra.imageprocessing.ImageAnalyser;
+import brabra.scene.server.SceneClient;
 import brabra.trivial.TrivialGame;
 import javafx.application.Platform;
 import processing.core.*;
@@ -81,7 +82,9 @@ public class Brabra extends PApplet {
 	
 	/** Launch the whole software. */
 	public void launch() {
-		
+		SceneClient sceneClient = new SceneClient();
+		sceneClient.test();
+		System.out.println(sceneClient.ping("http://localhost:8080/brabra.scene/rest/ProtoServer"));
 		// start the other threads if needed.
 		setImgAnalysis(imgAnalysis);
 		setToolWindow(toolWindow);

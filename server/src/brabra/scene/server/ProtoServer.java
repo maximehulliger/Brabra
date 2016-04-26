@@ -1,4 +1,4 @@
-package brabra.server;
+package brabra.scene.server;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;

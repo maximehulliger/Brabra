@@ -45,7 +45,10 @@ all the following field:
 - create another project (& repository) for the server side
 	-> http://www.vogella.com/tutorials/REST/article.html
 
-
+#7. Installation Tutorial
+http://www.vogella.com/tutorials/EclipseWTP/article.html
+you can just skip from 5.1 to 5.4 and 6.
+From JavaEE view show the Servers window and make configuration.Press next and select brabra.scene to run with. Then Servers file will appear automatically.
 <br>
 
 #Known bugs to fix
