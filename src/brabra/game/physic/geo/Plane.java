@@ -12,7 +12,7 @@ import processing.core.PApplet;
 public class Plane extends PseudoPolyedre {
 	
 	/** The size of the plane. using x & z. */
-	private Vector size; 
+	public final Vector size = new Vector(); 
 	/** Native relative coordonates (4 points). */
 	private Vector[] natCo;
 	/** Flag indicating if the plane is finite. */
@@ -84,7 +84,7 @@ public class Plane extends PseudoPolyedre {
 
 	/** Set the size taking x & z from size2d. Set the plan to infinite if size2d is null. */
 	public void setSize(Vector size2d) {
-		this.size = size2d;
+		this.size.set(size2d);
 		this.finite = size2d != null;
 		this.natCo = getNatCo(finite ? size2d : new Vector(1, 0, 1));
 		super.setRadiusEnveloppe(finite ? size2d.mag()/2 : Float.POSITIVE_INFINITY);
@@ -110,7 +110,7 @@ public class Plane extends PseudoPolyedre {
 		vx = new Line(vertices[0], vertices[1], finite); 	// x
 		vz = new Line(vertices[0], vertices[2], finite); 	// z
 		Vector norm = vz.norm.cross(vx.norm).normalized();
-		normale = new Line(location(), location().plus(norm), true);
+		normale = new Line(transform.location(), transform.location().plus(norm), true);
 		// for polyhedron
 		Line v3 = new Line(vertices[1], vertices[3], true); // x'
 		Line v4 = new Line(vertices[2], vertices[3], true); // z'
@@ -166,7 +166,7 @@ public class Plane extends PseudoPolyedre {
 			return normale.multBy(Float.POSITIVE_INFINITY);
 		}
 		updateAbs();
-		return Vector.sumOf(location(),
+		return Vector.sumOf(transform.location(),
 				vx.norm.multBy(size.x * -0.5f * sgn(vx.norm.dot(normale))),
 				vz.norm.multBy(size.z * -0.5f * sgn(vz.norm.dot(normale))));
 	}

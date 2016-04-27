@@ -69,7 +69,7 @@ public class MissileLauncher extends Weapon {
 			super.setName("Missile t"+tier()+" p("+puissance+")");
 			super.setMass(puissance);
 			super.setParent(master().parent(), null);
-			super.setVelocityRel(launcher.velocity());
+			super.velocityRel.set(launcher.velocity());
 			super.setDisplayCollider(displayColliders());
 			
 		}

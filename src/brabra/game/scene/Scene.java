@@ -22,8 +22,9 @@ import brabra.game.scene.weapons.Weaponry;
 import brabra.gui.ToolWindow;
 
 /** 
- * Object representing the scene (model). 
- * Will pass to observer argObjectAdded or argObjectRemoved  */
+ * Object representing the active working scene (model). 
+ * Will notify to Observer on Object addition or removal.
+ **/
 public class Scene extends Observable {
 
 	public final ConcurrentLinkedDeque<Object> objects = new ConcurrentLinkedDeque<Object>();
@@ -77,17 +78,12 @@ public class Scene extends Observable {
 	
 	// --- life cycle ---
 	
-	/** To call before all update methods. */
-	public void beforeUpdateAll() {
-		game.debug.setCurrentWork("objects pre-update");
-		objects.forEach(o -> o.beforeUpdate());
-	}
-	
 	/** Update the colliders and effects (parents first (automatic)). */
 	public void updateAll() {
 		game.debug.setCurrentWork("objects update");
 		for (Object o : objects)
-			o.update();
+			if (!o.hasParent())
+				o.update();
 	}
 
 	/** Display all colliders and effects in the scene. */

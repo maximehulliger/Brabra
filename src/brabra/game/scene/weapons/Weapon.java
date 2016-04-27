@@ -132,15 +132,12 @@ public abstract class Weapon extends Object {
 		}
 	}
 	
-	public boolean update() {
-		if (super.update()) {
-			if (tempsRestant > 0)
-				tempsRestant--;
-			if (indicateurErreur > 0)
-				indicateurErreur--;
-			return true;
-		} else
-			return false;
+	public void update() {
+		super.update();
+		if (tempsRestant > 0)
+			tempsRestant--;
+		if (indicateurErreur > 0)
+			indicateurErreur--;
 	}
 
 	/** Return the new left down point (right down of this' img). */

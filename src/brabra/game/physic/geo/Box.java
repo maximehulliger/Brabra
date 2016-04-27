@@ -8,7 +8,7 @@ import brabra.game.scene.Object;
 public class Box extends PseudoPolyedre {
 	
 	/** Total size (local). */
-	private Vector size;
+	public final Vector size = new Vector();
 	/** Size / 2. */
 	private Vector dim;
 	private Plane[] faces;
@@ -52,7 +52,7 @@ public class Box extends PseudoPolyedre {
 	// --- Setters ---
 	
 	public void setSize(Vector size) {
-		this.size = size;
+		this.size.set(size);
 	    this.dim = size.multBy(0.5f);
 		
 	    // --- Physic things:
@@ -149,7 +149,7 @@ public class Box extends PseudoPolyedre {
 	// --- from PseudoPolyedre ---
 	
 	public boolean isIn(Vector abs) {
-		float[] loc = relative(abs).array();
+		float[] loc = transform.relative(abs).array();
 		for (int i=0; i<3; i++)
 			if (abs(loc[i]) >= dim.array()[0])
 				return false;

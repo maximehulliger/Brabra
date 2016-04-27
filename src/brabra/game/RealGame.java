@@ -48,7 +48,6 @@ public class RealGame extends Interface {
 		// we place the camera before updating the objects to get a cool visual effect (camera is one frame late in position).
 		camera.place();
 		if (running()) {
-			scene.beforeUpdateAll();
 			input.update();
 			physicInteraction.update();
 			scene.updateAll();

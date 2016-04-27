@@ -12,7 +12,6 @@ import brabra.game.scene.Movable;
 import brabra.game.scene.Object;
 import brabra.game.scene.fun.Starship;
 import brabra.gui.field.ObjectField;
-import javafx.geometry.Insets;
 import javafx.scene.control.Button;
 import javafx.scene.control.ContentDisplay;
 import javafx.scene.image.Image;
@@ -21,17 +20,16 @@ import javafx.scene.layout.GridPane;
 
 public class CreateView extends View {
 
-	private final GridPane creationControlButtons = new GridPane();
-	private final GridPane SelectionContent = new GridPane();
+	private final GridPane selectionContent = new GridPane(), creationControlButtons = new GridPane();
 	
 	private ObjectField objectField = null;
 	
 	public CreateView() {
 		
 		//--- View:
-		SelectionContent.setPadding(new Insets(20,20,20,20));
-
-		//SelectionContent.getStyleClass().add("fields-SelectionContent");
+		// styles
+		selectionContent.getStyleClass().add("create-selectionContent-grid");
+		creationControlButtons.getStyleClass().add("create-creationControlButtons-grid");
 		// > choice view
 		// get the object choice buttons
 		ArrayList<Button> buttons = new ArrayList<>();
@@ -45,14 +43,10 @@ public class CreateView extends View {
 		int column = 2;
 		for (int current=0, r=0, c=0; current<buttons.size(); r++) {
 			for (c=0;c<column;c++,current++)
-				SelectionContent.add(buttons.get(current), c, r);
+				selectionContent.add(buttons.get(current), c, r);
 		}
 		
         // > creation view
-        // control buttons
-        creationControlButtons.setPadding(new Insets(5));
-        creationControlButtons.setHgap(10);
-        creationControlButtons.setVgap(10);
         //creationControlButtons.setAlignment(Pos.CENTER);
         final Button returnBtn = getButton("data/gui/return.png", "Return");
         creationControlButtons.add(returnBtn, 0, 1);
@@ -86,21 +80,21 @@ public class CreateView extends View {
 
 	/** Clear the view view and put the creation view for this new object. */
 	private <T extends Object> void setCreationMode(T object) {
+		// remove the old choice view
+		super.clear();
 		super.setTitle("Go on.. :D");
-        // remove the old choice view
-		content.getChildren().clear();
-		// control buttons
-		content.add(creationControlButtons, 0, 0);
+        // control buttons
+		addContent(creationControlButtons);
 		// and the object field & all the fields (under it)
 		objectField = (ObjectField)new ObjectField(object, false).set("lol", true, false, false);
-		content.add(objectField, 0, 1);
+		addContent(objectField);
     }
 
 	/** Clear the view view and put the selection view for this new object. */
 	private void setSelectionMode() {
-		super.setTitle("Select an object to create:");
-        content.getChildren().clear();
-    	content.add(SelectionContent, 0, 0);
+		super.clear();
+    	super.setTitle("Select an object to create:");
+        addContent(selectionContent);
     }
 
 	private <T extends Object> Button getButton(String imgPath, Class<T> type) {

@@ -5,6 +5,7 @@ import brabra.game.Observable.NVector;
 import brabra.game.XMLLoader.Attributes;
 import brabra.game.physic.geo.Quaternion;
 import brabra.game.physic.geo.Vector;
+import brabra.game.scene.Transform.ParentRelationship;
 
 /**
  * A movable Object. 
@@ -47,7 +48,7 @@ public class Movable extends Object {
 		if (moving || (movableParent != null && movableParent.isMoving()))
 			return true;
 		else 
-			return movableParent != null && (movableParent.isRotating() && !location().minus(movableParent.location()).isZeroEps(false));
+			return movableParent != null && (movableParent.isRotating() && !transform.location().minus(movableParent.transform.location()).isZeroEps(false));
 	}
 
 	/** Return true if the object has rotated during last frame (by this or parent's rotational velocity). */
@@ -66,13 +67,13 @@ public class Movable extends Object {
 	}
 
 	public Vector velocity() {
-		Vector forMeAbs = isMoving() ? absoluteDirFromLocal(velocityRel) : zero;
-		return hasParent() ? add(forMeAbs , parent().velocityAtRel(location())) : forMeAbs;
+		Vector forMeAbs = isMoving() ? transform.absoluteDirFromLocal(velocityRel) : zero;
+		return hasParent() ? add(forMeAbs , parent().velocityAtRel(transform.location())) : forMeAbs;
 	}
 
 	/** Return the absolute velocity (from an absolute pos). */
 	public Vector velocityAt(Vector posAbs) {
-		return velocityAtRel(relative(posAbs));
+		return velocityAtRel(transform.relative(posAbs));
 	}
 
 	/** Return the absolute velocity (from a relative pos). */
@@ -82,16 +83,6 @@ public class Movable extends Object {
 	}
 
 	// --- Setters ---
-
-	/** Set the velocity of this object relative to his parent. */
-	public void setVelocityRel(Vector velocityRel) {
-		this.velocityRel.set(velocityRel);
-	}
-
-	/** Set the velocity of this object relative to his parent. */
-	public void setRotationVelRel(Quaternion rotationVelRel) {
-		this.rotationRelVel.set(rotationVelRel);
-	}
 
 	public boolean setParent(Object newParent, ParentRelationship parentRel) {
 		if (super.setParent(newParent, parentRel)) {
@@ -108,47 +99,43 @@ public class Movable extends Object {
 		
 		final String velocity = atts.getValue("velocity");
 		if (velocity != null)
-			setVelocityRel(vec(velocity));
+			velocityRel.set(vec(velocity));
 		//final String rotVelocity = atts.getValue("rot_velocity");
 		//if (velocity != null)
 		//	setRotationVelRel(vec(rotVelocity));
 	}
 
-	protected boolean update() {
-		if (!updated) {
-			// 1. movement
-			if (moving || velocityRel.hasChangedCurrent()) {
-				if (!velocityRel.isZeroEps(false)) {
-					if (!moving) {
-						game.debug.log(6, this+" started moving.");
-						moving = true;
-					}
-					move(velocityRel);
-				} else if (moving) {
-					game.debug.log(6, this+" stopped moving.");
-					moving = false;
+	protected void update() {
+		// 1. movement
+		if (moving || velocityRel.hasChangedCurrent()) {
+			if (!velocityRel.isZeroEps(false)) {
+				if (!moving) {
+					game.debug.log(6, this+" started moving.");
+					moving = true;
 				}
-				velocityRel.update();
-				model.notifyChange(Change.Velocity);
+				transform.move(velocityRel);
+			} else if (moving) {
+				game.debug.log(6, this+" stopped moving.");
+				moving = false;
 			}
-			// 2. rotation
-			if (rotating || rotationRelVel.hasChangedCurrent()) {
-				if (!rotationRelVel.isZeroEps(true)) {
-					if (!rotating) {
-						game.debug.log(6, this+" started rotating.");
-						rotating = true;
-					}
-					rotate(rotationRelVel);
-				} else if (rotating) {
-					game.debug.log(6, this+" stopped rotating.");
-					rotating = false;
+			velocityRel.update();
+			model.notifyChange(Change.Velocity);
+		}
+		// 2. rotation
+		if (rotating || rotationRelVel.hasChangedCurrent()) {
+			if (!rotationRelVel.isZeroEps(true)) {
+				if (!rotating) {
+					game.debug.log(6, this+" started rotating.");
+					rotating = true;
 				}
-				rotationRelVel.update();
-				model.notifyChange(Change.RotVelocity);
+				transform.rotate(rotationRelVel);
+			} else if (rotating) {
+				game.debug.log(6, this+" stopped rotating.");
+				rotating = false;
 			}
-			return super.update();
-		} else
-			return false;
+			rotationRelVel.update();
+			model.notifyChange(Change.RotVelocity);
+		}
 	}
 
 	// --- cooked methods to brake ---

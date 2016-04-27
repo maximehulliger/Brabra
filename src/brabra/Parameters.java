@@ -107,7 +107,7 @@ public class Parameters extends Observable {
 
 	// --- Interaction: braking, interactionForce ---
 	
-	private boolean braking = false;
+	private boolean braking = true;
 
 	public boolean braking() {
 		return braking;

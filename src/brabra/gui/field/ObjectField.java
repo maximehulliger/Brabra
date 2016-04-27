@@ -7,9 +7,13 @@ import java.util.Observer;
 import brabra.Master;
 import brabra.game.physic.Body;
 import brabra.game.physic.Collider;
+import brabra.game.physic.geo.Box;
+import brabra.game.physic.geo.Plane;
+import brabra.game.physic.geo.Sphere;
 import brabra.game.scene.Movable;
 import brabra.game.scene.Object;
 import brabra.game.scene.Object.Change;
+import brabra.game.scene.Transform;
 
 /** A field containing an object. */
 public class ObjectField extends Field implements Observer {
@@ -19,9 +23,9 @@ public class ObjectField extends Field implements Observer {
 	private final Movable asMovable;
 	private final Body asBody;
 	private final Collider asCollider;
-//	private final Collider asBox;
-//	private final Collider asSphere;
-//	private final Collider asPlane;
+	private final Box asBox;
+	private final Sphere asSphere;
+	private final Plane asPlane;
 
 	private float oldValidMass;
 
@@ -33,6 +37,7 @@ public class ObjectField extends Field implements Observer {
 		final ArrayList<Field> fields = new ArrayList<>(16);
 
 		// > first Object
+		final Transform transform = object.transform;
 		//name
 		fields.add(new StringField.Pro(
 				nm -> object.setName(nm),
@@ -40,19 +45,19 @@ public class ObjectField extends Field implements Observer {
 				).respondingTo(Change.Name)
 				.set("Name", false, true, true));
 		// location abs (not modifiable)
-		fields.add(new VectorField.Pro(object.location())
+		fields.add(new VectorField.Pro(transform.location())
 				.respondingTo(Change.Location)
 				.set("Absolute Location", false, false, false));
-		// location rel (not modifiable)
-		fields.add(new VectorField.Pro(object.locationRel)
-				.respondingTo(Change.Location)
-				.set("Relative Location", false, true, true));
 		// rotation abs (not modifiable)
-		fields.add(new QuaternionField.Pro(object.rotation())
+		fields.add(new QuaternionField.Pro(transform.rotation())
 				.respondingTo(Change.Rotation)
 				.set("Absolute Rotation", false, false, false));
+		// location rel
+		fields.add(new VectorField.Pro(transform.locationRel)
+				.respondingTo(Change.Location)
+				.set("Relative Location", false, true, true));
 		// rotation rel
-		fields.add(new QuaternionField.Pro(object.rotationRel)
+		fields.add(new QuaternionField.Pro(transform.rotationRel)
 				.respondingTo(Change.Rotation)
 				.set("Rotation rel", false, true, true));
 
@@ -110,7 +115,34 @@ public class ObjectField extends Field implements Observer {
 		}
 
 		// TODO: add fields for Box, Sphere & Plan.
-
+		// > if Box
+				if ((asBox = object.as(Box.class)) != null) {
+					// display collider
+					fields.add(new VectorField.ProCustom(
+							s -> asBox.setSize(s),
+							() -> asBox.size)
+							.respondingTo(Change.Size)
+							.set("Size", false, true, true));
+				}
+		// > if Sphere
+		if ((asSphere = object.as(Sphere.class)) != null) {
+			// display collider
+			fields.add(new FloatField.Pro(
+					s -> asSphere.setRadius(s),
+					() -> asSphere.radius())
+					.respondingTo(Change.Size)
+					.set("Radius", false, true, true));
+		}
+		// > if Plane
+		if ((asPlane = object.as(Plane.class)) != null) {
+			// display collider
+			fields.add(new VectorField.ProCustom(
+					s -> asPlane.setSize(s),
+					() -> asPlane.size)
+					.respondingTo(Change.Size)
+					.set("Size (x,?,z)", false, true, true));
+		}
+				
 		// check that there are all Pro
 		fields.forEach(fPro -> {assert(Master.asMaybe(fPro, Field.class)!=null);});
 

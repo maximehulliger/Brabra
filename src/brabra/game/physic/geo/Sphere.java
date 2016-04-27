@@ -86,20 +86,20 @@ public class Sphere extends Collider {
 	// --- physic (collider) ---
 	
 	public Projection projetteSur(Line ligne) {
-	  float proj = ligne.projectionFactor(location());
+	  float proj = ligne.projectionFactor(transform.location());
 	  return new Projection(proj-this.radius, proj+this.radius);
 	}
 	
 	public Vector projette(Vector point) {
-		Vector v = point.minus(location()).withMag(radius);
-		return v.plus(location());
+		Vector v = point.minus(transform.location()).withMag(radius);
+		return v.plus(transform.location());
 	}
 	
 	public Line collisionLineFor(Vector p) {
 		//on prend le vecteur this->c. la ligne part du perimetre a  c.
-		Vector sc = p.minus(location());
+		Vector sc = p.minus(transform.location());
 		sc.setMag(radius);
-		Vector base = location().plus(sc);
+		Vector base = transform.location().plus(sc);
 		return new Line(base, base.plus(sc), false);
 	}
 }
