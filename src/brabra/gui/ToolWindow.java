@@ -66,7 +66,7 @@ public class ToolWindow extends Application {
     	// init the scene/show (but doesn't show it)
     	stage.setTitle(name);
     	stage.setScene(scene);
-        scene.getStylesheets().add("data/gui/gui.css");
+        scene.getStylesheets().add("resource/gui/gui.css");
     	
     	//--- Control:
     	
@@ -126,8 +126,8 @@ public class ToolWindow extends Application {
     	tabs[0].setContent(getScrollContent(new SceneView(app.game.scene)));
     	tabs[1].setContent(getScrollContent(new ParametersView(app.para)));
     	tabs[2].setContent(getScrollContent(new CreateView()));
-    	tabs[3].setContent(getScrollContent(new MySceneView()));
-    	tabs[4].setContent(getScrollContent(new StoreView()));
+    	tabs[3].setContent(getScrollContent(new MySceneView(app.game.scene)));
+    	tabs[4].setContent(getScrollContent(new StoreView(app.game.scene)));
     	return root;
     }
     

@@ -6,12 +6,12 @@ import java.util.function.Consumer;
 
 import brabra.game.Color;
 import brabra.game.Observable.NVector;
-import brabra.game.XMLLoader.Attributes;
 import brabra.game.physic.geo.Line;
 import brabra.game.physic.geo.Quaternion;
 import brabra.game.physic.geo.Vector;
 import brabra.game.scene.Movable;
 import brabra.game.scene.Object;
+import brabra.game.scene.SceneLoader.Attributes;
 
 /** 
  * An movable object obeying to the laws of physics. 

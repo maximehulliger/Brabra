@@ -34,10 +34,10 @@ public class CreateView extends View {
 		ArrayList<Button> buttons = new ArrayList<>();
 		buttons.add(getButton(null, Object.class));
 		buttons.add(getButton(null, Movable.class));
-		buttons.add(getButton("data/gui/ball.png", Sphere.class));
-		buttons.add(getButton("data/gui/box.png", Box.class));
-		buttons.add(getButton("data/gui/plane.png", Plane.class));
-		buttons.add(getButton("data/gui/starship.png", Starship.class));
+		buttons.add(getButton("resource/gui/ball.png", Sphere.class));
+		buttons.add(getButton("resource/gui/box.png", Box.class));
+		buttons.add(getButton("resource/gui/plane.png", Plane.class));
+		buttons.add(getButton("resource/gui/starship.png", Starship.class));
 		// arrange them
 		int column = 2;
 		for (int current=0, r=0, c=0; current<buttons.size(); r++) {
@@ -47,11 +47,11 @@ public class CreateView extends View {
 		
         // > creation view
         //creationControlButtons.setAlignment(Pos.CENTER);
-        final Button returnBtn = getNewButton("Return", "data/gui/return.png");
+        final Button returnBtn = getNewButton("Return", "resource/gui/return.png");
         creationControlButtons.add(returnBtn, 0, 1);
-        final Button createBtn = getNewButton("Create", "data/gui/hammer.png");
+        final Button createBtn = getNewButton("Create", "resource/gui/hammer.png");
         creationControlButtons.add(createBtn, 1, 1);
-        final Button dragBtn = getNewButton("Place", "data/gui/drag.png");
+        final Button dragBtn = getNewButton("Place", "resource/gui/drag.png");
         creationControlButtons.add(dragBtn, 2, 1);
         
         // default view

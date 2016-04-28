@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
+
 /** Utilitary class to debug with class ;) take verbosity from TangibleGame. */
 public class Debug extends ProMaster {
 	private static final String debugLine = " > ";
@@ -12,28 +13,13 @@ public class Debug extends ProMaster {
 	
 	private String work = Brabra.name+" initialization";
 	private String lastWork = null, lastLastWork = null;
-	private int frameWithoutPrintCount = 0;
 	/** during actual work. */
 	private static boolean noPrint = true;
-	/** during the whole frame. */
-	private static boolean noPrintFrame = true;
 	/** List of all the object with the debug attribute. */
 	public final List<Object> followed = new ArrayList<>();
 	public final Set<String> onceMem = new TreeSet<>();
 	/** to do tests in discrete mode. */
 	public boolean testMode = false;
-	
-	
-	/** To display info on the followed objects and update noprint score. */
-	public void update() {
-		setCurrentWork("debug followed");
-		
-		// no print count
-		if (noPrintFrame)
-			frameWithoutPrintCount++;
-		else
-			noPrintFrame = true;
-	}
 
 	/** Set the work name that will we displayed */
 	public void setCurrentWork(String work) {
@@ -88,29 +74,28 @@ public class Debug extends ProMaster {
 	
 	private void print(int verbMin, String s, String msgType, String line, boolean error) {
 		if (!testMode && !s.equals("") && app.verbosity >= verbMin) {
+			// format msg
+			final String msg = (verbMin == Integer.MIN_VALUE ? "-" : verbMin)
+					+ "! " + msgType + ": " + s.replaceAll("\n", "\n"+line);
+			
+			// for the console (work)
 			if (noPrint) {
 				if (verbMin < Brabra.verbMax && !work.equals(lastWork) && !work.equals(lastLastWork)) {
-					final String frameCount;
-					if (frameWithoutPrintCount == 0)
-						frameCount = "";
-					else if (frameWithoutPrintCount == 1)
-						frameCount = " (1 frame since last msg)";
-					else 
-						frameCount = " ("+frameWithoutPrintCount+" frames since last msg)";
-					System.out.println("---- from "+work+frameCount+":");
+					System.out.println("---- from "+work+":");
 					lastLastWork = lastWork;
 					lastWork = work;
+					noPrint = false;
 				}
 			}
-			noPrint = false;
-			noPrintFrame = false;
-			frameWithoutPrintCount = 0;
-			final String out = (verbMin == Integer.MIN_VALUE ? "-" : verbMin)
-					+ "! " + msgType + ": " + s.replaceAll("\n", "\n"+line);
+			
+			// for the console (msg)
 			if (error)
-				System.err.println(out);
+				System.err.println(msg);
 			else
-				System.out.println(out);
+				System.out.println(msg);
+			
+			// for the tool window (msg)
+			// TODO: ToolWindow.displayMessage(msg, !error);
 		}
 	}
 }

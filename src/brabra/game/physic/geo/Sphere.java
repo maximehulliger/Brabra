@@ -1,9 +1,9 @@
 package brabra.game.physic.geo;
 
-import brabra.game.XMLLoader.Attributes;
 import brabra.game.physic.Collider;
 import brabra.game.physic.geo.Line.Projection;
 import brabra.game.scene.Object;
+import brabra.game.scene.SceneLoader.Attributes;
 
 /** A sphere. */
 public class Sphere extends Collider {

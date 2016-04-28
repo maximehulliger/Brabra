@@ -21,16 +21,15 @@ import brabra.game.scene.weapons.Target;
 import brabra.game.scene.weapons.Weaponry;
 import brabra.gui.ToolWindow;
 
-/** 
- * Object representing the active working scene (model). 
- * Will notify to Observer on Object addition or removal.
- **/
+/** Object representing the active working scene (model). **/
 public class Scene extends Observable {
 
 	public final ConcurrentLinkedDeque<Object> objects = new ConcurrentLinkedDeque<Object>();
 	public final ConcurrentLinkedDeque<Collider> colliders = new ConcurrentLinkedDeque<Collider>();
 	
 	private final RealGame game;
+
+	public final SceneLoader loader = new SceneLoader();
 	
 	
 	public Scene(RealGame game) {
@@ -56,7 +55,7 @@ public class Scene extends Observable {
 			o.scene = this;
 			if (o instanceof Collider)
 				colliders.add((Collider)o);
-			notifyChange(o, Change.ObjectAdded);
+			notifyChange(Change.ObjectAdded, o);
 		}
 		return o;
 	}
@@ -66,7 +65,7 @@ public class Scene extends Observable {
 		objects.remove(o);
 		colliders.remove(o);
 		o.onDelete();
-		notifyChange(o, Change.ObjectRemoved);
+		notifyChange(Change.ObjectRemoved, o);
 		return o;
 	}
 	
@@ -95,22 +94,22 @@ public class Scene extends Observable {
 	
 	// --- Observable ---
 	
-	public enum Change { ObjectAdded, ObjectRemoved };
+	public enum Change { ObjectAdded, ObjectRemoved, SceneFileReloaded };
 	
 	public static class Arg {
-		public final Object object;
 		public final Change change;
-		public Arg(Object object, Change modif) {
+		public final Object object;
+		public Arg(Change change, Object object) {
+			this.change = change;
 			this.object = object;
-			this.change = modif;
 		}
 	}
 	
-	private void notifyChange(Object o, Change change) {
+	protected void notifyChange(Change change, Object o) {
 		ToolWindow.runLater(() -> {
 			synchronized (this) {
 				this.setChanged();
-				this.notifyObservers(new Arg(o, change));
+				this.notifyObservers(new Arg(change, o));
 			}
 		});
 	}
@@ -123,8 +122,8 @@ public class Scene extends Observable {
 	 *	Object, Movable, Camera, Box, Ball, Floor, Target, Starship, Weaponry, missile_launcher.
 	 */
 	public Object getPrefab(String name, Vector location, Quaternion rotation) {
-		Object obj;
-		Body body;
+		final Object obj;
+		final Body body;
 		if (name.equals(Object.class.getSimpleName()))
 			obj = new Object(location, rotation);
 		else if (name.equals(Movable.class.getSimpleName()))

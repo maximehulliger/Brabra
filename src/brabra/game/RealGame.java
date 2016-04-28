@@ -17,8 +17,6 @@ public class RealGame extends Interface {
 	
 	private Camera camera = null; //lazy to be independent of processing
 	
-	private final XMLLoader xmlFile = new XMLLoader();
-	
 	// --- life cycle ---
 	
 	public void onShow() {
@@ -26,7 +24,8 @@ public class RealGame extends Interface {
 		debug.info(0, "loading scene");
 		scene.reset();
 		physicInteraction.setFocused(null, -1);
-		xmlFile.load();
+		scene.loader.loadLocalFiles();
+		scene.loader.load();
 		app.imgAnalyser.detectButtons = true;
 		app.imgAnalyser.play(false);
 	}
@@ -46,13 +45,12 @@ public class RealGame extends Interface {
 	// mother method of all life:
 	public void draw() {
 		// we place the camera before updating the objects to get a cool visual effect (camera is one frame late in position).
-		camera.place();
+		camera().place();
 		if (running()) {
 			input.update();
 			physicInteraction.update();
 			scene.updateAll();
 			Physic.doMagic(scene);
-			debug.update();
 		}
 		scene.displayAll();	
 	}
@@ -60,7 +58,7 @@ public class RealGame extends Interface {
 	public void gui() {
 		game.physicInteraction.gui();
 		input.gui();
-		camera.gui();
+		camera().gui();
 	}
 
 	// --- events ---

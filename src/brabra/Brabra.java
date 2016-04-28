@@ -68,8 +68,9 @@ public class Brabra extends PApplet {
 			 stageLoc.x += ToolWindow.width/2;
 		
 		// set base path
-		String dataPath = dataPath("");
-		basePath = (dataPath.substring(0, dataPath.lastIndexOf(name)+name.length())+"/bin/").replace('\\', '/');
+		final String rawDataPath = dataPath(""); // from processing
+		final String toData = Master.inEclipse() ? "src/" : "bin/";
+		basePath = (rawDataPath.substring(0, rawDataPath.lastIndexOf(name)+name.length())+"/"+toData).replace('\\', '/');
 		debug.info(2, "base path: "+basePath+" in "+System.getProperty("os.name"));
 		
 		// init static & app interfaces.
@@ -149,9 +150,15 @@ public class Brabra extends PApplet {
 	public void draw() {
 		try {
 			// execute the code to execute in this thread.
-			processTasksInPro();
-			// interface
+			Runnable toRun = toExecuteInPro.poll();
+			while (toRun != null) {
+				toRun.run();
+				toRun = toExecuteInPro.poll();
+			}
+			
+			// draw interface
 			currentInterface.draw();
+			
 			// gui
 			hint(PApplet.DISABLE_DEPTH_TEST);
 			camera();
@@ -159,8 +166,6 @@ public class Brabra extends PApplet {
 				imgAnalyser.gui();
 			currentInterface.gui();
 			hint(PApplet.ENABLE_DEPTH_TEST);
-			// debug
-			debug.update();
 		} catch (Exception e) {
 			e.printStackTrace();
 			this.dispose();
@@ -180,20 +185,14 @@ public class Brabra extends PApplet {
 	
 	// --- Getters ---
 	
-	public String inputPath() {
-		return pathTo("input");
-	}
-
-	public String dataPath() {
-		return pathTo("data");
-	}
-
-	public String dataPathTo(String ext) {
-		return pathTo(dataPath()+ext);
+	/** Return a path to a ressource from the root folder (probably 'Brabra/'). */
+	public String pathTo(String ressource) {
+		return basePath+ressource;
 	}
 	
-	public String pathTo(String ext) {
-		return basePath+ext+"/";
+	/** Return a path to a folder with this name from the root folder (probably 'Brabra/'). */
+	public String pathToFolder(String folder) {
+		return pathTo(folder)+"/";
 	}
 
 	public boolean hasToolWindow() {
@@ -215,12 +214,12 @@ public class Brabra extends PApplet {
 	// --- File loading ---
 	
 	public PShape loadShape(String filename) {
-		return super.loadShape(dataPath()+filename);
+		return super.loadShape(pathToFolder("resource")+filename);
 	}
 	
 	public PImage loadImage(String file) {
 		boolean abs = file.startsWith("C:") || file.startsWith("/");
-		return super.loadImage(abs ? file : dataPath()+file);
+		return super.loadImage(abs ? file : pathToFolder("resource")+file);
 	}
 	
 	// --- Setters ---
@@ -363,13 +362,5 @@ public class Brabra extends PApplet {
 		currentInterface.onShow();
 		if (focusGainedEventWaiting)
 			currentInterface.onFocusChange(true);
-	}
-
-	private void processTasksInPro() {
-		Runnable toRun = toExecuteInPro.poll();
-		while (toRun != null) {
-			toRun.run();
-			toRun = toExecuteInPro.poll();
-		}
 	}
 }

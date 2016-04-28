@@ -1,8 +1,10 @@
-package brabra.game;
+package brabra.game.scene;
 
 
+import java.io.FileNotFoundException;
 import java.util.HashMap;
 import java.util.Stack;
+import java.util.concurrent.ConcurrentLinkedDeque;
 
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
@@ -14,46 +16,72 @@ import org.xml.sax.helpers.DefaultHandler;
 import brabra.ProMaster;
 import brabra.game.physic.geo.Quaternion;
 import brabra.game.physic.geo.Vector;
-import brabra.game.scene.Object;
 
-/** Class responsible to load the scene file. */
-public final class XMLLoader extends ProMaster {
+/** 
+ * Class responsible for getting the scene files 
+ * and to load a scene file into the scene. 
+ **/
+public final class SceneLoader extends ProMaster {
+	
+	/** path from root to scene folder. */
+	private final static String toSceneFolder = "scenes";
+	
+	/** Array representing the currently loaded local files. */
+	public final ConcurrentLinkedDeque<SceneFile> scenes = new ConcurrentLinkedDeque<>();
 	
 	/** The name of the file to load. */
-	public String filename;
+	private SceneFile currentScene = null;
 	
 	private final XMLReader xmlreader;
 	
-	public XMLLoader() {
-		filename = app.inputPath()+"scene.xml";
+	public SceneLoader() {
 		XMLReader xmlreader = null;
 		try {
 			SAXParserFactory factory = SAXParserFactory.newInstance();
 			factory.setNamespaceAware(true);
 		    SAXParser parser = factory.newSAXParser();
 		    xmlreader = parser.getXMLReader();
-		    xmlreader.setContentHandler(new PrefabHandler());
+		    xmlreader.setContentHandler(new SceneFileHandler());
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		this.xmlreader = xmlreader;
 	}
 	
-	/** 
-	 * Load the object from the file at filename. 
-	 * To see the supported attributes for the objects, look at the validate(Attr) methods 
-	 * or in the readme file.
-	 **/
+	public void setFile(SceneFile scene) {
+		currentScene = scene;
+	}
+	
+	/** Load the object from the file at filename. */
 	public void load() {
+		final String filePath = app.pathToFolder(toSceneFolder) + currentScene.getFilePath();
 		try {
-			xmlreader.parse(filename);
+			xmlreader.parse(filePath);
+		} catch (FileNotFoundException e) {
+			app.debug.err("file : '"+filePath+"' not found !");
 		} catch (Exception e) {
-			game.debug.err("\nerreur dans scene.xml:");
+			app.debug.err("\nerreur dans scene.xml:");
 			e.printStackTrace();
 		}
 	}
 	
-	private class PrefabHandler extends DefaultHandler {
+	public void loadLocalFiles() {
+		scenes.clear();
+		
+		// TODO: get scenes from /resource/scene/
+		
+		scenes.add(new SceneFile("default", "default.xml", null, "Just the default scene :)\n\n- Maxime"));
+		
+		// set default
+		currentScene = scenes.getFirst();
+		
+		if (scenes.size() == 0)
+			app.debug.err("no .xml scene files found in '/resource/scenes/' :'(");
+		
+		game.scene.notifyChange(Scene.Change.SceneFileReloaded, null);
+	}
+
+	private class SceneFileHandler extends DefaultHandler {
 		private final Stack<Object> parentStack = new Stack<>();
 		private final Stack<Attributes> attrStack = new Stack<>();
 		
