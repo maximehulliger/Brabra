@@ -130,7 +130,9 @@ file example with all supported attributes:
 	
 *****
 
-# 2. 	Tool Window				<a name="tool_window"></a>
+<a name="tool_window"></a>
+
+# 2. 	Tool Window
 Created at KTH. It contains 6 views in 5 tabs, in one window (in his own javaFX thread): 
 
 - 1. **Scene View**: Display the state of all the objects in the scene. It is possible to change their attributes.
@@ -144,12 +146,16 @@ All the fields will are generic and are whether closed (just display the value) 
 
 *****
 
-# 3. 	Trivial Game				<a name="trivial_game"></a>
+<a name="trivial_game"></a>
+
+# 3. 	Trivial Game	
 Initial excepted project for the course. Only reacts to the rotation of the detected plate.
 
 *****
 
-# 4.	Image Analysis (not working atm)			<a name="image_analysis"></a>
+<a name="image_analysis"></a>
+
+# 4.	Image Analysis (not working atm)
 #### Plate
 The augmented reality aspect of this project remains in the possibility to control
 the software with an external object. 
