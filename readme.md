@@ -1,19 +1,32 @@
 ﻿#	Brabra !
 This augmented reality project was initially developed for the course
 CS-211 "Introduction to visual computing" given in 2014-2015 at EPFL.
+An interaction window was added for the course 
+DH2642 "Interaction Programming and the Dynamic Web" given in 2015-2016 at KTH.
 
 ###### Featuring:
 - Processing 3, Java 8, JavaFX and ready for Scala
 - 3D interactive physic simulation
-- A starship shooting missiles
-- Dynamic scene initialization
+- Dynamic scene initialization from xml file and server
+- Starships shooting missiles
+- A GUI tool window
 - Image analysis for quad detection (bugged for now)
 
 *For developers, see also the [readmeDev](dev/readmeDev.md), [todo](dev/todo.md) and [todoJavaFX](dev/todoJavaFX.md) files.*
 
-<br>
+Content: 
+- 1. [Real Game](#real_game)
+- 2. [Tool Window](#tool_window)
+- 3. [Trivial Game](#trivial_game)
+- 4. [Image Analysis](#image_analysis)
+- 5. [Contacts](#contacts)
 
-# 1.	Real Game
+*****
+
+<a id="real_game"></a>
+
+# 1. Real Game			
+
 The key interface of the project :D
 
 It display the view of the scene from a camera. The scene contains all the simulated objects. 
@@ -24,11 +37,15 @@ It display the view of the scene from a camera. The scene contains all the simul
 <br>
 
 #### Scene
-The existing objects are separated in 4 main category (Just an object is standalone too): 
-- Camera
-- Body
-- Effect
-- Weaponry, weapons
+The existing objects are separated in 6 main category: 
+- Object
+- Movable (Object)
+- Body (Movable)
+- Effect (Object)
+- Weaponry, weapons (Object)
+- Camera (Object)
+
+<br>
 
 #### Camera
 The camera is an object that carry the camera in the scene.
@@ -48,12 +65,12 @@ press `<tab>` to change the camera mode.
 You can focus your interaction on an object or body. 
 
 - `e`       	=>  shoot the biggest ready missile (if available)
-- `w`, `s` =>  go forward / backward
+- `w`, `s` 		=>  go forward / backward
 - `<alt>`		=>	brake
-- `space`   	=>  unbrake (less brake)
-- mouse drag, `a`, `d`
-				=>  turn the object around
-- scroll wheel 	=>  change the interaction force
+- `<space>`   	=>  unbrake (less brake)
+- `<mouse drag>`, `a`, `d`
+						=>  turn the object around
+- `<scroll wheel>` 	=>  change the interaction force
 
 <br>
 
@@ -61,11 +78,11 @@ You can focus your interaction on an object or body.
 You will find an input file `Brabra/bin/input/scene.xml` to configure the initialization 
 of the scene's objects and parameters: camera and physic(in settings). To reload the file, restart the game with `q` or `r`.
 
-supported parameters: <i>**settings**: gravity, deltaTime. **camera**: displaySkybox, displayAxis, displayCentralPoint, [mode, dist]</i>
+supported parameters: <i>**settings**: gravity, running, verbosity. **camera**: displaySkybox, displayAxis, displayCenterPoint, [mode, dist]</i>
 
 supported object names: ***object, movable, plane, ball, box, starship :rocket:, target***.
 
-supported object attributes: ***pos, dir, parency, name, life, [color, (stroke)], [camera, (cameraDist)], [focus, (force)], displayCollider, debug***.
+supported object attributes: ***pos, parency, name, life, [color, (stroke)], [camera, (cameraDist)], [focus, (force)], displayCollider, debug***.
 
 supported moving attributes: ***velocity, rotationVel***.
 
@@ -80,60 +97,72 @@ supported weapon names: ***missile_launcher***
 file example with all supported attributes:
 	
 	<?xml version="1.0" encoding="UTF-8"?>
-	<scene>
-		<settings gravity="0.2" running="true" verbosity="max" displayAllColliders="false"></settings>
+	<Scene>
+		<Settings gravity="0.2" running="true" verbosity="max" displayAllColliders="false"></Settings>
 		
-		<camera displaySkybox="true" mode="not" dist="(300,300,300)" debug="false">
+		<Camera displaySkybox="true" mode="not" dist="(300,300,300)" debug="false">
 			<!-- Family works with the camera too ! it's just a regular object. -->
-			<box pos="(0,0,-400)" mass="0" color="yellow"></box>
-		</camera>
+			<box pos="(0,0,-400)" mass="0" color="yellow"></Box>
+		</Camera>
 		
-		<floor pos="zero" color="grass"></floor> 
+		<Floor pos="zero" color="grass"></Floor> 
 		
-		<ball pos="(20,200,-300)" mass="5" color="red"></ball>
+		<Ball pos="(20,200,-300)" mass="5" color="red"></Ball>
 		
-		<starship pos="(0,200,0)" focus="true" force="72" camera="static" debug="false" displayCollider="false">
+		<Starship pos="(0,200,0)" focus="true" force="72" camera="static" debug="false" displayCollider="false">
 			<!-- You can stack the children as wished :D -->
-			<box pos="(40,0,-20)" name="pink box" mass="0" color="pink">
-				<ball pos="(0,40,0)" name="upper ball" color="blue" mass="0"></ball>
-			</box>
+			<Box pos="(40,0,-20)" name="pink box" mass="0" color="pink">
+				<Ball pos="(0,40,0)" name="upper ball" color="blue" mass="0"></Ball>
+			</Box>
 			
 			<!-- The weapons automatically add themselves to the weaponry. -->
-			<weaponry puissance="400" prefab="none" displayColliders="false">
+			<Weaponry puissance="400" prefab="none" displayColliders="false">
 				<missile_launcher pos="(30,-10,0)" tier="2" upgrade="1.2"></missile_launcher>
 				<missile_launcher pos="(0,-15,0)" tier="3" upgrade="1.2"></missile_launcher>
 				<missile_launcher pos="(-30,-10,0)" tier="2" upgrade="0.8" displayColliders="true"></missile_launcher>
-			</weaponry>
-		</starship>
+			</Weaponry>
+		</Starship>
 		
 		<!-- targets can be destroyed by missiles. -->
-		<target pos="(-200,200,0)" life="50/200" color="red"></objectif>
+		<Target pos="(-200,200,0)" life="50/200" color="red"></Target>
 		
-	</scene>
+	</Scene>
 	
-<br>
+*****
 
-# 2. 	Trivial Game
+# 2. 	Tool Window				<a name="tool_window"></a>
+Created at KTH. It contains 6 views in 5 tabs, in one window (in his own javaFX thread): 
+
+- 1. **Scene View**: Display the state of all the objects in the scene. It is possible to change their attributes.
+- 2. **Parameters View**: Interface to set all static parameters (physic, camera, scene store address). 
+- 3. **Object Selection View**: List of all the objects that can be created and added to the scene. Clicking on one lead to 4.
+- 4. **Object Creation View**: Interface to create a specific object. Top-left button lead back to 3, Top-middle button add the object to the scene and Top-right button will be to drag & drop it into the scene (not yet implemented).
+- 5. **My Scenes View**: Lists all the scenes available (locally). Left button loads the scene in the processing thread and right button opens it in an external editor. 
+- 6. **Scene Store View**: Accesses a database (specified in the parameters) and display all the available scenes to download (with a name filter). Left button is to download it and right button is (once downloaded) to open it in 5.
+
+All the fields will are generic and are whether closed (just display the value) or open (content is editable). There is a jersey server project in server/. 
+
+*****
+
+# 3. 	Trivial Game				<a name="trivial_game"></a>
 Initial excepted project for the course. Only reacts to the rotation of the detected plate.
 
-<br>
+*****
 
-# 3.	Image Analysis (not working atm)
+# 4.	Image Analysis (not working atm)			<a name="image_analysis"></a>
 #### Plate
 The augmented reality aspect of this project remains in the possibility to control
 the software with an external object. 
 We want to detect a plate or quad with a particular colour (example: see "plate exemple.jpg"). Once calibrated, the software will compute the rotation of the plate relative of the camera.
 In option, it also detects two buttons on each side of the plate.
 
-- rotation       =>  turn the focused object around
-- left button	 =>  go forward, brake if not visible
-- right button   =>  shoot missiles bigger with the visibility
+- `<rotation>`      =>  turn the focused object around
+- `<left button>`	 =>  go forward, brake if not visible
+- `<right button>`   =>  shoot missiles bigger with the visibility
 
 example plate:
 
 ![Example plate with 2 buttons](plate_example.jpg)
-
-<br>
 
 #### Calibration
 Here you can find and manage image filtering parameters to operate the image analysis.
@@ -156,17 +185,20 @@ displayed in the upper left corner of the window reporting what the software see
 			(max 65°, happens too when the quad is wrongly detected.)
 - button circles are red => not enough detected to count
 
-<br>
+*****
 
-# 4. 	Contact, contributors
+<a name="contacts"></a>
 
-Maxime Hulliger, `hulliger@epfl.ch`
+# 5. 	Contacts
+######Curator
+
+Maxime Roger Baudouin Hulliger, `maxime.hulliger@epfl.ch`
 
 ######Contributors
 
-Mathieu Girard, `girarg@epfl.ch`
+Mathieu Pierre Girard, `matthieu.girard@epfl.ch`
 
-Boris, `boris@epfl.ch`
+Boris Adrien Zbinden, `boris.zbinden@epfl.ch`
 
 Max Turpenteim, `maxtu@kth.se`
 

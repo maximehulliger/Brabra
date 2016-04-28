@@ -4,6 +4,7 @@ import brabra.game.XMLLoader.Attributes;
 import brabra.game.physic.Collider;
 import brabra.game.physic.PseudoPolyedre;
 import brabra.game.physic.geo.Line.Projection;
+import brabra.game.scene.Object;
 import brabra.game.physic.geo.Vector;
 import processing.core.PApplet;
 
@@ -11,7 +12,7 @@ import processing.core.PApplet;
 public class Plane extends PseudoPolyedre {
 	
 	/** The size of the plane. using x & z. */
-	private Vector size; 
+	public final Vector size = new Vector(); 
 	/** Native relative coordonates (4 points). */
 	private Vector[] natCo;
 	/** Flag indicating if the plane is finite. */
@@ -22,20 +23,23 @@ public class Plane extends PseudoPolyedre {
 
 	/** Create a plan (quad) of size size2d (x,z). */
 	public Plane(Vector loc, Quaternion rot, Vector size2d) {
-		super( loc, rot, size2d.mag()/2 );
-		this.finite = true;
+		super(loc, rot);
+		super.setName("Quad");
 		setSize(size2d);
-		setName("Quad");
 	}
 	
 	/** Create an infinite plan (with infinite mass). */
 	public Plane(Vector loc, Quaternion rot) {
-		super( loc, rot, Float.MAX_VALUE );
-		this.finite = false;
-		this.size = null;
-		this.natCo = getNatCo(new Vector(1, 0, 1));
-		setName("Plane");
-		setMass(-1);
+		super(loc, rot);
+		super.setName("Plane");
+		setSize(null);
+	}
+	
+	public void copy(Object o) {
+		super.copy(o);
+		Plane op = this.as(Plane.class);
+		if (op != null)
+			setSize(op.size);
 	}
 	
 	// --- Getters --- 
@@ -60,9 +64,11 @@ public class Plane extends PseudoPolyedre {
 	// --- Setters ---
 
 	public void setMass(float mass) {
+		if(mass > 0 && !finite) {
+			game.debug.err("An infinite plane without an infinite mass is a bad idea :/");
+			mass = 0;
+		}
 		super.setMass(mass);
-		if (!finite && mass!=-1)
-			throw new IllegalArgumentException("An infinite plane without an infinite mass is a bad idea :/");
 		if (inverseMass > 0) {
 			float fact = mass/12;
 			super.inertiaMom = new Vector(
@@ -73,15 +79,17 @@ public class Plane extends PseudoPolyedre {
 					1/inertiaMom.x,
 					1/inertiaMom.y,
 					1/inertiaMom.z );
-		}
+		} 
 	}
 
-	/** Set the size taking x & z from size2d. The plane should not be infinite. */
+	/** Set the size taking x & z from size2d. Set the plan to infinite if size2d is null. */
 	public void setSize(Vector size2d) {
-		if (!finite)
-			throw new IllegalArgumentException("can not set the size of an infinite plan !");
-		this.size = size2d;
-		this.natCo = getNatCo(size2d);
+		this.size.set(size2d);
+		this.finite = size2d != null;
+		this.natCo = getNatCo(finite ? size2d : new Vector(1, 0, 1));
+		super.setRadiusEnveloppe(finite ? size2d.mag()/2 : Float.POSITIVE_INFINITY);
+		if (!finite && !ghost())
+			setMass(-1);
 	}
 
 	// --- life cycle ---
@@ -95,31 +103,26 @@ public class Plane extends PseudoPolyedre {
 		popLocal();
 	}
 
-	public boolean updateAbs() {
-		if (super.updateAbs()) {
-			// for plane
-			Vector[] vertices = absolute(natCo);
-			vx = new Line(vertices[0], vertices[1], finite); 	// x
-			vz = new Line(vertices[0], vertices[2], finite); 	// z
-			Vector norm = vz.norm.cross(vx.norm).normalized();
-			normale = new Line(location(), location().plus(norm), true);
-			// for polyhedron
-			Line v3 = new Line(vertices[1], vertices[3], true); // x'
-			Line v4 = new Line(vertices[2], vertices[3], true); // z'
-			setAbs(vertices, new Line[] { vx, vz, v3, v4 });
-			return true;
-		} else
-			return false;
+	public void updateAbs() {
+		super.updateAbs();
+		// for plane
+		Vector[] vertices = absolute(natCo);
+		vx = new Line(vertices[0], vertices[1], finite); 	// x
+		vz = new Line(vertices[0], vertices[2], finite); 	// z
+		Vector norm = vz.norm.cross(vx.norm).normalized();
+		normale = new Line(transform.location(), transform.location().plus(norm), true);
+		// for polyhedron
+		Line v3 = new Line(vertices[1], vertices[3], true); // x'
+		Line v4 = new Line(vertices[2], vertices[3], true); // z'
+		setAbs(vertices, new Line[] { vx, vz, v3, v4 });
 	}
 
-	public boolean validate(Attributes atts) {
-		if (super.validate(atts)) {
-			final String size = atts.getValue("size");
-			if (size != null)
-				setSize(vec(size));
-			return true;
-		} else
-			return false;
+	public void validate(Attributes atts) {
+		super.validate(atts);
+		
+		final String size = atts.getValue("size");
+		if (size != null)
+			setSize(vec(size));
 	}
 	
 	// --- Collider & physic implementation ---
@@ -163,7 +166,7 @@ public class Plane extends PseudoPolyedre {
 			return normale.multBy(Float.POSITIVE_INFINITY);
 		}
 		updateAbs();
-		return Vector.sumOf(locationAbs,
+		return Vector.sumOf(transform.location(),
 				vx.norm.multBy(size.x * -0.5f * sgn(vx.norm.dot(normale))),
 				vz.norm.multBy(size.z * -0.5f * sgn(vz.norm.dot(normale))));
 	}

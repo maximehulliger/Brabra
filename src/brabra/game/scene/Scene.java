@@ -1,10 +1,13 @@
 package brabra.game.scene;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Observable;
+import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-import brabra.ProMaster;
+import brabra.Brabra;
+import brabra.game.RealGame;
 import brabra.game.physic.Body;
 import brabra.game.physic.Collider;
 import brabra.game.physic.geo.Box;
@@ -16,109 +19,71 @@ import brabra.game.scene.fun.Starship;
 import brabra.game.scene.weapons.MissileLauncher;
 import brabra.game.scene.weapons.Target;
 import brabra.game.scene.weapons.Weaponry;
+import brabra.gui.ToolWindow;
 
-public class Scene extends ProMaster {
+/** 
+ * Object representing the active working scene (model). 
+ * Will notify to Observer on Object addition or removal.
+ **/
+public class Scene extends Observable {
 
-	private List<Object> objects = new ArrayList<Object>();
-	private List<Collider> colliders = new ArrayList<Collider>();
-	private List<Object> toRemove = new ArrayList<Object>();
-	private List<Object> toAdd = new ArrayList<Object>();
-
-	// --- getters ---
-
-	/** Return all the objects in the scene. */
-	public List<Object> objects() {
-		return objects;
-	}
+	public final ConcurrentLinkedDeque<Object> objects = new ConcurrentLinkedDeque<Object>();
+	public final ConcurrentLinkedDeque<Collider> colliders = new ConcurrentLinkedDeque<Collider>();
 	
-	/** Return all the colliders in the scene. */
-	public List<Collider> colliders() {
-		return colliders;
+	private final RealGame game;
+	
+	
+	public Scene(RealGame game) {
+		this.game = game;
 	}
+
+	// --- Getters ---
 	
 	public List<Collider> activeColliders() {
 		return colliders.stream().filter(c -> !c.ghost()).collect(Collectors.toList());
 	}
 	
-	// --- modifiers ---
+	//--- Modifiers ---
 
-	/** Add an object to the scene (on next update). */
+	public void forEachObjects(Consumer<Object> f) {
+		objects.forEach(f);
+	}
+
+	/** Add an object to the scene. Return the object. */
 	public Object add(Object o) {
-		toAdd.add(o);
-		return o;
-	}
-
-	/** Add an object immediately into the scene. return the object. */
-	public Object addNow(Object o) {
-		objects.add(o);
-		if (o instanceof Collider)
-			colliders.add((Collider)o);
-		return o;
-	}
-	
-	/** Remove an object from the scene (on next update). return the object. */
-	public Object remove(Object o) {
-		toRemove.add(o);
-		return o;
-	}
-	
-	// --- Prefab help method ---
-	
-	/**
-	 *  Help method to add a new object into the scene.
-	 *	Supported names: <p>
-	 *	camera, box, ball, floor, target, starship, weaponry, weapon.
-	 */
-	public Object addPrefab(String name, Vector location, Quaternion rotation) {
-		Object obj;
-		Body body;
-		if (name.equals("object"))
-			obj = new Object(location, rotation);
-		else if (name.equals("movable"))
-			obj = new Movable(location, rotation);
-		else if (name.equals("camera")) {
-			return game.camera; // already in scene
-		} else if (name.equals("box")) {
-			obj = body = new Box(location, rotation, vec(20,20,20));
-			body.setMass(1);
-			body.addOnUpdate(() -> body.pese());
-		} else if (name.equals("ball")) {
-			obj = body = new Sphere(location, 10);
-			body.setMass(1);
-			body.addOnUpdate(() -> body.pese());
-		} else if (name.equals("floor"))
-			obj = new Plane(location, rotation).withName("Floor");
-		else if (name.equals("targer"))
-			obj = new Target(location, rotation);
-		else if (name.equals("starship"))
-			obj = new Starship(location, rotation);
-		else if (name.equals("weaponry"))
-			obj = new Weaponry(location, rotation);
-		else if (name.equals("missile_launcher"))
-			obj = new MissileLauncher(location, rotation);
-		else {
-			System.err.println("\""+name+"\" unknown, ignoring.");
-			return null;
+		if (!objects.contains(o)) {
+			objects.add(o);
+			o.scene = this;
+			if (o instanceof Collider)
+				colliders.add((Collider)o);
+			notifyChange(o, Change.ObjectAdded);
 		}
-		return addNow(obj);
+		return o;
 	}
 	
-	// --- on all methods ---
-	
-	/** To call before all update methods. */
-	public void beforeUpdateAll() {
-		game.debug.setCurrentWork("objects pre-update");
-		updateObjectLists();
-		for (Object o : objects) 
-			o.beforeUpdate();
+	/** Remove an object from the scene. Return the object. */
+	public Object remove(Object o) {
+		objects.remove(o);
+		colliders.remove(o);
+		o.onDelete();
+		notifyChange(o, Change.ObjectRemoved);
+		return o;
 	}
+	
+	/** Remove all object from the scene. */
+	public void reset() {
+		objects.forEach(o -> remove(o));
+		//toRemove.addAll(objects);
+	}
+	
+	// --- life cycle ---
 	
 	/** Update the colliders and effects (parents first (automatic)). */
 	public void updateAll() {
 		game.debug.setCurrentWork("objects update");
 		for (Object o : objects)
-			o.update();
-		updateObjectLists();
+			if (!o.hasParent())
+				o.update();
 	}
 
 	/** Display all colliders and effects in the scene. */
@@ -128,19 +93,68 @@ public class Scene extends ProMaster {
 			o.display();
 	}
 	
-	// --- private stuff ---
+	// --- Observable ---
+	
+	public enum Change { ObjectAdded, ObjectRemoved };
+	
+	public static class Arg {
+		public final Object object;
+		public final Change change;
+		public Arg(Object object, Change modif) {
+			this.object = object;
+			this.change = modif;
+		}
+	}
+	
+	private void notifyChange(Object o, Change change) {
+		ToolWindow.runLater(() -> {
+			synchronized (this) {
+				this.setChanged();
+				this.notifyObservers(new Arg(o, change));
+			}
+		});
+	}
 
-	/** Effectively remove / add objects to the lists. */
-	private void updateObjectLists() {
-		if (toRemove.size() > 0) {
-			objects.removeAll(toRemove);
-			colliders.removeAll(toRemove);
-			toRemove.forEach(o -> o.onDelete());
-			toRemove.clear();
+	// --- Prefab help method ---
+	
+	/**
+	 *  Help method to get a new object (not in the scene).
+	 *	Supported names: <p>
+	 *	Object, Movable, Camera, Box, Ball, Floor, Target, Starship, Weaponry, missile_launcher.
+	 */
+	public Object getPrefab(String name, Vector location, Quaternion rotation) {
+		Object obj;
+		Body body;
+		if (name.equals(Object.class.getSimpleName()))
+			obj = new Object(location, rotation);
+		else if (name.equals(Movable.class.getSimpleName()))
+			obj = new Movable(location, rotation);
+		else if (name.equals(Camera.class.getSimpleName())) {
+			return game.camera(); // already in scene
+		} else if (name.equals(Box.class.getSimpleName())) {
+			obj = body = new Box(location, rotation, new Vector(20,20,20));
+			body.setMass(1);
+			body.addOnUpdate(b -> b.pese());
+		} else if (name.equals(Sphere.class.getSimpleName()) || name.equals("Ball")) {
+			obj = body = new Sphere(location, 10);
+			body.setMass(1);
+			body.addOnUpdate(b -> b.pese());
+		} else if (name.equals("Floor"))
+			obj = new Plane(location, rotation).withName("Floor");
+		else if (name.equals(Plane.class.getSimpleName()))
+			obj = new Plane(location, rotation);
+		else if (name.equals(Target.class.getSimpleName()))
+			obj = new Target(location, rotation);
+		else if (name.equals(Starship.class.getSimpleName()))
+			obj = new Starship(location, rotation);
+		else if (name.equals(Weaponry.class.getSimpleName()))
+			obj = new Weaponry(location, rotation);
+		else if (name.equals("missile_launcher"))
+			obj = new MissileLauncher(location, rotation);
+		else {
+			Brabra.app.debug.err("\""+name+"\" unknown, ignoring.");
+			return null;
 		}
-		if (toAdd.size() > 0) {
-			toAdd.forEach(o->addNow(o));
-			toAdd.clear();
-		}
+		return obj;
 	}
 }

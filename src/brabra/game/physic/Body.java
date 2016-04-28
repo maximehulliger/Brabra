@@ -2,13 +2,16 @@ package brabra.game.physic;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 import brabra.game.Color;
+import brabra.game.Observable.NVector;
 import brabra.game.XMLLoader.Attributes;
 import brabra.game.physic.geo.Line;
 import brabra.game.physic.geo.Quaternion;
 import brabra.game.physic.geo.Vector;
 import brabra.game.scene.Movable;
+import brabra.game.scene.Object;
 
 /** 
  * An movable object obeying to the laws of physics. 
@@ -18,11 +21,12 @@ import brabra.game.scene.Movable;
  **/
 public abstract class Body extends Movable {
 	
-	private static final boolean displayInteractions = true; //forces et impulse
+	public static final float infiniteMass = -1, ghostMass = -2; //TODO change all -1 & -2
+	private static final boolean displayInteractions = true; //forces & impulse
 	private static final Color interactionColor = new Color("white", true);
 	
 	/** Mass of the body. -2 for ghost, -1 for infinite or bigger than 0 (never equals 0).*/
-	protected float mass = -2;
+	protected float mass = ghostMass;
 	/** Inverse of the body mass. 0 for infinite mass or bigger than 0. */
 	protected float inverseMass = 0;
 	protected Vector inertiaMom = null;
@@ -34,9 +38,9 @@ public abstract class Body extends Movable {
 	protected int maxLife = -1;
 	
 	/** Will be added on next update. */
-	private Vector forcesLocToAdd = zero.copy(), torquesLocToAdd = zero.copy();
+	private NVector forcesLocToAdd = new NVector(), torquesLocToAdd = new NVector();
 	/** Executed before updating the body. */
-	private Runnable onUpdate = null;
+	private Consumer<Body> onUpdate = null;
 	private List<Line> interactionsRel = new ArrayList<>();
 	
 	
@@ -44,53 +48,82 @@ public abstract class Body extends Movable {
 	public Body(Vector location, Quaternion rotation) {
 		super(location, rotation);
 	}
-
-	/** to add force to the body every frame */
-	protected void addForces() {}
+	
+	public void copy(Object o) {
+		super.copy(o);
+		Body ob = this.as(Body.class);
+		if (ob != null) {
+			setMass(ob.mass);
+			onUpdate = ob.onUpdate;
+			maxLife = ob.maxLife;
+			life = ob.life;
+			color = ob.color;
+			restitution = ob.restitution;
+		}
+	}
 
 	/** to react to a collision */
 	protected void onCollision(Collider col, Vector impact) {}
 
-	public boolean validate(Attributes atts) {
-		if (super.validate(atts)) {
-			final String color = atts.getValue("color");
-			if (color != null)
-				setColor( new Color(color, atts.getValue("stroke")) );
-			final String mass = atts.getValue("mass");
-			if (mass != null)
-				setMass(Float.parseFloat(mass));
-			final String life = atts.getValue("life");
-			if (life != null)
-				setLife(life);
-			final String impulse = atts.getValue("impulse");
-			if (impulse != null)
-				applyImpulse(vec(impulse));
-			return true;
-		} else
-			return false;
+	public void validate(Attributes atts) {
+		final String color = atts.getValue("color");
+		if (color != null)
+			setColor( new Color(color, atts.getValue("stroke")) );
+		final String mass = atts.getValue("mass");
+		if (mass != null)
+			setMass(Float.parseFloat(mass));
+		final String life = atts.getValue("life");
+		if (life != null)
+			setLife(life);
+		final String impulse = atts.getValue("impulse");
+		if (impulse != null)
+			applyImpulse(vec(impulse));
+		super.validate(atts);
 	}
 	
 	/** applique les forces et update l'etat. return true if this was updated. */
-	public boolean update() {
-		if (!updated) {
-			//0. before update
-			addForces();
+	public void update() {
+			// before update
 			if (onUpdate != null)
-				onUpdate.run();
-			//1. translation
-			Vector acceleration = forcesLocToAdd.multBy(inverseMass);
-			if (!acceleration.equals(zero))
-				velocityRel.add( acceleration );
-			//2. rotation, vitesse angulaire, on prend rotation axis comme L/I
-			Vector dL = torquesLocToAdd.multElementsBy(inverseInertiaMom);
-			if (!dL.equals(zero))
-				addAngularMomentum( dL );
-
-			forcesLocToAdd.set(zero);
-			torquesLocToAdd.set(zero);
-			return super.update(); //always true
-		} else
-			return false;
+				onUpdate.accept(this);
+			
+			// apply if needed
+			final boolean touched = forcesLocToAdd.hasChangedCurrent() || torquesLocToAdd.hasChangedCurrent();
+			if (inverseMass > 0 && touched) {
+				// translation
+				Vector acceleration = forcesLocToAdd.multBy(inverseMass);
+				if (!acceleration.equals(zero))
+					velocityRel.add( acceleration );
+				// rotation, vitesse angulaire, on prend rotation axis comme L/I
+				Vector dL = torquesLocToAdd.multElementsBy(inverseInertiaMom);
+//				TODO: if (!dL.equals(zero))
+//					rotationRelVel.addAngularMomentum( dL );
+				if (!dL.equals(zero))
+					//rotationRelVel.addAngularMomentum( dL );
+					addAngularMomentum( dL );
+			}
+			
+			// reset
+			if (touched) {
+				forcesLocToAdd.reset(zero);
+				torquesLocToAdd.reset(zero);
+			} 
+			
+			super.update(); //always true
+//======= TODO
+//				onUpdate.run();
+//			//1. translation
+//			Vector acceleration = forcesLocToAdd.multBy(inverseMass);
+//			if (!acceleration.equals(zero))
+//				velocityRel.add( acceleration );
+//			//2. rotation, vitesse angulaire, on prend rotation axis comme L/I
+//			Vector dL = torquesLocToAdd.multElementsBy(inverseInertiaMom);
+//			if (!dL.equals(zero))
+//				addAngularMomentum( dL );
+//
+//			forcesLocToAdd.set(zero);
+//			torquesLocToAdd.set(zero);
+//>>>>>>> refs/remotes/origin/master
 	}
 	
 	/** Display the interactions... maybe. In local space (should be call after pushLocal()). */
@@ -109,10 +142,11 @@ public abstract class Body extends Movable {
 
 	// --- some setters
 	
-	public void addOnUpdate(Runnable onUpdate) {
-		final Runnable oldAddForce = this.onUpdate;
+	/** To execute some code before this body is updated (for example to apply some forces). */
+	public void addOnUpdate(Consumer<Body> onUpdate) {
+		final Consumer<Body> oldAddForce = this.onUpdate;
 		this.onUpdate = this.onUpdate == null ?
-				onUpdate : () -> { oldAddForce.run(); onUpdate.run(); };
+				onUpdate : b -> { oldAddForce.accept(b); onUpdate.accept(b); };
 	}
 
 	/** 
@@ -142,6 +176,7 @@ public abstract class Body extends Movable {
 			this.inertiaMom = null;
 			this.inverseInertiaMom = null;
 		}
+		model.notifyChange(Change.Mass);
 	}
 	
 	public void setColor(Color color) {
@@ -213,14 +248,19 @@ public abstract class Body extends Movable {
 	public boolean affectedByCollision() {
 		return inverseMass > 0;
 	}
+	
+	/** Return the mass of the body, bigger than 0 (can be Float.POSITIVE_INFINITY). */
+	public float mass() {
+		return inverseMass > 0 ? mass : Float.POSITIVE_INFINITY;
+	}
 
 	/** Add momentum to the body at this point (absolute). */
 	public void applyImpulse(Vector posAbs, Vector impulseAbs) {
 		assert(!impulseAbs.equals(zero));
 		// in local space
-		Vector posLoc = local(posAbs);
-		Vector impulseLoc = localDir(impulseAbs);
-		interactionsRel.add(new Line(relative(posAbs), relative(add(posAbs, impulseAbs.multBy(4))), true));		
+		Vector posLoc = transform.local(posAbs);
+		Vector impulseLoc = transform.localDir(impulseAbs);
+		interactionsRel.add(new Line(transform.relative(posAbs), transform.relative(add(posAbs, impulseAbs.multBy(4))), true));		
 		// test if the impulse is against (or on) the mass center -> just translation
 		if (posLoc.isZeroEps(false) || posLoc.cross(impulseLoc).isZeroEps(false)) {
 			velocityRel.add( impulseLoc.multBy(this.inverseMass) );
@@ -244,28 +284,28 @@ public abstract class Body extends Movable {
 
 	/** Apply a force on the body at this point (absolu). */
 	public void applyForce(Vector posAbs, Vector forceAbs) {
-		applyForceLoc(local(posAbs), localDir(forceAbs));
+		applyForceLoc(transform.local(posAbs), transform.localDir(forceAbs));
 	}
 	
 	/** Apply a force on the body at this point (in this object's space). */
 	public void applyForceRel(Vector posRel, Vector forceRel) {
-		applyForceLoc(localFromRel(posRel), localDirFromRel(forceRel));
+		applyForceLoc(transform.localFromRel(posRel), transform.localDirFromRel(forceRel));
 	}
 
 	/** Add a pure translation force on the body at the mass center (from absolute). */
 	public void applyForce(Vector forceAbs) {
-		applyForceLoc(localDir(forceAbs));
+		applyForceLoc(transform.localDir(forceAbs));
 	}
 
 	/** Add a pure translation force on the body at the mass center (from relative). */
 	public void applyForceRel(Vector forceRel) {
-		applyForceLoc(localDirFromRel(forceRel));
+		applyForceLoc(transform.localDirFromRel(forceRel));
 	}
 
 	/** Main methods to add a force. we work in local space. */
 	private void applyForceLoc(Vector posLoc, Vector forceLoc) {
 		assert(!forceLoc.equals(zero));
-		interactionsRel.add(new Line(relativeFromLocal(posLoc), relativeFromLocal(add(posLoc, forceLoc.multBy(4))), true));
+		interactionsRel.add(new Line(transform.relativeFromLocal(posLoc), transform.relativeFromLocal(add(posLoc, forceLoc.multBy(4))), true));
 		if (posLoc.isZeroEps(false) || posLoc.cross(forceLoc).isZeroEps(false)) {
 			// if the force is against (or on) the mass center -> just translation
 			applyForceLoc( forceLoc );
@@ -311,7 +351,7 @@ public abstract class Body extends Movable {
 		if (mass == -1)
 			//throw new IllegalArgumentException("un objet de mass infini ne devrait pas peser !"); now tolerated :)
 			return;
-		applyForce( up(-game.physic.gravity*mass) );
+		applyForce( app.para.gravity().multBy(mass) );
 	}
 	
 	public void avance(float forceFront) {

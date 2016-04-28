@@ -11,6 +11,7 @@ public class Target extends Sphere {
 		super(location, rotation, 50);
 		setMass(30);
 		setName("Target");
+		super.addOnUpdate(t -> t.brake(0.07f));
 	}
 	
 	public String toString() {
@@ -23,7 +24,7 @@ public class Target extends Sphere {
 	}
 
 	public void addForces() {
-		brake(0.07f);
+		
 	}
 	
 	public void onDeath() {

@@ -17,20 +17,12 @@ public class Debug extends ProMaster {
 	private static boolean noPrint = true;
 	/** during the whole frame. */
 	private static boolean noPrintFrame = true;
-	
-	public final List<Debugable> followed = new ArrayList<>();
+	/** List of all the object with the debug attribute. */
+	public final List<Object> followed = new ArrayList<>();
 	public final Set<String> onceMem = new TreeSet<>();
 	/** to do tests in discrete mode. */
 	public boolean testMode = false;
 	
-	
-	/** Interface to be able to be followed by the debugger. */
-	public interface Debugable {
-		/** Return a state update with presentation & update (what speaks ?. on first line) or "" if no update since last frame. */
-		public abstract String getStateUpdate();
-		/** Return true if the state of the object changed during last frame. */
-		public abstract boolean stateChanged();
-	}
 	
 	/** To display info on the followed objects and update noprint score. */
 	public void update() {
@@ -41,11 +33,6 @@ public class Debug extends ProMaster {
 			frameWithoutPrintCount++;
 		else
 			noPrintFrame = true;
-		
-		// print update state of all followed
-		for (Debugable o : followed)
-			if (o.stateChanged())
-				print(3, o.getStateUpdate(), "state update", debugLine, false);
 	}
 
 	/** Set the work name that will we displayed */

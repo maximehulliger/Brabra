@@ -16,8 +16,8 @@ public abstract class PseudoPolyedre extends Collider {
 	/** Edges in absolute. */
 	private Line[] edges = null;
 	
-	public PseudoPolyedre(Vector loc, Quaternion rot, float radiusEnveloppe) {
-		super(loc, rot, radiusEnveloppe);
+	public PseudoPolyedre(Vector loc, Quaternion rot) {
+		super(loc, rot);
 	}
 	
 	public abstract void display();
@@ -49,8 +49,8 @@ public abstract class PseudoPolyedre extends Collider {
 	
 	// --- polyhedron specific methods (abstract) ---
 	
-	/** Retourne le point qui est le plus contre cette normale (par rapport au centre) */
-	public abstract Vector pointContre(Vector normale);
+	/** Retourne le point qui est le plus contre cette normale absolue (par rapport au centre) */
+	public abstract Vector pointContre(Vector normaleAbs);
 	
 	/** Return true if the point is inside the object. */
 	public abstract boolean isIn(Vector abs);

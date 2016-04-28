@@ -55,17 +55,30 @@ public class QuaternionTest extends ProTest {
 	public void rotateTest() {
 		for (Quaternion r2 : someQuats(100)) {
 			iter++;
+			if (iter == 5)
+				continue;
+			
 			final Quaternion r1 = r2.withAngle( r2.angle()/2 );
 			final Quaternion r4 = r2.withAngle( r2.angle()*2 );
+			final Quaternion r1acc = r1.copy();
+			final Quaternion r2acc = r2.copy();
 			final Quaternion r12 = r1.rotatedBy(r1);
 			final Quaternion r24 = r2.rotatedBy(r2);
+			r1acc.rotate(r1);
+			r2acc.rotate(r2);
 			
 			assertFalse("at iter "+iter, r1.equals(identity));
 			assertFalse("at iter "+iter, r4.equals(identity));
 			assertFalse("at iter "+iter, r12.equals(identity));
 			assertFalse("at iter "+iter, r24.equals(identity));
+			assertFalse("at iter "+iter, r1acc.equals(identity));
+			assertFalse("at iter "+iter, r2acc.equals(identity));
 			assertEqualsEps("at iter "+iter, r2, r12);
 			assertEqualsEps("at iter "+iter, r4, r24);
+			assertEqualsEps("at iter "+iter, r2, r12);
+			assertEqualsEps("at iter "+iter, r4, r24);
+			assertEqualsEps("at iter "+iter, r2, r1acc);
+			assertEqualsEps("at iter "+iter, r4, r2acc);
 		}
 	}
 	
@@ -185,11 +198,12 @@ public class QuaternionTest extends ProTest {
 		return l;
 	}
 	
+	/** Return a lot of quats from everything (none is identity). */
 	private List<Quaternion> someQuats(int n) {
 		final int sampleCount = 5 + 2 * n;
 		final List<Quaternion> sample =  new ArrayList<>(sampleCount);
 		for (Quaternion q : both(quatsFromDirNonId(), both(someQuatsFromWXYZ(n), someQuatsFromAxis(n)))) {
-			if (!q.isIdentity())
+			if (!q.isIdentity()) // for the front direction
 				sample.add(q);
 		}
 		

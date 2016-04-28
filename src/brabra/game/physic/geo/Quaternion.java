@@ -1,5 +1,6 @@
 package brabra.game.physic.geo;
 
+import brabra.Master;
 import brabra.ProMaster;
 import processing.core.PApplet;
 import brabra.game.physic.Physic;
@@ -9,10 +10,10 @@ import brabra.game.Observable.NQuaternion;
 public class Quaternion extends ProMaster {
 	
 	public static final float 	epsilonRotAxis = 1E-7f,
-								epsilonAngle = 1E-6f,//pi/(360*1000),
+								epsilonAngle = 1E-4f,//pi/(360*1000),
 								epsilonWXYZ = 1E-6f;
 	public static final Quaternion identity = new NQuaternion(new Quaternion(), 
-			() -> { throw new IllegalArgumentException("pas touche à l'identity /!\\"); });
+			() -> { throw new IllegalArgumentException("don't touch my identity /!\\"); });
 
 	// components of a quaternion
 	private float w = 1;  
@@ -71,7 +72,7 @@ public class Quaternion extends ProMaster {
 	}
 	
 	public boolean isIdentity() {
-		return validRotAxis && rotAxis == null ? true : w == 1 || w == -1;
+		return isWId(w);
 	}
 	
 	private boolean testing = false;
@@ -79,8 +80,7 @@ public class Quaternion extends ProMaster {
 	private void testThis() {
 		if (!testing) {
 			testing = true;
-			final boolean id = isIdentity();
-			if (id) {
+			if (isIdentity()) {
 				if (validRotAxis) {
 					assert (rotAxis==null);
 					assert (angle == 0);
@@ -95,7 +95,6 @@ public class Quaternion extends ProMaster {
 				assert (w != 1 && w != -1);
 				assert (!xyz.equals(zero));
 			}
-			
 			testing = false;
 		}
 	}
@@ -124,14 +123,14 @@ public class Quaternion extends ProMaster {
 			if (printEverything) 
 				return toStringDebug();
 			else
-				return "around "+rotAxis()+" with angle "+(angle()*toDegrees)+"°";
+				return "around "+rotAxis()+" with angle "+(angle()*toDegrees)+"ï¿½";
 		}
 	}
 	
 	public String toStringDebug() {
-		return    "  quat: (wxyz:"+w+", "+xyz.x+", "+xyz.y+", "+xyz.z+")"
+		return    "quat: (wxyz:"+w+", "+xyz.x+", "+xyz.y+", "+xyz.z+")"
 				+ (validRotAxis 
-					? " \naround "+rotAxis()+" with angle "+(angle()*toDegrees)+"°"
+					? " \naround "+rotAxis()+" with angle "+(angle()*toDegrees)+"ï¿½"
 					: " with unknown axis");
 	}
 	
@@ -140,7 +139,7 @@ public class Quaternion extends ProMaster {
 	/** Set the quaternion from WXYZ, normalize this, unvalidate rot axis. */
 	public void set(float w, Vector xyz) {
 		setWXYZ(w, xyz, true);
-		checkIdentity();
+		testThis();
 	}
 	
 	/** Set the quaternion from rotation axis & angle and return it. */
@@ -155,19 +154,26 @@ public class Quaternion extends ProMaster {
 			rotAxis.normalize();
 			
 			final float halfOmega = angle/2; 
-			setWXYZ(PApplet.cos(halfOmega), rotAxis.multBy(PApplet.sin(halfOmega)), true);
-			if (!checkIdentity()) {
-				//TODO: Mmmh.. why does commenting the next line change that much the test results ?
+			final float w = PApplet.cos(halfOmega);
+			final Vector xyz = rotAxis.multBy(PApplet.sin(halfOmega));
+			setWXYZ(w, xyz, true);
+			if (!isIdentity()) {
 				setRotAxisAngle(rotAxis, angle, false);
 			}
 		}
 		testThis();
 	}
+	
+	public String formated() {
+		//TODO not good epsilon
+		return rotAxis()==null ? "identity" 
+				: "around "+rotAxis().formated(Physic.epsilon)+" with angle "+Master.formatFloat(angle()*180/pi, Physic.epsilon)+"Â°";
+	}
 
 	/** wxyz -> (rotAxis, angle). update rot axis & angle if needed (!validRotAxis). set validRotAxis to true. */
 	private void updateAxis() {
 		if (!validRotAxis) {
-			if (isIdentity()) {
+			if (isWId(w)) {
 				reset();
 			} else {
 				//more stable than halfomega = PApplet.acos(w);
@@ -199,6 +205,7 @@ public class Quaternion extends ProMaster {
 	
 	public void setAngle(float angle) {
 		set(rotAxis(), angle);
+		testThis();
 	}
 	
 	/** Mult/turn the quaternion by r and return it. */
@@ -350,9 +357,8 @@ public class Quaternion extends ProMaster {
 	/** set to identity & validRotAxis to true. */
 	private void reset() {
 		w = 1;
-		if (!xyz.equals(zero))
-			xyz.set(zero);
 		rotAxis = null;
+		xyz.set(zero);
 		angle = 0;
 		validRotAxis = true;
 	}
@@ -360,15 +366,13 @@ public class Quaternion extends ProMaster {
 	/** Set WXYZ of the quaternion (set validRotAxis to false if not identity). Normalize WXYZ if normalize. */
 	private void setWXYZ(float w, Vector xyz, boolean normalize) {
 		// if identity
-		if ((w == -1 || w == 1)) {
+		this.w = w;
+		this.xyz.set(xyz);
+		if (normalize)
+			normalizeWXYZ();
+		this.validRotAxis = false;
+		if (isIdentity() || xyz.equals(zero))
 			reset();
-		} else {
-			this.w = w;
-			this.xyz.set(xyz);
-			if (normalize)
-				normalizeWXYZ();
-			this.validRotAxis = false;
-		}
 	}
 
 	/** Set the rotation axis and angle of the quaternion (set validRotAxis to true). Normalize rotAxis if normalize. */
@@ -385,7 +389,6 @@ public class Quaternion extends ProMaster {
 				this.rotAxis.normalize();
 		}
 		this.validRotAxis = true;
-		testThis();
 	}
 	
 	/** Return an angle in radian in [-pi;pi[*/
@@ -411,18 +414,8 @@ public class Quaternion extends ProMaster {
 		return this;
 	}
 	
-	/** Check if the quat is a quaternion from w. return true if it was Identity (independently of update or not). */
-	private boolean checkIdentity() {
-		final boolean id = w == 1 || w == -1;
-		if (id) {
-			if (!validRotAxis) { // =~ not checked
-				reset();
-			}
-		} else {
-			// should be checked before setting the angles
-			assert (!validRotAxis);
-		}
-		return id;
+	private boolean isWId(float w) {
+		return w == 1 || w == -1;
 	}
 	
 	private float normSq() {
