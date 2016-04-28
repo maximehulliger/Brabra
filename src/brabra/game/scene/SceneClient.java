@@ -1,4 +1,4 @@
-package brabra.scene.server;
+package brabra.game.scene;
 
 import java.io.StringReader;
 import java.net.InetAddress;
@@ -11,21 +11,23 @@ import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
 import javax.xml.bind.JAXB;
 
+import brabra.game.scene.SceneFile;
+
 
 public class SceneClient {
 
-	public void test() {
+	public String getDistantName() {
 		Client client = ClientBuilder.newClient();
-		WebTarget target = client.target("http://localhost:8080/brabra.scene");
+		WebTarget target = client.target("http://localhost:8080/BrabraServer/api/");
 
-		String response = target.path("rest").
-				path("ProtoServer").
-				request().
-				accept(MediaType.APPLICATION_XML).
-				get(String.class);
+		String response = target
+				.path("getScenes")
+				.request()
+				.accept(MediaType.APPLICATION_XML)
+				.get(String.class);
 
 		SceneFile scene = JAXB.unmarshal(new StringReader(response), SceneFile.class);
-		System.out.println(scene.getname());
+		return scene.getname();
 	}
 	
 	public boolean ping(String name){

@@ -1,6 +1,7 @@
-package brabra.scene.server;
+package brabra.server;
 
 import javax.xml.bind.annotation.XmlRootElement;
+
 
 @XmlRootElement
 public class SceneFile {
