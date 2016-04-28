@@ -12,8 +12,12 @@ Or update current eclipse for scala (by drag & drop into eclipse)
 
 We don't use scala for now but it's a really powerful language built on top of java, totally compatible with it. We might want to use it later (You will too ;) ). 
 
-##### 1.2 (optionnal) to work with the server
-From instructions at http://www.vogella.com/tutorials/EclipseWTP/article.html (@vogella):
+##### 1.2 (optionnal) to work with the Tomcat 8 server
+Fist install the tomcat runtime from
+
+	http://tomcat.apache.org/download-80.cgi#8.0.33
+
+(From instructions at http://www.vogella.com/tutorials/EclipseWTP/article.html):
 
 Help -> Install New Software...
 
@@ -21,8 +25,9 @@ look for `developer tools` at `--All Available Sites--`.
 
 install `Eclipse Java EE..`, `Eclipse Java Web..`, `Eclipse Web..`.
 
-look for `JST server` and install everything.
+look for `JST server` and install everything (3).
 
+Then we create a local 
 
 
 you can just skip from 5.1 to 5.4 and 6.
