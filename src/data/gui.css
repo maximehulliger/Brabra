@@ -3,6 +3,23 @@
 	-fx-font-size:14px;
 }
 
+.glass-pane{
+	-fx-background-color: rgba(0, 0, 0, 0.2);
+	-fx-background-radius: 10;
+	-fx-text-fill: goldenrod;
+	-fx-font-style: italic;
+	-fx-font-weight: bold;
+	-fx-padding:10,10,0,0;
+}
+
+.green-text{
+	-fx-text-fill: green;
+}
+
+.red-text{
+	-fx-text-fill: red;
+}
+
 .title-text{
 	-fx-font-family : "selif";
 	-fx-font-size : 18px;

@@ -1,5 +1,8 @@
 package brabra.gui;
 
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -10,7 +13,10 @@ import brabra.gui.view.SceneView;
 import brabra.gui.view.View;
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
+import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.control.Tab;
@@ -36,6 +42,7 @@ public class ToolWindow extends Application {
 	private Stage stage;
 	private Scene scene;
 	private boolean visible = false;
+	private static GlassPane glass = new GlassPane();
 	
 	/** Launch the JavaFX app and run it. */
 	public static void launch() {
@@ -86,7 +93,16 @@ public class ToolWindow extends Application {
      * 	ok: if true display the msg in green, or in red to announce an error. <p>
      * 	time: the time in second during which the msg should be displayed. */
     public static void displayMessage(String msg, boolean ok, float time) {
-    	System.out.println((ok?"-ok":"-err")+": "+msg);
+    	Label label = new Label(msg);
+    	label.getStyleClass().add(ok ? "green-text" : "red-text");
+    	glass.addContent(label);
+    	
+    	ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
+    	final Runnable task = () -> {
+    		glass.removeContent(label);
+    	};
+    	executor.schedule(task,(long) time, TimeUnit.SECONDS);
+    	executor.shutdown();
     }
     
     /** The default time during which a msg should be displayed. */
@@ -103,21 +119,11 @@ public class ToolWindow extends Application {
     private Pane initRoot() {
     	StackPane root = new StackPane();
     	
-    	Tab[] tabs = tabs(root, new String[] {"Scene", "Para", "Create","MyScene","Store"});
+    	// Create the tabs and return an array of the tabs root.
+    	String[] names = new String[] {"Scene", "Para", "Create","MyScene","Store"};
     	
-    	tabs[0].setContent(getScrollContent(new SceneView(app.game.scene)));
-    	tabs[1].setContent(getScrollContent(new ParametersView(app.para)));
-    	tabs[2].setContent(getScrollContent(new CreateView()));
-    	//tabs[3].setContent(new MyScene() );
-    	//tabs[4].setContent(new Store() );
-    	return root;
-    }
-    
-    /** Create the tabs and return an array of the tabs root. */
-    private Tab[] tabs(Pane root, String[] names) {
     	TabPane tabsHolder = new TabPane();
     	tabsHolder.setTabClosingPolicy(TabClosingPolicy.UNAVAILABLE);
-    	root.getChildren().add(tabsHolder);
     	Tab[] tabs = new Tab[names.length];
     	
     	for (int i=0; i<names.length; i++) {
@@ -125,9 +131,24 @@ public class ToolWindow extends Application {
     		tabs[i].setTooltip(new Tooltip(Tooltip[i]));
         	tabsHolder.getTabs().add(tabs[i]);
         	tabs[i].setText(names[i]);
-        	
     	}
-    	return tabs;
+    	
+    	// add the Views to the tabs.
+    	tabs[0].setContent(getScrollContent(new SceneView(app.game.scene)));
+    	tabs[1].setContent(getScrollContent(new ParametersView(app.para)));
+    	tabs[2].setContent(getScrollContent(new CreateView()));
+    	//tabs[3].setContent(new MyScene() );
+    	//tabs[4].setContent(new Store() );
+    	   	
+        StackPane.setMargin(glass, new Insets(0,16,40,1));
+        StackPane.setAlignment(glass, Pos.BOTTOM_CENTER);
+        
+        // link everything
+        displayMessage("2sec",true);
+        displayMessage("10sec",false,10f);
+    	root.getChildren().addAll(tabsHolder, glass);
+    	
+    	return root;
     }
     
     /** Create the scroll pane of the views. */
