@@ -1,9 +1,9 @@
 package brabra.game.scene.weapons;
 
-import brabra.game.XMLLoader.Attributes;
 import brabra.game.physic.geo.Quaternion;
 import brabra.game.physic.geo.Vector;
 import brabra.game.scene.Object;
+import brabra.game.scene.SceneLoader.Attributes;
 import processing.core.PApplet;
 import processing.core.PImage;
 

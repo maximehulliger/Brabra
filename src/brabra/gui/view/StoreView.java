@@ -9,7 +9,8 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
-import brabra.game.SceneFile;
+import brabra.game.scene.Scene;
+import brabra.game.scene.SceneFile;
 import brabra.gui.field.Field;
 import brabra.gui.field.SceneField;
 
@@ -20,10 +21,10 @@ public class StoreView extends View {
 	//private Field first;
 	//private ObjectField objectField = null;
 	Label desc = new Label("Name:"); 
-	final ImageView img = new ImageView(new Image("data/gui/ball.png"));
+	final ImageView img = new ImageView(new Image("resource/gui/ball.png"));
 	final List<Field> fields = new ArrayList<>();
 	
-	public StoreView() {
+	public StoreView(Scene scene) {
 
 		//--- Search Box, only graphical
 		Label label1 = new Label("Look for scene");
@@ -38,7 +39,7 @@ public class StoreView extends View {
 		
 		//--- Scene files > fields
 		final ArrayList<SceneField> fields = new ArrayList<>();
-		getDistantSceneFiles().forEach(sfile -> fields.add(new SceneField(sfile)));
+		getDistantSceneFiles().forEach(sfile -> fields.add(new SceneField(sfile, scene)));
 		
 		//--- View:
 		super.setTitle("Scene Store, fud again :D");

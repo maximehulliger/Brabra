@@ -3,7 +3,9 @@ package brabra.gui.field;
 import java.util.Observable;
 
 import brabra.gui.view.View;
-import brabra.game.SceneFile;
+import brabra.Brabra;
+import brabra.game.scene.Scene;
+import brabra.game.scene.SceneFile;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
@@ -12,11 +14,13 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
 
+
 public class SceneField extends Field {
 
-	public SceneField(SceneFile sceneFile) {
+	public SceneField(SceneFile sceneFile, Scene scene) {
 
 		//--- View:
+		
 		super.setName(sceneFile.getName());
 		final GridPane contentHolder = new GridPane();
 		// description & img.
@@ -42,6 +46,14 @@ public class SceneField extends Field {
 		//--- Control:
 		
 		//TODO: load scene in processing
+
+		
+		execButton.setOnAction(e -> {
+			Brabra.app.runLater(() -> {
+				scene.loader.setFile(sceneFile);
+				scene.loader.load();
+			});
+		});
 		
 		//TODO: open external editor
 		

@@ -4,11 +4,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import brabra.Brabra;
-import brabra.game.XMLLoader.Attributes;
 import brabra.game.physic.Collider;
 import brabra.game.physic.geo.Quaternion;
 import brabra.game.physic.geo.Vector;
 import brabra.game.scene.Object;
+import brabra.game.scene.SceneLoader.Attributes;
 
 /** Class holding some weapons (in the children or not). */
 public class Weaponry extends Object {

@@ -280,21 +280,25 @@ public abstract class Master {
 		return v>=min && v<=max;
 	}
 	
-	/** clear the console except if in Eclipse (set by the 'export' environment variable). */
+	/** clear the console if not Eclipse. */
 	public final static void clearConsole() {
-		if (env.containsKey("export")) {
+		if (!inEclipse()) {
 			try {
-				boolean inEclipse = "false".equalsIgnoreCase( env.get("export") );
-				if (!inEclipse) {
-					final String os = System.getProperty("os.name");
-					if (os.contains("Windows"))
-						Runtime.getRuntime().exec("cls");
-					else
-						Runtime.getRuntime().exec("clear");
-				}
+				final String os = System.getProperty("os.name");
+				final boolean inWindows = os.contains("Windows");
+				Runtime.getRuntime().exec(inWindows ? "cls" : "clear");
 			} catch (final Exception e) {
 				e.printStackTrace();
 			}
 		}
+	}
+
+	/** 
+	 * Return true if the sowftware is running on Eclipse (or unknown) 
+	 * or false if running on a target platform.
+	 * Depends on the environment variable/key 'export'. 
+	 **/
+	public final static boolean inEclipse() {
+		return !env.containsKey("export") ? true : "false".equalsIgnoreCase( env.get("export") );
 	}
 }

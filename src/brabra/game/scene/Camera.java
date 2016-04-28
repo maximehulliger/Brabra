@@ -3,8 +3,8 @@ package brabra.game.scene;
 import brabra.ProMaster;
 import brabra.Brabra;
 import brabra.game.Color;
-import brabra.game.XMLLoader.Attributes;
 import brabra.game.physic.geo.Vector;
+import brabra.game.scene.SceneLoader.Attributes;
 import brabra.game.scene.Transform.ParentRelationship;
 import processing.core.PShape;
 

@@ -5,10 +5,10 @@ import java.util.function.Function;
 
 import brabra.Master;
 import brabra.ProMaster;
-import brabra.game.XMLLoader.Attributes;
 import brabra.game.physic.geo.Line;
 import brabra.game.physic.geo.Quaternion;
 import brabra.game.physic.geo.Vector;
+import brabra.game.scene.SceneLoader.Attributes;
 import brabra.game.scene.Transform.ParentRelationship;
 import brabra.gui.ToolWindow;
 

@@ -1,9 +1,9 @@
 package brabra.game.physic.geo;
 
-import brabra.game.XMLLoader.Attributes;
 import brabra.game.physic.PseudoPolyedre;
 import brabra.game.physic.geo.Line.Projection;
 import brabra.game.scene.Object;
+import brabra.game.scene.SceneLoader.Attributes;
 
 public class Box extends PseudoPolyedre {
 	

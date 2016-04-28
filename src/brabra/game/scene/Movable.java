@@ -2,9 +2,9 @@ package brabra.game.scene;
 
 import brabra.game.Observable.NQuaternion;
 import brabra.game.Observable.NVector;
-import brabra.game.XMLLoader.Attributes;
 import brabra.game.physic.geo.Quaternion;
 import brabra.game.physic.geo.Vector;
+import brabra.game.scene.SceneLoader.Attributes;
 import brabra.game.scene.Transform.ParentRelationship;
 
 /**

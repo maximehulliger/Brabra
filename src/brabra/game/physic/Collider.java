@@ -1,11 +1,11 @@
 package brabra.game.physic;
 
 import brabra.game.Color;
-import brabra.game.XMLLoader.Attributes;
 import brabra.game.physic.geo.Line;
 import brabra.game.physic.geo.Quaternion;
 import brabra.game.physic.geo.Line.Projection;
 import brabra.game.scene.Object;
+import brabra.game.scene.SceneLoader.Attributes;
 import brabra.game.physic.geo.Vector;
 
 /** A class able to init and react to a collision. */
