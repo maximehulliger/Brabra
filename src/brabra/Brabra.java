@@ -123,6 +123,7 @@ public class Brabra extends PApplet {
 	}
 	
 	public void settings() {
+		//1080, 720
 		size(width, height, "processing.opengl.PGraphics3D");
 	}
 
