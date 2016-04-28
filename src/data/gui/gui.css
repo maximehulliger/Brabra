@@ -45,18 +45,23 @@
 }
 
 .fields-floatField{
-	-fx-width: 105px;
+	-fx-width: 40px;
+	-fx-pref-width: 40px;
+    -fx-pref-height: 40px;
 }
 
 .fields-stringBox{
-	-fx-width: 105px;
+	-fx-width: 40px;
+	-fx-pref-width: 40px;
+    -fx-pref-height: 40px;
 }
 
 .fields-valueFields{
-	-fx-width: 55px;
+	
 }
 
 /*.fields-SelectionContent{
+		-fx-width: 55px;
 	    -fx-margin: auto;
 	    -fx-padding: auto;
 }*/

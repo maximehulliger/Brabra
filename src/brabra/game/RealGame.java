@@ -13,8 +13,9 @@ public class RealGame extends Interface {
 	public final Input input = new Input();
 	public final Debug debug = new Debug();
 	public final PhysicInteraction physicInteraction = new PhysicInteraction();
-	public final Camera camera = new Camera();
 	public final Scene scene = new Scene(this);
+	
+	private Camera camera = null; //lazy to be independent of processing
 	
 	private final XMLLoader xmlFile = new XMLLoader();
 	
@@ -24,12 +25,18 @@ public class RealGame extends Interface {
 		clearConsole();
 		debug.info(0, "loading scene");
 		scene.reset();
-		scene.add(camera);
-		debug.followed.clear();
 		physicInteraction.setFocused(null, -1);
 		xmlFile.load();
 		app.imgAnalyser.detectButtons = true;
 		app.imgAnalyser.play(false);
+	}
+	
+	public Camera camera() {
+		if (camera == null) {
+			camera = new Camera();
+			scene.add(camera);
+		}
+		return camera;
 	}
 	
 	public void onHide() {
@@ -41,7 +48,6 @@ public class RealGame extends Interface {
 		// we place the camera before updating the objects to get a cool visual effect (camera is one frame late in position).
 		camera.place();
 		if (running()) {
-			scene.beforeUpdateAll();
 			input.update();
 			physicInteraction.update();
 			scene.updateAll();
@@ -54,7 +60,7 @@ public class RealGame extends Interface {
 	public void gui() {
 		game.physicInteraction.gui();
 		input.gui();
-		game.debug.setCurrentWork("user events");
+		camera.gui();
 	}
 
 	// --- events ---

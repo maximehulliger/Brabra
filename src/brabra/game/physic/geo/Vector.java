@@ -16,6 +16,8 @@ public class Vector extends PVector {
 	public static final Vector down = new Vector(0, -1, 0);
 	public static final Vector front = new Vector(0, 0, -1);
 	public static final Vector behind = new Vector(0, 0, 1);
+	public static final Vector[] directions = new Vector[] {
+			left, right, up, down, front, behind };
 	
 	// --- Contructor ---
 	
@@ -225,7 +227,12 @@ public class Vector extends PVector {
 
 	/** return true if this is close to reference. if clean, set p1 to p2. */
 	public boolean equalsEps(Vector reference, boolean clean) {
-		return equalsEps(this, reference, clean);
+		return equalsEps(this, reference, clean, Physic.epsilon);
+	}
+	
+	/** return true if this is close to reference after epsilon. if clean, set p1 to p2. */
+	public boolean equalsEps(Vector reference, boolean clean, float epsilon) {
+		return equalsEps(this, reference, clean, epsilon);
 	}
 	
 	/** Return true if p is zero or zero eps (nearly zero). if clean & zero eps, reset p. */
@@ -243,7 +250,7 @@ public class Vector extends PVector {
 	}
 
 	/** return true if close to zero. if clean, set p1 to p2. */
-	public static boolean equalsEps(Vector v, Vector reference, boolean clean) {
+	private static boolean equalsEps(Vector v, Vector reference, boolean clean, float epsilon) {
 		if (v == reference)
 			return true;
 		else if (v == null || reference == null)

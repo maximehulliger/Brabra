@@ -20,7 +20,7 @@ public abstract class Field extends GridPane implements Observer {
 	protected final HBox contentClosed = new HBox(), contentOpen = new HBox();
 	// subfields / triangle
 	private final VBox subfieldHolder = new VBox();
-	private final TriangleButton triangleButton = new TriangleButton();
+	public final TriangleButton triangleButton = new TriangleButton();
 	// current state
 	private boolean closable = false, withTriangle = false, open = true;
 	private String name = "";
@@ -61,8 +61,8 @@ public abstract class Field extends GridPane implements Observer {
 	/** Called when the field should update his value from the model. */
 	public abstract void update(Observable o, java.lang.Object arg);
 
-	/** To override to react when the field is shown or hidden. Should be called. */
-	protected void setOpen(boolean open) {
+	/** To open or close the field. Should be called. */
+	public void setOpen(boolean open) {
 	    this.open = open;
 	    triangleButton.setOpen(open);
 	    contentOpen.setVisible(open);

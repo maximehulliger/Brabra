@@ -65,28 +65,24 @@ public abstract class Body extends Movable {
 	/** to react to a collision */
 	protected void onCollision(Collider col, Vector impact) {}
 
-	public boolean validate(Attributes atts) {
-		if (super.validate(atts)) {
-			final String color = atts.getValue("color");
-			if (color != null)
-				setColor( new Color(color, atts.getValue("stroke")) );
-			final String mass = atts.getValue("mass");
-			if (mass != null)
-				setMass(Float.parseFloat(mass));
-			final String life = atts.getValue("life");
-			if (life != null)
-				setLife(life);
-			final String impulse = atts.getValue("impulse");
-			if (impulse != null)
-				applyImpulse(vec(impulse));
-			return true;
-		} else
-			return false;
+	public void validate(Attributes atts) {
+		final String color = atts.getValue("color");
+		if (color != null)
+			setColor( new Color(color, atts.getValue("stroke")) );
+		final String mass = atts.getValue("mass");
+		if (mass != null)
+			setMass(Float.parseFloat(mass));
+		final String life = atts.getValue("life");
+		if (life != null)
+			setLife(life);
+		final String impulse = atts.getValue("impulse");
+		if (impulse != null)
+			applyImpulse(vec(impulse));
+		super.validate(atts);
 	}
 	
 	/** applique les forces et update l'etat. return true if this was updated. */
-	public boolean update() {
-		if (!updated) {
+	public void update() {
 			// before update
 			if (onUpdate != null)
 				onUpdate.accept(this);
@@ -100,8 +96,11 @@ public abstract class Body extends Movable {
 					velocityRel.add( acceleration );
 				// rotation, vitesse angulaire, on prend rotation axis comme L/I
 				Vector dL = torquesLocToAdd.multElementsBy(inverseInertiaMom);
+//				TODO: if (!dL.equals(zero))
+//					rotationRelVel.addAngularMomentum( dL );
 				if (!dL.equals(zero))
-					rotationRelVel.addAngularMomentum( dL );
+					//rotationRelVel.addAngularMomentum( dL );
+					addAngularMomentum( dL );
 			}
 			
 			// reset
@@ -109,9 +108,22 @@ public abstract class Body extends Movable {
 				forcesLocToAdd.reset(zero);
 				torquesLocToAdd.reset(zero);
 			} 
-			return super.update(); //always true
-		} else
-			return false;
+			
+			super.update(); //always true
+//======= TODO
+//				onUpdate.run();
+//			//1. translation
+//			Vector acceleration = forcesLocToAdd.multBy(inverseMass);
+//			if (!acceleration.equals(zero))
+//				velocityRel.add( acceleration );
+//			//2. rotation, vitesse angulaire, on prend rotation axis comme L/I
+//			Vector dL = torquesLocToAdd.multElementsBy(inverseInertiaMom);
+//			if (!dL.equals(zero))
+//				addAngularMomentum( dL );
+//
+//			forcesLocToAdd.set(zero);
+//			torquesLocToAdd.set(zero);
+//>>>>>>> refs/remotes/origin/master
 	}
 	
 	/** Display the interactions... maybe. In local space (should be call after pushLocal()). */
@@ -246,9 +258,9 @@ public abstract class Body extends Movable {
 	public void applyImpulse(Vector posAbs, Vector impulseAbs) {
 		assert(!impulseAbs.equals(zero));
 		// in local space
-		Vector posLoc = local(posAbs);
-		Vector impulseLoc = localDir(impulseAbs);
-		interactionsRel.add(new Line(relative(posAbs), relative(add(posAbs, impulseAbs.multBy(4))), true));		
+		Vector posLoc = transform.local(posAbs);
+		Vector impulseLoc = transform.localDir(impulseAbs);
+		interactionsRel.add(new Line(transform.relative(posAbs), transform.relative(add(posAbs, impulseAbs.multBy(4))), true));		
 		// test if the impulse is against (or on) the mass center -> just translation
 		if (posLoc.isZeroEps(false) || posLoc.cross(impulseLoc).isZeroEps(false)) {
 			velocityRel.add( impulseLoc.multBy(this.inverseMass) );
@@ -261,7 +273,7 @@ public abstract class Body extends Movable {
 			// for rotation, we want to stay coherent with inertia moment.
 			Vector dL = inverseInertiaMom.multElementsBy(posLoc.cross(impulseLoc));
 			if (!dL.equals(zero))
-				rotationRelVel.addAngularMomentum( dL );
+				addAngularMomentum( dL );
 		}
 	}
 	
@@ -272,28 +284,28 @@ public abstract class Body extends Movable {
 
 	/** Apply a force on the body at this point (absolu). */
 	public void applyForce(Vector posAbs, Vector forceAbs) {
-		applyForceLoc(local(posAbs), localDir(forceAbs));
+		applyForceLoc(transform.local(posAbs), transform.localDir(forceAbs));
 	}
 	
 	/** Apply a force on the body at this point (in this object's space). */
 	public void applyForceRel(Vector posRel, Vector forceRel) {
-		applyForceLoc(localFromRel(posRel), localDirFromRel(forceRel));
+		applyForceLoc(transform.localFromRel(posRel), transform.localDirFromRel(forceRel));
 	}
 
 	/** Add a pure translation force on the body at the mass center (from absolute). */
 	public void applyForce(Vector forceAbs) {
-		applyForceLoc(localDir(forceAbs));
+		applyForceLoc(transform.localDir(forceAbs));
 	}
 
 	/** Add a pure translation force on the body at the mass center (from relative). */
 	public void applyForceRel(Vector forceRel) {
-		applyForceLoc(localDirFromRel(forceRel));
+		applyForceLoc(transform.localDirFromRel(forceRel));
 	}
 
 	/** Main methods to add a force. we work in local space. */
 	private void applyForceLoc(Vector posLoc, Vector forceLoc) {
 		assert(!forceLoc.equals(zero));
-		interactionsRel.add(new Line(relativeFromLocal(posLoc), relativeFromLocal(add(posLoc, forceLoc.multBy(4))), true));
+		interactionsRel.add(new Line(transform.relativeFromLocal(posLoc), transform.relativeFromLocal(add(posLoc, forceLoc.multBy(4))), true));
 		if (posLoc.isZeroEps(false) || posLoc.cross(forceLoc).isZeroEps(false)) {
 			// if the force is against (or on) the mass center -> just translation
 			applyForceLoc( forceLoc );
@@ -320,6 +332,16 @@ public abstract class Body extends Movable {
 		assert(!torqueLoc.equals(zero));
 		if (!torqueLoc.equals(zero))
 			torquesLocToAdd.add(torqueLoc);
+	}
+	
+	private void addAngularMomentum(Vector dL) {
+		assert (!dL.equals(zero));
+		if (rotationRelVel.isIdentity())
+			rotationRelVel.set(dL, dL.mag());
+		else {
+			final Vector newRotAxis = rotationRelVel.rotAxisAngle().plus(dL);
+			rotationRelVel.set(newRotAxis, newRotAxis.mag());
+		}
 	}
 	
 	// --- cooked methods to apply forces

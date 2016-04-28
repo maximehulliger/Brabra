@@ -82,16 +82,14 @@ public abstract class Collider extends Body {
 		return display;
 	}
 
-	public boolean validate(Attributes atts) {
-		if (super.validate(atts)) {
-			final String displayCollider = atts.getValue("displayCollider");
-			if (displayCollider != null)
-				setDisplayCollider( Boolean.parseBoolean(displayCollider) );
-			return true;
-		} else
-			return false;
+	public void validate(Attributes atts) {
+		super.validate(atts);
+		
+		final String displayCollider = atts.getValue("displayCollider");
+		if (displayCollider != null)
+			setDisplayCollider( Boolean.parseBoolean(displayCollider) );
 	}
-	
+
 	// --- obstacle --- ?
 	
 	//point à la surface du collider le plus dans l'obstacle.

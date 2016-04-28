@@ -19,13 +19,10 @@ public abstract class Effect extends Object {
 		this(location, -1);
 	}
 
-	public boolean update() {
-		if (super.update()) {
-			if (--timeLeft == 0) // -1 -> continue
+	public void update() {
+		super.update();
+		if (--timeLeft == 0) // -1 -> continue
 				game.scene.remove(this);
-			return true;
-		} else
-			return false;
 	}
 	
 	/** Retourne l'avancement entre 0 -> 1. 0 si infini. */
@@ -58,16 +55,13 @@ public abstract class Effect extends Object {
 		private Vector randomPos() {
 			Vector pos = new Vector(random.nextFloat(), random.nextFloat(), random.nextFloat());
 			pos.mult( radius * etatCrete() );
-			return locationAbs.plus(pos);
+			return transform.location().plus(pos);
 		}
 		
-		public boolean update() {
-			if (super.update()) {
-				for (int i=0; i<5; i++)
-					game.scene.add( new Bulbe(randomPos()) );
-				return true;
-			} else
-				return false;
+		public void update() {
+			super.update();
+			for (int i=0; i<5; i++)
+				game.scene.add( new Bulbe(randomPos()) );
 		}
 		
 		//affiche l'onde de choc
@@ -88,10 +82,10 @@ public abstract class Effect extends Object {
 			}
 			
 			public void display() {
-				pushLocal();
+				transform.pushLocal();
 				app.fill(color, 150);
 				app.sphere(radius*etatCrete());
-				popLocal();
+				transform.popLocal();
 			}
 			
 		}

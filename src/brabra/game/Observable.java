@@ -47,6 +47,8 @@ public interface Observable {
 			this(zero);
 		}
 
+		// --- From observable ---
+
 		public Runnable addOnChange(Runnable onChange) {
 			if (onChange != null)
 				this.onChange.add(onChange);
@@ -94,7 +96,9 @@ public interface Observable {
 		public Vector limit(float f) { super.mult(f); return onChange(); }
 		public Vector setMag(float f) { super.mult(f); return onChange(); }
 		public Vector normalize() { super.normalize(); return onChange(); }
-		
+
+		// --- On Change ---
+
 		private Vector onChange() {
 			changedCurrent=true;
 			onChange.forEach(r -> r.run());
@@ -104,17 +108,19 @@ public interface Observable {
 	
 	/** Quaternion notifying on change (after change. not on creation). */
 	public static class NQuaternion extends Quaternion implements Observable {
-		private ArrayList<Runnable> onChange = new ArrayList<>(2);
-		private boolean changed = false, changedCurrent = false;
+		private ArrayList<Runnable> onChange = new ArrayList<>();
+		private boolean changed, changedCurrent;
 
 		public NQuaternion(Quaternion q, Runnable onChange) {
 			super(q);
-			addOnChange(onChange);
+			reset();
 		}
-
-		public NQuaternion(Quaternion q) {
-			super(q);
+		
+		public NQuaternion() {
+			this(identity, null);
 		}
+		
+		// --- From observable ---
 
 		public Runnable addOnChange(Runnable onChange) {
 			this.onChange.add(onChange);
@@ -143,15 +149,13 @@ public interface Observable {
 			changed = changedCurrent = false;
 		}
 		
-		public Quaternion set(float w, float x, float y, float z) {
-			super.set(w,x,y,z);
-			return onChange();
-		}
-
-		public Quaternion set(Quaternion quat) {
-			super.set(quat);
-			return onChange();
-		}
+		// --- Overload ---
+		
+		public void set(float w, Vector xyz) { super.set(w,xyz); onChange(); }
+		public void set(Vector rotAxis, float angle) { super.set(rotAxis, angle); onChange(); }
+		public void set(Quaternion quat) { super.set(quat); onChange(); }
+		public void setAngle(float angle) { super.setAngle(angle); onChange(); }
+		public void rotate(Quaternion r) { super.set(r); onChange(); }
 
 		private Quaternion onChange() {
 			changedCurrent = true;
@@ -160,8 +164,4 @@ public interface Observable {
 			return this;
 		}
 	}
-	
-	/*public class Flag implements Notifying {
-		
-	}*/
 }

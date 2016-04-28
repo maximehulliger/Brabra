@@ -7,9 +7,13 @@ import java.util.Observer;
 import brabra.Master;
 import brabra.game.physic.Body;
 import brabra.game.physic.Collider;
+import brabra.game.physic.geo.Box;
+import brabra.game.physic.geo.Plane;
+import brabra.game.physic.geo.Sphere;
 import brabra.game.scene.Movable;
 import brabra.game.scene.Object;
 import brabra.game.scene.Object.Change;
+import brabra.game.scene.Transform;
 
 /** A field containing an object. */
 public class ObjectField extends Field implements Observer {
@@ -19,6 +23,9 @@ public class ObjectField extends Field implements Observer {
 	private final Movable asMovable;
 	private final Body asBody;
 	private final Collider asCollider;
+	private final Box asBox;
+	private final Sphere asSphere;
+	private final Plane asPlane;
 
 	private float oldValidMass;
 
@@ -30,31 +37,40 @@ public class ObjectField extends Field implements Observer {
 		final ArrayList<Field> fields = new ArrayList<>(16);
 
 		// > first Object
+		final Transform transform = object.transform;
 		//name
 		fields.add(new StringField.Pro(
 				nm -> object.setName(nm),
 				() -> object.toString()
 				).respondingTo(Change.Name)
 				.set("Name", false, true, true));
-		// location
-		fields.add(new VectorField.Pro(object.locationRel())
+		// location abs (not modifiable)
+		fields.add(new VectorField.Pro(transform.location())
 				.respondingTo(Change.Location)
-				.set("Location", false, true, true));
-		// rotation
-		fields.add(new QuaternionField.Pro(object.rotation())
+				.set("Absolute Location", false, false, false));
+		// rotation abs (not modifiable)
+		fields.add(new QuaternionField.Pro(transform.rotation())
 				.respondingTo(Change.Rotation)
-				.set("Rotation", false, true, true));
+				.set("Absolute Rotation", false, false, false));
+		// location rel
+		fields.add(new VectorField.Pro(transform.locationRel)
+				.respondingTo(Change.Location)
+				.set("Relative Location", false, true, true));
+		// rotation rel
+		fields.add(new QuaternionField.Pro(transform.rotationRel)
+				.respondingTo(Change.Rotation)
+				.set("Rotation rel", false, true, true));
 
 		// > if Movable
 		if ((asMovable = object.as(Movable.class)) != null) {
 			// velocity (rel)
 			fields.add(new VectorField.Pro(asMovable.velocityRel())
 					.respondingTo(Change.Velocity)
-					.set("Location", false, true, true));
+					.set("Velocity (rel)", false, true, true));
 			// rotVelotity (still always relative)
 			fields.add(new QuaternionField.Pro(asMovable.rotationRelVel())
 					.respondingTo(Change.RotVelocity)
-					.set("Rot Vel", false, true, true));
+					.set("Rotational vel (rel)", false, true, true));
 		}
 
 		// > if Body
@@ -99,7 +115,34 @@ public class ObjectField extends Field implements Observer {
 		}
 
 		// TODO: add fields for Box, Sphere & Plan.
-
+		// > if Box
+				if ((asBox = object.as(Box.class)) != null) {
+					// display collider
+					fields.add(new VectorField.ProCustom(
+							s -> asBox.setSize(s),
+							() -> asBox.size)
+							.respondingTo(Change.Size)
+							.set("Size", false, true, true));
+				}
+		// > if Sphere
+		if ((asSphere = object.as(Sphere.class)) != null) {
+			// display collider
+			fields.add(new FloatField.Pro(
+					s -> asSphere.setRadius(s),
+					() -> asSphere.radius())
+					.respondingTo(Change.Size)
+					.set("Radius", false, true, true));
+		}
+		// > if Plane
+		if ((asPlane = object.as(Plane.class)) != null) {
+			// display collider
+			fields.add(new VectorField.ProCustom(
+					s -> asPlane.setSize(s),
+					() -> asPlane.size)
+					.respondingTo(Change.Size)
+					.set("Size (x,?,z)", false, true, true));
+		}
+				
 		// check that there are all Pro
 		fields.forEach(fPro -> {assert(Master.asMaybe(fPro, Field.class)!=null);});
 
@@ -108,8 +151,8 @@ public class ObjectField extends Field implements Observer {
 		set(object.toString(), !closable, closable, closable);
 
 		//--- Control:
-		object.addObserver(this);
-		object.addObservers(fields);
+		object.model.addObserver(this);
+		fields.forEach(f -> object.model.addObserver(f));
 	}
 
 	public void update(Observable o, java.lang.Object arg) {

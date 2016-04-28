@@ -2,54 +2,56 @@ package brabra.game.physic;
 
 
 import java.util.ArrayList;
-import java.util.List;
 import brabra.ProMaster;
 import brabra.game.physic.geo.Sphere;
 import brabra.game.scene.Scene;
 
-
+/** Static class taking care of the physic cycle. */
 public class Physic extends ProMaster {
 	
+	/** Small value used to consider a value as zero. */
 	public static final float epsilon = 1E-5f;
 	
-	private static int errCount = 0;
+	/** List of all the current collision. */
+	public static final ArrayList<Collision> collisions = new ArrayList<>();
 	
+	// buffers
+	private static Collision colBuffer;
+	private static Sphere sphereBuffer;
+	private static PseudoPolyedre ppBuffer1, ppBuffer2;
+
+	// to pause after 3 exception in magic.
+	private static int errCount = 0;
+
 	/** Just... do Magic  :D <p> Actually resolve collisions in the scene. */
 	public static void doMagic(Scene scene) {
 		app.debug.setCurrentWork("physic magic");
 		try {
-			//2. on détermine et filtre les collisions pour chaque paire possible (c, o).
-			List<Collision> collisions = new ArrayList<>();
+			//2. on determine et filtre les collisions pour chaque paire possible (c, o).
 			forAllPairs(scene.activeColliders(), (c,o)-> {
 				if ( (o.affectedByCollision() || c.affectedByCollision())
 						&& !c.isRelated(o) 
 						&& (o.doCollideFast(c) && c.doCollideFast(o)) ) {
-					Collision col;
-					if (c.affectedByCollision() && c instanceof Sphere)
-						col = new CollisionSphere((Sphere)c, o);
-					else if (o.affectedByCollision() && o instanceof Sphere)
-						col = new CollisionSphere((Sphere)o, c);
-					else if (c instanceof PseudoPolyedre && o instanceof PseudoPolyedre) {
-						PseudoPolyedre ppc, ppo;
-						if (c.affectedByCollision()) {
-							ppc = (PseudoPolyedre)c;
-							ppo = (PseudoPolyedre)o;
-						} else {
-							ppc = (PseudoPolyedre)o;
-							ppo = (PseudoPolyedre)c;
-						}
-						col = new CollisionPPolyedre(ppc, ppo);
-					} else
+					// easy first: with at least one sphere
+					if ((sphereBuffer = c.as(Sphere.class)) != null)
+						colBuffer = new CollisionSphere(sphereBuffer, o);
+					else if ((sphereBuffer = o.as(Sphere.class)) != null)
+						colBuffer = new CollisionSphere(sphereBuffer, c);
+					// then polyedron against polyedron
+					else if ((ppBuffer1 = c.as(PseudoPolyedre.class)) != null
+							&& (ppBuffer2 = o.as(PseudoPolyedre.class)) != null) 
+						colBuffer = new CollisionPPolyedre(ppBuffer1, ppBuffer2);
+					else
 						throw new IllegalArgumentException("colliders pair unhandled: "+c.presentation()+" vs "+o.presentation());
-					collisions.add( col );
+					collisions.add( colBuffer );
 		    	}
 			});
 		
-			//3. on résout les collisions
+			//3. on rï¿½sout les collisions
 			for (Collision col : collisions)
 				col.resolve();
 			
-			//4. on applique les collision aux agents (si nécessaire)
+			//4. on applique les collision aux agents (si nï¿½cessaire)
 			for (Collision col : collisions)
 				col.apply();
 
@@ -67,11 +69,21 @@ public class Physic extends ProMaster {
 
 	/** Return true if f is nearly zero. */
 	public static boolean isZeroEps(float f) {
-		return f==0 || isConstrained(f, -epsilon, epsilon);	
+		return equalsEps(f, 0, epsilon);
+	}
+
+	/** Return true if f is nearly zero (after given epsilon). */
+	public static boolean isZeroEps(float f, float epsilon) {
+		return equalsEps(f, 0, epsilon);
 	}
 
 	/** Return true if f1 is nearly equal to f2. */
 	public static boolean equalsEps(float f1, float f2) {
-		return isZeroEps(f1 - f2);
+		return equalsEps(f1, f2, epsilon);
+	}
+
+	/** Return true if f1 is nearly equal to f2. */
+	public static boolean equalsEps(float f1, float f2, float epsilon) {
+		return f1==f2 || isConstrained(f1-f2, -epsilon, epsilon);
 	}
 }

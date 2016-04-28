@@ -12,7 +12,6 @@ import brabra.gui.view.StoreView;
 import brabra.gui.view.View;
 import javafx.application.Application;
 import javafx.application.Platform;
-import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ScrollPane.ScrollBarPolicy;
@@ -33,7 +32,8 @@ public class ToolWindow extends Application {
 	public static final String name = "Tool Window";
 	public static final int width = 360;
 	public static final Lock readyLock = new ReentrantLock();
-	public String[] Tooltip = {"Scene", "Para", "Create","MyScene","Store"};
+	public static final String[] Tooltip = {"Scene", "Para", "Create","MyScene","Store"};
+	public boolean closing = false;
 	
 	private Brabra app;
 	private Stage stage;
@@ -46,58 +46,73 @@ public class ToolWindow extends Application {
 	}
 	
 	public ToolWindow() {
-		readyLock.lock();
     	
 	}
 	
 	/** Called to start the JavaFX application. */
     public void start(Stage stage) {
-    	this.stage = stage;
-    	this.app = Brabra.app;
+		readyLock.lock();
+		this.stage = stage;
+		Brabra.app.fxApp = this;	// let the pro thread go
+		this.app = Brabra.app;
     	
     	//--- View: 
-    	stage.setTitle(name);
-    	// init the scene/show (but doesn't show it)
+    	
+    	// processing dependent stuff
     	scene = new Scene(initRoot(), width, Brabra.height);
-        stage.setScene(scene);
-        scene.getStylesheets().add("data/gui.css");
-        // intitialized:
-    	app.debug.info(3, "tool window ready");
     	updateStageLoc();
-    	stage.show();
-    	Brabra.app.fxApp = this;
-
+    	readyLock.unlock();
+    	
+    	// init the scene/show (but doesn't show it)
+    	stage.setTitle(name);
+    	stage.setScene(scene);
+        scene.getStylesheets().add("data/gui/gui.css");
+    	
     	//--- Control:
+    	
     	// to keep both windows shown (at least tool -> game)
     	stage.addEventHandler(WindowEvent.WINDOW_SHOWN, e -> app.setVisible(true));
     	// to exit main app when  the tool window is closed
-    	stage.setOnCloseRequest(e -> app.exit());
+    	//TODO catch the close with cross event
+    	stage.setOnCloseRequest(e -> {
+    		e.consume();
+    		this.closing = true; 
+    		app.runLater(() -> { app.exit(); });
+    	});
+    	
     	// general keyboard events: alt-f4 to clean exit, h to hide/show.
     	stage.addEventFilter(KeyEvent.KEY_PRESSED, e -> {
     		if(e.getCode() == KeyCode.F4 && e.isAltDown()) {
-    			e.consume();
-    			app.exit();
+        		e.consume();
+        		this.closing = true; 
+        		app.runLater(() -> { app.exit(); });
     		} else if (e.getCode() == KeyCode.H) {
     			app.setToolWindow(!visible);
     		}
     	});
 
-    	readyLock.unlock();
+        // intitialized:
+    	app.debug.info(3, "tool window ready");
+    	stage.show();
     }
     
-    /** Display a message in the ToolWindow window. <p>
+    /** 
+     * Display a message in the ToolWindow window. <p>
      * 	ok: if true display the msg in green, or in red to announce an error. <p>
-     * 	time: the time in second during which the msg should be displayed. */
+     * 	time: the time in second during which the msg should be displayed. 
+     **/
     public static void displayMessage(String msg, boolean ok, float time) {
     	System.out.println((ok?"-ok":"-err")+": "+msg);
     }
     
-    /** The default time during which a msg should be displayed. */
+    /** The default time in seconds during which a msg should be displayed. */
     private static final float defaultMsgTime = 2f;
     
-    /** Display a message in the ToolWindow window. <p>
+    /** 
+     * Display a message in the ToolWindow window. <p>
      * 	ok: if true display the msg in green, or in red to announce an error. <p>
-     * 	time: the time in second to display the msg. */
+     * 	time: the time in second to display the msg. 
+     **/
     public static void displayMessage(String msg, boolean ok) {
     	displayMessage(msg, ok, defaultMsgTime);
     }
@@ -149,17 +164,15 @@ public class ToolWindow extends Application {
     }
 
     /** Ask for something to run on the JavaFX Application Thread. */
-    public static void run(Runnable f) {
-    	if (Brabra.app.fxApp != null)
+    public static void runLater(Runnable f) {
+    	if (Brabra.app.fxApp != null && !Brabra.app.fxApp.closing)
     		Platform.runLater(f);
     }
     
     /** To set the window visible or invisible (iconified). */
     public void setVisible(boolean visible) {
-    	if (this.visible != visible) {
-    		this.visible = visible;
-        	run(() -> {updateStageLoc(); stage.setIconified(!visible);} );
-    	}
+    	if (this.visible != visible)
+        	runLater(() -> { this.visible = visible; updateStageLoc(); stage.setIconified(!visible); });
 	}
     
     /** Set the window location according to the main Processing window. */

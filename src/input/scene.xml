@@ -4,6 +4,12 @@
 	
 	<Camera displaySkybox="true" mode="not" dist="(300,300,300)" debug="false"></Camera>
 	
+	<Starship pos="(0,200,0)" focus="true" camera="static">
+		<Box pos="(40,0,-20)" name="pink box" mass="0" color="pink">
+			<Ball pos="(0,40,0)" name="upper ball" color="blue" mass="0"></Ball>
+		</Box>
+	</Starship>
+	<!-- 
 	<Floor pos="zero" color="grass"></Floor> 
 	
 	<Starship pos="(0,200,0)" focus="true" force="72" camera="static" debug="false" displayCollider="false">
@@ -17,7 +23,7 @@
 			<missile_launcher pos="(-30,-10,0)" tier="2" upgrade="0.8" displayColliders="false"></missile_launcher>
 		</Weaponry>
 	</Starship>
-	
+	-->
 	<!--  
 	<ball pos="(10,5,5)" mass="5" color="yellow" impulse="(0,5,0)"></ball>
 	<ball pos="(1,20,5)" mass="5" color="red"></ball>

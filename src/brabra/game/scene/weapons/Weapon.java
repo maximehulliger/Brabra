@@ -115,36 +115,29 @@ public abstract class Weapon extends Object {
 	}
 	
 	/** Takes: tier, displayColliders & check for master. */
-	public boolean validate(Attributes atts) {
-		if (super.validate(atts)) {
-			String tier = atts.getValue("tier");
-			setTier(tier==null ? 1 : Integer.parseInt(tier));
-			final String displayColliders = atts.getValue("displayColliders");
-			if (displayColliders != null)
-				this.displayColliders = Boolean.parseBoolean(displayColliders);
-			// validate the master weaponry.
-			Weaponry newMaster = (Weaponry)parentThat(p -> p instanceof Weaponry);
-			if (newMaster != master) {
-				if (master != null)
-					master.removeWeapon(this);
-				master = newMaster;
-				if (newMaster != null)
-					newMaster.addWeapon(this);
-			}
-			return true;
-		} else
-			return false;
+	public void validate(Attributes atts) {
+		String tier = atts.getValue("tier");
+		setTier(tier==null ? 1 : Integer.parseInt(tier));
+		final String displayColliders = atts.getValue("displayColliders");
+		if (displayColliders != null)
+			this.displayColliders = Boolean.parseBoolean(displayColliders);
+		// validate the master weaponry.
+		Weaponry newMaster = (Weaponry)parentThat(p -> p instanceof Weaponry);
+		if (newMaster != master) {
+			if (master != null)
+				master.removeWeapon(this);
+			master = newMaster;
+			if (newMaster != null)
+				newMaster.addWeapon(this);
+		}
 	}
 	
-	public boolean update() {
-		if (super.update()) {
-			if (tempsRestant > 0)
-				tempsRestant--;
-			if (indicateurErreur > 0)
-				indicateurErreur--;
-			return true;
-		} else
-			return false;
+	public void update() {
+		super.update();
+		if (tempsRestant > 0)
+			tempsRestant--;
+		if (indicateurErreur > 0)
+			indicateurErreur--;
 	}
 
 	/** Return the new left down point (right down of this' img). */

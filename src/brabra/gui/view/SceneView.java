@@ -6,6 +6,7 @@ import java.util.Observable;
 import java.util.Observer;
 import java.util.stream.Collectors;
 
+import brabra.Brabra;
 import brabra.game.scene.Object;
 import brabra.game.scene.Scene;
 import brabra.gui.field.ObjectField;
@@ -16,14 +17,14 @@ public final class SceneView extends View implements Observer {
 	private final List<ObjectField> objectFields = new ArrayList<>();
 	private final Scene sceneModel;
 
-	public SceneView(Scene sceneModel) {
-		this.sceneModel = sceneModel;
-
-		assert(sceneModel.objects.size() == 0);
-
+	
+	public SceneView(Scene scene) {
+		this.sceneModel = scene;
+		
 		//--- View:
 		setTitle(defaultTitle);
-		
+		scene.objects.forEach(o -> addObjectField(o));
+
 		//--- Control:
 		sceneModel.addObserver(this);
 	}
@@ -40,10 +41,7 @@ public final class SceneView extends View implements Observer {
 			setTitle(nbObj > 0 ? "Scene with "+nbObj+" objects:" : defaultTitle);
 			// add or remove fields
 			if (change == Scene.Change.ObjectAdded) {
-				ObjectField newField = new ObjectField(obj, true);
-				objectFields.add(newField);
-				sceneModel.addObserver(newField);
-				addContent(newField);
+				addObjectField(obj);
 			} else if (change == Scene.Change.ObjectRemoved) {
 				// we remove the object field of the object that is no longer in the scene.
 				final List<ObjectField> deadFields = objectFields.stream().filter(of -> of.object == obj).collect(Collectors.toList());
@@ -53,5 +51,14 @@ public final class SceneView extends View implements Observer {
 				objectFields.remove(deadField);
 			}
 		}
+	}
+	
+	private void addObjectField(Object obj) {
+		ObjectField newField = new ObjectField(obj, true);
+		if (Brabra.app.game.debug.followed.contains(obj))
+			newField.setOpen(false);
+		objectFields.add(newField);
+		sceneModel.addObserver(newField);
+		addContent(newField);
 	}
 }

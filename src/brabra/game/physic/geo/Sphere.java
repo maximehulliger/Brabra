@@ -70,38 +70,36 @@ public class Sphere extends Collider {
 		app.sphere(radius);
 	}
 
-	public boolean validate(Attributes atts) {
-		if (super.validate(atts)) {
-			final String tRadius = atts.getValue("radius");
-			if (tRadius != null)
-				setRadius(Float.parseFloat(tRadius));
-			else {
-				final String tSize = atts.getValue("size");
-				if (tSize != null)
-					setRadius(Float.parseFloat(tSize));
-			}
-			return true;
-		} else
-			return false;
+	public void validate(Attributes atts) {
+		super.validate(atts);
+		
+		final String tRadius = atts.getValue("radius");
+		if (tRadius != null)
+			setRadius(Float.parseFloat(tRadius));
+		else {
+			final String tSize = atts.getValue("size");
+			if (tSize != null)
+				setRadius(Float.parseFloat(tSize));
+		}
 	}
 	
 	// --- physic (collider) ---
 	
 	public Projection projetteSur(Line ligne) {
-	  float proj = ligne.projectionFactor(locationAbs);
+	  float proj = ligne.projectionFactor(transform.location());
 	  return new Projection(proj-this.radius, proj+this.radius);
 	}
 	
 	public Vector projette(Vector point) {
-		Vector v = point.minus(location()).withMag(radius);
-		return v.plus(location());
+		Vector v = point.minus(transform.location()).withMag(radius);
+		return v.plus(transform.location());
 	}
 	
 	public Line collisionLineFor(Vector p) {
 		//on prend le vecteur this->c. la ligne part du perimetre a  c.
-		Vector sc = p.minus(locationAbs);
+		Vector sc = p.minus(transform.location());
 		sc.setMag(radius);
-		Vector base = locationAbs.plus(sc);
+		Vector base = transform.location().plus(sc);
 		return new Line(base, base.plus(sc), false);
 	}
 }

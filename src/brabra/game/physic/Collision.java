@@ -33,7 +33,7 @@ public abstract class Collision extends ProMaster {
 				return;
 			
 			// TODO relative to the mass of each
-			c1.move(correction);
+			c1.transform.move(correction);
 			
 			Vector impulse = norm.multBy( -(c2.restitution+c1.restitution)*relVdotN/(c1.inverseMass+c2.inverseMass) );
 			

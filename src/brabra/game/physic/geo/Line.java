@@ -51,7 +51,7 @@ public final class Line extends ProMaster {
 	
 	/** Return a new line in absolute space from this object's relative space. */
 	public Line absoluteFrom(Object o) {
-		return new Line(o.absolute(base), o.absolute(end), finite);
+		return new Line(o.transform.absolute(base), o.transform.absolute(end), finite);
 	}
 
 	/** retourne la projection du point sur la ligne. */
