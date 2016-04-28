@@ -13,6 +13,7 @@ import javafx.application.Platform;
 import processing.core.*;
 import processing.event.MouseEvent;
 
+
 /** Main class of the Brabra project. */
 public class Brabra extends PApplet {
 	public enum View {Menu, Calibration, TrivialGame, RealGame, None}
@@ -113,6 +114,7 @@ public class Brabra extends PApplet {
 	}
 	
 	public void settings() {
+		//1080, 720
 		size(width, height, "processing.opengl.PGraphics3D");
 	}
 

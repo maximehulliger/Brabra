@@ -1,5 +1,9 @@
 package brabra.game.scene;
 
+import javax.xml.bind.annotation.XmlRootElement;
+
+
+@XmlRootElement
 public class SceneFile {
 	
 	private final static String toDefaultImg = "resource/gui/ball.png";

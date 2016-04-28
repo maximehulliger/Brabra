@@ -22,7 +22,6 @@ public class RealGame extends Interface {
 	public void onShow() {
 		clearConsole();
 		debug.info(0, "loading scene");
-		scene.reset();
 		physicInteraction.setFocused(null, -1);
 		scene.loader.loadLocalFiles();
 		scene.loader.load();
@@ -39,7 +38,7 @@ public class RealGame extends Interface {
 	}
 	
 	public void onHide() {
-		scene.reset();
+		scene.clear();
 	}
 	
 	// mother method of all life:

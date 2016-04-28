@@ -52,10 +52,11 @@ public final class SceneLoader extends ProMaster {
 		currentScene = scene;
 	}
 	
-	/** Load the object from the file at filename. */
+	/** Load the object from the current scene file. Clear the scene before. */
 	public void load() {
 		final String filePath = app.pathToFolder(toSceneFolder) + currentScene.getFilePath();
 		try {
+			game.scene.clear();
 			xmlreader.parse(filePath);
 		} catch (FileNotFoundException e) {
 			app.debug.err("file : '"+filePath+"' not found !");
@@ -78,7 +79,7 @@ public final class SceneLoader extends ProMaster {
 		if (scenes.size() == 0)
 			app.debug.err("no .xml scene files found in '/resource/scenes/' :'(");
 		
-		game.scene.notifyChange(Scene.Change.SceneFileReloaded, null);
+		game.scene.notifyChange(Scene.Change.SceneFileChanged, null);
 	}
 
 	private class SceneFileHandler extends DefaultHandler {

@@ -1,7 +1,6 @@
 package brabra.gui.field;
 
 import java.util.Observable;
-
 import brabra.gui.view.View;
 import brabra.Brabra;
 import brabra.game.scene.Scene;

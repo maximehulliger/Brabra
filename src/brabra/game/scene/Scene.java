@@ -70,9 +70,8 @@ public class Scene extends Observable {
 	}
 	
 	/** Remove all object from the scene. */
-	public void reset() {
+	public void clear() {
 		objects.forEach(o -> remove(o));
-		//toRemove.addAll(objects);
 	}
 	
 	// --- life cycle ---
@@ -94,7 +93,7 @@ public class Scene extends Observable {
 	
 	// --- Observable ---
 	
-	public enum Change { ObjectAdded, ObjectRemoved, SceneFileReloaded };
+	public enum Change { ObjectAdded, ObjectRemoved, SceneFileChanged };
 	
 	public static class Arg {
 		public final Change change;
