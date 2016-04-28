@@ -8,14 +8,18 @@ import javax.ws.rs.core.MediaType;
 @Path("api/getScenes")
 public class Server {
 	
-  // This method is called if XMLis request
-  @GET
-  @Produces({MediaType.APPLICATION_XML})
-  public SceneFile getScene() {
-	  SceneFile scene = new SceneFile();
-	  
-	  scene.set("testScene","nothing");
-	  
-	  return scene;
-  }
+	public Server() {
+		System.out.println("Brabra Server created..");
+	}
+
+	// This method is called if XMLis request
+	@GET
+	@Produces({MediaType.APPLICATION_XML})
+	public SceneFile getScene() {
+		SceneFile scene = new SceneFile();
+
+		scene.set("testScene","nothing");
+
+		return scene;
+	}
 } 
