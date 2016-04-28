@@ -60,7 +60,8 @@ public class ParametersView extends View {
 //				.respondingTo(Change.DisplayCenterPoint)
 //				.set("Display center point", true, false, true));
 
-		//--- View:
+		//--- View & Control:
+		
 		// title
 		setTitle("Parameters:");
 		// fields

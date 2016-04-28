@@ -13,10 +13,8 @@ import brabra.game.scene.Object;
 import brabra.game.scene.fun.Starship;
 import brabra.gui.field.ObjectField;
 import javafx.scene.control.Button;
-import javafx.scene.control.ContentDisplay;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
+
 
 public class CreateView extends View {
 
@@ -27,6 +25,7 @@ public class CreateView extends View {
 	public CreateView() {
 		
 		//--- View:
+		
 		// styles
 		selectionContent.getStyleClass().add("create-selectionContent-grid");
 		creationControlButtons.getStyleClass().add("create-creationControlButtons-grid");
@@ -48,11 +47,11 @@ public class CreateView extends View {
 		
         // > creation view
         //creationControlButtons.setAlignment(Pos.CENTER);
-        final Button returnBtn = getButton("data/gui/return.png", "Return");
+        final Button returnBtn = getNewButton("Return", "data/gui/return.png");
         creationControlButtons.add(returnBtn, 0, 1);
-        final Button createBtn = getButton("data/gui/hammer.png", "Create");
+        final Button createBtn = getNewButton("Create", "data/gui/hammer.png");
         creationControlButtons.add(createBtn, 1, 1);
-        final Button dragBtn = getButton("data/gui/drag.png", "Place");
+        final Button dragBtn = getNewButton("Place", "data/gui/drag.png");
         creationControlButtons.add(dragBtn, 2, 1);
         
         // default view
@@ -98,28 +97,11 @@ public class CreateView extends View {
     }
 
 	private <T extends Object> Button getButton(String imgPath, Class<T> type) {
-		Button button = getButton(imgPath, type.getSimpleName());
+		Button button = getNewButton(type.getSimpleName(), imgPath);
 		button.setOnAction(e -> setCreationMode(getNewObject(type)));
         return button;
 	}
 
-	private Button getButton(String imgPath, String buttonText) {
-		final Button button;
-		if (imgPath == null)
-			button = new Button(buttonText);
-		else {
-			final ImageView img = new ImageView(new Image(imgPath));
-			img.setFitHeight(50);
-			img.setFitWidth(50);
-	        button = new Button(buttonText, img);
-		}
-        button.setContentDisplay(ContentDisplay.TOP);
-        button.setPrefWidth(150);
-        button.setPrefHeight(150);
-        //button.setTooltip(new Tooltip(buttonText));
-        return button;
-	}
-	
 	private <T extends Object> Object getNewObject(Class <T> type) {
 		return Brabra.app.game.scene.getPrefab(type.getSimpleName(), Vector.zero, Quaternion.identity);
 	}
