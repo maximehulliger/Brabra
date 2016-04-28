@@ -12,6 +12,22 @@ Or update current eclipse for scala (by drag & drop into eclipse)
 
 We don't use scala for now but it's a really powerful language built on top of java, totally compatible with it. We might want to use it later (You will too ;) ). 
 
+##### 1.2 (optionnal) to work with the server
+From instructions at http://www.vogella.com/tutorials/EclipseWTP/article.html (@vogella):
+
+Help -> Install New Software...
+
+look for `developer tools` at `--All Available Sites--`.
+
+install `Eclipse Java EE..`, `Eclipse Java Web..`, `Eclipse Web..`.
+
+look for `JST server` and install everything.
+
+
+
+you can just skip from 5.1 to 5.4 and 6.
+From JavaEE view show the Servers window and make configuration.Press next and select brabra.scene to run with. Then Servers file will appear automatically.
+
 ##### 1.2 Get the project files
 Create a folder for the project, recommended in
 

@@ -24,31 +24,25 @@ all the following field:
 - add make children under their parent
 - make the window vertically dragable (by click & drag, as on smartphone)
 
-
-#3. Object Creation List View
-## Functionality
-- get other images
-
-
 #4. Object Creation View
 ## Functionality
 - selectBox(?) to set the parent of the object
 - comboBox to follow parent
 
+#Ok Parking
+
+#3. Object Creation List View
+## Functionality
 
 #5. My Scenes View
 ## Functionality
 
-
 #6. Scene Store View
 ## Functionality
-- create another project (& repository) for the server side
-	-> http://www.vogella.com/tutorials/REST/article.html
 
-#7. Installation Tutorial
-http://www.vogella.com/tutorials/EclipseWTP/article.html
-you can just skip from 5.1 to 5.4 and 6.
-From JavaEE view show the Servers window and make configuration.Press next and select brabra.scene to run with. Then Servers file will appear automatically.
+#More
+update server installation instructions
+
 <br>
 
 #Known bugs to fix
