@@ -13,22 +13,6 @@
 	-fx-padding: 4px;
 }
 
-/** > Parameters View */
-/*
-.parameter-label {
-	-fx-font-family : "selif";
-	-fx-font-size : 14px;
-	-fx-padding: 2px;
-}
-
-.parameter-value-open {
-	.parameter-label
-}
-
-.parameter-value-closed {
-	.parameter-label
-}
-*/
 /** > Creation(with selection) View */
 
 .selection-content-grid {
@@ -70,6 +54,7 @@
 .field-name {
 	-fx-font-family:"selif";
 	-fx-font-size:14px;
+	-fx-padding: 2px;
 }
 
 .field-triangleButton {
