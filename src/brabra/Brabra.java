@@ -178,7 +178,7 @@ public class Brabra extends PApplet {
 		if (!over) {
 			debug.setCurrentWork("quiting");
 			over = true;
-			if (fxApp != null && !fxApp.closing)
+			if (fxApp != null && !fxApp.isClosing())
 				Platform.exit();
 			super.dispose();
 			System.out.println("bye bye !");

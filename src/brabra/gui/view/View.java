@@ -12,12 +12,17 @@ import javafx.scene.layout.VBox;
 public class View extends VBox {
 
 	private final Label title = new Label();
+	private final VBox content = new VBox();
 	
 	public View(){
-		title.getStyleClass().add("title-text");
-		this.getStyleClass().add("holding-tab");
+		title.getStyleClass().add("tab-title");
+		content.getStyleClass().add("tab-content");
+		//ScrollPane scrollHolder = new ScrollPane();
+		//scroll.setHbarPolicy(ScrollBarPolicy.ALWAYS);
+		//scroll.setVbarPolicy(ScrollBarPolicy.ALWAYS);
 		
-		getChildren().add(title);
+		// TODO put the scroll holder scrollHolder.content
+		getChildren().addAll(title, content);
 	}
 	
 	protected void setTitle(String title) {
@@ -25,17 +30,18 @@ public class View extends VBox {
 	}
 
 	protected void addContent(Node... n) {
-		getChildren().addAll(n);
+		content.getChildren().addAll(n);
 	}
 
 	protected void removeContent(Node... n) {
-		getChildren().removeAll(n);
+		content.getChildren().removeAll(n);
 	}
 	
 	protected void clear() {
-		getChildren().clear();
-		getChildren().add(title);
+		content.getChildren().clear();
 	}
+	
+	// --- Buttons ---
 
 	public static Button getNewButton(String buttonText) {
         return new Button(buttonText);
