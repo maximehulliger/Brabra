@@ -121,18 +121,19 @@ public class ToolWindow extends Application {
     private Pane initRoot() {
     	StackPane root = new StackPane();
     	
-    	Tab[] tabs = tabs(root, new String[] {"Scene", "Para", "Create","MyScene","Store"});
+    	Tab[] tabs = getTabs(root, new String[] {"Scene", "Para", "Create","MyScene","Store"});
     	
     	tabs[0].setContent(getScrollContent(new SceneView(app.game.scene)));
     	tabs[1].setContent(getScrollContent(new ParametersView(app.para)));
     	tabs[2].setContent(getScrollContent(new CreateView()));
     	tabs[3].setContent(getScrollContent(new MyScenesView(app.game.scene)));
     	tabs[4].setContent(getScrollContent(new StoreView(app.game.scene)));
+    	
     	return root;
     }
     
     /** Create the tabs and return an array of the tabs root. */
-    private Tab[] tabs(Pane root, String[] names) {
+    private Tab[] getTabs(Pane root, String[] names) {
     	TabPane tabsHolder = new TabPane();
     	tabsHolder.setTabClosingPolicy(TabClosingPolicy.UNAVAILABLE);
     	root.getChildren().add(tabsHolder);
@@ -143,7 +144,7 @@ public class ToolWindow extends Application {
     		tabs[i].setTooltip(new Tooltip(Tooltip[i]));
         	tabsHolder.getTabs().add(tabs[i]);
         	tabs[i].setText(names[i]);
-        	
+
     	}
     	return tabs;
     }

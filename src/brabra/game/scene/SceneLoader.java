@@ -16,6 +16,7 @@ import org.xml.sax.helpers.DefaultHandler;
 import brabra.ProMaster;
 import brabra.game.physic.geo.Quaternion;
 import brabra.game.physic.geo.Vector;
+import brabra.model.SceneFile;
 
 /** 
  * Class responsible for getting the scene files 
@@ -71,7 +72,7 @@ public final class SceneLoader extends ProMaster {
 		
 		// TODO: get scenes from /resource/scene/
 		
-		scenes.add(new SceneFile("default", "default.xml", null, "Just the default scene :)\n\n- Maxime"));
+		scenes.add(new SceneFile().set("default", "default.xml", null, "Just the default scene :)\n\n- Maxime"));
 		
 		// set default
 		currentScene = scenes.getFirst();

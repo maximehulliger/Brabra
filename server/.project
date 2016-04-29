@@ -3,6 +3,7 @@
 	<name>BrabraServer</name>
 	<comment></comment>
 	<projects>
+		<project>Brabra</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

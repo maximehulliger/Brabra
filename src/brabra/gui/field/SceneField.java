@@ -2,9 +2,9 @@ package brabra.gui.field;
 
 import java.util.Observable;
 import brabra.gui.view.View;
+import brabra.model.SceneFile;
 import brabra.Brabra;
 import brabra.game.scene.Scene;
-import brabra.game.scene.SceneFile;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;

@@ -5,10 +5,10 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
 import brabra.game.scene.Scene;
-import brabra.game.scene.SceneFile;
 import brabra.gui.field.Field;
 import brabra.gui.field.SceneField;
 import brabra.gui.field.StringField;
+import brabra.model.SceneFile;
 
 
 public class StoreView extends View {
@@ -53,7 +53,7 @@ public class StoreView extends View {
 		// get fields
 		final ArrayList<Field> fields = new ArrayList<>();
 		getDistantSceneFiles(filter).forEach(sfile -> fields.add(new SceneField(sfile, scene)));
-		super.setTitle("Scene Store, fud again :D");
+		super.setTitle("Scene Store");
 		
 		// link
 		addContent(filterHolder);

@@ -1,25 +1,42 @@
 package brabra.server;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Application;
+import javax.ws.rs.core.GenericEntity;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
-@Path("api/getScenes")
-public class Server {
+import brabra.model.SceneFile;
+
+
+@Path("api/")
+public class Server extends Application {
 	
-	public Server() {
-		System.out.println("Brabra Server created..");
-	}
-
-	// This method is called if XMLis request
+	public static final String pong = "pong !";
+	
 	@GET
-	@Produces({MediaType.APPLICATION_XML})
-	public SceneFile getScene() {
-		SceneFile scene = new SceneFile();
+	@Path("ping")
+	@Produces({MediaType.TEXT_PLAIN})
+    public String ping(){
+        return pong;
+    } 
 
-		scene.set("testScene","nothing");
-
-		return scene;
-	}
+	@GET
+	@Path("scenes")
+	@Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+    public Response scenes(){
+		final List<SceneFile> scenes = new ArrayList<SceneFile>();
+		
+		SceneFile scene1 = new SceneFile();
+		scene1.setName("testScene");
+		scene1.setDescription("nothing");
+		scenes.add(scene1);
+		GenericEntity<List<SceneFile>> generic = new GenericEntity<List<SceneFile>>(scenes) {};
+        return Response.status(201).entity(generic).build();
+    }
 } 

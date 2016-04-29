@@ -1,4 +1,4 @@
-package brabra.game.scene;
+package brabra.model;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
@@ -7,19 +7,20 @@ import javax.xml.bind.annotation.XmlRootElement;
 public class SceneFile {
 	
 	private final static String toDefaultImg = "resource/gui/ball.png";
+	
 	private String name = "default";
-	private String filePath = null;
-	private String imgPath = null;
-	private String description = null;
-	private String content = null;
+	private String filePath = "";
+	private String imgPath = "";
+	private String description = "";
+	private String content = "";
 	
-	public SceneFile() {}
 	
-	public SceneFile(String name, String path, String imgPath, String description) {
+	public SceneFile set(String name, String path, String imgPath, String description) {
 		this.name = name;
 		this.filePath = path;
 		this.imgPath = imgPath;
 		this.description = description;
+		return this;
 	}
 
 	public void setName(String name) {
