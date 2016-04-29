@@ -2,7 +2,7 @@ package brabra.gui;
 
 import brabra.Brabra;
 import javafx.geometry.Pos;
-import javafx.scene.Node;
+import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
 
 public class FeedbackPopup extends VBox {
@@ -15,20 +15,21 @@ public class FeedbackPopup extends VBox {
 		getStyleClass().add("popup-box");
 	}
 	
-	public void addContent(Node n) {
+	public void addContent(Label n) {
 		if (getChildren().size() == 0)
 			setPopupVisible(true);
 		getChildren().add(n);
 	}
 	
-	public void removeContent(Node n) {
+	public void removeContent(Label n) {
+		n.setVisible(false);
 		getChildren().remove(n);
 		if (getChildren().size() == 0)
 			setPopupVisible(false);
 	}
 	
 	private void setPopupVisible(boolean visible) {
-		setManaged(visible);
 		setVisible(visible);
+		setManaged(visible);
 	}
 }

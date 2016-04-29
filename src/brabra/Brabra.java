@@ -99,18 +99,7 @@ public class Brabra extends PApplet {
 	
 	/** Execute this Runnable later in the processing (main) thread. */
 	public void runLater(Runnable r) {
-		toExecuteInPro.add(runSafe(r));
-	}
-	
-	private static Runnable runSafe(Runnable r) {
-		return () -> {
-			try {
-				r.run();
-			} catch (Exception e) {
-				e.printStackTrace();
-				app.dispose();
-			}
-		};
+		toExecuteInPro.add(r);
 	}
 	
 	public void settings() {
@@ -137,10 +126,8 @@ public class Brabra extends PApplet {
 			// And finally show the view (init content).
 			setView(View.RealGame);
 			
-			ToolWindow.readyLock.lock();
-			ToolWindow.readyLock.unlock();
-			ImageAnalyser.readyLock.lock();
-			ImageAnalyser.readyLock.unlock();
+//			ImageAnalyser.readyLock.lock();
+//			ImageAnalyser.readyLock.unlock();
 			
 			
 		} catch (Exception e) {
@@ -244,16 +231,18 @@ public class Brabra extends PApplet {
 			debug.info(3, "Tool Window thread started.");
 
 			// we wait for the javaFX thread to init (beacause of m).
-			// TODO: remove maybe, to be tested on mac
-//			try {
-//				while (fxApp == null)
-//					Thread.sleep(1);
-//			} catch (InterruptedException e) {
-//				e.printStackTrace();
-//			}
+			try {
+				while (fxApp == null)
+					Thread.sleep(3_000);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+
+			ToolWindow.readyLock.lock();
+			ToolWindow.readyLock.unlock();
 			
 		} else if (fxAppStarted) {
-			Platform.runLater(runSafe(() -> fxApp.setVisible(hasToolWindow)));
+			Platform.runLater(() -> fxApp.setVisible(hasToolWindow));
 		}
 	}
 	
@@ -264,7 +253,7 @@ public class Brabra extends PApplet {
 			imgAnalyser = new ImageAnalyser();
 		if (imgAnalysisStarted && hasImgAnalysis) {
 			debug.info(3, "starting img analysis thread.");
-			Master.launch(runSafe(() -> imgAnalyser.launch()));
+			Master.launch(() -> imgAnalyser.launch());
 		}
 	}
 	

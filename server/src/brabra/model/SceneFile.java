@@ -6,8 +6,6 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlRootElement
 public class SceneFile {
 	
-	private final static String toDefaultImg = "resource/gui/ball.png";
-	
 	private String name = "default";
 	private String filePath = "";
 	private String imgPath = "";
@@ -47,7 +45,7 @@ public class SceneFile {
 	}
 	
 	public String getImgPath() {
-		return imgPath == null ? toDefaultImg : imgPath;
+		return imgPath;
 	}
 
 	public void setDescription(String description) {

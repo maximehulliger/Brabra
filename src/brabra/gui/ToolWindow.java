@@ -41,6 +41,7 @@ public class ToolWindow extends Application {
 	private boolean closing = false;
 	private boolean visible = false;
 	private static FeedbackPopup feedbackPopup = new FeedbackPopup();
+	private static final ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
 	
 	/** Launch the JavaFX app and run it. */
 	public static void launch() {
@@ -54,15 +55,14 @@ public class ToolWindow extends Application {
     public void start(Stage stage) {
 		readyLock.lock();
 		this.stage = stage;
-		Brabra.app.fxApp = this;	// let the pro thread go
 		this.app = Brabra.app;
+    	Brabra.app.fxApp = this;	// let the pro thread go
     	
     	//--- View: 
     	
     	// processing dependent stuff
     	scene = new Scene(initRoot(), width, Brabra.height);
     	updateStageLoc();
-    	readyLock.unlock();
     	
     	// init the scene/show (but doesn't show it)
     	stage.setTitle(name);
@@ -91,6 +91,10 @@ public class ToolWindow extends Application {
     			app.setToolWindow(!visible);
     		}
     	});
+    	
+
+    	readyLock.unlock();
+		
 
         // intitialized:
     	app.debug.info(3, "tool window ready");
@@ -107,9 +111,7 @@ public class ToolWindow extends Application {
     	label.getStyleClass().add(ok ? "popup-ok" : "popup-err");
     	feedbackPopup.addContent(label);
     	
-    	final ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
-    	executor.schedule(() -> feedbackPopup.removeContent(label),(long) (1000*time), TimeUnit.SECONDS);
-    	executor.shutdown();
+    	ToolWindow.runLater(() -> feedbackPopup.removeContent(label), time);
     }
     
     /** The default time in seconds during which a msg should be displayed. */
@@ -152,7 +154,7 @@ public class ToolWindow extends Application {
     	   	
         // link everything
         displayMessage("2sec", true, 2);
-        displayMessage("10sec", false, 10);
+        displayMessage("5sec", false, 5);
     	root.getChildren().addAll(tabsHolder, feedbackPopup);
     	
     	return root;
@@ -176,9 +178,13 @@ public class ToolWindow extends Application {
 
     /** Ask for something to run on the JavaFX Application Thread in at least time seconds. */
     public static void runLater(Runnable f, float time) {
-    	
-    	if (Brabra.app.fxApp != null && !Brabra.app.fxApp.closing)
-    		Platform.runLater(f);
+    	runLater(() -> 
+    	executor.schedule(
+    			() -> runLater(f),
+    			(long) (1000*time), 
+    			TimeUnit.MILLISECONDS
+    			)
+    	);
     }
     
     /** To set the window visible or invisible (iconified). */

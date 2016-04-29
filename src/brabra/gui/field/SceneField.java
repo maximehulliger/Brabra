@@ -16,6 +16,9 @@ import javafx.scene.layout.GridPane;
 
 public class SceneField extends Field {
 
+	//private final static String toDefaultImg = "resource/gui/ball.png";
+	
+	
 	public SceneField(SceneFile sceneFile, Scene scene) {
 
 		//--- View:
@@ -24,7 +27,8 @@ public class SceneField extends Field {
 		final GridPane contentHolder = new GridPane();
 		// description & img.
 		contentHolder.add(new Label(sceneFile.getDescription()), 0, 0);
-		contentHolder.add(new ImageView(new Image(sceneFile.getImgPath())), 1, 0);
+		if (sceneFile.getImgPath() != null) 
+			contentHolder.add(new ImageView(new Image(sceneFile.getImgPath())), 1, 0);
 		// buttons
 		final Button execButton = View.getNewButton("Load");
 		contentHolder.add(execButton, 1, 1);
