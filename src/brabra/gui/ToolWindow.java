@@ -92,10 +92,8 @@ public class ToolWindow extends Application {
     		}
     	});
     	
-
     	readyLock.unlock();
 		
-
         // intitialized:
     	app.debug.info(3, "tool window ready");
     	stage.show();
