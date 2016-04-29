@@ -34,6 +34,7 @@ public class StoreView extends View {
 		final Button refreshButton = new Button("refresh");
 		// TODO: img for refresh
 		filterHolder.getChildren().addAll(filterLabel, filterField, refreshButton);
+		filterHolder.getStyleClass().add("filter-holder");
 		
 		//--- View:
 		refreshView();
@@ -56,6 +57,7 @@ public class StoreView extends View {
 		super.setTitle("Scene Store");
 		
 		// link
+		filterHolder.getStyleClass().add("filter-holder");
 		addContent(filterHolder);
 		fields.forEach(f -> addContent(f));
 	}

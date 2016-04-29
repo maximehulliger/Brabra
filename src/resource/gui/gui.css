@@ -19,17 +19,33 @@
 
 .selection-content-grid {
 	-fx-width: 100px;
+	-fx-padding : 10;
+	-fx-spacing :5;
+	-fx-min-width: 165px;
+	-fx-min-height: 165px;
 }
 
 .creation-button-holder {
-	-fx-padding : 10,10,10,10;
+	-fx-padding : 10;
+	-fx-spacing :5;
+	-fx-min-width: 165px;
+	-fx-min-height: 130px;
+}
+
+.creation-button-in{
+	-fx-padding : 10;
+	-fx-spacing :5;
+	-fx-min-width: 110px;
+	-fx-min-height: 110px;
 }
 
 .creation-button {
+	-fx-spacing :5;
 	-fx-font-family : "Helvetica";
 	-fx-font-weight: bold;
 	-fx-font-size : 18px;
-	-fx-padding : 10,10,10,10;
+	-fx-margin : 10px;
+	-fx-padding : 10px;
 	-fx-min-width: 165px;
 	-fx-min-height: 165px;
 }
@@ -93,7 +109,6 @@
 }
 */
 .field-valueField {
-	-fx-alignment: CENTER-LEFT;
 	-fx-width: 20px;
 	-fx-pref-width: 20px;
     -fx-pref-height: 20px;
@@ -102,7 +117,6 @@
 }
 
 .field-floatField {
-	-fx-alignment: CENTER-LEFT;
 	-fx-width: 20px;
 	-fx-pref-width: 20px;
     -fx-pref-height: 20px;
@@ -111,11 +125,15 @@
 }
 
 .field-stringField {
-	-fx-alignment: CENTER-LEFT;
 	-fx-width: 20px;
 	-fx-max-width: 20px;
 	-fx-pref-width: 20px;
     -fx-pref-height: 20px;
     -fx-font-family:"selif";
 	-fx-font-size:14px;
+}
+
+.filter-holder{
+	-fx-alignment: CENTER-LEFT;
+	-fx-max-height:10px;
 }

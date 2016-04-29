@@ -51,10 +51,13 @@ public class CreationView extends View {
         // > creation view
         //creationControlButtons.setAlignment(Pos.CENTER);
         final Button returnBtn = getNewButton("Return", "resource/gui/return.png");
+        returnBtn.getStyleClass().add("creation-button-in");
         creationControlButtons.add(returnBtn, 0, 1);
         final Button createBtn = getNewButton("Create", "resource/gui/hammer.png");
+        createBtn.getStyleClass().add("creation-button-in");
         creationControlButtons.add(createBtn, 1, 1);
         final Button dragBtn = getNewButton("Place", "resource/gui/drag.png");
+        dragBtn.getStyleClass().add("creation-button-in");
         creationControlButtons.add(dragBtn, 2, 1);
         
         // default view
