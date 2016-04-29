@@ -89,7 +89,7 @@ public class ToolWindow extends Application {
     			app.setToolWindow(!visible);
     		}
     	});
-
+    	
         // intitialized:
     	launchedLock.unlock();
     	app.debug.info(3, "tool window ready");

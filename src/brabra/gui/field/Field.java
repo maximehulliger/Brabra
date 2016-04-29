@@ -3,7 +3,6 @@ package brabra.gui.field;
 import java.util.Observable;
 import java.util.Observer;
 
-import brabra.gui.TriangleButton;
 import javafx.collections.ObservableList;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
@@ -33,8 +32,8 @@ public abstract class Field extends GridPane implements Observer {
 		// > first line: a horizontal box containing open and closed content.
 		
 		// style
+		getStyleClass().add("field");
 		nameText.getStyleClass().add("field-name");
-		triangleButton.getStyleClass().add("field-triangleButton");
 		contentClosed.getStyleClass().add("field-contentClosed-box");
 		contentOpen.getStyleClass().add("field-contentOpen-box");
 		subfieldHolder.getStyleClass().add("field-subfieldHolder");

@@ -8,25 +8,19 @@
 - selectBox(?) to set the parent of the object
 - comboBox to follow parent
 
+#6. Scene Store View
+## Functionality
+- filter by name
+
 #Ok Parking
 #1. Parameters View
 ## Functionality
-- server adress(es)
-- ping pong buttons
 
 #3. Object Creation List View
 ## Functionality
 
 #5. My Scenes View
 ## Functionality
-
-#6. Scene Store View
-## Functionality
-- get scenes from server
-- filter by name
-
-#Other
-- do & test the css job..
 
 <br>
 
