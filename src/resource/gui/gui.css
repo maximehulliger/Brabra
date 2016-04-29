@@ -62,7 +62,8 @@
 
 .field-name {
 	-fx-font-family:"selif";
-	-fx-font-size:16px;
+	-fx-font-size:14px;
+	-fx-padding: 2px;
 }
 
 .field-triangleButton {

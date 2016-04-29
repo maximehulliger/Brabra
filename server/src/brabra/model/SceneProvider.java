@@ -2,6 +2,7 @@ package brabra.model;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Supplier;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
@@ -15,14 +16,18 @@ public class SceneProvider {
 	
 	public final static String defaultServerAdress = "http://localhost:8080/";
 	
-	private final String serverAdress;
+	private final Supplier<String> getServerAdress;
 
-	public SceneProvider() {
-		this.serverAdress = defaultServerAdress;
+	public SceneProvider(Supplier<String> getServerAdress) {
+		this.getServerAdress = getServerAdress;
 	}
 
 	public SceneProvider(String serverAdress) {
-		this.serverAdress = serverAdress;
+		this.getServerAdress = () -> serverAdress;
+	}
+
+	public SceneProvider() {
+		this(defaultServerAdress);
 	}
 
 	/** Test the connection with the server. Return true if ok. */
@@ -38,7 +43,7 @@ public class SceneProvider {
 	/** To get a resource from the server api. */
 	private <T> T get(String path, String mediaType, Class<T> dataClass) {
 		final Client client = ClientBuilder.newClient();
-		final WebTarget target = client.target(serverAdress+"BrabraServer/api/");
+		final WebTarget target = client.target(getServerAdress.get()+"BrabraServer/api/");
 		return target.path(path).request().accept(mediaType).get(dataClass);
 	}
 }

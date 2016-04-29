@@ -3,11 +3,17 @@ package brabra.gui.view;
 import java.util.ArrayList;
 import java.util.List;
 
+import brabra.Brabra;
+import brabra.Master;
 import brabra.Parameters;
 import brabra.Parameters.Change;
+import brabra.gui.ToolWindow;
 import brabra.gui.field.BooleanField;
 import brabra.gui.field.Field;
+import brabra.gui.field.StringField;
 import brabra.gui.field.VectorField;
+import javafx.scene.control.Button;
+import javafx.scene.layout.HBox;
 
 
 /** View for the parameters. Listen to the app model. */
@@ -59,8 +65,22 @@ public class ParametersView extends View {
 //				() -> para.displayCenterPoint())
 //				.respondingTo(Change.DisplayCenterPoint)
 //				.set("Display center point", true, false, true));
+		
+		//--- Ping area
+		final HBox pingPane = new HBox();
+		// the address field
+		final Field adressField = new StringField(
+				sa -> para.setServerAdress(sa),
+				() -> para.serverAdress())
+				.respondingTo(Change.ServerAdress)
+				.set("Server Adress", false, true, true);
+		// the ping button
+		final Button pingButton = getNewButton("Ping ?");
+		// link
+		pingPane.getChildren().addAll(adressField, pingButton);
+				
 
-		//--- View & Control:
+		//--- View:
 		
 		// title
 		setTitle("Parameters:");
@@ -69,6 +89,16 @@ public class ParametersView extends View {
 			f.triangleButton.setOpen(false);
 			addContent(f);
 			para.addObserver(f);
+		});
+		addContent(pingPane);
+		
+		//--- Control:
+		
+		pingButton.setOnAction(e -> {
+			Master.launch(() -> {
+				final boolean ok = Brabra.app.game.scene.provider.ping();
+				ToolWindow.displayMessage(ok ? "Pong !" : "Nobody there :(", ok, 0.5f);
+			});
 		});
 	}
 }

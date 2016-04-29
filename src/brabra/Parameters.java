@@ -4,6 +4,7 @@ import java.util.Observable;
 
 import brabra.game.physic.geo.Vector;
 import brabra.gui.ToolWindow;
+import brabra.model.SceneProvider;
 
 /** Class containing all the parameters if the project (model). */
 public class Parameters extends Observable {
@@ -11,7 +12,8 @@ public class Parameters extends Observable {
 		Running,
 		Gravity, DisplayAllColliders, 
 		DisplaySkybox, DisplayAxis, DisplayCenterPoint,
-		Braking, InteractionForce
+		Braking, InteractionForce,
+		ServerAdress
 	}
 
 	// --- Game Running ---
@@ -101,6 +103,21 @@ public class Parameters extends Observable {
 	public void setDisplayCenterPoint(boolean displayCenterPoint) {
 		if (this.displayCenterPoint != displayCenterPoint) {
 			this.displayCenterPoint = displayCenterPoint;
+			notifyChange(Change.DisplayCenterPoint);
+		}
+	}
+
+	// --- Server Adress ---
+
+	private String serverAdress = SceneProvider.defaultServerAdress;
+	
+	public String serverAdress() {
+		return serverAdress;
+	}
+	
+	public void setServerAdress(String serverAdress) {
+		if (this.serverAdress != serverAdress) {
+			this.serverAdress = serverAdress;
 			notifyChange(Change.DisplayCenterPoint);
 		}
 	}
