@@ -7,10 +7,10 @@ import javax.xml.bind.annotation.XmlRootElement;
 public class SceneFile {
 	
 	private String name = "default";
-	private String filePath = "";
-	private String imgPath = "";
-	private String description = "";
-	private String content = "";
+	private String filePath = null;
+	private String imgPath = null;
+	private String description = null;
+	private String content = null;
 	
 	
 	public SceneFile set(String name, String path, String imgPath, String description) {

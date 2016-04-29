@@ -15,6 +15,7 @@ public class SceneClientTest {
 	
 	@Test
 	public void pingTest() throws IOException {
+		assertTrue(sceneProviderDistant.pingSafe());
 		assertTrue(sceneProviderDistant.ping());
 	}
 	
@@ -22,7 +23,6 @@ public class SceneClientTest {
 	public void getSceneTest() {
 		List<SceneFile> sceneFiles = sceneProviderDistant.fetch();
 
-		assertTrue(sceneFiles != null);
 		assertTrue(sceneFiles.size() != 0);
 	}
 }

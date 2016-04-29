@@ -85,8 +85,6 @@ public class ToolWindow extends Application {
         		e.consume();
         		this.closing = true; 
         		app.runLater(() -> { app.exit(); });
-    		} else if (e.getCode() == KeyCode.H) {
-    			app.setToolWindow(!visible);
     		}
     	});
     	

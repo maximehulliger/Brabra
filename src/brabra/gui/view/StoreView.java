@@ -1,6 +1,7 @@
 package brabra.gui.view;
 
 import java.util.ArrayList;
+
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
@@ -13,6 +14,7 @@ import brabra.model.SceneFile;
 
 public class StoreView extends View {
 
+	private final static String defaultTitle = "Scene Store";
 	private final HBox filterHolder = new HBox();
 	private final Scene scene;
 	
@@ -24,7 +26,7 @@ public class StoreView extends View {
 		
 		// > create Filter area
 		// Filter Label
-		final Label filterLabel = new Label("Look for: ");
+		final Label filterLabel = new Label("Look for");
 		// Filter String Field
 		final Field filterField = new StringField(
 				(s) -> setFilter(s),
@@ -50,11 +52,18 @@ public class StoreView extends View {
 	
 	/** Refresh the View */
 	private void refreshView() {
-		clear();
+		
+		// get scene files
+		final ArrayList<SceneFile> sceneFiles = getDistantSceneFiles(filter);
+		
 		// get fields
 		final ArrayList<Field> fields = new ArrayList<>();
-		getDistantSceneFiles(filter).forEach(sfile -> fields.add(new SceneField(sfile, scene)));
-		super.setTitle("Scene Store");
+		sceneFiles.forEach(sfile -> fields.add(new SceneField(sfile, scene)));
+			
+		//--- View:
+		
+		clear();
+		super.setTitle(defaultTitle + " ("+sceneFiles.size()+")");
 		
 		// link
 		filterHolder.getStyleClass().add("filter-holder");
@@ -62,10 +71,13 @@ public class StoreView extends View {
 		fields.forEach(f -> addContent(f));
 	}
 	
-	private static ArrayList<SceneFile> getDistantSceneFiles(String filter) {
+	private ArrayList<SceneFile> getDistantSceneFiles(String filter) {
 		final ArrayList<SceneFile> files = new ArrayList<>();
 		
-		//TODO: get from server (server adress should be in Parameters / (& modifiable in the parameters view).
+		// get them from server
+		scene.providerDistant.fetchSafe(files);
+		
+		//TODO: filter them
 		
 		return files;
 	}

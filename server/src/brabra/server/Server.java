@@ -23,6 +23,7 @@ public class Server extends Application {
 	@Path("ping")
 	@Produces({MediaType.TEXT_PLAIN})
     public String ping(){
+		System.out.println("ping to server !");
         return pong;
     } 
 

@@ -102,7 +102,7 @@ public class ParametersView extends View {
 		
 		pingButton.setOnAction(e -> {
 			Master.launch(() -> {
-				final boolean ok = Brabra.app.game.scene.providerDistant.ping();
+				final boolean ok = Brabra.app.game.scene.providerDistant.pingSafe();
 				ToolWindow.feedbackPopup.displayMessage(ok ? "Pong !" : "Nobody there :(", ok, 0.5f);
 			});
 		});

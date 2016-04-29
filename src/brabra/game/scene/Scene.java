@@ -27,14 +27,17 @@ public class Scene extends Observable {
 	public final ConcurrentLinkedDeque<Object> objects = new ConcurrentLinkedDeque<Object>();
 	public final ConcurrentLinkedDeque<Collider> colliders = new ConcurrentLinkedDeque<Collider>();
 	
+	public final SceneLoader loader;
+	public final SceneProviderLocal providerLocal;
+	public final SceneProviderDistant providerDistant;
+	
 	private final RealGame game;
-
-	public final SceneLoader loader = new SceneLoader();
-	public final SceneProviderDistant providerDistant = new SceneProviderDistant(Brabra.app.para.serverAdress());
-	public final SceneProviderLocal providerLocal = new SceneProviderLocal();
 	
 	public Scene(RealGame game) {
 		this.game = game;
+		this.loader = new SceneLoader();
+		this.providerLocal = new SceneProviderLocal();
+		this.providerDistant = new SceneProviderDistant(() -> Brabra.app.para.serverAdress());
 	}
 
 	// --- Getters ---

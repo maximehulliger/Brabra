@@ -24,24 +24,52 @@ public class SceneProviderDistant {
 	}
 
 	public SceneProviderDistant(String serverAdress) {
-		this.getServerAdress = () -> serverAdress;
+		this(() -> serverAdress);
 	}
 
 	public SceneProviderDistant() {
 		this(defaultServerAdress);
 	}
 
+	/** Fetch the scenes from the server and add them to the list. return true if ok. */
+	public boolean fetchSafe(List<SceneFile> listToFill) {
+		try {
+			listToFill.addAll(fetch());
+			return true;
+		} catch (Exception e) {
+			return false;
+		}
+	}
+	
 	/** Test the connection with the server. Return true if ok. */
-	public boolean ping() {
+	public boolean pingSafe() {
+		try {
+			return ping();
+		} catch (Exception e) {
+			return false;
+		}
+	}
+	
+	/** 
+	 * Test the connection with the server. Return true if ok. 
+	 * @throws java.net.ConnectException if the server adress is unvalid. 
+	 **/
+	protected boolean ping() {
 		return Server.pong.equals(get("ping", MediaType.TEXT_PLAIN, String.class));
 	}
 	
-	/** Fetch the scenes from the server and return them */
-	public List<SceneFile> fetch() {
+	/** 
+	 * Fetch the scenes from the server and return them.
+	 * @throws java.net.ConnectException if the server adress is unvalid. 
+	 **/
+	protected List<SceneFile> fetch() {
 		return Arrays.asList(get("scenes", MediaType.APPLICATION_XML, SceneFile[].class));
 	}
 	
-	/** To get a resource from the server api. */
+	/** 
+	 * To get a resource from the server api. 
+	 * @throws java.net.ConnectException if the server adress is unvalid. 
+	 **/
 	private <T> T get(String path, String mediaType, Class<T> dataClass) {
 		final Client client = ClientBuilder.newClient();
 		final WebTarget target = client.target(getServerAdress.get()+"BrabraServer/api/");
