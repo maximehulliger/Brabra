@@ -12,7 +12,7 @@ public class FeedbackPopup extends VBox {
 		setMaxHeight(Brabra.height/3f);
 		setMaxWidth(ToolWindow.width*3f/4);
 		setAlignment(Pos.BOTTOM_CENTER);
-		getStyleClass().add("glass-pane");
+		getStyleClass().add("popup-box");
 	}
 	
 	public void addContent(Node n) {

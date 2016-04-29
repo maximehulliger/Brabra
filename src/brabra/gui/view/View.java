@@ -15,8 +15,8 @@ public class View extends VBox {
 	private final VBox content = new VBox();
 	
 	public View(){
-		title.getStyleClass().add("tab-title");
-		content.getStyleClass().add("tab-content");
+		title.getStyleClass().add("view-title");
+		content.getStyleClass().add("view-content-vbox");
 		//ScrollPane scrollHolder = new ScrollPane();
 		//scroll.setHbarPolicy(ScrollBarPolicy.ALWAYS);
 		//scroll.setVbarPolicy(ScrollBarPolicy.ALWAYS);

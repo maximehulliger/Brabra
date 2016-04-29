@@ -32,23 +32,22 @@ public abstract class Field extends GridPane implements Observer {
 		//--- View:
 		// > first line: a horizontal box containing open and closed content.
 		
-		// the name label
-		nameText.getStyleClass().add("parameter-label");
-		subfieldHolder.getStyleClass().add("fields-subfieldHolder");
-		triangleButton.getStyleClass().add("fields-triangleButton");
-		// the value label
-		contentClosed.getChildren().add(valueLabel);
-		contentClosed.getStyleClass().add("parameter-value-closed");
-		contentOpen.getStyleClass().add("parameter-value-open");
+		// style
+		nameText.getStyleClass().add("field-name");
+		triangleButton.getStyleClass().add("field-triangleButton");
+		contentClosed.getStyleClass().add("field-contentClosed-box");
+		contentOpen.getStyleClass().add("field-contentOpen-box");
+		subfieldHolder.getStyleClass().add("field-subfieldHolder");
 		
+		// link the first line & the rest
+	    contentClosed.getChildren().add(valueLabel);
+		firstLine.getChildren().addAll(nameText, contentClosed, contentOpen);
+		updateGrid();
+
 		// open true by default
 		contentClosed.setVisible(false);
 	    contentClosed.setManaged(false);
 	    
-		// link the first line & the rest
-		firstLine.getChildren().addAll(nameText, contentClosed, contentOpen);
-		updateGrid();
-		
 		//--- Control:
 		// close on click if openable (without triangle buttons is always open)
 	    setOnMouseClicked(e -> { 

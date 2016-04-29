@@ -16,19 +16,19 @@ import javafx.scene.control.Button;
 import javafx.scene.layout.GridPane;
 
 
-public class CreateView extends View {
+public class CreationView extends View {
 
 	private final GridPane selectionContent = new GridPane(), creationControlButtons = new GridPane();
 	
 	private ObjectField objectField = null;
 	
-	public CreateView() {
+	public CreationView() {
 		
 		//--- View:
 		
 		// styles
-		selectionContent.getStyleClass().add("create-selectionContent-grid");
-		creationControlButtons.getStyleClass().add("create-creationControlButtons-grid");
+		selectionContent.getStyleClass().add("selection-content-grid");
+		creationControlButtons.getStyleClass().add("creation-button-holder");
 		// > choice view
 		// get the object choice buttons
 		ArrayList<Button> buttons = new ArrayList<>();
@@ -41,8 +41,11 @@ public class CreateView extends View {
 		// arrange them
 		int column = 2;
 		for (int current=0, r=0, c=0; current<buttons.size(); r++) {
-			for (c=0;c<column;c++,current++)
-				selectionContent.add(buttons.get(current), c, r);
+			for (c=0;c<column;c++,current++) {
+				final Button button = buttons.get(current);
+				selectionContent.add(button, c, r);
+				button.getStyleClass().add("creation-button");
+			}
 		}
 		
         // > creation view

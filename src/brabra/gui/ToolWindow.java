@@ -7,7 +7,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import brabra.Brabra;
-import brabra.gui.view.CreateView;
+import brabra.gui.view.CreationView;
 import brabra.gui.view.MyScenesView;
 import brabra.gui.view.ParametersView;
 import brabra.gui.view.SceneView;
@@ -33,7 +33,6 @@ public class ToolWindow extends Application {
 	public static final String name = "Tool Window";
 	public static final int width = 360;
 	public static final Lock readyLock = new ReentrantLock();
-	private static final ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
 	private static final String[] Tooltip = {"Scene", "Para", "Create","MyScene","Store"};
 	
 	private Brabra app;
@@ -41,7 +40,7 @@ public class ToolWindow extends Application {
 	private Scene scene;
 	private boolean closing = false;
 	private boolean visible = false;
-	private static FeedbackPopup glass = new FeedbackPopup();
+	private static FeedbackPopup feedbackPopup = new FeedbackPopup();
 	
 	/** Launch the JavaFX app and run it. */
 	public static void launch() {
@@ -106,10 +105,11 @@ public class ToolWindow extends Application {
     public static void displayMessage(String msg, boolean ok, float time) {
     	final Label label = new Label(msg);
     	label.getStyleClass().add(ok ? "popup-ok" : "popup-err");
-    	glass.addContent(label);
+    	feedbackPopup.addContent(label);
     	
-    	final Runnable task = () -> glass.removeContent(label);
-    	executor.schedule(task,(long) time, TimeUnit.SECONDS);
+    	final ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
+    	executor.schedule(() -> feedbackPopup.removeContent(label),(long) (1000*time), TimeUnit.SECONDS);
+    	executor.shutdown();
     }
     
     /** The default time in seconds during which a msg should be displayed. */
@@ -146,14 +146,14 @@ public class ToolWindow extends Application {
     	// add the Views to the tabs.
     	tabs[0].setContent(new SceneView(app.game.scene));
     	tabs[1].setContent(new ParametersView(app.para));
-    	tabs[2].setContent(new CreateView());
+    	tabs[2].setContent(new CreationView());
     	tabs[3].setContent(new MyScenesView(app.game.scene));
     	tabs[4].setContent(new StoreView(app.game.scene));
     	   	
         // link everything
-        displayMessage("2sec",true);
-        displayMessage("10sec",false,10f);
-    	root.getChildren().addAll(tabsHolder, glass);
+        displayMessage("2sec", true, 2);
+        displayMessage("10sec", false, 10);
+    	root.getChildren().addAll(tabsHolder, feedbackPopup);
     	
     	return root;
     }
