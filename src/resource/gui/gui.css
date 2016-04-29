@@ -15,7 +15,7 @@
 	-fx-alignment: CENTER-LEFT;
 }
 
-/** > Creation(with selection) View */
+/** > Creation View (Selection) */
 
 .selection-content-grid {
 	-fx-width: 100px;
@@ -25,6 +25,8 @@
 	-fx-min-height: 165px;
 }
 
+/** > Creation View (Creation) */
+
 .creation-button-holder {
 	-fx-padding : 10;
 	-fx-spacing :5;
@@ -32,7 +34,7 @@
 	-fx-min-height: 130px;
 }
 
-.creation-button-in{
+.creation-button-in {
 	-fx-padding : 10;
 	-fx-spacing :5;
 	-fx-min-width: 110px;
@@ -48,6 +50,13 @@
 	-fx-padding : 10px;
 	-fx-min-width: 165px;
 	-fx-min-height: 165px;
+}
+
+/** > Store View */
+
+.store-filter-holder {
+	-fx-alignment: CENTER-LEFT;
+	-fx-max-height:10px;
 }
 
 /** > Feedback Popup */
@@ -101,13 +110,8 @@
 	-fx-alignment: CENTER-LEFT;
 }
 
-/** > Object Field */
-/*
-.objectField-name {
-	-fx-font-family:"selif";
-	-fx-font-size:14px;
-}
-*/
+/** --- Value Fields --- */
+
 .field-valueField {
 	-fx-width: 20px;
 	-fx-pref-width: 20px;
@@ -133,7 +137,15 @@
 	-fx-font-size:14px;
 }
 
-.filter-holder{
-	-fx-alignment: CENTER-LEFT;
-	-fx-max-height:10px;
+/** --- Object Field --- */
+
+.objectField-name {
+	-fx-font-family:"selif";
+	-fx-font-size:14px;
+}
+
+/** --- Scene Field --- */
+
+.sceneField-img {
+	/** TODO */
 }

@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Observable;
 import java.util.Observer;
 
-import brabra.Master;
 import brabra.game.physic.Body;
 import brabra.game.physic.Collider;
 import brabra.game.physic.geo.Box;
@@ -114,16 +113,16 @@ public class ObjectField extends Field implements Observer {
 					.set("Display Collider", false, true, true));
 		}
 
-		// TODO: add fields for Box, Sphere & Plan.
 		// > if Box
-				if ((asBox = object.as(Box.class)) != null) {
-					// display collider
-					fields.add(new VectorField.ProCustom(
-							s -> asBox.setSize(s),
-							() -> asBox.size)
-							.respondingTo(Change.Size)
-							.set("Size", false, true, true));
-				}
+		if ((asBox = object.as(Box.class)) != null) {
+			// display collider
+			fields.add(new VectorField.ProCustom(
+					s -> asBox.setSize(s),
+					() -> asBox.size)
+					.respondingTo(Change.Size)
+					.set("Size", false, true, true));
+		}
+				
 		// > if Sphere
 		if ((asSphere = object.as(Sphere.class)) != null) {
 			// display collider
@@ -133,6 +132,7 @@ public class ObjectField extends Field implements Observer {
 					.respondingTo(Change.Size)
 					.set("Radius", false, true, true));
 		}
+		
 		// > if Plane
 		if ((asPlane = object.as(Plane.class)) != null) {
 			// display collider
@@ -143,10 +143,8 @@ public class ObjectField extends Field implements Observer {
 					.set("Size (x,?,z)", false, true, true));
 		}
 				
-		// check that there are all Pro
-		fields.forEach(fPro -> {assert(Master.asMaybe(fPro, Field.class)!=null);});
-
 		//--- View:
+		nameText.getStyleClass().add("objectField-name");
 		subfields().addAll(fields);
 		set(object.toString(), !closable, closable, closable);
 

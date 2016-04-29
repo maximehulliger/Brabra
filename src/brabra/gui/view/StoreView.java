@@ -36,7 +36,7 @@ public class StoreView extends View {
 		final Button refreshButton = new Button("refresh");
 		// TODO: img for refresh
 		filterHolder.getChildren().addAll(filterLabel, filterField, refreshButton);
-		filterHolder.getStyleClass().add("filter-holder");
+		filterHolder.getStyleClass().add("store-filter-holder");
 		
 		//--- View:
 		refreshView();

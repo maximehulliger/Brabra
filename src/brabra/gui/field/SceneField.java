@@ -5,13 +5,11 @@ import brabra.gui.view.View;
 import brabra.model.SceneFile;
 import brabra.Brabra;
 import brabra.game.scene.Scene;
-import javafx.geometry.Insets;
-import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
 
 
 public class SceneField extends Field {
@@ -21,36 +19,30 @@ public class SceneField extends Field {
 	
 	public SceneField(SceneFile sceneFile, Scene scene) {
 
+		// > get field elements
+		final HBox upHolder = new HBox(), downHolder = new HBox();
+		// description
+		final Label descriptionLabel = new Label(sceneFile.getDescription());
+		// img
+		final ImageView image = new ImageView(new Image(
+				sceneFile.getImgPath() != null ?
+						sceneFile.getImgPath() : toDefaultSceneImg));
+		// buttons
+		final Button seeButton = View.getNewButton("(See in editor)");
+		final Button execButton = View.getNewButton("Load");
+		
 		//--- View:
 		
 		super.setName(sceneFile.getName());
-		final GridPane contentHolder = new GridPane();
-		// description & img.
-		contentHolder.add(new Label(sceneFile.getDescription()), 0, 0);
-		contentHolder.add(new ImageView(new Image(
-				sceneFile.getImgPath() != null ?
-						sceneFile.getImgPath() : toDefaultSceneImg)), 1, 0);
-		// buttons
-		final Button execButton = View.getNewButton("Load");
-		contentHolder.add(execButton, 1, 1);
-		final Button seeButton = View.getNewButton("See in editor");
-		contentHolder.add(seeButton, 0, 1);		
-
-		// link to field
-		subfields().add(contentHolder);
+		//style
+		image.getStyleClass().add("sceneField-img");
 		
-		// TODO:to css
-		//contentHolder.getColumnConstraints().add(new ColumnConstraints(150));
-		//contentHolder.getColumnConstraints().add(new ColumnConstraints(150));
-		contentHolder.setHgap(10); //horizontal gap in pixels => that's what you are asking for
-		contentHolder.setVgap(10);
-		contentHolder.setAlignment(Pos.CENTER);
-		contentHolder.setPadding(new Insets(20,20,20,20));
+		// link to field
+		upHolder.getChildren().addAll(descriptionLabel, image);
+		downHolder.getChildren().addAll(seeButton, execButton);
+		subfields().addAll(upHolder, downHolder);
 		
 		//--- Control:
-		
-		//TODO: load scene in processing
-
 		
 		execButton.setOnAction(e -> {
 			Brabra.app.runLater(() -> {
@@ -59,7 +51,7 @@ public class SceneField extends Field {
 			});
 		});
 		
-		//TODO: open external editor
+		//TODO: open external (or own) editor
 		
 	}
 	
