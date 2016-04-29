@@ -70,12 +70,12 @@ public final class SceneLoader extends ProMaster {
 	public void loadLocalFiles() {
 		scenes.clear();
 		
-		// TODO: get scenes from /resource/scene/
-		
-		scenes.add(new SceneFile().set("default", "default.xml", null, "Just the default scene :)\n\n- Maxime"));
+		scenes.addAll(game.scene.providerLocal.fetch());
+
 		
 		// set default
-		currentScene = scenes.getFirst();
+		if (currentScene == null)
+			currentScene = scenes.getFirst();
 		
 		if (scenes.size() == 0)
 			app.debug.err("no .xml scene files found in '/resource/scenes/' :'(");

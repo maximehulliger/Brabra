@@ -238,8 +238,8 @@ public class Brabra extends PApplet {
 				e.printStackTrace();
 			}
 
-			ToolWindow.readyLock.lock();
-			ToolWindow.readyLock.unlock();
+			ToolWindow.launchedLock.lock();
+			ToolWindow.launchedLock.unlock();
 			
 		} else if (fxAppStarted) {
 			Platform.runLater(() -> fxApp.setVisible(hasToolWindow));

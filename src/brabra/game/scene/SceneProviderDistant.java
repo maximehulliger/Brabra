@@ -1,4 +1,4 @@
-package brabra.model;
+package brabra.game.scene;
 
 import java.util.Arrays;
 import java.util.List;
@@ -9,24 +9,25 @@ import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
 
+import brabra.model.SceneFile;
 import brabra.server.Server;
 
 /** A class that provide scenes from a distant server with a certain adress. */
-public class SceneProvider {
+public class SceneProviderDistant {
 	
 	public final static String defaultServerAdress = "http://localhost:8080/";
 	
 	private final Supplier<String> getServerAdress;
 
-	public SceneProvider(Supplier<String> getServerAdress) {
+	public SceneProviderDistant(Supplier<String> getServerAdress) {
 		this.getServerAdress = getServerAdress;
 	}
 
-	public SceneProvider(String serverAdress) {
+	public SceneProviderDistant(String serverAdress) {
 		this.getServerAdress = () -> serverAdress;
 	}
 
-	public SceneProvider() {
+	public SceneProviderDistant() {
 		this(defaultServerAdress);
 	}
 

@@ -15,7 +15,6 @@ import brabra.gui.view.StoreView;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.Scene;
-import javafx.scene.control.Label;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TabPane.TabClosingPolicy;
@@ -32,15 +31,14 @@ public class ToolWindow extends Application {
 	
 	public static final String name = "Tool Window";
 	public static final int width = 360;
-	public static final Lock readyLock = new ReentrantLock();
-	private static final String[] Tooltip = {"Scene", "Para", "Create","MyScene","Store"};
+	public static final Lock launchedLock = new ReentrantLock();
+	public static FeedbackPopup feedbackPopup = new FeedbackPopup();
 	
 	private Brabra app;
 	private Stage stage;
 	private Scene scene;
 	private boolean closing = false;
 	private boolean visible = false;
-	private static FeedbackPopup feedbackPopup = new FeedbackPopup();
 	private static final ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
 	
 	/** Launch the JavaFX app and run it. */
@@ -53,7 +51,7 @@ public class ToolWindow extends Application {
 	
 	/** Called to start the JavaFX application. */
     public void start(Stage stage) {
-		readyLock.lock();
+		launchedLock.lock();
 		this.stage = stage;
 		this.app = Brabra.app;
     	Brabra.app.fxApp = this;	// let the pro thread go
@@ -91,52 +89,28 @@ public class ToolWindow extends Application {
     			app.setToolWindow(!visible);
     		}
     	});
-    	
-
-    	readyLock.unlock();
-		
 
         // intitialized:
+    	launchedLock.unlock();
     	app.debug.info(3, "tool window ready");
     	stage.show();
     }
     
-    /** 
-     * Display a message in the ToolWindow window. <p>
-     * 	ok: if true display the msg in green, or in red to announce an error. <p>
-     * 	time: the time in second during which the msg should be displayed. 
-     **/
-    public static void displayMessage(String msg, boolean ok, float time) {
-    	final Label label = new Label(msg);
-    	label.getStyleClass().add(ok ? "popup-ok" : "popup-err");
-    	feedbackPopup.addContent(label);
-    	
-    	ToolWindow.runLater(() -> feedbackPopup.removeContent(label), time);
-    }
-    
-    /** The default time in seconds during which a msg should be displayed. */
-    private static final float defaultMsgTime = 2f;
-    
-    /** 
-     * Display a message in the ToolWindow window. <p>
-     * 	ok: if true display the msg in green, or in red to announce an error. <p>
-     * 	time: the time in second to display the msg. 
-     **/
-    public static void displayMessage(String msg, boolean ok) {
-    	displayMessage(msg, ok, defaultMsgTime);
-    }
-
+    /** The name of the tabs (as displayed in the tab holder) */
+    private static final String[] tabNames = new String[] {"Scene", "Para", " + ","MyScene","Store"};
+	
+    private static final String[] tabTooltip = {"Scene", "Para", "Create","MyScene","Store"};
+	
     /** Init the javaFX components (MVC). Return the root. */
     private Pane initRoot() {
     	StackPane root = new StackPane();
     	
     	// > The Tabs
-    	final String[] tabNames = new String[] {"Scene", "Para", "Create","MyScene","Store"};
     	final TabPane tabsHolder = new TabPane();
     	final Tab[] tabs = new Tab[tabNames.length];
     	for (int i=0; i<tabNames.length; i++) {
         	tabs[i] = new Tab();
-    		tabs[i].setTooltip(new Tooltip(Tooltip[i]));
+    		tabs[i].setTooltip(new Tooltip(tabTooltip[i]));
         	tabsHolder.getTabs().add(tabs[i]);
         	tabs[i].setText(tabNames[i]);
     	}
@@ -153,8 +127,6 @@ public class ToolWindow extends Application {
     	tabs[4].setContent(new StoreView(app.game.scene));
     	   	
         // link everything
-        displayMessage("2sec", true, 2);
-        displayMessage("5sec", false, 5);
     	root.getChildren().addAll(tabsHolder, feedbackPopup);
     	
     	return root;

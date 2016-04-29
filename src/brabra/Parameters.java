@@ -3,8 +3,8 @@ package brabra;
 import java.util.Observable;
 
 import brabra.game.physic.geo.Vector;
+import brabra.game.scene.SceneProviderDistant;
 import brabra.gui.ToolWindow;
-import brabra.model.SceneProvider;
 
 /** Class containing all the parameters if the project (model). */
 public class Parameters extends Observable {
@@ -109,7 +109,7 @@ public class Parameters extends Observable {
 
 	// --- Server Adress ---
 
-	private String serverAdress = SceneProvider.defaultServerAdress;
+	private String serverAdress = SceneProviderDistant.defaultServerAdress;
 	
 	public String serverAdress() {
 		return serverAdress;

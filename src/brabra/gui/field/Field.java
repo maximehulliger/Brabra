@@ -63,7 +63,7 @@ public abstract class Field extends GridPane implements Observer {
 	/** To open or close the field. Should be called. */
 	public void setOpen(boolean open) {
 	    this.open = open;
-	    triangleButton.setOpen(open);
+	    triangleButton.setOpen(open && closable);
 	    contentOpen.setVisible(open);
 	    contentOpen.setManaged(open);
 	    subfieldHolder.setVisible(open);

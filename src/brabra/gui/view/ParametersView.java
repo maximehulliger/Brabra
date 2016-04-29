@@ -11,6 +11,7 @@ import brabra.gui.ToolWindow;
 import brabra.gui.field.BooleanField;
 import brabra.gui.field.Field;
 import brabra.gui.field.StringField;
+import brabra.gui.field.ValueField;
 import brabra.gui.field.VectorField;
 import javafx.scene.control.Button;
 import javafx.scene.layout.HBox;
@@ -84,20 +85,25 @@ public class ParametersView extends View {
 		
 		// title
 		setTitle("Parameters:");
-		// fields
-		fields.forEach(f -> {
-			f.triangleButton.setOpen(false);
-			addContent(f);
-			para.addObserver(f);
-		});
+		// link
+		fields.forEach(f -> addContent(f));
 		addContent(pingPane);
+		
+		//--- reacto to changes:
+		fields.add(adressField);
+		fields.forEach(f -> {
+			para.addObserver(f);
+			// reaction to change
+			((ValueField<?>)f).addOnChange(
+					() -> ToolWindow.feedbackPopup.displayMessage("set !", true, 0.2f));
+		});
 		
 		//--- Control:
 		
 		pingButton.setOnAction(e -> {
 			Master.launch(() -> {
-				final boolean ok = Brabra.app.game.scene.provider.ping();
-				ToolWindow.displayMessage(ok ? "Pong !" : "Nobody there :(", ok, 0.5f);
+				final boolean ok = Brabra.app.game.scene.providerDistant.ping();
+				ToolWindow.feedbackPopup.displayMessage(ok ? "Pong !" : "Nobody there :(", ok, 0.5f);
 			});
 		});
 	}

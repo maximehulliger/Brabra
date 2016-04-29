@@ -20,7 +20,6 @@ import brabra.game.scene.weapons.MissileLauncher;
 import brabra.game.scene.weapons.Target;
 import brabra.game.scene.weapons.Weaponry;
 import brabra.gui.ToolWindow;
-import brabra.model.SceneProvider;
 
 /** Object representing the active working scene (model). **/
 public class Scene extends Observable {
@@ -31,7 +30,8 @@ public class Scene extends Observable {
 	private final RealGame game;
 
 	public final SceneLoader loader = new SceneLoader();
-	public final SceneProvider provider = new SceneProvider(Brabra.app.para.serverAdress());
+	public final SceneProviderDistant providerDistant = new SceneProviderDistant(Brabra.app.para.serverAdress());
+	public final SceneProviderLocal providerLocal = new SceneProviderLocal();
 	
 	public Scene(RealGame game) {
 		this.game = game;
