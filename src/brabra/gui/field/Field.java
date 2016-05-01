@@ -73,8 +73,10 @@ public abstract class Field extends GridPane implements Observer {
 
 	/** Set the name label. if name is null nothing is shown. */
 	protected Field setName(String name){
-		this.name = name == null ? "" : name;
-		nameText.setText(this.name+": ");
+		if (name == null)
+			name = "";
+		this.name = name;
+		nameText.setText(name.equals("") ? "" : this.name+": ");
 		return this;
 	}
 	
@@ -125,4 +127,9 @@ public abstract class Field extends GridPane implements Observer {
 
 	/** Interface to discriminate the field modeled in the processing thread. */
 	public static interface Pro {};
+	
+	/** A field that doesn't care about update. */
+	public static class Static extends Field {
+		public final void update(Observable o, java.lang.Object arg) {}
+	}
 }

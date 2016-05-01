@@ -50,7 +50,7 @@ public class View extends VBox {
 	public static Button getNewButton(String buttonText, String imgPath) {
 		if (imgPath != null) {
 			try {
-				final ImageView img = new ImageView(new Image(imgPath));
+				final ImageView img = getNewImage(imgPath);
 		        final Button button = new Button(buttonText, img);
 		        button.setContentDisplay(ContentDisplay.TOP);
 		        
@@ -71,5 +71,12 @@ public class View extends VBox {
 		final Button button = getNewButton(buttonText, imgPath);
 		button.setTooltip(new Tooltip(tip));
 		return button;
+	}
+	
+	public static ImageView getNewImage(String path) {
+		if (path == null) 
+			return new ImageView();
+		else 
+			return new ImageView(new Image(path));
 	}
 }

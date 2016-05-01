@@ -3,7 +3,6 @@ package brabra.gui.view;
 import java.util.ArrayList;
 
 import javafx.scene.control.Button;
-import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
 import brabra.game.scene.Scene;
 import brabra.gui.field.Field;
@@ -25,17 +24,15 @@ public class StoreView extends View {
 		this.scene = scene;
 		
 		// > create Filter area
-		// Filter Label
-		final Label filterLabel = new Label("Look for");
 		// Filter String Field
 		final Field filterField = new StringField(
 				(s) -> setFilter(s),
 				() -> filter)
-				.set(null, true, false, false);
+				.set("Look for", true, false, false);
 		// refreshButton
 		final Button refreshButton = new Button("refresh");
 		// TODO: img for refresh
-		filterHolder.getChildren().addAll(filterLabel, filterField, refreshButton);
+		filterHolder.getChildren().addAll(filterField, refreshButton);
 		filterHolder.getStyleClass().add("store-filter-holder");
 		
 		//--- View:

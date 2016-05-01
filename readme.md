@@ -202,7 +202,7 @@ Maxime Roger Baudouin Hulliger, `maxime.hulliger@epfl.ch`
 
 ######Contributors
 
-Mathieu Pierre Girard, `matthieu.girard@epfl.ch`
+Matthieu Pierre Girard, `matthieu.girard@epfl.ch`
 
 Boris Adrien Zbinden, `boris.zbinden@epfl.ch`
 

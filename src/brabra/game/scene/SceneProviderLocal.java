@@ -14,7 +14,7 @@ public class SceneProviderLocal {
 				new SceneFile().set(
 						"default", 
 						"default.xml", 
-						null, 
+						"resource/gui/scene/default_local_1.jpg", 
 						"Just the default scene :)\n\n- Maxime"
 						));
 
