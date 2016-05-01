@@ -16,6 +16,7 @@
 	-> test: gravity in para, starship rotation 
 - SceneField: buttons in the middle and spaced
 - SceneField: image max size
+- then the project is over :)
 
 #Later (maybe)
 
