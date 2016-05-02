@@ -1,5 +1,6 @@
 package brabra.game.physic.geo;
 
+import brabra.Debug;
 import brabra.game.physic.Collider;
 import brabra.game.physic.PseudoPolyedre;
 import brabra.game.physic.geo.Line.Projection;
@@ -65,7 +66,7 @@ public class Plane extends PseudoPolyedre {
 
 	public void setMass(float mass) {
 		if(mass > 0 && !finite) {
-			game.debug.err("An infinite plane without an infinite mass is a bad idea :/");
+			Debug.err("An infinite plane without an infinite mass is a bad idea :/");
 			mass = 0;
 		}
 		super.setMass(mass);
@@ -162,7 +163,7 @@ public class Plane extends PseudoPolyedre {
 
 	public Vector pointContre(Vector normale) {
 		if (!finite) {
-			game.debug.log("sure ?");
+			Debug.log("sure ?");
 			return normale.multBy(Float.POSITIVE_INFINITY);
 		}
 		updateAbs();

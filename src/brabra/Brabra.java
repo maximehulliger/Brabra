@@ -6,6 +6,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 import brabra.calibration.Calibration;
 import brabra.game.RealGame;
+import brabra.game.physic.geo.ProTransform;
 import brabra.gui.ToolWindow;
 import brabra.imageprocessing.ImageAnalyser;
 import brabra.trivial.TrivialGame;
@@ -37,7 +38,6 @@ public class Brabra extends PApplet {
 	/** Static reference to the app. valid once initLock is released. */
 	public static Brabra app;
 	public final Parameters para = new Parameters();
-	public final Debug debug = new Debug();
 	public final PVector stageLoc;
 	public ImageAnalyser imgAnalyser = null;
 	public ToolWindow fxApp = null;
@@ -59,7 +59,7 @@ public class Brabra extends PApplet {
 	}
 	
 	public Brabra() {
-		ProMaster.app = Brabra.app = this;
+		ProTransform.app = ProMaster.app = Brabra.app = this;
 		
 		// set window location
 		GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
@@ -72,7 +72,7 @@ public class Brabra extends PApplet {
 		final String rawDataPath = dataPath(""); // from processing
 		final String toData = Master.inEclipse() ? "src/" : "bin/";
 		basePath = (rawDataPath.substring(0, rawDataPath.lastIndexOf(name)+name.length())+"/"+toData).replace('\\', '/');
-		debug.info(2, "base path: "+basePath+" in "+System.getProperty("os.name"));
+		Debug.info(2, "base path: "+basePath+" in "+System.getProperty("os.name"));
 		
 		// init static & app interfaces.
 		ProMaster.game = this.game = new RealGame();
@@ -163,7 +163,7 @@ public class Brabra extends PApplet {
 
 	public void dispose() {
 		if (!over) {
-			debug.setCurrentWork("quiting");
+			Debug.setCurrentWork("quiting");
 			over = true;
 			if (fxApp != null && !fxApp.isClosing())
 				Platform.exit();
@@ -228,7 +228,7 @@ public class Brabra extends PApplet {
 		if (!fxAppStarted && hasToolWindow) {
 			fxAppStarted = true;
 			Master.launch(() -> ToolWindow.launch());
-			debug.info(3, "Tool Window thread started.");
+			Debug.info(3, "Tool Window thread started.");
 
 			// we wait for the javaFX thread to init (beacause of m).
 			try {
@@ -252,7 +252,7 @@ public class Brabra extends PApplet {
 		if (imgAnalyser == null)
 			imgAnalyser = new ImageAnalyser();
 		if (imgAnalysisStarted && hasImgAnalysis) {
-			debug.info(3, "starting img analysis thread.");
+			Debug.info(3, "starting img analysis thread.");
 			Master.launch(() -> imgAnalyser.launch());
 		}
 	}
@@ -291,7 +291,7 @@ public class Brabra extends PApplet {
 			else
 				exit();
 		} else if (key == 'l')
-			debug.log("parameters loading still to implement");//imgAnalyser.imgProc.selectParameters(); TODO
+			Debug.log("parameters loading still to implement");//imgAnalyser.imgProc.selectParameters(); TODO
 		else if (key == 'r') {
 			currentInterface.onHide();
 			currentInterface.onShow();

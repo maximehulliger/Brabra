@@ -2,8 +2,10 @@ package brabra.game.scene;
 
 import brabra.ProMaster;
 import brabra.Brabra;
+import brabra.Debug;
 import brabra.game.Color;
 import brabra.game.physic.geo.Vector;
+import brabra.game.physic.geo.ProTransform;
 import brabra.game.physic.geo.Transform.ParentRelationship;
 import brabra.game.scene.SceneLoader.Attributes;
 import processing.core.PShape;
@@ -34,7 +36,7 @@ public class Camera extends Object {
 			else if (f.equals("fixed") || f.equals("not") || f.equals("none"))
 				return FollowMode.Not;
 			else {
-				game.debug.err("camera mode unknown: \""+f+"\", taking Not");
+				Debug.err("camera mode unknown: \""+f+"\", taking Not");
 				return FollowMode.Not;
 			}
 		}
@@ -140,7 +142,7 @@ public class Camera extends Object {
 		if (parent() != null)
 			setMode(followMode.next());
 		else
-			game.debug.msg(3, "Camera need an object to focus on.");
+			Debug.msg(3, "Camera need an object to focus on.");
 	}
 
 	// TODO: --- Raycast from screen ---
@@ -180,7 +182,7 @@ public class Camera extends Object {
 
 	/** Put the camera in the processing scene and carry his job (see class doc). */
 	public void place() {
-		game.debug.setCurrentWork("camera");
+		Debug.setCurrentWork("camera");
 		updateAbs();
 
 		// we remove the objects too far away.
@@ -197,7 +199,7 @@ public class Camera extends Object {
 				orientation.x, orientation.y, orientation.z);
 		if (app.para.displaySkybox()) {
 			app.pushMatrix();
-			translate(location);
+			ProTransform.translate(location);
 			app.shape(skybox());
 			app.popMatrix();
 		} else {
@@ -230,9 +232,9 @@ public class Camera extends Object {
 			final String distString = atts.getValue("dist");
 			final Vector dist = distString != null ? vec(distString) : transform.locationRel;
 			if (dist == null)
-				game.debug.err("for camera: dist (or pos) should be set with mode. ignoring.");
+				Debug.err("for camera: dist (or pos) should be set with mode. ignoring.");
 			else if (dist.equals(zero))
-				game.debug.err("for camera: dist (or pos) should not be zero. ignoring.");
+				Debug.err("for camera: dist (or pos) should not be zero. ignoring.");
 			else
 				setDist(FollowMode.fromString(mode), dist);
 		}

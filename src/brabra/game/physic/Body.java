@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
+import brabra.Debug;
 import brabra.game.Color;
 import brabra.game.Observable.NVector;
 import brabra.game.physic.geo.Line;
@@ -136,7 +137,7 @@ public abstract class Body extends Movable {
 	}
 	
 	public void onDelete() {
-		game.debug.log(6, this+" deleted.");
+		Debug.log(6, this+" deleted.");
 		super.onDelete();
 	}
 
@@ -159,7 +160,7 @@ public abstract class Body extends Movable {
 	 **/
 	public void setMass(float mass) {
 		if (mass < -1) {
-			game.debug.err("invalide mass: "+mass+", taking 0 (ghost)");
+			Debug.err("invalide mass: "+mass+", taking 0 (ghost)");
 			setMass(0);
 		} else if (mass == -1) {
 			this.mass = -1;
@@ -190,11 +191,11 @@ public abstract class Body extends Movable {
 	
 	public void setLife(int life, int maxLife) {
 		if (maxLife <= 0) {
-			game.debug.err(toString()+" should have a positive maxLife, set to 1 (0 is dead).");
+			Debug.err(toString()+" should have a positive maxLife, set to 1 (0 is dead).");
 			maxLife = 1;
 		}
 		if (life < 0) {
-			game.debug.err(toString()+" should have a positive life, killing him...");
+			Debug.err(toString()+" should have a positive life, killing him...");
 			life = 0;
 			onDeath();
 		}
@@ -202,7 +203,7 @@ public abstract class Body extends Movable {
 		this.maxLife = maxLife;
 		if (life > maxLife) {
 			this.life = maxLife;
-			game.debug.err(toString()+" can not have more life than maxLife, setting at "+life());
+			Debug.err(toString()+" can not have more life than maxLife, setting at "+life());
 		} else {
 			this.life = life;
 		}
@@ -216,14 +217,14 @@ public abstract class Body extends Movable {
 			int life = Integer.parseInt(sub[0]);
 			setLife(life, life);
 		} else
-			game.debug.err("unsuported life format: \""+lifeText+"\". letting to "+life());
+			Debug.err("unsuported life format: \""+lifeText+"\". letting to "+life());
 	}
 
 	public void damage(int damage) {
 		if (maxLife < 0)
-			game.debug.log(4, this+" is a poor non-living object !");
+			Debug.log(4, this+" is a poor non-living object !");
 		else if (life == 0)
-			game.debug.log(5, this+" is already dead !");
+			Debug.log(5, this+" is already dead !");
 		else {
 			life -= damage;
 			if (life <= 0 ) {

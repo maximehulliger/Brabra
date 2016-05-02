@@ -1,5 +1,6 @@
 package brabra.game.scene;
 
+import brabra.Debug;
 import brabra.game.Observable.NQuaternion;
 import brabra.game.Observable.NVector;
 import brabra.game.physic.geo.Quaternion;
@@ -110,12 +111,12 @@ public class Movable extends Object {
 		if (moving || velocityRel.hasChangedCurrent()) {
 			if (!velocityRel.isZeroEps(false)) {
 				if (!moving) {
-					game.debug.log(6, this+" started moving.");
+					Debug.log(6, this+" started moving.");
 					moving = true;
 				}
 				transform.move(velocityRel);
 			} else if (moving) {
-				game.debug.log(6, this+" stopped moving.");
+				Debug.log(6, this+" stopped moving.");
 				moving = false;
 			}
 			velocityRel.update();
@@ -125,12 +126,12 @@ public class Movable extends Object {
 		if (rotating || rotationRelVel.hasChangedCurrent()) {
 			if (!rotationRelVel.isZeroEps(true)) {
 				if (!rotating) {
-					game.debug.log(6, this+" started rotating.");
+					Debug.log(6, this+" started rotating.");
 					rotating = true;
 				}
 				transform.rotate(rotationRelVel);
 			} else if (rotating) {
-				game.debug.log(6, this+" stopped rotating.");
+				Debug.log(6, this+" stopped rotating.");
 				rotating = false;
 			}
 			rotationRelVel.update();

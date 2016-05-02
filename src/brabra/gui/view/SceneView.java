@@ -6,7 +6,7 @@ import java.util.Observable;
 import java.util.Observer;
 import java.util.stream.Collectors;
 
-import brabra.Brabra;
+import brabra.Debug;
 import brabra.game.scene.Object;
 import brabra.game.scene.Scene;
 import brabra.gui.field.ObjectField;
@@ -55,7 +55,7 @@ public final class SceneView extends View implements Observer {
 	
 	private void addObjectField(Object obj) {
 		ObjectField newField = new ObjectField(obj, true);
-		if (Brabra.app.game.debug.followed.contains(obj))
+		if (Debug.followed.contains(obj))
 			newField.setOpen(false);
 		objectFields.add(newField);
 		sceneModel.addObserver(newField);

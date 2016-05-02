@@ -13,6 +13,7 @@ import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.DefaultHandler;
 
+import brabra.Debug;
 import brabra.ProMaster;
 import brabra.game.physic.geo.Quaternion;
 import brabra.game.physic.geo.Vector;
@@ -60,9 +61,9 @@ public final class SceneLoader extends ProMaster {
 			game.scene.clear();
 			xmlreader.parse(filePath);
 		} catch (FileNotFoundException e) {
-			app.debug.err("file : '"+filePath+"' not found !");
+			Debug.err("file : '"+filePath+"' not found !");
 		} catch (Exception e) {
-			app.debug.err("\nerreur dans scene.xml:");
+			Debug.err("\nerreur dans scene.xml:");
 			e.printStackTrace();
 		}
 	}
@@ -78,7 +79,7 @@ public final class SceneLoader extends ProMaster {
 			currentScene = scenes.getFirst();
 		
 		if (scenes.size() == 0)
-			app.debug.err("no .xml scene files found in '/resource/scenes/' :'(");
+			Debug.err("no .xml scene files found in '/resource/scenes/' :'(");
 		
 		game.scene.notifyChange(Scene.Change.SceneFileChanged, null);
 	}

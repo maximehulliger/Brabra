@@ -7,6 +7,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import brabra.Brabra;
+import brabra.Debug;
 import brabra.gui.view.CreationView;
 import brabra.gui.view.MyScenesView;
 import brabra.gui.view.ParametersView;
@@ -90,7 +91,7 @@ public class ToolWindow extends Application {
     	
         // intitialized:
     	launchedLock.unlock();
-    	app.debug.info(3, "tool window ready");
+    	Debug.info(3, "tool window ready");
     	stage.show();
     }
     

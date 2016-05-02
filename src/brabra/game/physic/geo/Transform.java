@@ -4,13 +4,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
-import brabra.ProMaster;
+import brabra.Debug;
 import brabra.game.Observable.NQuaternion;
 import brabra.game.Observable.NVector;
 import processing.core.PMatrix;
 
 /** Represent the transformation of this transform's object. */
-public class Transform<T> extends ProMaster {
+public class Transform<T> extends ProTransform {
 	// > core
 	/** Position relative to the parent. */
 	public final NVector locationRel = new NVector();
@@ -209,9 +209,9 @@ public class Transform<T> extends ProMaster {
 		if (parentChanged || parentRelChanged) {
 			// check input
 			if (newParent == this)
-				game.debug.err("Un objet ne sera pas son propre parent !");
+				Debug.err("Un objet ne sera pas son propre parent !");
 			if (newParent != null && newParent.isChildOf(this))
-				game.debug.err(toString()+": new parent "+newParent+" already related ! (plz no childhood vicious cylce)");
+				Debug.err(toString()+": new parent "+newParent+" already related ! (plz no childhood vicious cylce)");
 			else {
 				// remove this child from old parent
 				if (hasParent())
@@ -291,13 +291,13 @@ public class Transform<T> extends ProMaster {
 				parent.pushLocal();
 				translate(locationRel);
 				rotateBy(rotationRel);
-				locationAbs.set(model(zero));
+				locationAbs.set(model(Vector.zero));
 				rotationAbs.set( parent.rotation().rotatedBy(rotationRel) );
 				matrixAbs = app.getMatrix();
 				parent.popLocal();
 				break;
 			case Static:
-				locationAbs.set( add(parent.location(), locationRel) );
+				locationAbs.set( parent.location().plus(locationRel) );
 				rotationAbs.set(rotationRel);
 				translate(locationAbs);
 				rotateBy(rotationRel);
@@ -356,7 +356,7 @@ public class Transform<T> extends ProMaster {
 	}
 
 	public Vector relativeFromLocal(Vector posLoc) {
-		return relative(hasParent() ? parent.relative(posLoc) : posLoc, zero, rotationRel);
+		return relative(hasParent() ? parent.relative(posLoc) : posLoc, Vector.zero, rotationRel);
 	}
 
 	public Vector local(Vector posAbs) {
@@ -364,19 +364,19 @@ public class Transform<T> extends ProMaster {
 	}
 
 	public Vector localFromRel(Vector posRel) {
-		return absolute(posRel, zero, rotationRel);
+		return absolute(posRel, Vector.zero, rotationRel);
 	}
 	
 	/** Retourne la position absolue de posLoc, un point local au body. */
 	public Vector absoluteFromLocal(Vector posLoc) {
-		return add( location(), posLoc );
+		return location().plus(posLoc);
 	}
 	
 	// --- direction conversion: local <-> *absolute* <-> relative ---
 	
 	/** Return the absolute direction from a relative direction in the body space. result is only rotated -> same norm. */
 	public Vector absoluteDir(Vector dirRel) {
-		Vector inParentSpace = absolute(dirRel, zero, rotationRel);
+		Vector inParentSpace = absolute(dirRel, Vector.zero, rotationRel);
 		return hasParent() ? parent.absoluteDir(inParentSpace) : inParentSpace;
 	}
 
@@ -388,17 +388,17 @@ public class Transform<T> extends ProMaster {
 	/** Return the relative direction in the body body space from an absolute direction. result is only rotated -> same norm. */
 	public Vector relativeDir(Vector dirAbs) {
 		return hasParent() 
-				? relative(parent.relativeDir(dirAbs), zero, rotationRel) 
-				: relative(dirAbs, zero, rotationRel);
+				? relative(parent.relativeDir(dirAbs), Vector.zero, rotationRel) 
+				: relative(dirAbs, Vector.zero, rotationRel);
 	}
 
 	/** Return the local direction in the object space from an absolute direction. result is only rotated -> same norm. */
 	public Vector localDir(Vector dirAbs) {
-		return hasParent() ? relative(parent.localDir(dirAbs), zero, parent.rotationRel) : dirAbs;
+		return hasParent() ? relative(parent.localDir(dirAbs), Vector.zero, parent.rotationRel) : dirAbs;
 	}
 	
 	/** Return the local direction in the object space regardless of this' direction. result is only rotated -> same norm. */
 	public Vector localDirFromRel(Vector dirRel) {
-		return absolute(localDir(dirRel), zero, rotationRel);
+		return absolute(localDir(dirRel), Vector.zero, rotationRel);
 	}
 }

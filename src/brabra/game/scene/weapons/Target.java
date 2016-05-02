@@ -26,8 +26,4 @@ public class Target extends Sphere {
 	public void addForces() {
 		
 	}
-	
-	public void onDeath() {
-		game.debug.msg(2, presentation()+" destroyed");
-	}
 }

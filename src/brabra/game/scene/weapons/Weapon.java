@@ -1,5 +1,6 @@
 package brabra.game.scene.weapons;
 
+import brabra.Debug;
 import brabra.game.physic.geo.Quaternion;
 import brabra.game.physic.geo.Vector;
 import brabra.game.scene.Object;
@@ -41,7 +42,7 @@ public abstract class Weapon extends Object {
 	public void setTier(int tier) {
 		if (tier < 1 || tier > tierMax) {
 			final int newTier = PApplet.constrain(tier, 1, tierMax);
-			debug.err("tier should be in [1,"+tierMax+"] ("+tier+"), taking "+newTier+".");
+			Debug.err("tier should be in [1,"+tierMax+"] ("+tier+"), taking "+newTier+".");
 			tier = newTier;
 		}
 		this.tier = tier-1;

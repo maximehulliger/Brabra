@@ -28,7 +28,7 @@ public class Parameters extends Observable {
 		if (this.running != running) {
 			this.running = running;
 			notifyChange(Change.Running);
-			Brabra.app.game.debug.info(1, "game " + (running ? "running !" : "paused :)"));
+			Debug.info(1, "game " + (running ? "running !" : "paused :)"));
 		}
 	}
 

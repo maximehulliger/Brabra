@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 
+import brabra.Debug;
 import brabra.ProMaster;
 
 /** Represent a color to apply in processing (color & stroke). */
@@ -95,10 +96,10 @@ public class Color extends ProMaster {
 				for (; i<values.length && matcher.find(); i++)
 					values[i] = Integer.parseInt(matcher.group());
 				if (i == 0) {
-					debug.err("Unkno color format for \""+color+"\", taking basic");
+					Debug.err("Unknown color format for \""+color+"\", taking basic.");
 					return basic;
 				} else if (i >= 8) {
-					debug.err("wrong color format for \""+color+"\" (max 8, taking basic");
+					Debug.err("Wrong color format for \""+color+"\" (max 8), taking basic.");
 					return basic;
 				} else {
 					int[] ret = new int[i];

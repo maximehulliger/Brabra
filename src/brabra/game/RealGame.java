@@ -11,7 +11,6 @@ import processing.event.MouseEvent;
 public class RealGame extends Interface {
 	
 	public final Input input = new Input();
-	public final Debug debug = new Debug();
 	public final PhysicInteraction physicInteraction = new PhysicInteraction();
 	public final Scene scene = new Scene(this);
 	
@@ -21,7 +20,7 @@ public class RealGame extends Interface {
 	
 	public void onShow() {
 		clearConsole();
-		debug.info(0, "loading scene");
+		Debug.info(0, "loading scene");
 		physicInteraction.setFocused(null, -1);
 		scene.loader.loadLocalFiles();
 		scene.loader.load();

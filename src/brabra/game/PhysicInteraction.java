@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 import brabra.ProMaster;
 import brabra.Brabra;
+import brabra.Debug;
 import brabra.game.physic.Body;
 import brabra.game.physic.Collider;
 import brabra.game.physic.geo.Line;
@@ -41,7 +42,7 @@ public final class PhysicInteraction extends ProMaster {
 	
 	/** Update interaction & apply forces. */
 	public void update() {
-		game.debug.setCurrentWork("interaction");
+		Debug.setCurrentWork("interaction");
 		//check for armement changes (in focused children)
 		if (hasFocused() && focused.transform.childrenChanged()) {
 			weaponry = getWeaponry();
@@ -70,7 +71,7 @@ public final class PhysicInteraction extends ProMaster {
 	}
 	
 	public void gui() {
-		game.debug.setCurrentWork("interaction gui");
+		Debug.setCurrentWork("interaction gui");
 		if (weaponry != null)
 			weaponry.displayGui();
 	}
@@ -194,10 +195,10 @@ public final class PhysicInteraction extends ProMaster {
 	/** Set the force of interaction. if displayIfChange & changed, displayState. */
 	private void setForce(float force) {
 		if (force < forceMin) {
-			game.debug.err("interaction force min is "+forceMin+" ("+force+")");
+			Debug.err("interaction force min is "+forceMin+" ("+force+")");
 			force = forceMin;
 		} else if (force > forceMax) {
-			game.debug.err("interaction force max is "+forceMax+" ("+force+")");
+			Debug.err("interaction force max is "+forceMax+" ("+force+")");
 			force = forceMax;
 		}
 		force = PApplet.constrain(force, forceMin, forceMax);

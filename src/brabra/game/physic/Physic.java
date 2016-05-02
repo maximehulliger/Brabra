@@ -2,6 +2,8 @@ package brabra.game.physic;
 
 
 import java.util.ArrayList;
+
+import brabra.Debug;
 import brabra.ProMaster;
 import brabra.game.physic.geo.Sphere;
 import brabra.game.scene.Scene;
@@ -25,7 +27,7 @@ public class Physic extends ProMaster {
 
 	/** Just... do Magic  :D <p> Actually resolve collisions in the scene. */
 	public static void doMagic(Scene scene) {
-		app.debug.setCurrentWork("physic magic");
+		Debug.setCurrentWork("physic magic");
 		try {
 			//2. on determine et filtre les collisions pour chaque paire possible (c, o).
 			forAllPairs(scene.activeColliders(), (c,o)-> {
@@ -56,11 +58,11 @@ public class Physic extends ProMaster {
 				col.apply();
 
 		} catch (Exception e) {
-			app.debug.err("physical error :/");
+			Debug.err("physical error :/");
 			e.printStackTrace();
 			if (++errCount >= 3) {
 				app.para.setRunning(false);
-				app.debug.msg(1, "physic paused (after 3 errors)");
+				Debug.msg(1, "physic paused (after 3 errors)");
 			}
 		}
 	}

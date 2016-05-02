@@ -7,6 +7,7 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import brabra.Brabra;
+import brabra.Debug;
 import brabra.game.RealGame;
 import brabra.game.physic.Body;
 import brabra.game.physic.Collider;
@@ -82,7 +83,7 @@ public class Scene extends Observable {
 	
 	/** Update the colliders and effects (parents first (automatic)). */
 	public void updateAll() {
-		game.debug.setCurrentWork("objects update");
+		Debug.setCurrentWork("objects update");
 		for (Object o : objects)
 			if (!o.hasParent())
 				o.update();
@@ -90,7 +91,7 @@ public class Scene extends Observable {
 
 	/** Display all colliders and effects in the scene. */
 	public void displayAll() {
-		game.debug.setCurrentWork("display objects");
+		Debug.setCurrentWork("display objects");
 		for(Object o : objects)
 			o.display();
 	}
@@ -154,7 +155,7 @@ public class Scene extends Observable {
 		else if (name.equals("missile_launcher"))
 			obj = new MissileLauncher(location, rotation);
 		else {
-			Brabra.app.debug.err("\""+name+"\" unknown, ignoring.");
+			Debug.err("\""+name+"\" unknown, ignoring.");
 			return null;
 		}
 		return obj;

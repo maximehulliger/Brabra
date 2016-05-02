@@ -1,8 +1,10 @@
 package brabra.game.scene.fun;
 
+import brabra.Debug;
 import brabra.game.Color;
 import brabra.game.physic.Collider;
 import brabra.game.physic.geo.Box;
+import brabra.game.physic.geo.ProTransform;
 import brabra.game.physic.geo.Quaternion;
 import brabra.game.physic.geo.Vector;
 import brabra.game.scene.weapons.Weaponry;
@@ -46,7 +48,7 @@ public class Starship extends Box {
 		pushLocal();
 		displayColliderMaybe();
 		displayInteractionMaybe();
-		translate( vec(0, -10, 20) );
+		ProTransform.translate( vec(0, -10, 20) );
 		if (displayViseur)
 			line(zero, front(far), viseurColor);
 		app.shape(starship);
@@ -54,6 +56,6 @@ public class Starship extends Box {
 	}
 	
 	protected void onCollision(Collider other, Vector pos) {
-		game.debug.log(presentation()+" a touché "+other.presentation());
+		Debug.log(presentation()+" a touché "+other.presentation());
 	}
 }

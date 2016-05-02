@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import brabra.Brabra;
+import brabra.Debug;
 import brabra.game.physic.Collider;
 import brabra.game.physic.geo.Quaternion;
 import brabra.game.physic.geo.Vector;
@@ -118,12 +119,12 @@ public class Weaponry extends Object {
 			if (prefab != 0) {
 				if (prefab < 1 || prefab > nbPrefab) {
 					int newPrefab = constrain(prefab, 1, nbPrefab);
-					game.debug.err("prefab for weaponry should be in [1,"+nbPrefab+"] "
+					Debug.err("prefab for weaponry should be in [1,"+nbPrefab+"] "
 							+ "("+prefab+") (0/not for nothing), taking "+newPrefab);
 					prefab = newPrefab;
 				}
 				if (weapons.size() > 0) {
-					game.debug.err("weaponry should not have weapons when prefab is set. removing them.");
+					Debug.err("weaponry should not have weapons when prefab is set. removing them.");
 					for (Weapon w : weapons)
 						game.scene.remove(w);
 					weapons.clear();

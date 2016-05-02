@@ -76,7 +76,7 @@ public class ProTest extends ProMaster {
 		
 		public TestTangibleGame() {
 			ready.lock();
-			debug.testMode = true;
+			Debug.silentMode = true;
 			imgAnalysis = false;
 			toolWindow = false;
 		}

@@ -23,7 +23,6 @@ public abstract class Master {
 	public static final Pattern floatPattern = Pattern.compile("[+-]?\\d+[.]?\\d*");
 	public static final Pattern intPattern = Pattern.compile("[+]?\\d+");
 	public static final Random random = new Random();
-	public static final Debug debug = new Debug();
 	public static final Map<String, String> env = System.getenv();
 	
 	// --- General mastery ---
