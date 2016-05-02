@@ -2,6 +2,9 @@ package brabra.gui.field;
 
 import brabra.gui.view.View;
 import brabra.model.SceneFile;
+
+import java.util.Observable;
+
 import brabra.Brabra;
 import brabra.game.scene.Scene;
 import javafx.scene.control.Button;
@@ -10,7 +13,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 
 
-public class SceneField extends Field.Static {
+public class SceneField extends Field {
 
 	// private final static String toDefaultSceneImg = "resource/gui/scene/default.png";
 	
@@ -57,5 +60,9 @@ public class SceneField extends Field.Static {
 		
 		//TODO: open external (or own) editor
 		
+	}
+
+	public void update(Observable o, Object arg) {
+		// nothing.
 	}
 }

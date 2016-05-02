@@ -1,6 +1,8 @@
 package brabra.gui.field;
 
 import java.util.Observable;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 import brabra.Brabra;
 import brabra.game.physic.geo.Quaternion;
@@ -71,7 +73,7 @@ public class QuaternionField extends ValueField<Quaternion> {
 		}
 	}
 
-	public static class Pro extends QuaternionField implements Field.Pro {
+	public static class Pro extends QuaternionField {
 
 		public Pro(Quaternion quaternion) {
 			super(quaternion);
@@ -84,6 +86,29 @@ public class QuaternionField extends ValueField<Quaternion> {
 		public Pro respondingTo(Object triggerArg) {
 			super.respondingTo(triggerArg);
 			return this;
+		}
+	}
+
+	public static class ProCustom extends Pro {
+
+		private final static Quaternion defaultValue = Quaternion.identity;
+		
+		private final Consumer<Quaternion> setModelValue;
+		private final Supplier<Quaternion> getModelValue;
+		
+		public ProCustom(Consumer<Quaternion> setModelValue, Supplier<Quaternion> getModelValue) {
+			super(getModelValue.get());
+			this.setModelValue = setModelValue;
+			this.getModelValue = getModelValue;
+			this.setValue(defaultValue);
+		}
+
+		protected final void setModelValue(Quaternion val) {
+			setModelValue.accept(val);
+		}
+
+		protected final Quaternion getModelValue() {
+			return getModelValue == null ? defaultValue : getModelValue.get();
 		}
 	}
 }

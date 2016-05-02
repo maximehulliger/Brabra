@@ -28,7 +28,7 @@ public class StoreView extends View {
 		final Field filterField = new StringField(
 				(s) -> setFilter(s),
 				() -> filter)
-				.set("Look for", true, false, false);
+				.set("Look for", true, false);
 		// refreshButton
 		final Button refreshButton = new Button("refresh");
 		// TODO: img for refresh

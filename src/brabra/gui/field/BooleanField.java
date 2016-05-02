@@ -36,7 +36,7 @@ public class BooleanField extends ValueField.WithCustomModel<Boolean> {
 		cboxClosed.setSelected(newVal);
 	}
 
-	public static class Pro extends BooleanField implements Field.Pro {
+	public static class Pro extends BooleanField {
 
 		public Pro(Consumer<Boolean> setModelValue, Supplier<Boolean> getModelValue) {
 			super(setModelValue, getModelValue);

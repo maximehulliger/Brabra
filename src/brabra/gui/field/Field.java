@@ -21,7 +21,7 @@ public abstract class Field extends GridPane implements Observer {
 	private final VBox subfieldHolder = new VBox();
 	public final TriangleButton triangleButton = new TriangleButton();
 	// current state
-	private boolean closable = false, withTriangle = false, open = true;
+	private boolean closable = false, open = true;
 	private String name = "";
 
 	
@@ -85,8 +85,7 @@ public abstract class Field extends GridPane implements Observer {
 	 * closable: Set if the field should open/close itself on click. <p>
 	 * withTriangle: Set if the field should have a triangle to indicate openness. 
 	 *  */
-	public Field set(String name, boolean open, boolean closable, boolean withTriangle) {
-		this.withTriangle = withTriangle;
+	public Field set(String name, boolean open, boolean closable) {
 		this.closable = closable;
 		setOpen(open);
 		setName(name);
@@ -98,7 +97,7 @@ public abstract class Field extends GridPane implements Observer {
 		getChildren().clear();
 		// We replace everything
 		int contentCol;
-		if (withTriangle) {
+		if (closable) {
 			add(triangleButton, 0, 0);	
 			contentCol = 1;	
 		} else {
@@ -123,13 +122,5 @@ public abstract class Field extends GridPane implements Observer {
 	
 	protected String name() {
 		return name;
-	}
-
-	/** Interface to discriminate the field modeled in the processing thread. */
-	public static interface Pro {};
-	
-	/** A field that doesn't care about update. */
-	public static class Static extends Field {
-		public final void update(Observable o, java.lang.Object arg) {}
 	}
 }

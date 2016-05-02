@@ -8,6 +8,7 @@
 - Editor / Viewer
 
 #TODO good looking
+- feedback popwindow size (smaller)
 - CreationView: space between buttons
 - Views: Scroll view (vertical only)
 - ParametersView: ping button on the right
@@ -16,7 +17,9 @@
 	-> test: gravity in para, starship rotation 
 - SceneField: buttons in the middle and spaced
 - SceneField: image max size
-- then the project is over :)
+-> then the project is over, for you :)
+
+- Field: without triangle
 
 #Later (maybe)
 

@@ -34,7 +34,7 @@ public class StringField extends ValueField.WithCustomModel<String> {
 			setTextValue(newVal);
 	}
 
-	public static class Pro extends StringField implements Field.Pro {
+	public static class Pro extends StringField {
 		
 		public Pro(Consumer<String> setModelValue, Supplier<String> getModelValue) {
 			super(setModelValue, getModelValue);

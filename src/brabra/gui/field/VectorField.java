@@ -60,7 +60,7 @@ public class VectorField extends ValueField<Vector> {
 		}
 	}
 
-	public static class Pro extends VectorField implements Field.Pro {
+	public static class Pro extends VectorField {
 
 		public Pro(Vector vector) {
 			super(vector);
@@ -76,7 +76,7 @@ public class VectorField extends ValueField<Vector> {
 		}
 	}
 
-	public static class ProCustom extends Pro implements Field.Pro {
+	public static class ProCustom extends Pro {
 
 		private final static Vector defaultValue = Vector.zero;
 		

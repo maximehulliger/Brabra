@@ -91,7 +91,7 @@ public class CreationView extends View {
         // control buttons
 		addContent(creationControlButtons);
 		// and the object field & all the fields (under it)
-		objectField = (ObjectField)new ObjectField(object, false).set("lol", true, false, false);
+		objectField = (ObjectField)new ObjectField(object, false).set("lol", true, false);
 		addContent(objectField);
     }
 

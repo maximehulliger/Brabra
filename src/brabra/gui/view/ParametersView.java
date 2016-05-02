@@ -28,38 +28,38 @@ public class ParametersView extends View {
 				run -> para.setRunning(run), 
 				() -> para.running())
 				.respondingTo(Change.Running)
-				.set("Running", true, false, true));
+				.set("Running", true, false));
 		// display all collider
 		fields.add(new BooleanField(
 				dc -> para.setDisplayAllColliders(dc), 
 				() -> para.displayAllColliders())
 				.respondingTo(Change.DisplayAllColliders)
-				.set("Display all Colliders", true, false, true));
+				.set("Display all Colliders", true, false));
 		// gravity
 		fields.add(new VectorField.ProCustom(
 				g -> para.setGravity(g),
 				() -> para.gravity())
 				.respondingTo(Change.Gravity)
-				.set("Gravity", true, false, true));
+				.set("Gravity", true, false));
 		// braking in interaction
 		fields.add(new BooleanField.Pro(
 				b -> para.setBraking(b), 
 				() -> para.braking())
 				.respondingTo(Change.Braking)
-				.set("Braking focused Object", true, false, true));
+				.set("Braking focused Object", true, false));
 		// > camera stuff (to display)
 		// skybox
 		fields.add(new BooleanField.Pro(
 				s -> para.setDisplaySkybox(s), 
 				() -> para.displaySkybox())
 				.respondingTo(Change.DisplaySkybox)
-				.set("Display Skybox", true, false, true));
+				.set("Display Skybox", true, false));
 		// axis
 		fields.add(new BooleanField.Pro(
 				s -> para.setDisplayAxis(s), 
 				() -> para.displayAxis())
 				.respondingTo(Change.DisplayAxis)
-				.set("Display Axis", true, false, true));
+				.set("Display Axis", true, false));
 		// center point
 //		fields.add(new BooleanField.Pro(
 //				s -> para.setDisplayCenterPoint(s), 
@@ -74,7 +74,7 @@ public class ParametersView extends View {
 				sa -> para.setServerAdress(sa),
 				() -> para.serverAdress())
 				.respondingTo(Change.ServerAdress)
-				.set("Server Adress", false, true, true);
+				.set("Server Adress", false, true);
 		// the ping button
 		final Button pingButton = getNewButton("Ping ?");
 		// link

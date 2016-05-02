@@ -42,34 +42,38 @@ public class ObjectField extends Field implements Observer {
 				nm -> object.setName(nm),
 				() -> object.toString()
 				).respondingTo(Change.Name)
-				.set("Name", false, true, true));
+				.set("Name", false, true));
 		// location abs (not modifiable)
-		fields.add(new VectorField.Pro(transform.location())
+		fields.add(new VectorField.ProCustom(
+				v -> {},
+				() -> transform.location())
 				.respondingTo(Change.Location)
-				.set("Absolute Location", false, false, false));
+				.set("Absolute Location", false, false));
 		// rotation abs (not modifiable)
-		fields.add(new QuaternionField.Pro(transform.rotation())
+		fields.add(new QuaternionField.ProCustom(
+				v -> {},
+				() -> transform.rotation())
 				.respondingTo(Change.Rotation)
-				.set("Absolute Rotation", false, false, false));
+				.set("Absolute Rotation", false, false));
 		// location rel
 		fields.add(new VectorField.Pro(transform.locationRel)
 				.respondingTo(Change.Location)
-				.set("Relative Location", false, true, true));
+				.set("Relative Location", false, true));
 		// rotation rel
 		fields.add(new QuaternionField.Pro(transform.rotationRel)
 				.respondingTo(Change.Rotation)
-				.set("Rotation rel", false, true, true));
+				.set("Rotation rel", false, true));
 
 		// > if Movable
 		if ((asMovable = object.as(Movable.class)) != null) {
 			// velocity (rel)
 			fields.add(new VectorField.Pro(asMovable.velocityRel())
 					.respondingTo(Change.Velocity)
-					.set("Velocity (rel)", false, true, true));
+					.set("Velocity (rel)", false, true));
 			// rotVelotity (still always relative)
 			fields.add(new QuaternionField.Pro(asMovable.rotationRelVel())
 					.respondingTo(Change.RotVelocity)
-					.set("Rotational vel (rel)", false, true, true));
+					.set("Rotational vel (rel)", false, true));
 		}
 
 		// > if Body
@@ -80,7 +84,7 @@ public class ObjectField extends Field implements Observer {
 					m -> asBody.setMass(m),
 					() -> asBody.mass())
 					.respondingTo(Change.Mass)
-					.set("Mass", false, true, true));
+					.set("Mass", false, true));
 			// affectedByCollision (mass)
 			fields.add(new BooleanField.Pro(
 					ac -> {
@@ -90,7 +94,7 @@ public class ObjectField extends Field implements Observer {
 					},
 					() -> !asBody.affectedByCollision())
 					.respondingTo(Change.Mass)
-					.set("Heavy", false, true, true));
+					.set("Heavy", false, true));
 			// ghost (mass)
 			fields.add(new BooleanField.Pro( 
 					g -> {
@@ -100,7 +104,7 @@ public class ObjectField extends Field implements Observer {
 					},
 					() -> asBody.ghost())
 					.respondingTo(Change.Mass)
-					.set("Ghost", false, true, true));
+					.set("Ghost", false, true));
 		}
 
 		// > if Collider
@@ -110,7 +114,7 @@ public class ObjectField extends Field implements Observer {
 					dc -> asCollider.setDisplayCollider(dc), 
 					() -> asCollider.displayCollider())
 					.respondingTo(Change.DisplayCollider)
-					.set("Display Collider", false, true, true));
+					.set("Display Collider", false, true));
 		}
 
 		// > if Box
@@ -120,7 +124,7 @@ public class ObjectField extends Field implements Observer {
 					s -> asBox.setSize(s),
 					() -> asBox.size)
 					.respondingTo(Change.Size)
-					.set("Size", false, true, true));
+					.set("Size", false, true));
 		}
 				
 		// > if Sphere
@@ -130,7 +134,7 @@ public class ObjectField extends Field implements Observer {
 					s -> asSphere.setRadius(s),
 					() -> asSphere.radius())
 					.respondingTo(Change.Size)
-					.set("Radius", false, true, true));
+					.set("Radius", false, true));
 		}
 		
 		// > if Plane
@@ -140,13 +144,13 @@ public class ObjectField extends Field implements Observer {
 					s -> asPlane.setSize(s),
 					() -> asPlane.size)
 					.respondingTo(Change.Size)
-					.set("Size (x,?,z)", false, true, true));
+					.set("Size (x,?,z)", false, true));
 		}
 				
 		//--- View:
 		nameText.getStyleClass().add("objectField-name");
 		subfields().addAll(fields);
-		set(object.toString(), !closable, closable, closable);
+		set(object.toString(), !closable, closable);
 
 		//--- Control:
 		object.model.addObserver(this);

@@ -40,7 +40,7 @@ public class FloatField extends ValueField.WithCustomModel<Float> {
 		floatField.update(o, arg);
 	}
 
-	public static class Pro extends FloatField implements Field.Pro {
+	public static class Pro extends FloatField {
 
 		public Pro(Consumer<Float> setModelValue, Supplier<Float> getModelValue) {
 			super(setModelValue, getModelValue);
