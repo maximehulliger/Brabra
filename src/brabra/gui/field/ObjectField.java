@@ -9,10 +9,10 @@ import brabra.game.physic.Collider;
 import brabra.game.physic.geo.Box;
 import brabra.game.physic.geo.Plane;
 import brabra.game.physic.geo.Sphere;
+import brabra.game.physic.geo.Transform;
 import brabra.game.scene.Movable;
 import brabra.game.scene.Object;
 import brabra.game.scene.Object.Change;
-import brabra.game.scene.Transform;
 
 /** A field containing an object. */
 public class ObjectField extends Field implements Observer {
@@ -36,7 +36,7 @@ public class ObjectField extends Field implements Observer {
 		final ArrayList<Field> fields = new ArrayList<>(16);
 
 		// > first Object
-		final Transform transform = object.transform;
+		final Transform<Object> transform = object.transform;
 		//name
 		fields.add(new StringField.Pro(
 				nm -> object.setName(nm),

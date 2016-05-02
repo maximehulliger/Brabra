@@ -4,8 +4,8 @@ import brabra.ProMaster;
 import brabra.Brabra;
 import brabra.game.Color;
 import brabra.game.physic.geo.Vector;
+import brabra.game.physic.geo.Transform.ParentRelationship;
 import brabra.game.scene.SceneLoader.Attributes;
-import brabra.game.scene.Transform.ParentRelationship;
 import processing.core.PShape;
 
 /** 

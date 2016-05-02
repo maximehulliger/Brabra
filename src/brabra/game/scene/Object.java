@@ -7,9 +7,10 @@ import brabra.Master;
 import brabra.ProMaster;
 import brabra.game.physic.geo.Line;
 import brabra.game.physic.geo.Quaternion;
+import brabra.game.physic.geo.Transform;
 import brabra.game.physic.geo.Vector;
+import brabra.game.physic.geo.Transform.ParentRelationship;
 import brabra.game.scene.SceneLoader.Attributes;
-import brabra.game.scene.Transform.ParentRelationship;
 import brabra.gui.ToolWindow;
 
 /** 
@@ -19,7 +20,7 @@ import brabra.gui.ToolWindow;
  **/
 public class Object extends ProMaster {
 	
-	public final Transform transform = new Transform(this);
+	public final Transform<Object> transform = new Transform<>(this);
 	
 	protected Scene scene = null;
 	

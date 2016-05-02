@@ -4,8 +4,8 @@ import brabra.game.Observable.NQuaternion;
 import brabra.game.Observable.NVector;
 import brabra.game.physic.geo.Quaternion;
 import brabra.game.physic.geo.Vector;
+import brabra.game.physic.geo.Transform.ParentRelationship;
 import brabra.game.scene.SceneLoader.Attributes;
-import brabra.game.scene.Transform.ParentRelationship;
 
 /**
  * A movable Object. 
