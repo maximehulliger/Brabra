@@ -224,25 +224,23 @@ public class Brabra extends PApplet {
 	
 	/** Activate or deactivate (hide) the tool window. Initialize it (fxApp) if needed. */
 	public void setToolWindow(boolean hasToolWindow) {
-		toolWindow = hasToolWindow;
-		if (!fxAppStarted && hasToolWindow) {
-			fxAppStarted = true;
-			Master.launch(() -> ToolWindow.launch());
-			Debug.info(3, "Tool Window thread started.");
-
-			// we wait for the javaFX thread to init (beacause of m).
-			try {
-				while (fxApp == null)
-					Thread.sleep(3_000);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
+		if (toolWindow != hasToolWindow || !fxAppStarted) {
+			if (hasToolWindow) {
+				toolWindow = true;
+				fxAppStarted = true;
+				Master.launch(() -> ToolWindow.launch());
+				Debug.info(3, "Tool Window thread started.");
+	
+				// we wait for the javaFX thread to init (beacause of m).
+//				try {
+//					while (fxApp == null)
+//						Thread.sleep(3_000);
+//				} catch (InterruptedException e) {
+//					e.printStackTrace();
+//				}
+			} else if (fxAppStarted) {
+				Platform.runLater(() -> fxApp.setVisible(hasToolWindow));
 			}
-
-			ToolWindow.launchedLock.lock();
-			ToolWindow.launchedLock.unlock();
-			
-		} else if (fxAppStarted) {
-			Platform.runLater(() -> fxApp.setVisible(hasToolWindow));
 		}
 	}
 	

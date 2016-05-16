@@ -7,6 +7,7 @@ import java.util.function.Function;
 import brabra.Debug;
 import brabra.game.Observable.NQuaternion;
 import brabra.game.Observable.NVector;
+import brabra.game.scene.SceneLoader.Attributes;
 import processing.core.PMatrix;
 
 /** Represent the transformation of this transform's object. */
@@ -48,7 +49,8 @@ public class Transform<T> extends ProTransform {
 		children.forEach(t -> t.unvalidateAbs());
 	}
 	
-	public void copy(Transform<T> other) {
+	/** Copy the other transform into this and return this. */
+	public Transform<T> copy(Transform<T> other) {
 		locationRel.set(other.locationRel);
 		rotationRel.set(other.rotationRel);
 		if (other.absValid) {
@@ -57,6 +59,20 @@ public class Transform<T> extends ProTransform {
 			absValid = true;
 			matrixAbs = other.matrixAbs;
 		}
+		return this;
+	}
+
+	public boolean equals(Object other) {
+		if (other == null) return false;
+	    if (other == this) return true;
+	    return (other instanceof Transform<?>) 
+	    		? equals((Transform<?>)other) : false;
+	}
+
+	public boolean equals(Transform<?> other) {
+		boolean forRel = rotationRel.equals(other.rotationRel) && locationRel.equals(other.locationRel);
+		boolean forAbs = rotation().equals(other.rotation()) && locationAbs.equals(other.locationAbs);
+		return forRel && forAbs;
 	}
 	
 	public void set(Vector location, Quaternion rotation) {
@@ -70,6 +86,8 @@ public class Transform<T> extends ProTransform {
 	/** Return the absolute location of the object. update things if needed. the Vector should not be modified. */
 	public Vector location() {
 		updateAbs();
+		if (!hasParent())
+			assert locationAbs.equals(locationRel);
 		return locationAbs;
 	}
 	
@@ -98,8 +116,8 @@ public class Transform<T> extends ProTransform {
 	// --- State getters ---
 
 	/** Return if the transforms of the object or one of his parent changed during last frame. */
-	public boolean transformChanged() { 
-		return locationRel.hasChanged() || rotationRel.hasChanged() || (hasParent() && parent.transformChanged()) ;
+	public boolean changed() { 
+		return locationRel.hasChanged() || rotationRel.hasChanged() || (hasParent() && parent.changed()) ;
 	}
 	
 	/** Return true if the children list was changed during last frame. */
@@ -197,10 +215,9 @@ public class Transform<T> extends ProTransform {
 	 * otherwise set parentRel to Full if it was null.
 	 * Return true if the parent changed.
 	 **/
-	public boolean setParent(Transform<T> newParent, ParentRelationship newParentRel) {
+	public void setParent(Transform<T> newParent, ParentRelationship newParentRel) {
 		if (newParent == null) {
 			newParentRel = ParentRelationship.None;
-			newParent = null;
 		} else if (newParentRel == null)
 			newParentRel = ParentRelationship.Full;
 		
@@ -213,6 +230,7 @@ public class Transform<T> extends ProTransform {
 			if (newParent != null && newParent.isChildOf(this))
 				Debug.err(toString()+": new parent "+newParent+" already related ! (plz no childhood vicious cylce)");
 			else {
+				
 				// remove this child from old parent
 				if (hasParent())
 					parent.children.remove(this);
@@ -227,10 +245,11 @@ public class Transform<T> extends ProTransform {
 				
 				// always valid
 				updateAbs();
+				
+				// notify the children
+				unvalidateAbs();
 			}
-			return true;
-		} else
-			return false;
+		}
 	}
 
 	/** parent should be set before. */
@@ -266,6 +285,9 @@ public class Transform<T> extends ProTransform {
 		
 		childrenChanged = childrenChangedCurrent;
 		childrenChangedCurrent = false;
+		
+		if (changed())
+			updateAbs();
 	}
 
 	/** 
@@ -327,6 +349,12 @@ public class Transform<T> extends ProTransform {
 			parent.removeChild(this);
 	}
 
+	public void validate(Attributes atts) {
+		final String pos = atts.getValue("pos");
+		if (pos != null)
+			locationRel.set(Vector.fromString(pos));
+		//TODO: for rotation
+	}
 
 	// --- push & pop local ---
 	
@@ -335,12 +363,12 @@ public class Transform<T> extends ProTransform {
 	 * update the abs variables if needed (matrix & locationAbs). 
 	 **/
 	public void pushLocal() {
-		//app.pushMatrix();
+		app.pushMatrix();
 		app.applyMatrix(matrixAbs);
 	}
 	
 	public void popLocal() {
-		//app.popMatrix();
+		app.popMatrix();
 	}
 
 	// --- conversion position local <-> *absolute* <-> relative ---

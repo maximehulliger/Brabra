@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import org.junit.Test;
 
 import brabra.ProTest;
+import brabra.game.physic.geo.Transform.ParentRelationship;
 
 public class TransformTest <T extends Transform<Integer>> extends ProTest {
 
@@ -14,39 +15,38 @@ public class TransformTest <T extends Transform<Integer>> extends ProTest {
 		initApp();
 	}
 	
+	//final static private Quaternion toRight = new Quaternion(up, pi/2);
+	
 	@Test
-	public void consistencyTest() {
-		ArrayList<T> trans = someTransform(5);
-		T t0 = trans.get(0);
-		T t1 = trans.get(1);
-		//T trans2 = trans.get(2);
-		t0.setParent(t1, null);
-		assertEquals("simple full parent", t1.location(), t0.locationRel.plus(t1.locationRel));
+	public void simpleParentTest() {
+		final int nTest = 5;
+		final ArrayList<Transform<Integer>> trans = someTransform(nTest*2);
+		for (int i=0; i<nTest*2; i+=2) {
+			final Transform<Integer> t0 = trans.get(i);
+			final Transform<Integer> t1 = trans.get(i+1);
+			//T trans2 = trans.get(2);
+			t1.setParent(t0, ParentRelationship.Static);
+			final Vector loc1 = t1.location();
+			final Vector loc2 = t0.location().plus(t1.locationRel);
+			assertEquals("simple full parent", loc1, loc2);
+		}
 	}
 	
 	@Test
 	public void translationTest() {
 		for (int i=0; i< 50; i++) {
-			Vector v = Vector.randomVec(100);
-			Vector t = Vector.randomVec(100);
-			assertEquals("at iter "+i, t, ProTransform.absolute(zero, t, identity));
-			assertEquals("at iter "+i, t.plus(v), ProTransform.absolute(v, t, identity));
+			final Vector v1 = Vector.randomVec(100);
+			final Vector v2 = Vector.randomVec(100);
+			assertEquals("at iter "+i, v2, ProTransform.absolute(zero, v2, identity));
+			assertEquals("at iter "+i, v2.plus(v1), ProTransform.absolute(v1, v2, identity));
 		}
 	}
 
-//	@Test
-//	public void testCopy() {
-//	}
-	
-	@SuppressWarnings("unchecked")
-	private ArrayList<T> someTransform(int n) {
-		ArrayList<T> trans = new ArrayList<>(n);
-		for (int i=0; i<n; i++) {
-			final Vector loc = Vector.randomVec(100);
-			final Transform<Integer> t = new  Transform<Integer>(n);
-			t.set(loc, null);
-			trans.add((T)t);
+	@Test
+	public void testCopy() {
+		for (Transform<Integer> t : someTransform(5)) {
+			final Transform<Integer> newT = new Transform<>(2).copy(t);
+			assertEquals("t", newT, t);
 		}
-		return trans;
 	}
 }

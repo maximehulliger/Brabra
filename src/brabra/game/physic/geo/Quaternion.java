@@ -37,7 +37,7 @@ public class Quaternion extends ProMaster {
 		this(w, new Vector(x,y,z));
 	}
 
-	/** Create a new Quaternion from angle and axis. */
+	/** Create a new Quaternion from angle and axis (in radian). */
 	public Quaternion(Vector axis, float angle) {
 		set(axis == null ? null : axis.copy(), angle);
 	}
@@ -47,8 +47,18 @@ public class Quaternion extends ProMaster {
 		set(q);
 	}
 	
-	public Quaternion (float w, Vector xyz) {
+	/** Create a new Quaternion from WXYZ. */
+	public Quaternion(float w, Vector xyz) {
 		set(w, xyz);
+	}
+	
+	/** Return a non identity random quaternion. */
+	public static Quaternion randomQuat() {
+		Quaternion ret = null;
+		do {
+			ret = new Quaternion(randomBi(), Vector.randomVec(1));
+		} while (ret.isIdentity());
+		return ret;
 	}
 
 	// --- Getters ---

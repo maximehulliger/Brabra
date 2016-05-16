@@ -19,7 +19,7 @@ public class VectorField extends ValueField<Vector> {
 	public VectorField(Vector vector) {
 		
 		super(Vector.zero.copy());
-		this.vector = vector;
+		this.vector = vector.copy();
 		
 		for (TextField field : valueFields) {
 			//--- Control:
@@ -76,14 +76,15 @@ public class VectorField extends ValueField<Vector> {
 		}
 	}
 
-	public static class ProCustom extends Pro {
+	/** To deal with a final vector in processing. */
+	public static class Final extends Pro {
 
 		private final static Vector defaultValue = Vector.zero;
 		
 		private final Consumer<Vector> setModelValue;
 		private final Supplier<Vector> getModelValue;
 		
-		public ProCustom(Consumer<Vector> setModelValue, Supplier<Vector> getModelValue) {
+		public Final(Consumer<Vector> setModelValue, Supplier<Vector> getModelValue) {
 			super(getModelValue.get());
 			this.setModelValue = setModelValue;
 			this.getModelValue = getModelValue;

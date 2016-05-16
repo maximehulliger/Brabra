@@ -57,10 +57,13 @@ public class Object extends ProMaster {
 	 * Return true when this was valdated (only once). 
 	 **/
 	public void validate(Attributes atts) {
-		// parent first !
+		// set parent first !
 		final String parentRel = atts.getValue("parentRel");
 		setParent(atts.parent(), parentRel != null ? ParentRelationship.fromString(parentRel) : null);
 
+		// transform attributes
+		transform.validate(atts);
+		
 		// other attributes
 		final String name = atts.getValue("name");
 		if (name != null)
@@ -179,8 +182,9 @@ public class Object extends ProMaster {
 	 * Set the transform/push relationship from this with his parent (no parent -> root).
 	 * Return true if the parent changed.
 	 **/
-	public boolean setParent(Object newParent, ParentRelationship newParentRel) {
-		return transform.setParent(newParent == null ? null : newParent.transform, newParentRel);
+	public void setParent(Object newParent, ParentRelationship newParentRel) {
+		transform.setParent(newParent == null ? null : newParent.transform, newParentRel);
+		model.notifyChange(Change.Parent);
 	}
 
 	// --- Update stuff (+transformChanged) ---
@@ -196,35 +200,33 @@ public class Object extends ProMaster {
 		
 		// update it
 		transform.update();
+		if (transform.changed())
+			updateAbs();
 
 		// update the children
 		transform.children.forEach(t -> t.object.update());
 	}
 	
-	/** Flag used to avoid too much*/
-	//protected boolean updatingAbs = false;
-	
 	/** 
-	 * Update the local absolute variables if needed. check the parent (of course ^^). 
-	 * Compute them from relative location & rotation. 
-	 * Call updateAbs() on children with updated set to true.
+	 * Update the absolute variables from relative variable if needed. 
 	 * Should be called at first by child class.
-	 * Return true if something was updated.
 	 **/
-	protected void updateAbs() {
-		
-	}
+	protected void updateAbs() {}
 	
 	// --- Observation ---
 	
 	public enum Change {
-		Location, Rotation, Velocity, RotVelocity, DisplayCollider, Mass, Name, Size
+		Location, Rotation, Velocity, RotVelocity, DisplayCollider, Mass, Name, Size, Parent
 	}
 	
 	public final ObjectModel model = new ObjectModel();
 	
 	/** To let someone watch this object */
-	public final static class ObjectModel extends Observable {
+	public final class ObjectModel extends Observable {
+		
+		public Vector locationAbs = location();
+		public Quaternion rotationAbs = rotation();
+		
 		public void notifyChange(Change change) {
 			ToolWindow.runLater(() -> {
 				synchronized (this) {

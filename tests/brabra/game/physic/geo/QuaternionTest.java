@@ -155,6 +155,8 @@ public class QuaternionTest extends ProTest {
 		}
 	}
 
+	// --- Quaternion getters ---
+	
 	private List<Quaternion> quatsFromDir() {
 		List<Quaternion> l = new ArrayList<Quaternion>(6);
 		for (Vector dir : Vector.directions)
@@ -199,7 +201,7 @@ public class QuaternionTest extends ProTest {
 	}
 	
 	/** Return a lot of quats from everything (none is identity). */
-	private List<Quaternion> someQuats(int n) {
+	public List<Quaternion> someQuats(int n) {
 		final int sampleCount = 5 + 2 * n;
 		final List<Quaternion> sample =  new ArrayList<>(sampleCount);
 		for (Quaternion q : both(quatsFromDirNonId(), both(someQuatsFromWXYZ(n), someQuatsFromAxis(n)))) {

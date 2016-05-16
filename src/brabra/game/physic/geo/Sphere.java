@@ -44,6 +44,7 @@ public class Sphere extends Collider {
 	public void setRadius(float radius) {
 		super.setRadiusEnveloppe(radius);
 		this.radius = radius;
+	    model.notifyChange(Change.Size);
 	}
 	
 	public void setMass(float mass) {

@@ -11,6 +11,8 @@ import brabra.game.physic.geo.Vector;
  **/
 public abstract class PseudoPolyedre extends Collider {
 	
+	protected final static Vector infiniteSize = Vector.cube(Float.POSITIVE_INFINITY);
+	
 	/** Vertices in absolute. */
 	private Vector[] vertices = null;
 	/** Edges in absolute. */

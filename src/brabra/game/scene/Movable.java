@@ -85,12 +85,9 @@ public class Movable extends Object {
 
 	// --- Setters ---
 
-	public boolean setParent(Object newParent, ParentRelationship parentRel) {
-		if (super.setParent(newParent, parentRel)) {
-			movableParent = hasParent() ? (Movable) parentThat(p -> p instanceof Movable) : null;
-			return true;
-		} else
-			return false;
+	public void setParent(Object newParent, ParentRelationship parentRel) {
+		super.setParent(newParent, parentRel);
+		movableParent = hasParent() ? (Movable) parentThat(p -> p instanceof Movable) : null;
 	}
 
 	// --- life cycle ---

@@ -13,6 +13,7 @@ import brabra.game.physic.geo.Transform;
 import brabra.game.scene.Movable;
 import brabra.game.scene.Object;
 import brabra.game.scene.Object.Change;
+import javafx.scene.control.Tooltip;
 
 /** A field containing an object. */
 public class ObjectField extends Field implements Observer {
@@ -44,15 +45,13 @@ public class ObjectField extends Field implements Observer {
 				).respondingTo(Change.Name)
 				.set("Name", false, true));
 		// location abs (not modifiable)
-		fields.add(new VectorField.ProCustom(
-				v -> {},
-				() -> transform.location())
+		fields.add(new VectorField.Pro(
+				object.model.locationAbs)
 				.respondingTo(Change.Location)
 				.set("Absolute Location", false, false));
 		// rotation abs (not modifiable)
-		fields.add(new QuaternionField.ProCustom(
-				v -> {},
-				() -> transform.rotation())
+		fields.add(new QuaternionField.Pro(
+				object.model.rotationAbs)
 				.respondingTo(Change.Rotation)
 				.set("Absolute Rotation", false, false));
 		// location rel
@@ -120,9 +119,9 @@ public class ObjectField extends Field implements Observer {
 		// > if Box
 		if ((asBox = object.as(Box.class)) != null) {
 			// display collider
-			fields.add(new VectorField.ProCustom(
+			fields.add(new VectorField.Final(
 					s -> asBox.setSize(s),
-					() -> asBox.size)
+					() -> asBox.size())
 					.respondingTo(Change.Size)
 					.set("Size", false, true));
 		}
@@ -140,9 +139,9 @@ public class ObjectField extends Field implements Observer {
 		// > if Plane
 		if ((asPlane = object.as(Plane.class)) != null) {
 			// display collider
-			fields.add(new VectorField.ProCustom(
+			fields.add(new VectorField.Final(
 					s -> asPlane.setSize(s),
-					() -> asPlane.size)
+					() -> asPlane.size())
 					.respondingTo(Change.Size)
 					.set("Size (x,?,z)", false, true));
 		}
@@ -151,7 +150,8 @@ public class ObjectField extends Field implements Observer {
 		nameText.getStyleClass().add("objectField-name");
 		subfields().addAll(fields);
 		set(object.toString(), !closable, closable);
-
+		setToolTip();
+		
 		//--- Control:
 		object.model.addObserver(this);
 		fields.forEach(f -> object.model.addObserver(f));
@@ -161,7 +161,13 @@ public class ObjectField extends Field implements Observer {
 		if (isVisible()) {
 			if (arg == Change.Name)
 				super.setName(object.toString());
+			else if (arg == Change.Parent)
+				setToolTip();
 		}
+	}
+	
+	private void setToolTip() {
+		super.nameText.setTooltip(object.hasParent() ? new Tooltip("child of "+object.parent()) : null);
 	}
 
 	/** Return true if this mass will result in a manipulable body. */

@@ -1,5 +1,6 @@
 package brabra.game.physic.geo;
 
+import brabra.Debug;
 import brabra.game.physic.PseudoPolyedre;
 import brabra.game.physic.geo.Line.Projection;
 import brabra.game.scene.Object;
@@ -28,7 +29,7 @@ public class Box extends PseudoPolyedre {
 		super.copy(o);
 		Box ob = this.as(Box.class);
 		if (ob != null) {
-			setSize(size);
+			setSize(ob.size);
 		}
 	}
 	
@@ -52,49 +53,56 @@ public class Box extends PseudoPolyedre {
 	// --- Setters ---
 	
 	public void setSize(Vector size) {
-		this.size.set(size);
-	    this.dim = size.multBy(0.5f);
+	    if (size.x <= 0 || size.y <= 0 || size.z <= 0) {
+	    	Debug.err("A box shouldn't have any size component null or smaller than 0: keeping "+this.size+" instead of "+size+".");
+	    } else {
+		    // set
+		    this.size.set(size);
+		    this.dim = size.multBy(0.5f);
+		    
+		    // --- Physic things:
+		    this.verticesRel = new Vector[] {
+					new Vector(dim.x, dim.y, dim.z), new Vector(-dim.x, -dim.y, -dim.z), 	//+++
+					new Vector(dim.x, dim.y, -dim.z), new Vector(-dim.x, -dim.y, dim.z), 	//++-
+					new Vector(dim.x, -dim.y, dim.z), new Vector(-dim.x, dim.y, -dim.z),	//+-+
+					new Vector(dim.x, -dim.y, -dim.z), new Vector(-dim.x, dim.y, dim.z)};	//+--
 		
-	    // --- Physic things:
-	    this.verticesRel = new Vector[] {
-				new Vector(dim.x, dim.y, dim.z), new Vector(-dim.x, -dim.y, -dim.z), 	//+++
-				new Vector(dim.x, dim.y, -dim.z), new Vector(-dim.x, -dim.y, dim.z), 	//++-
-				new Vector(dim.x, -dim.y, dim.z), new Vector(-dim.x, dim.y, -dim.z),	//+-+
-				new Vector(dim.x, -dim.y, -dim.z), new Vector(-dim.x, dim.y, dim.z)};	//+--
+			this.edgesRel = new Line[] {
+					// -x -> x
+					new Line(verticesRel[1], verticesRel[6], true), new Line(verticesRel[3], verticesRel[4], true),
+					new Line(verticesRel[5], verticesRel[2], true), new Line(verticesRel[7], verticesRel[0], true),
+					// -y -> y
+					new Line(verticesRel[1], verticesRel[5], true), new Line(verticesRel[3], verticesRel[7], true),
+					new Line(verticesRel[4], verticesRel[0], true), new Line(verticesRel[6], verticesRel[2], true),
+					// -z -> z
+					new Line(verticesRel[1], verticesRel[3], true), new Line(verticesRel[2], verticesRel[0], true),
+					new Line(verticesRel[5], verticesRel[7], true), new Line(verticesRel[6], verticesRel[4], true)};
+			
+		    super.setRadiusEnveloppe(dim.mag());
 	
-		this.edgesRel = new Line[] {
-				// -x -> x
-				new Line(verticesRel[1], verticesRel[6], true), new Line(verticesRel[3], verticesRel[4], true),
-				new Line(verticesRel[5], verticesRel[2], true), new Line(verticesRel[7], verticesRel[0], true),
-				// -y -> y
-				new Line(verticesRel[1], verticesRel[5], true), new Line(verticesRel[3], verticesRel[7], true),
-				new Line(verticesRel[4], verticesRel[0], true), new Line(verticesRel[6], verticesRel[2], true),
-				// -z -> z
-				new Line(verticesRel[1], verticesRel[3], true), new Line(verticesRel[2], verticesRel[0], true),
-				new Line(verticesRel[5], verticesRel[7], true), new Line(verticesRel[6], verticesRel[4], true)};
-		
-	    super.setRadiusEnveloppe(dim.mag());
-	    
+			// --- Faces
+			this.faces =  new Plane[6];
+		    Vector[] facesLoc = new Vector[] {
+			    	new Vector(size.x/2, 0, 0), new Vector(-size.x/2, 0, 0), 	//gauche,  droite  (x)
+			    	new Vector(0, size.y/2, 0), new Vector(0, -size.y/2, 0), 	//dessus, dessous  (y)
+			  	    new Vector(0, 0, size.z/2), new Vector(0, 0, -size.z/2)};	//devant, derriere (z)
+		    Quaternion[] facesRot = new Quaternion[] {
+					Quaternion.fromDirection(left, up), Quaternion.fromDirection(right, up),
+					Quaternion.fromDirection(up, up), Quaternion.fromDirection(down, up),
+					Quaternion.fromDirection(front, up), Quaternion.fromDirection(behind, up)};
+		    Vector[] facesSize = new Vector[] {
+			    	new Vector(size.y, 0, size.z), new Vector(size.y, 0, size.z), 	//gauche,  droite  (x)
+			    	new Vector(size.x, 0, size.z), new Vector(size.x, 0, size.z), 	//dessus, dessous  (y)
+			  	    new Vector(size.x, 0, size.y), new Vector(size.x, 0, size.y)};	//devant, derriere (z)
+		    
+		    for (int i=0; i<6; i++) {
+		    	faces[i] = new Plane(facesLoc[i], facesRot[i], facesSize[i]);
+		    	faces[i].setParent(this, null);
+		    }
 
-		// --- Faces
-		this.faces =  new Plane[6];
-	    Vector[] facesLoc = new Vector[] {
-		    	new Vector(size.x/2, 0, 0), new Vector(-size.x/2, 0, 0), 	//gauche,  droite  (x)
-		    	new Vector(0, size.y/2, 0), new Vector(0, -size.y/2, 0), 	//dessus, dessous  (y)
-		  	    new Vector(0, 0, size.z/2), new Vector(0, 0, -size.z/2)};	//devant, derriere (z)
-	    Quaternion[] facesRot = new Quaternion[] {
-				Quaternion.fromDirection(left, up), Quaternion.fromDirection(right, up),
-				Quaternion.fromDirection(up, up), Quaternion.fromDirection(down, up),
-				Quaternion.fromDirection(front, up), Quaternion.fromDirection(behind, up)};
-	    Vector[] facesSize = new Vector[] {
-		    	new Vector(size.y, 0, size.z), new Vector(size.y, 0, size.z), 	//gauche,  droite  (x)
-		    	new Vector(size.x, 0, size.z), new Vector(size.x, 0, size.z), 	//dessus, dessous  (y)
-		  	    new Vector(size.x, 0, size.y), new Vector(size.x, 0, size.y)};	//devant, derriere (z)
-	    for (int i=0; i<6; i++) {
-	    	faces[i] = new Plane(facesLoc[i], facesRot[i], facesSize[i]);
+		    // notify
+		    model.notifyChange(Change.Size);
 	    }
-	    for (Plane f : faces)
-	    	f.setParent(this, null);
 	}
 	
 	public void setMass(float mass) {
@@ -138,7 +146,6 @@ public class Box extends PseudoPolyedre {
 	}
 	
 	public void updateAbs() {
-		super.updateAbs();
 		// for Cube
 		for (Plane p : faces)
 			p.updateAbs();

@@ -13,7 +13,7 @@ import processing.core.PApplet;
 public class Plane extends PseudoPolyedre {
 	
 	/** The size of the plane. using x & z. */
-	public final Vector size = new Vector(); 
+	private final Vector size = new Vector(); 
 	/** Native relative coordonates (4 points). */
 	private Vector[] natCo;
 	/** Flag indicating if the plane is finite. */
@@ -33,13 +33,13 @@ public class Plane extends PseudoPolyedre {
 	public Plane(Vector loc, Quaternion rot) {
 		super(loc, rot);
 		super.setName("Plane");
-		setSize(null);
+		setSize(infiniteSize);
 	}
 	
 	public void copy(Object o) {
 		super.copy(o);
-		Plane op = this.as(Plane.class);
-		if (op != null)
+		Plane op;
+		if ((op = this.as(Plane.class)) != null)
 			setSize(op.size);
 	}
 	
@@ -60,6 +60,10 @@ public class Plane extends PseudoPolyedre {
 		return vx.base.plus(
 				vx.norm.multBy(randomBi() * size.x), 
 				vz.norm.multBy(randomBi() * size.z));
+	}
+	
+	public Vector size() {
+		return size;
 	}
 	
 	// --- Setters ---
@@ -85,12 +89,21 @@ public class Plane extends PseudoPolyedre {
 
 	/** Set the size taking x & z from size2d. Set the plan to infinite if size2d is null. */
 	public void setSize(Vector size2d) {
-		this.size.set(size2d);
-		this.finite = size2d != null;
-		this.natCo = getNatCo(finite ? size2d : new Vector(1, 0, 1));
-		super.setRadiusEnveloppe(finite ? size2d.mag()/2 : Float.POSITIVE_INFINITY);
-		if (!finite && !ghost())
-			setMass(-1);
+		if (size2d.x <= 0 || size2d.z <= 0) {
+	    	Debug.err("A plane shouldn't have x or z size component null or smaller than 0: keeping "+this.size+" instead of "+size2d+".");
+	    } else {
+	    	size2d.y = 0;
+			this.size.set(size2d);
+			this.finite = size2d != infiniteSize;
+			this.natCo = getNatCo(finite ? size2d : new Vector(1, 0, 1));
+			
+			super.setRadiusEnveloppe(finite ? size2d.mag()/2 : Float.POSITIVE_INFINITY);
+			if (!finite && !ghost())
+				setMass(-1);
+			
+			updateAbs();
+		    model.notifyChange(Change.Size);
+	    }
 	}
 
 	// --- life cycle ---
@@ -105,7 +118,6 @@ public class Plane extends PseudoPolyedre {
 	}
 
 	public void updateAbs() {
-		super.updateAbs();
 		// for plane
 		Vector[] vertices = absolute(natCo);
 		vx = new Line(vertices[0], vertices[1], finite); 	// x

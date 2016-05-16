@@ -20,8 +20,6 @@ import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TabPane.TabClosingPolicy;
 import javafx.scene.control.Tooltip;
-import javafx.scene.input.KeyEvent;
-import javafx.scene.input.KeyCode;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
@@ -47,52 +45,36 @@ public class ToolWindow extends Application {
 		Application.launch();
 	}
 	
-	public ToolWindow() {
-	}
-	
 	/** Called to start the JavaFX application. */
     public void start(Stage stage) {
-		launchedLock.lock();
+    	this.app = Brabra.app;
+		this.app.fxApp = this;
 		this.stage = stage;
-		this.app = Brabra.app;
-    	Brabra.app.fxApp = this;	// let the pro thread go
-    	
+		
     	//--- View: 
     	
     	// processing dependent stuff
     	scene = new Scene(initRoot(), width, Brabra.height);
     	updateStageLoc();
     	
-    	// init the scene/show (but doesn't show it)
+    	// init the scene and stage. show it.
     	stage.setTitle(name);
+    	scene.getStylesheets().add("resource/gui/gui.css");
     	stage.setScene(scene);
-        scene.getStylesheets().add("resource/gui/gui.css");
+        stage.show();
+    	Debug.info(3, "tool window ready");
     	
     	//--- Control:
     	
-    	// to keep both windows shown (at least tool -> game)
-    	stage.addEventHandler(WindowEvent.WINDOW_SHOWN, e -> app.setVisible(true));
-    	// to exit main app when  the tool window is closed
-    	//TODO catch the close with cross event
-    	stage.setOnCloseRequest(e -> {
-    		e.consume();
-    		this.closing = true; 
-    		app.runLater(() -> app.exit());
-    	});
-    	
-    	// general keyboard events: alt-f4 to clean exit, h to hide/show.
-    	stage.addEventFilter(KeyEvent.KEY_PRESSED, e -> {
-    		if(e.getCode() == KeyCode.F4 && e.isAltDown()) {
-        		e.consume();
-        		this.closing = true; 
-        		app.runLater(() -> { app.exit(); });
-    		}
-    	});
-    	
-        // intitialized:
-    	launchedLock.unlock();
-    	Debug.info(3, "tool window ready");
-    	stage.show();
+    	// to exit main app when the tool window is closed by cross or alt-f4 event.
+        stage.addEventHandler(
+        		WindowEvent.WINDOW_CLOSE_REQUEST, 
+        		e -> {
+        			e.consume(); 
+        			this.closing = true;
+        			app.runLater(() -> app.exit());
+        		});
+
     }
     
     /** The name of the tabs (as displayed in the tab holder) */

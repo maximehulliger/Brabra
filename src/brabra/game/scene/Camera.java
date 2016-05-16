@@ -12,19 +12,19 @@ import processing.core.PShape;
 
 /** 
  * Class dealing with the camera, background and light (+removal of far objects). 
- * Default mode is Not (see FollowMode for more).
+ * Default mode is None (see FollowMode for more).
  * If the camera is placed before objects update, 
  * the camera position will be 1 frame late from the objects in scene. 
  **/ 
 public class Camera extends Object {
 	/** 
 	 * All the modes for the camera. <p>
-	 * Not: fixed at distNot, looking at zero. <p>
+	 * None: fixed at distNot, looking at zero. <p>
 	 * Static: follow the parent in static mode. <p>
 	 * Full: follow the parent in full mode.
 	 **/
 	public enum FollowMode {
-		Not, Static, Full;
+		None, Static, Full;
 		public FollowMode next() {
 			return values()[(this.ordinal()+1) % values().length];
 		}
@@ -34,10 +34,10 @@ public class Camera extends Object {
 			else if (f.equals("full") || f.equals("relative"))
 				return FollowMode.Full;
 			else if (f.equals("fixed") || f.equals("not") || f.equals("none"))
-				return FollowMode.Not;
+				return FollowMode.None;
 			else {
-				Debug.err("camera mode unknown: \""+f+"\", taking Not");
-				return FollowMode.Not;
+				Debug.err("camera mode unknown: \""+f+"\", taking None");
+				return FollowMode.None;
 			}
 		}
 	}
@@ -55,19 +55,19 @@ public class Camera extends Object {
 	pointCentralColor = new Color("red", true);
 
 	// intern, mode related
-	private FollowMode followMode = FollowMode.Not;
 	/** The absolute point that looks the camera. */
-	private final Vector focus = zero.copy();
 	private final Vector orientation = defaultOrientation.copy();
 	private final Vector distNot = Vector.cube(300);
 	private final Vector distStatic = Vector.cube(300);
 	private final Vector distFull = add(up(90), behind(135));
 
+	private FollowMode followMode = FollowMode.None;
+	private Vector focus = zero.copy();
+	
 	/** Creates a new camera. */
 	public Camera() {
 		super(Vector.cube(100));
 		setName("Camera");
-		//locationRel.addOnChange(()-> setDist(followMode, locationRel));
 	}
 
 	// --- Setters ---
@@ -88,14 +88,14 @@ public class Camera extends Object {
 	}
 
 	/** To let parentRel be consistent with followMode. */
-	public boolean setParent(Object newParent, ParentRelationship newParentRel) {
+	public void setParent(Object newParent) {
 		// for the camera, paretn rel not taken in account
-		assert newParentRel == null;
+		// assert newParentRel == null;
 
 		// get Object parent relation for the camera
 		ParentRelationship rel4Cam;
 		switch (followMode) {
-		case Not:
+		case None:
 			rel4Cam = ParentRelationship.None;
 			break;
 		case Full:
@@ -105,15 +105,17 @@ public class Camera extends Object {
 			rel4Cam = ParentRelationship.Static;
 			break;
 		}
+		
+		focus = newParent.location();
 
 		// give it to Object
-		return super.setParent(newParent, rel4Cam);
+		super.setParent(newParent, rel4Cam);
 	}
 
 	/** Set the camera relative dist for this mode. */
 	public void setDist(FollowMode mode, Vector dist) {
 		switch(mode) {
-		case Not:
+		case None:
 			distNot.set(dist);
 			break;
 		case Static:
@@ -183,7 +185,7 @@ public class Camera extends Object {
 	/** Put the camera in the processing scene and carry his job (see class doc). */
 	public void place() {
 		Debug.setCurrentWork("camera");
-		updateAbs();
+		// updateAbs();
 
 		// we remove the objects too far away.
 		game.scene.forEachObjects(o -> {
