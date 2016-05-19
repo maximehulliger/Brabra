@@ -62,7 +62,6 @@ public class Camera extends Object {
 	private final Vector distFull = add(up(90), behind(135));
 
 	private FollowMode followMode = FollowMode.None;
-	private Vector focus = zero.copy();
 	
 	/** Creates a new camera. */
 	public Camera() {
@@ -105,8 +104,6 @@ public class Camera extends Object {
 			rel4Cam = ParentRelationship.Static;
 			break;
 		}
-		
-		focus = newParent.location();
 
 		// give it to Object
 		super.setParent(newParent, rel4Cam);
@@ -185,7 +182,7 @@ public class Camera extends Object {
 	/** Put the camera in the processing scene and carry his job (see class doc). */
 	public void place() {
 		Debug.setCurrentWork("camera");
-		// updateAbs();
+		final Vector focus = hasParent() ? parent().location() : zero;
 
 		// we remove the objects too far away.
 		game.scene.forEachObjects(o -> {
