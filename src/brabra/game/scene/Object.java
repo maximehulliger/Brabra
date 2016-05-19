@@ -11,7 +11,6 @@ import brabra.game.physic.geo.Transform;
 import brabra.game.physic.geo.Vector;
 import brabra.game.physic.geo.Transform.ParentRelationship;
 import brabra.game.scene.SceneLoader.Attributes;
-import brabra.gui.ToolWindow;
 
 /** 
  * An object with transforms (location, rotation) 
@@ -228,12 +227,11 @@ public class Object extends ProMaster {
 		public Quaternion rotationAbs = rotation();
 		
 		public void notifyChange(Change change) {
-			ToolWindow.runLater(() -> {
-				synchronized (this) {
-					setChanged();
-					notifyObservers(change);
-				}
-			});
+			synchronized (this) {
+				setChanged();
+				notifyObservers(change);
+				transform.children.forEach(t -> t.object.model.notifyChange(change));
+			}
 		}
 	}
 

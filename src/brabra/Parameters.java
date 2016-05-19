@@ -4,7 +4,6 @@ import java.util.Observable;
 
 import brabra.game.physic.geo.Vector;
 import brabra.game.scene.SceneProviderDistant;
-import brabra.gui.ToolWindow;
 
 /** Class containing all the parameters if the project (model). */
 public class Parameters extends Observable {
@@ -185,11 +184,9 @@ public class Parameters extends Observable {
 	}
 	
 	private void notifyChange(Change change) {
-		ToolWindow.runLater(() -> {
-			synchronized (this) {
-				setChanged();
-				notifyObservers(change);
-			}
-		});
-	}
+		synchronized (this) {
+			setChanged();
+			notifyObservers(change);
+		}
+	};
 }

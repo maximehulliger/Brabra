@@ -23,11 +23,11 @@ public class StringField extends ValueField.WithCustomModel<String> {
 		setValue(getModelValue());
 	}
 	
-	protected String getNewValue() {
+	protected String getGUIValue() {
 		return textField.getText();
 	}
 
-	protected void setDisplayValue(String newVal) {
+	protected void setGUIValue(String newVal) {
 		if (open())
 			textField.setText(newVal);
 		else

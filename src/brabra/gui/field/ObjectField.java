@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Observable;
 import java.util.Observer;
 
+import brabra.Brabra;
 import brabra.game.physic.Body;
 import brabra.game.physic.Collider;
 import brabra.game.physic.geo.Box;
@@ -45,7 +46,7 @@ public class ObjectField extends Field implements Observer {
 				).respondingTo(Change.Name)
 				.set("Name", false, true));
 		// location abs (not modifiable)
-		fields.add(new VectorField.Pro(
+		fields.add(new VectorField.Final(
 				object.model.locationAbs)
 				.respondingTo(Change.Location)
 				.set("Absolute Location", false, false));
@@ -55,7 +56,7 @@ public class ObjectField extends Field implements Observer {
 				.respondingTo(Change.Rotation)
 				.set("Absolute Rotation", false, false));
 		// location rel
-		fields.add(new VectorField.Pro(transform.locationRel)
+		fields.add(new VectorField.Final(transform.locationRel)
 				.respondingTo(Change.Location)
 				.set("Relative Location", false, true));
 		// rotation rel
@@ -66,7 +67,7 @@ public class ObjectField extends Field implements Observer {
 		// > if Movable
 		if ((asMovable = object.as(Movable.class)) != null) {
 			// velocity (rel)
-			fields.add(new VectorField.Pro(asMovable.velocityRel())
+			fields.add(new VectorField.Final(asMovable.velocityRel())
 					.respondingTo(Change.Velocity)
 					.set("Velocity (rel)", false, true));
 			// rotVelotity (still always relative)
@@ -119,10 +120,11 @@ public class ObjectField extends Field implements Observer {
 		// > if Box
 		if ((asBox = object.as(Box.class)) != null) {
 			// display collider
-			fields.add(new VectorField.Final(
+			fields.add(new VectorField(
 					s -> asBox.setSize(s),
 					() -> asBox.size())
 					.respondingTo(Change.Size)
+					.withValueValider(s ->  s.x!=0 && s.y!=0 && s.z!=0)
 					.set("Size", false, true));
 		}
 				
@@ -133,16 +135,18 @@ public class ObjectField extends Field implements Observer {
 					s -> asSphere.setRadius(s),
 					() -> asSphere.radius())
 					.respondingTo(Change.Size)
+					.withValueValider(s ->  s>0)
 					.set("Radius", false, true));
 		}
 		
 		// > if Plane
 		if ((asPlane = object.as(Plane.class)) != null) {
 			// display collider
-			fields.add(new VectorField.Final(
+			fields.add(new VectorField(
 					s -> asPlane.setSize(s),
 					() -> asPlane.size())
 					.respondingTo(Change.Size)
+					.withValueValider(s ->  s.x!=0 && s.z!=0)
 					.set("Size (x,?,z)", false, true));
 		}
 				
@@ -157,12 +161,14 @@ public class ObjectField extends Field implements Observer {
 		fields.forEach(f -> object.model.addObserver(f));
 	}
 
-	public void update(Observable o, java.lang.Object arg) {
+	public void update(final Observable o, final java.lang.Object arg) {
 		if (isVisible()) {
-			if (arg == Change.Name)
-				super.setName(object.toString());
-			else if (arg == Change.Parent)
-				setToolTip();
+			Brabra.app.fxApp.runLater(() -> {
+				if (arg == Change.Name)
+					super.setName(object.toString());
+				else if (arg == Change.Parent)
+					setToolTip();
+			});
 		}
 	}
 	

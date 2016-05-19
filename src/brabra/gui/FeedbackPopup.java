@@ -7,8 +7,10 @@ import javafx.scene.layout.VBox;
 
 public class FeedbackPopup extends VBox {
 	
-	public FeedbackPopup () {
-		super();
+	public ToolWindow fxApp;
+	
+	public FeedbackPopup (ToolWindow fxApp) {
+		this.fxApp = fxApp;
 		setMaxHeight(Brabra.height/3f);
 		setMaxWidth(ToolWindow.width*3f/4);
 		setAlignment(Pos.BOTTOM_CENTER);
@@ -25,11 +27,11 @@ public class FeedbackPopup extends VBox {
      * 	time: the time in second during which the msg should be displayed. 
      **/
     public void displayMessage(String msg, boolean ok, float time) {
-    	ToolWindow.runLater(() -> {
+    	fxApp.runLater(() -> {
 	    	final Label label = new Label(msg);
 	    	label.getStyleClass().add(ok ? "popup-ok" : "popup-err");
 	    	this.addContent(label);
-	    	ToolWindow.runLater(() -> this.removeContent(label), time);
+	    	fxApp.runLater(() -> this.removeContent(label), time);
     	});
     }
     

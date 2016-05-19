@@ -9,11 +9,11 @@ import brabra.game.physic.geo.Vector;
 import brabra.game.scene.Camera;
 
 
-/** 
+/**
  * An abstract class mastering Processing. 
  * Provide a lot of useful methods, mostly syntactic sugar. 
  * Free to use once extended :) 
- * */
+ **/
 public abstract class ProMaster extends Master {
 	
 	protected static Brabra app;

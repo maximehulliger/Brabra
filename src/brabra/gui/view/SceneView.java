@@ -6,6 +6,7 @@ import java.util.Observable;
 import java.util.Observer;
 import java.util.stream.Collectors;
 
+import brabra.Brabra;
 import brabra.Debug;
 import brabra.game.scene.Object;
 import brabra.game.scene.Scene;
@@ -36,20 +37,22 @@ public final class SceneView extends View implements Observer {
 		final Scene.Change change = sceneArg.change;
 		// the view only react to object addition or deletion.
 		if (change == Scene.Change.ObjectAdded || change == Scene.Change.ObjectRemoved) {
-			// update the title
-			final int nbObj = sceneModel.objects.size();
-			setTitle(nbObj > 0 ? "Scene with "+nbObj+" objects:" : defaultTitle);
-			// add or remove fields
-			if (change == Scene.Change.ObjectAdded) {
-				addObjectField(obj);
-			} else if (change == Scene.Change.ObjectRemoved) {
-				// we remove the object field of the object that is no longer in the scene.
-				final List<ObjectField> deadFields = objectFields.stream().filter(of -> of.object == obj).collect(Collectors.toList());
-				assert(deadFields.size() >= 1);
-				final ObjectField deadField = deadFields.get(0);
-				removeContent(deadField);
-				objectFields.remove(deadField);
-			}
+			Brabra.app.fxApp.runLater(() -> {
+				// update the title
+				final int nbObj = sceneModel.objects.size();
+				setTitle(nbObj > 0 ? "Scene with "+nbObj+" objects:" : defaultTitle);
+				// add or remove fields
+				if (change == Scene.Change.ObjectAdded) {
+					addObjectField(obj);
+				} else if (change == Scene.Change.ObjectRemoved) {
+					// we remove the object field of the object that is no longer in the scene.
+					final List<ObjectField> deadFields = objectFields.stream().filter(of -> of.object == obj).collect(Collectors.toList());
+					assert(deadFields.size() >= 1);
+					final ObjectField deadField = deadFields.get(0);
+					removeContent(deadField);
+					objectFields.remove(deadField);
+				}
+			});
 		}
 	}
 	

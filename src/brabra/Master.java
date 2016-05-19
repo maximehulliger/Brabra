@@ -55,12 +55,13 @@ public abstract class Master {
 	private static final DecimalFormat shortString = new DecimalFormat("####.###");
 	/** Return this float formated (string) to hold in 7 char. */
 	public static String formatFloat(float value, float epsilon) {
-		if (Physic.isZeroEps(value)) //TODO add epsilon option
-			return "0";
-		else {
-			final int intValue = (int) value;
-			return value == intValue ? Integer.toString(intValue) : shortString.format(value);
-		}
+		final float epsedValue = epsed(value, epsilon);
+		final int intValue = (int) epsedValue;
+		return epsedValue == intValue ? Integer.toString(intValue) : shortString.format(epsedValue);
+	}
+	
+	public static float epsed(float value, float epsilon) {
+		return Physic.isZeroEps(value, epsilon) ? 0 : value;
 	}
 	
 	public static void println(float[] array) {

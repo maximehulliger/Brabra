@@ -20,7 +20,6 @@ import brabra.game.scene.fun.Starship;
 import brabra.game.scene.weapons.MissileLauncher;
 import brabra.game.scene.weapons.Target;
 import brabra.game.scene.weapons.Weaponry;
-import brabra.gui.ToolWindow;
 
 /** Object representing the active working scene (model). **/
 public class Scene extends Observable {
@@ -110,12 +109,10 @@ public class Scene extends Observable {
 	}
 	
 	protected void notifyChange(Change change, Object o) {
-		ToolWindow.runLater(() -> {
-			synchronized (this) {
-				this.setChanged();
-				this.notifyObservers(new Arg(change, o));
-			}
-		});
+		synchronized (this) {
+			this.setChanged();
+			this.notifyObservers(new Arg(change, o));
+		}
 	}
 
 	// --- Prefab help method ---

@@ -28,7 +28,7 @@ public class QuaternionField extends ValueField<Quaternion> {
 		this.angleValue = quaternion.angle();
 		
 		//--- Fields (vector + float):
-		rotAxisField = new VectorField(rotAxisValue);
+		rotAxisField = new VectorField.Final(rotAxisValue);
 		rotAxisField.setDefaultValue(null);
 		rotAxisField.addOnChange(() -> this.onChange());
 		angleField = new FloatField(a -> {angleValue = a; onChange();}, () -> this.angleValue);
@@ -46,7 +46,7 @@ public class QuaternionField extends ValueField<Quaternion> {
 		return quaternion.copy();
 	}
 
-	protected Quaternion getNewValue() {
+	protected Quaternion getGUIValue() {
 		if (inputDifferent(rotAxisValue, angleValue)) 
 			lastValidValue.set(rotAxisValue,angleValue);
 		
@@ -65,11 +65,11 @@ public class QuaternionField extends ValueField<Quaternion> {
 		super.update(o, arg);
 	}
 
-	protected void setDisplayValue(Quaternion newVal) {
+	protected void setGUIValue(Quaternion newVal) {
 		setTextValue(newVal.formated());
 		if (rotAxisField != null) {
-			rotAxisField.setDisplayValue(newVal.rotAxis());
-			angleField.setDisplayValue(newVal.angle());
+			rotAxisField.setGUIValue(newVal.rotAxis());
+			angleField.setGUIValue(newVal.angle());
 		}
 	}
 
@@ -100,7 +100,6 @@ public class QuaternionField extends ValueField<Quaternion> {
 			super(getModelValue.get());
 			this.setModelValue = setModelValue;
 			this.getModelValue = getModelValue;
-			this.setValue(defaultValue);
 		}
 
 		protected final void setModelValue(Quaternion val) {

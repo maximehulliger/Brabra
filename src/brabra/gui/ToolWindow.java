@@ -31,7 +31,7 @@ public class ToolWindow extends Application {
 	public static final String name = "Tool Window";
 	public static final int width = 360;
 	public static final Lock launchedLock = new ReentrantLock();
-	public static FeedbackPopup feedbackPopup = new FeedbackPopup();
+	public static FeedbackPopup feedbackPopup;
 	
 	private Brabra app;
 	private Stage stage;
@@ -54,6 +54,7 @@ public class ToolWindow extends Application {
     	//--- View: 
     	
     	// processing dependent stuff
+		feedbackPopup = new FeedbackPopup(this);
     	scene = new Scene(initRoot(), width, Brabra.height);
     	updateStageLoc();
     	
@@ -124,13 +125,13 @@ public class ToolWindow extends Application {
     }
 
     /** Ask for something to run on the JavaFX Application Thread. */
-    public static void runLater(Runnable f) {
+    public void runLater(Runnable f) {
     	if (Brabra.app.fxApp != null && !Brabra.app.fxApp.closing)
     		Platform.runLater(f);
     }
 
     /** Ask for something to run on the JavaFX Application Thread in at least time seconds. */
-    public static void runLater(Runnable f, float time) {
+    public void runLater(Runnable f, float time) {
     	runLater(() -> 
     	executor.schedule(
     			() -> runLater(f),

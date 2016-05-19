@@ -36,7 +36,7 @@ public class ParametersView extends View {
 				.respondingTo(Change.DisplayAllColliders)
 				.set("Display all Colliders", true, false));
 		// gravity
-		fields.add(new VectorField.Final(
+		fields.add(new VectorField(
 				g -> para.setGravity(g),
 				() -> para.gravity())
 				.respondingTo(Change.Gravity)

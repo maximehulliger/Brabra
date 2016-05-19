@@ -14,6 +14,7 @@ public class FloatField extends ValueField.WithCustomModel<Float> {
 	
 	public FloatField(Consumer<Float> setModelValue, Supplier<Float> getModelValue) {
 		super(setModelValue, getModelValue, 0f);
+		setValue(getModelValue());
 		
 		//--- View (&control):
 		floatField = new StringField(s -> onChange(), () -> getModelValue().toString());
@@ -22,17 +23,20 @@ public class FloatField extends ValueField.WithCustomModel<Float> {
 		floatField.setDefaultValue("0");
 		contentClosed.getChildren().add(floatField.contentClosed);
 		contentOpen.getChildren().add(floatField.contentOpen);
-		setValue(getModelValue());
 	}
 	
-	protected Float getNewValue() {
-		return Master.getFloat(floatField.getNewValue(), true);
+	public FloatField() {
+		this(f -> {}, () -> null);
 	}
 
-	protected void setDisplayValue(Float newVal) {
+	protected Float getGUIValue() {
+		return Master.getFloat(floatField.getGUIValue(), true);
+	}
+
+	protected void setGUIValue(Float newVal) {
 		final String newTextValue = Master.formatFloat(newVal, Physic.epsilon);
 		setTextValue(newTextValue);
-		floatField.setDisplayValue(newTextValue);
+		floatField.setGUIValue(newTextValue);
 	}
 	
 	public void update(Observable o, java.lang.Object arg) {

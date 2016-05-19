@@ -3,17 +3,23 @@ package brabra.gui.field;
 import java.util.ArrayList;
 import java.util.Observable;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
+import brabra.Brabra;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 
-/** An abstract field that define how to deal with one value. */
+/** 
+ * An abstract field that define how to deal with one value. 
+ * Deal with the GUI in javaFX thread and model in processing thread.
+ **/
 public abstract class ValueField<T> extends Field {
 	
-	private T value = null, defaultValue = null;
+	protected T value = null, defaultValue = null;
 	private Object triggerArg = null;
 	private ArrayList<Runnable> onChange = new ArrayList<>(2);
+	private Function<T, Boolean> valueValider = t -> true;
 	
 	// --- let to children ---
 	
@@ -24,10 +30,10 @@ public abstract class ValueField<T> extends Field {
 	protected abstract T getModelValue();
 	
 	/** Return the value from the gui. */
-	protected abstract T getNewValue();
+	protected abstract T getGUIValue();
 	
 	/** Called to update the text and field values in the gui. */
-	protected abstract void setDisplayValue(T newVal);
+	protected abstract void setGUIValue(T newVal);
 
 	/** Return the current last valid value of this field. */
 	protected final T value() {
@@ -46,17 +52,15 @@ public abstract class ValueField<T> extends Field {
 		if (value==null || value.equals(this.defaultValue))
 			value = defaultValue;
 		this.defaultValue = defaultValue;
-			
 	}
 	
 	/** Set the value of the field and update the gui (if changed). Return true if the value changed. */
 	protected boolean setValue(T value) {
-		value = value == null ? defaultValue : value;
-		
-		if (this.value == null ? this.value != value : !this.value.equals(value)){
-			this.value = value;
-			//System.out.println(name() + " updated to "+value);
-			setDisplayValue(value);
+		final T finalValue = value == null ? defaultValue : value;
+		if ((this.value == null ? this.value != finalValue : !this.value.equals(finalValue)) 
+				&& valueValider.apply(finalValue)){
+			this.value = finalValue;
+			Brabra.app.fxApp.runLater(() -> setGUIValue(finalValue));
 			return true;
 		} else
 			return false;
@@ -64,6 +68,11 @@ public abstract class ValueField<T> extends Field {
 	
 	public ValueField<T> respondingTo(Object triggerArg) {
 		this.triggerArg = triggerArg;
+		return this;
+	}
+	
+	public ValueField<T> withValueValider(Function<T, Boolean> valueValider) {
+		this.valueValider = valueValider;
 		return this;
 	}
 
@@ -79,26 +88,24 @@ public abstract class ValueField<T> extends Field {
 	}
 
 	public void update(Observable o, java.lang.Object arg) {
-		if (isVisible() && (triggerArg == null || arg == triggerArg)) {
-			setValue(getModelValue());
-		}
+		if (triggerArg == null || arg == triggerArg)
+			Brabra.app.fxApp.runLater(() -> setValue(getModelValue()));
 	}
 	
 	public void setOpen(boolean open) {
 		super.setOpen(open);
-		setDisplayValue(value());
+		setGUIValue(value());
 	}
 
 	protected final void onChange() {
-		final T newValueRaw = getNewValue();
+		final T newValueRaw = getGUIValue();
 		final T newValue = newValueRaw == null ? defaultValue : newValueRaw;
 		
-		if (this.value == null ? this.value != newValue : !this.value.equals(newValue)){
-			this.value = newValue;
-			setModelValue(value);
+		if (value == null ? value != newValue : !value.equals(newValue)){
+			value = newValue;
+			Brabra.app.runLater(() -> setModelValue(value));
 			if (onChange != null)
 				onChange.forEach(r -> r.run());
-			//System.out.println(name() + " changed");
 		}
 	}
 
@@ -128,7 +135,8 @@ public abstract class ValueField<T> extends Field {
 		}
 
 		protected final T getModelValue() {
-			return getModelValue.get();
+			final T modelValue = getModelValue.get();
+			return modelValue == null ? defaultValue : modelValue;
 		}
 	}
 }

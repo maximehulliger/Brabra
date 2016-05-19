@@ -27,11 +27,11 @@ public class BooleanField extends ValueField.WithCustomModel<Boolean> {
 		cboxOpen.setOnAction(e -> onChange());
 	}
 
-	protected Boolean getNewValue() {
+	protected Boolean getGUIValue() {
 		return cboxOpen.isSelected();
 	}
 
-	protected void setDisplayValue(Boolean newVal) {
+	protected void setGUIValue(Boolean newVal) {
 		cboxOpen.setSelected(newVal);
 		cboxClosed.setSelected(newVal);
 	}
