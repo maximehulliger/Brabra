@@ -20,6 +20,8 @@ import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TabPane.TabClosingPolicy;
 import javafx.scene.control.Tooltip;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
@@ -66,7 +68,7 @@ public class ToolWindow extends Application {
     	Debug.info(3, "tool window ready");
     	
     	//--- Control:
-    	
+
     	// to exit main app when the tool window is closed by cross or alt-f4 event.
         stage.addEventHandler(
         		WindowEvent.WINDOW_CLOSE_REQUEST, 
@@ -76,6 +78,17 @@ public class ToolWindow extends Application {
         			app.runLater(() -> app.exit());
         		});
 
+    	// to reload css on 'r' pressed.
+        stage.addEventHandler(
+        		KeyEvent.KEY_PRESSED, 
+        		ke -> {
+        			if (ke.getCode() == KeyCode.R) {
+        				scene.getStylesheets().clear();
+        				scene.getStylesheets().add("resource/gui/gui.css");
+        			}
+        		});
+        
+        
     }
     
     /** The name of the tabs (as displayed in the tab holder) */

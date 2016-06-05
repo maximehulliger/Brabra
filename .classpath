@@ -41,8 +41,8 @@
 	<classpathentry exported="true" kind="lib" path="lib/osgi-resource-locator-1.0.1.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/persistence-api-1.0.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/validation-api-1.1.0.Final.jar"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry exported="true" kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/BrabraServer"/>
+	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/BrabraServer"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

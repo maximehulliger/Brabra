@@ -89,6 +89,7 @@
 	-fx-font-family:"selif";
 	-fx-font-size:14px;
 	-fx-padding: 2px;
+	-fx-font-weight: bold;
 }
 
 .field-triangleButton {

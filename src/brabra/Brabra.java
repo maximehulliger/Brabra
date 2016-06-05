@@ -126,10 +126,6 @@ public class Brabra extends PApplet {
 			// And finally show the view (init content).
 			setView(View.RealGame);
 			
-//			ImageAnalyser.readyLock.lock();
-//			ImageAnalyser.readyLock.unlock();
-			
-			
 		} catch (Exception e) {
 			e.printStackTrace();
 			this.dispose();
