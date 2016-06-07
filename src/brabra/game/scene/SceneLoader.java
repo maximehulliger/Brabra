@@ -17,7 +17,7 @@ import brabra.Debug;
 import brabra.ProMaster;
 import brabra.game.physic.geo.Quaternion;
 import brabra.game.physic.geo.Vector;
-import brabra.model.SceneFile;
+import brabra.game.scene.SceneFile;
 
 /** 
  * Class responsible for getting the scene files 

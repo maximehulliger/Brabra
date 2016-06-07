@@ -1,6 +1,5 @@
 package brabra.gui;
 
-import brabra.Brabra;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
@@ -11,8 +10,6 @@ public class FeedbackPopup extends VBox {
 	
 	public FeedbackPopup (ToolWindow fxApp) {
 		this.fxApp = fxApp;
-		setMaxHeight(Brabra.height/3f);
-		setMaxWidth(ToolWindow.width*3f/4);
 		setAlignment(Pos.BOTTOM_CENTER);
 		getStyleClass().add("popup-box");
 		setPopupVisible(false);

@@ -8,7 +8,7 @@ import brabra.game.scene.Scene;
 import brabra.gui.field.Field;
 import brabra.gui.field.SceneField;
 import brabra.gui.field.StringField;
-import brabra.model.SceneFile;
+import brabra.game.scene.SceneFile;
 
 
 public class StoreView extends View {

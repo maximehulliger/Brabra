@@ -7,7 +7,7 @@ import java.util.List;
 
 import org.junit.Test;
 
-import brabra.model.SceneFile;
+import brabra.game.scene.SceneFile;
 
 public class SceneClientTest {
 

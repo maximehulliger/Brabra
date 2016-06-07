@@ -3,7 +3,7 @@ package brabra.game.scene;
 import java.util.ArrayList;
 import java.util.List;
 
-import brabra.model.SceneFile;
+import brabra.game.scene.SceneFile;
 
 public class SceneProviderLocal {
 

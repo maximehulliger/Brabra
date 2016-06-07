@@ -1,11 +1,10 @@
-
-/** --- For the Views --- */
+/* --- For the Views --- */
 
 .view-title {
 	-fx-font-family : "selif";
 	-fx-font-weight: bold;
 	-fx-font-size : 18px;
-	-fx-padding: 6px;
+	-fx-padding: 10px 0px 5px 20px;
 }
 
 .view-content-vbox {
@@ -15,7 +14,7 @@
 	-fx-alignment: CENTER-LEFT;
 }
 
-/** > Creation View (Selection) */
+/* > Creation View (Selection) */
 
 .selection-content-grid {
 	-fx-width: 100px;
@@ -25,7 +24,7 @@
 	-fx-min-height: 165px;
 }
 
-/** > Creation View (Creation) */
+/* > Creation View (Creation) */
 
 .creation-button-holder {
 	-fx-padding : 10;
@@ -52,33 +51,34 @@
 	-fx-min-height: 165px;
 }
 
-/** > Store View */
+/* > Store View */
 
 .store-filter-holder {
 	-fx-alignment: CENTER-LEFT;
 	-fx-max-height:10px;
 }
 
-/** > Feedback Popup */
+/* > Feedback Popup */
 
 .popup-box {
+	-fx-padding: 10px;
 	-fx-background-color: rgba(0, 0, 0, 0.2);
 	-fx-background-radius: 10;
-	-fx-text-fill: goldenrod;
 	-fx-font-style: italic;
 	-fx-font-weight: bold;
-	-fx-padding:10,10,0,0;
 }
 
 .popup-ok {
 	-fx-text-fill: green;
+	-fx-width: 200px;
+	-fx-height: 75px;
 }
 
 .popup-err {
 	-fx-text-fill: red;
 }
 
-/** --- For the Fields --- */
+/* --- For the Fields --- */
 
 .field {
 	-fx-padding: 2px;
@@ -86,19 +86,18 @@
 }
 
 .field-name {
-	-fx-font-family:"selif";
-	-fx-font-size:14px;
-	-fx-padding: 2px;
+	-fx-font-family: "selif";
+	-fx-font-size: 14px;
 	-fx-font-weight: bold;
+	-fx-alignment: CENTER-LEFT;
 }
 
 .field-triangleButton {
-	-fx-padding: 4,4,4,4;
+	-fx-padding: 4px;
 }
 
 .field-contentClosed-box {
 	-fx-padding: 2px;
-	-fx-alignment: CENTER-LEFT;
 }
 
 .field-contentOpen-box {
@@ -111,7 +110,7 @@
 	-fx-alignment: CENTER-LEFT;
 }
 
-/** --- Value Fields --- */
+/* --- Value Fields --- */
 
 .field-valueField {
 	-fx-width: 20px;
@@ -138,15 +137,15 @@
 	-fx-font-size:14px;
 }
 
-/** --- Object Field --- */
+/* --- Object Field --- */
 
 .objectField-name {
-	-fx-font-family:"selif";
-	-fx-font-size:14px;
+	-fx-font-size:16px;
 }
 
-/** --- Scene Field --- */
+/* --- Scene Field --- */
 
 .sceneField-img {
-	/** TODO */
+	-fx-width: 20px;
+	/* TODO */
 }

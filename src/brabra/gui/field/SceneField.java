@@ -1,7 +1,7 @@
 package brabra.gui.field;
 
 import brabra.gui.view.View;
-import brabra.model.SceneFile;
+import brabra.game.scene.SceneFile;
 
 import java.util.Observable;
 
@@ -11,12 +11,12 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.StackPane;
 
 
 public class SceneField extends Field {
 
 	// private final static String toDefaultSceneImg = "resource/gui/scene/default.png";
-	
 	
 	public SceneField(SceneFile sceneFile, Scene scene) {
 
@@ -36,7 +36,9 @@ public class SceneField extends Field {
 		// if (imagePath == null)
 		// 	   imagePath = toDefaultSceneImg;
 		if (imagePath != null) {
-			final ImageView image = View.getNewImage(imagePath);
+			final ImageView imageView = View.getNewImage(imagePath);
+			final StackPane image = new StackPane();
+			image.getChildren().add(imageView);
 			image.getStyleClass().add("sceneField-img");
 			upHolder.getChildren().add(image);
 		}

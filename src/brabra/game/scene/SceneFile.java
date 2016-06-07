@@ -1,4 +1,4 @@
-package brabra.model;
+package brabra.game.scene;
 
 import javax.xml.bind.annotation.XmlRootElement;
 

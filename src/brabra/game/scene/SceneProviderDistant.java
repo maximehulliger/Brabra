@@ -9,8 +9,7 @@ import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
 
-import brabra.model.SceneFile;
-import brabra.server.Server;
+import brabra.game.scene.SceneFile;
 
 /** A class that provide scenes from a distant server with a certain adress. */
 public class SceneProviderDistant {
@@ -55,7 +54,7 @@ public class SceneProviderDistant {
 	 * @throws java.net.ConnectException if the server adress is unvalid. 
 	 **/
 	protected boolean ping() {
-		return Server.pong.equals(get("ping", MediaType.TEXT_PLAIN, String.class));
+		return "pong !".equals(get("ping", MediaType.TEXT_PLAIN, String.class));
 	}
 	
 	/** 

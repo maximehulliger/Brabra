@@ -1,10 +1,10 @@
 #TODO V 1.0
 ## 1. Important
+-> todoJavaFX
 - Transform fix
 
 ## 2. Less important
 - shoot.
-- export project
 - cube/box without faces
 
 <br>
@@ -16,3 +16,6 @@ simple gui (line, point) not drawn from gui() in Input & Camera.
 
 #TODO V 1.1 (for next iteration)
 - raycast
+- object selection
+	- with stroke
+- 
