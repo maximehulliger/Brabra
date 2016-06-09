@@ -6,6 +6,7 @@ import brabra.Debug;
 import brabra.game.Color;
 import brabra.game.physic.geo.Vector;
 import brabra.game.physic.geo.ProTransform;
+import brabra.game.physic.geo.Transform;
 import brabra.game.scene.SceneLoader.Attributes;
 import processing.core.PShape;
 
@@ -71,7 +72,7 @@ public class Camera extends Object {
 	// --- Setters ---
 
 	/** Set the object followed by the camera. toFollow & followMode should be non-null. */
-	public void set(Object toFollow, String followMode, String dist) {
+	public void set(Transform toFollow, String followMode, String dist) {
 		assert(toFollow != null && followMode != null);
 		
 		// get follow mode
@@ -82,14 +83,11 @@ public class Camera extends Object {
 			setDist(this.followMode, vec(dist));
 		
 		// apply
-		this.setParent(toFollow, null);
+		this.setParent(toFollow);
 	}
 
 	/** To let parentRel be consistent with followMode. */
-	public void setParent(Object newParent) {
-		// for the camera, paretn rel not taken in account
-		// assert newParentRel == null;
-
+	public void setParent(Transform newParent) {
 		// get Object parent relation for the camera
 		ParentRelationship rel4Cam;
 		switch (followMode) {
@@ -131,7 +129,7 @@ public class Camera extends Object {
 			followMode = mode;
 			locationRel.set(getDist(mode));
 			if (hasParent())
-				setParent(parent(), null);
+				setParent(parent());
 		}
 	}
 

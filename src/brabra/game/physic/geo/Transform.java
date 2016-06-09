@@ -85,23 +85,19 @@ public class Transform extends ProTransform {
 		return rotationAbs;
 	}
 
-	/** Move this object with an absolute depl. */
+	/** Move this object with an absolute movement. */
 	public void move(Vector deplAbs) {
-		locationRel.add(localDir(deplAbs));
-//		locationAbs.add(deplAbs);
-//		absValid = true;
+		moveRel(localDir(deplAbs));
 	}
 	
+	/** Move this object with an absolute movement. */
 	public void moveRel(Vector deplLoc) {
 		locationRel.add(deplLoc);
-//		locationRel.add(absoluteDirFromLocal(deplLoc));
-//		absValid = true;
 	}
 
+	/** Rotate this object with an absolute rotation (same as relative). */
 	public void rotate(Quaternion rotAbs) {
 		rotationRel.rotate(rotAbs);
-//		rotationAbs.rotate(rotAbs);
-//		absValid = true;
 	}
 
 	// --- State getters ---
