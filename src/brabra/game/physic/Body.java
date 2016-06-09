@@ -259,9 +259,9 @@ public abstract class Body extends Movable {
 	public void applyImpulse(Vector posAbs, Vector impulseAbs) {
 		assert(!impulseAbs.equals(zero));
 		// in local space
-		Vector posLoc = transform.local(posAbs);
-		Vector impulseLoc = transform.localDir(impulseAbs);
-		interactionsRel.add(new Line(transform.relative(posAbs), transform.relative(add(posAbs, impulseAbs.multBy(4))), true));		
+		Vector posLoc = local(posAbs);
+		Vector impulseLoc = localDir(impulseAbs);
+		interactionsRel.add(new Line(relative(posAbs), relative(add(posAbs, impulseAbs.multBy(4))), true));		
 		// test if the impulse is against (or on) the mass center -> just translation
 		if (posLoc.isZeroEps(false) || posLoc.cross(impulseLoc).isZeroEps(false)) {
 			velocityRel.add( impulseLoc.multBy(this.inverseMass) );
@@ -285,28 +285,28 @@ public abstract class Body extends Movable {
 
 	/** Apply a force on the body at this point (absolu). */
 	public void applyForce(Vector posAbs, Vector forceAbs) {
-		applyForceLoc(transform.local(posAbs), transform.localDir(forceAbs));
+		applyForceLoc(local(posAbs), localDir(forceAbs));
 	}
 	
 	/** Apply a force on the body at this point (in this object's space). */
 	public void applyForceRel(Vector posRel, Vector forceRel) {
-		applyForceLoc(transform.localFromRel(posRel), transform.localDirFromRel(forceRel));
+		applyForceLoc(localFromRel(posRel), localDirFromRel(forceRel));
 	}
 
 	/** Add a pure translation force on the body at the mass center (from absolute). */
 	public void applyForce(Vector forceAbs) {
-		applyForceLoc(transform.localDir(forceAbs));
+		applyForceLoc(localDir(forceAbs));
 	}
 
 	/** Add a pure translation force on the body at the mass center (from relative). */
 	public void applyForceRel(Vector forceRel) {
-		applyForceLoc(transform.localDirFromRel(forceRel));
+		applyForceLoc(localDirFromRel(forceRel));
 	}
 
 	/** Main methods to add a force. we work in local space. */
 	private void applyForceLoc(Vector posLoc, Vector forceLoc) {
 		assert(!forceLoc.equals(zero));
-		interactionsRel.add(new Line(transform.relativeFromLocal(posLoc), transform.relativeFromLocal(add(posLoc, forceLoc.multBy(4))), true));
+		interactionsRel.add(new Line(relativeFromLocal(posLoc), relativeFromLocal(add(posLoc, forceLoc.multBy(4))), true));
 		if (posLoc.isZeroEps(false) || posLoc.cross(forceLoc).isZeroEps(false)) {
 			// if the force is against (or on) the mass center -> just translation
 			applyForceLoc( forceLoc );

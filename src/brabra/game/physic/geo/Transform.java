@@ -11,7 +11,7 @@ import brabra.game.scene.SceneLoader.Attributes;
 import processing.core.PMatrix;
 
 /** Represent the transformation of this transform's object. */
-public class Transform<T> extends ProTransform {
+public class Transform extends ProTransform {
 	// > core
 	/** Position relative to the parent. */
 	public final NVector locationRel = new NVector();
@@ -29,19 +29,15 @@ public class Transform<T> extends ProTransform {
 	private boolean absValid = false;
 	
 	// > Family
-	private Transform<T> parent = null;
+	private Transform parent = null;
 	private ParentRelationship parentRel = ParentRelationship.None;
-	public final List<Transform<T>> children = new ArrayList<>();
+	public final List<Transform> children = new ArrayList<>();
 	/** Indicate if the children changed. */
 	private boolean childrenChanged = false, childrenChangedCurrent = false;
 	
-	/** The object linked to this transform */
-	public final T object;
-	
-	public Transform(T master) {
+	public Transform() {
 		locationRel.addOnChange(() -> unvalidateAbs());
 		rotationRel.addOnChange(() -> unvalidateAbs());
-		this.object = master;
 	}
 
 	private void unvalidateAbs() {
@@ -50,26 +46,20 @@ public class Transform<T> extends ProTransform {
 	}
 	
 	/** Copy the other transform into this and return this. */
-	public Transform<T> copy(Transform<T> other) {
+	public Transform copy(Transform other) {
 		locationRel.set(other.locationRel);
 		rotationRel.set(other.rotationRel);
-		if (other.absValid) {
-			locationAbs.set(other.locationAbs);
-			rotationAbs.set(other.rotationAbs);
-			absValid = true;
-			matrixAbs = other.matrixAbs;
-		}
 		return this;
 	}
 
 	public boolean equals(Object other) {
 		if (other == null) return false;
 	    if (other == this) return true;
-	    return (other instanceof Transform<?>) 
-	    		? equals((Transform<?>)other) : false;
+	    return (other instanceof Transform) 
+	    		? equals((Transform)other) : false;
 	}
 
-	public boolean equals(Transform<?> other) {
+	public boolean equals(Transform other) {
 		boolean forRel = rotationRel.equals(other.rotationRel) && locationRel.equals(other.locationRel);
 		boolean forAbs = rotation().equals(other.rotation()) && locationAbs.equals(other.locationAbs);
 		return forRel && forAbs;
@@ -86,8 +76,6 @@ public class Transform<T> extends ProTransform {
 	/** Return the absolute location of the object. update things if needed. the Vector should not be modified. */
 	public Vector location() {
 		updateAbs();
-		if (!hasParent())
-			assert locationAbs.equals(locationRel);
 		return locationAbs;
 	}
 	
@@ -100,17 +88,20 @@ public class Transform<T> extends ProTransform {
 	/** Move this object with an absolute depl. */
 	public void move(Vector deplAbs) {
 		locationRel.add(localDir(deplAbs));
-		locationAbs.add(deplAbs);
+//		locationAbs.add(deplAbs);
+//		absValid = true;
 	}
 	
 	public void moveRel(Vector deplLoc) {
 		locationRel.add(deplLoc);
-		locationRel.add(absoluteDirFromLocal(deplLoc));
+//		locationRel.add(absoluteDirFromLocal(deplLoc));
+//		absValid = true;
 	}
 
 	public void rotate(Quaternion rotAbs) {
 		rotationRel.rotate(rotAbs);
-		rotationAbs.rotate(rotAbs);
+//		rotationAbs.rotate(rotAbs);
+//		absValid = true;
 	}
 
 	// --- State getters ---
@@ -154,7 +145,7 @@ public class Transform<T> extends ProTransform {
 	}
 
 	/** Return the parent of the object (even if parentRel is None -> can be null). */
-	public Transform<T> parent() {
+	public Transform parent() {
 		return parent;
 	}
 
@@ -164,21 +155,21 @@ public class Transform<T> extends ProTransform {
 	}
 	
 	/** Return true if this is a children of other. */
-	public boolean isChildOf(Transform<T> parent) {
-		for (Transform<T> p=parent(); p!=null; p=p.parent())
+	public boolean isChildOf(Transform parent) {
+		for (Transform p=parent(); p!=null; p=p.parent())
 			if (p == parent) 
 				return true;
 		return false;
 	}
 
 	/** Return true if this has a parentRel link with other */
-	public boolean isRelated(Transform<T> other) {
+	public boolean isRelated(Transform other) {
 		assert (other != this && other != null);
 		// case #1: one parent of the other
 		if (isChildOf(other) || other.isChildOf(this))
 			return true;
 		// case #2: common parent -> check for all parent of this if other is a child.
-		for (Transform<T> parent=parent(); parent!=null; parent=parent.parent()) {
+		for (Transform parent=parent(); parent!=null; parent=parent.parent()) {
 			if (other.isChildOf(parent) || other.isChildOf(parent))
 				return true;
 		}
@@ -186,12 +177,11 @@ public class Transform<T> extends ProTransform {
 	}
 	
 	/** Return the fist child (dfs) that satisfy the predicate, */
-	public T childThat(Function<T, Boolean> predicate) {
-		for (Transform<T> t : children) {
-			final T child = t.object;
+	public Transform childThat(Function<Transform, Boolean> predicate) {
+		for (Transform child : children) {
 			if (predicate.apply(child))
 				return child;
-			T forChild = t.childThat(predicate);
+			Transform forChild = child.childThat(predicate);
 			if (forChild != null)
 				return forChild;
 		}
@@ -199,9 +189,9 @@ public class Transform<T> extends ProTransform {
 	}
 
 	/** Return the fist parent that satisfy the predicate, */
-	public T parentThat(Function<T, Boolean> predicate) {
+	public Transform parentThat(Function<Transform, Boolean> predicate) {
 		return hasParent()
-				? (predicate.apply(parent().object) ? parent().object : parent().parentThat(predicate))
+				? (predicate.apply(parent()) ? parent() : parent().parentThat(predicate))
 				: null;
 	}
 	
@@ -215,7 +205,7 @@ public class Transform<T> extends ProTransform {
 	 * otherwise set parentRel to Full if it was null.
 	 * Return true if the parent changed.
 	 **/
-	public void setParent(Transform<T> newParent, ParentRelationship newParentRel) {
+	public void setParent(Transform newParent, ParentRelationship newParentRel) {
 		if (newParent == null) {
 			newParentRel = ParentRelationship.None;
 		} else if (newParentRel == null)
@@ -253,7 +243,7 @@ public class Transform<T> extends ProTransform {
 	}
 
 	/** parent should be set before. */
-	private void addChild(Transform<T> newChild) {
+	private void addChild(Transform newChild) {
 		if (!children.contains(newChild)) {
 			children.add(newChild);
 			childrenChangedCurrent = true;
@@ -263,7 +253,7 @@ public class Transform<T> extends ProTransform {
 	
 
 	/** set parent to null. */
-	private void removeChild(Transform<T> oldChild) {
+	private void removeChild(Transform oldChild) {
 		if (children.remove(oldChild)) {
 			assert(oldChild.parent == this);
 			childrenChangedCurrent = true;
@@ -277,6 +267,7 @@ public class Transform<T> extends ProTransform {
 	 * 	Update the state of this transform only. 
 	 **/
 	public void update() {
+
 		// update changes
 		locationRel.update();
 		rotationRel.update();
@@ -288,6 +279,9 @@ public class Transform<T> extends ProTransform {
 		
 		if (changed())
 			updateAbs();
+
+		// update the children
+		children.forEach(t -> t.update());
 	}
 
 	/** 
@@ -363,6 +357,7 @@ public class Transform<T> extends ProTransform {
 	 * update the abs variables if needed (matrix & locationAbs). 
 	 **/
 	public void pushLocal() {
+		updateAbs();
 		app.pushMatrix();
 		app.applyMatrix(matrixAbs);
 	}
@@ -428,5 +423,19 @@ public class Transform<T> extends ProTransform {
 	/** Return the local direction in the object space regardless of this' direction. result is only rotated -> same norm. */
 	public Vector localDirFromRel(Vector dirRel) {
 		return absolute(localDir(dirRel), Vector.zero, rotationRel);
+	}
+	
+	protected Vector[] absolute(Vector[] rels) {
+		Vector[] ret = new Vector[rels.length];
+		for (int i=0; i<rels.length; i++)
+			ret[i] = absolute(rels[i]);
+		return ret;
+	}
+	
+	protected Line[] absolute(Line[] rels) {
+		Line[] ret = new Line[rels.length];
+		for (int i=0; i<rels.length; i++)
+			ret[i] = rels[i].absoluteFrom(this);
+		return ret;
 	}
 }

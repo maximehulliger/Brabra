@@ -9,7 +9,7 @@ import org.junit.Test;
 import brabra.ProTest;
 import brabra.game.physic.geo.Transform.ParentRelationship;
 
-public class TransformTest <T extends Transform<Integer>> extends ProTest {
+public class TransformTest extends ProTest {
 
 	static {
 		initApp();
@@ -20,10 +20,10 @@ public class TransformTest <T extends Transform<Integer>> extends ProTest {
 	@Test
 	public void simpleParentTest() {
 		final int nTest = 5;
-		final ArrayList<Transform<Integer>> trans = someTransform(nTest*2);
+		final ArrayList<Transform> trans = someTransform(nTest*2);
 		for (int i=0; i<nTest*2; i+=2) {
-			final Transform<Integer> t0 = trans.get(i);
-			final Transform<Integer> t1 = trans.get(i+1);
+			final Transform t0 = trans.get(i);
+			final Transform t1 = trans.get(i+1);
 			//T trans2 = trans.get(2);
 			t1.setParent(t0, ParentRelationship.Static);
 			final Vector loc1 = t1.location();
@@ -44,8 +44,8 @@ public class TransformTest <T extends Transform<Integer>> extends ProTest {
 
 	@Test
 	public void testCopy() {
-		for (Transform<Integer> t : someTransform(5)) {
-			final Transform<Integer> newT = new Transform<>(2).copy(t);
+		for (Transform t : someTransform(5)) {
+			final Transform newT = new Transform().copy(t);
 			assertEquals("t", newT, t);
 		}
 	}

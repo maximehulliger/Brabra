@@ -3,6 +3,7 @@ package brabra.gui.view;
 import java.util.Observable;
 import java.util.Observer;
 
+import brabra.Brabra;
 import brabra.game.scene.Scene;
 import brabra.gui.field.SceneField;
 
@@ -30,6 +31,6 @@ public class MyScenesView extends View implements Observer {
 	public void update(Observable o, java.lang.Object arg) {
 		// the view only react to scene file change.
 		if (((Scene.Arg)arg).change == Scene.Change.SceneFileChanged)
-			refreshView();
+			Brabra.app.fxApp.runLater(()-> refreshView());
 	}
 }

@@ -55,7 +55,7 @@ public abstract class Effect extends Object {
 		private Vector randomPos() {
 			Vector pos = new Vector(random.nextFloat(), random.nextFloat(), random.nextFloat());
 			pos.mult( radius * etatCrete() );
-			return transform.location().plus(pos);
+			return location().plus(pos);
 		}
 		
 		public void update() {
@@ -82,10 +82,10 @@ public abstract class Effect extends Object {
 			}
 			
 			public void display() {
-				transform.pushLocal();
+				pushLocal();
 				app.fill(color, 150);
 				app.sphere(radius*etatCrete());
-				transform.popLocal();
+				popLocal();
 			}
 			
 		}

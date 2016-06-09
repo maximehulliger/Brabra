@@ -5,6 +5,7 @@ import java.util.List;
 
 import brabra.Brabra;
 import brabra.Debug;
+import brabra.Master;
 import brabra.game.physic.Collider;
 import brabra.game.physic.geo.Quaternion;
 import brabra.game.physic.geo.Vector;
@@ -130,7 +131,7 @@ public class Weaponry extends Object {
 					weapons.clear();
 				}
 				setName("Weaponry prefab "+prefab);
-				final Collider parent = parent().as(Collider.class);
+				final Collider parent = Master.as(parent(), Collider.class);
 				final float r = parent == null ? 5 : parent.radiusEnveloppe();
 				if (prefab == 1) {
 					addWeapon(new MissileLauncher(vec(r*-0.65f, -10, 0), null).withTier(1));

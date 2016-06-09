@@ -44,7 +44,7 @@ public final class PhysicInteraction extends ProMaster {
 	public void update() {
 		Debug.setCurrentWork("interaction");
 		//check for armement changes (in focused children)
-		if (hasFocused() && focused.transform.childrenChanged()) {
+		if (hasFocused() && focused.childrenChanged()) {
 			weaponry = getWeaponry();
 		}
 		
@@ -103,13 +103,13 @@ public final class PhysicInteraction extends ProMaster {
 				Vector forceRel = zero.copy();
 				forceRel.add( front(forceRot.x * 3/2) );
 				forceRel.add( right(forceRot.z * 3/2) );
-				focusedBody.applyForce(focused.transform.absolute(upAP), focused.transform.absoluteDir(forceRel));
+				focusedBody.applyForce(focused.absolute(upAP), focused.absoluteDir(forceRel));
 			}
 			//> apply force rot: front (yaw)
 			if (forceRot.y != 0) {
 				Vector frontAP = front(150);
 				Vector frontForceRel = right(forceRot.y);
-				focusedBody.applyForce(focused.transform.absolute(frontAP), focused.transform.absoluteDir(frontForceRel));
+				focusedBody.applyForce(focused.absolute(frontAP), focused.absoluteDir(frontForceRel));
 			}
 			
 			// 2. forward

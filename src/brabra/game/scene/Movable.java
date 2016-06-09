@@ -5,7 +5,6 @@ import brabra.game.Observable.NQuaternion;
 import brabra.game.Observable.NVector;
 import brabra.game.physic.geo.Quaternion;
 import brabra.game.physic.geo.Vector;
-import brabra.game.physic.geo.Transform.ParentRelationship;
 import brabra.game.scene.SceneLoader.Attributes;
 
 /**
@@ -49,7 +48,7 @@ public class Movable extends Object {
 		if (moving || (movableParent != null && movableParent.isMoving()))
 			return true;
 		else 
-			return movableParent != null && (movableParent.isRotating() && !transform.location().minus(movableParent.transform.location()).isZeroEps(false));
+			return movableParent != null && (movableParent.isRotating() && !location().minus(movableParent.location()).isZeroEps(false));
 	}
 
 	/** Return true if the object has rotated during last frame (by this or parent's rotational velocity). */
@@ -68,18 +67,18 @@ public class Movable extends Object {
 	}
 
 	public Vector velocity() {
-		Vector forMeAbs = isMoving() ? transform.absoluteDirFromLocal(velocityRel) : zero;
-		return hasParent() ? add(forMeAbs , parent().velocityAtRel(transform.location())) : forMeAbs;
+		Vector forMeAbs = isMoving() ? absoluteDirFromLocal(velocityRel) : zero;
+		return movableParent != null ? add(forMeAbs , movableParent.velocityAtRel(location())) : forMeAbs;
 	}
 
 	/** Return the absolute velocity (from an absolute pos). */
 	public Vector velocityAt(Vector posAbs) {
-		return velocityAtRel(transform.relative(posAbs));
+		return velocityAtRel(relative(posAbs));
 	}
 
 	/** Return the absolute velocity (from a relative pos). */
 	public Vector velocityAtRel(Vector posRel) {
-		final Vector fromTransAbs = hasParent() ? parent().velocityAtRel(posRel).plus(velocityRel) : velocityRel;
+		final Vector fromTransAbs = movableParent != null ? movableParent.velocityAtRel(posRel).plus(velocityRel) : velocityRel;
 		return rotationRelVel.isIdentity() ? fromTransAbs : fromTransAbs.plus(rotationRelVel.rotAxisAngle().cross(posRel));
 	}
 
@@ -103,7 +102,7 @@ public class Movable extends Object {
 		//	setRotationVelRel(vec(rotVelocity));
 	}
 
-	protected void update() {
+	public void update() {
 		// 1. movement
 		if (moving || velocityRel.hasChangedCurrent()) {
 			if (!velocityRel.isZeroEps(false)) {
@@ -111,7 +110,7 @@ public class Movable extends Object {
 					Debug.log(6, this+" started moving.");
 					moving = true;
 				}
-				transform.move(velocityRel);
+				move(velocityRel);
 			} else if (moving) {
 				Debug.log(6, this+" stopped moving.");
 				moving = false;
@@ -126,7 +125,7 @@ public class Movable extends Object {
 					Debug.log(6, this+" started rotating.");
 					rotating = true;
 				}
-				transform.rotate(rotationRelVel);
+				rotate(rotationRelVel);
 			} else if (rotating) {
 				Debug.log(6, this+" stopped rotating.");
 				rotating = false;

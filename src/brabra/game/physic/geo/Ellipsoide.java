@@ -38,7 +38,7 @@ public class Ellipsoide extends Sphere {
 	}
 
 	public Projection projetteSur(Line ligne) {
-		final Vector locAbs = transform.location();
+		final Vector locAbs = location();
 		Vector n = ligne.norm;
 		Vector sc = vec(n.x*r.x, n.y*r.y, n.z*r.z);
 		Vector c1 = locAbs.plus(sc);
@@ -47,7 +47,7 @@ public class Ellipsoide extends Sphere {
 	}
 
 	public Line collisionLineFor(Vector p) {
-		final Vector locAbs = transform.location();
+		final Vector locAbs = location();
 		Vector to = p.minus(locAbs);
 		Vector sc = vec(to.x/r.x, to.y/r.y, to.z/r.z); //en coordonees spheriques
 		sc.normalize();
@@ -56,7 +56,7 @@ public class Ellipsoide extends Sphere {
 	}
 
 	public Vector projette(Vector point) {
-		final Vector locAbs = transform.location();
+		final Vector locAbs = location();
 		Vector sproj = super.projette(point.minus(locAbs).divElementsBy(r));
 		return sproj.multElementsBy(r).plus(locAbs);
 	}

@@ -123,7 +123,7 @@ public class Plane extends PseudoPolyedre {
 		vx = new Line(vertices[0], vertices[1], finite); 	// x
 		vz = new Line(vertices[0], vertices[2], finite); 	// z
 		Vector norm = vz.norm.cross(vx.norm).normalized();
-		normale = new Line(transform.location(), transform.location().plus(norm), true);
+		normale = new Line(location(), location().plus(norm), true);
 		// for polyhedron
 		Line v3 = new Line(vertices[1], vertices[3], true); // x'
 		Line v4 = new Line(vertices[2], vertices[3], true); // z'
@@ -179,7 +179,7 @@ public class Plane extends PseudoPolyedre {
 			return normale.multBy(Float.POSITIVE_INFINITY);
 		}
 		updateAbs();
-		return Vector.sumOf(transform.location(),
+		return Vector.sumOf(location(),
 				vx.norm.multBy(size.x * -0.5f * sgn(vx.norm.dot(normale))),
 				vz.norm.multBy(size.z * -0.5f * sgn(vz.norm.dot(normale))));
 	}

@@ -1,15 +1,11 @@
 package brabra.game.scene;
 
 import java.util.Observable;
-import java.util.function.Function;
 
 import brabra.Master;
-import brabra.ProMaster;
-import brabra.game.physic.geo.Line;
 import brabra.game.physic.geo.Quaternion;
 import brabra.game.physic.geo.Transform;
 import brabra.game.physic.geo.Vector;
-import brabra.game.physic.geo.Transform.ParentRelationship;
 import brabra.game.scene.SceneLoader.Attributes;
 
 /** 
@@ -17,9 +13,7 @@ import brabra.game.scene.SceneLoader.Attributes;
  * and family (parent, children)
  * that is updated every frame (the children depends on the parent). 
  **/
-public class Object extends ProMaster {
-	
-	public final Transform<Object> transform = new Transform<>(this);
+public class Object extends Transform {
 	
 	protected Scene scene = null;
 	
@@ -31,8 +25,8 @@ public class Object extends ProMaster {
 		setName(getClass().getSimpleName());
 		
 		// to notify model:
-		transform.locationRel.addOnChange(() -> model.notifyChange(Change.Location));
-		transform.rotationRel.addOnChange(() -> model.notifyChange(Change.Rotation));
+		locationRel.addOnChange(() -> model.notifyChange(Change.Location));
+		rotationRel.addOnChange(() -> model.notifyChange(Change.Rotation));
 	}
 	
 	/** Create a Body with this location & no initial rotation. */
@@ -42,8 +36,8 @@ public class Object extends ProMaster {
 	
 	/** Set this to the other object. should be overridden to make the copy complete & called. */
 	public void copy(Object other) {
+		super.copy(other);
 		setName(other.name);
-		transform.copy(other.transform);
 	}
 	
 	// --- Methods to override if wanted (of course basically everything is ;) ) ---
@@ -56,12 +50,11 @@ public class Object extends ProMaster {
 	 * Return true when this was valdated (only once). 
 	 **/
 	public void validate(Attributes atts) {
+		super.validate(atts);
+		
 		// set parent first !
 		final String parentRel = atts.getValue("parentRel");
 		setParent(atts.parent(), parentRel != null ? ParentRelationship.fromString(parentRel) : null);
-
-		// transform attributes
-		transform.validate(atts);
 		
 		// other attributes
 		final String name = atts.getValue("name");
@@ -80,7 +73,7 @@ public class Object extends ProMaster {
 	
 	/** To react when the object is removed from the scene. should be called. */
 	public void onDelete() {
-		transform.onDelete();
+		super.onDelete();
 	}
 
 	// --- Simple getters ---
@@ -94,33 +87,6 @@ public class Object extends ProMaster {
 		return Master.as(this, as);
 	}
 	
-	// --- Physic getters ---
-
-	/** Return the absolute location of the object. update things if needed. the Vector should not be modified. */
-	public Vector location() {
-		return transform.location();
-	}
-
-	/** Return the absolute rotation. update things if needed. the Quaternion should not be modified. */
-	public Quaternion rotation() {
-		return transform.rotation();
-	}
-	
-	/** Return the absolute velocity at the center of mass. */
-	public Vector velocity() {
-		return zero;
-	}
-
-	/** Return the absolute velocity (from an absolute pos). */
-	public Vector velocityAt(Vector posAbs) {
-		return zero;
-	}
-
-	/** Return the absolute velocity (from a relative pos). */
-	public Vector velocityAtRel(Vector posRel) {
-		return zero;
-	}
-	
 	// --- String getters ---
 
 	public String toString() {
@@ -129,7 +95,7 @@ public class Object extends ProMaster {
 	
 	/** return the presentation of the object with the name in evidence and the parent if exists. */
 	public String presentation() {
-		return "> "+this+" <" + (hasParent() ? " "+transform.parentRel()+" after \""+transform.parent()+"\"" : "");
+		return "> "+this+" <" + (hasParent() ? " "+parentRel()+" after \""+parent()+"\"" : "");
 	}
 	
 	// --- Setters ---
@@ -145,65 +111,16 @@ public class Object extends ProMaster {
 		return this;
 	}
 	
-	// --- Family ---
-
-	// --- Family getters ---
-
-	/** Return true if the object should consider his parent. */
-	public boolean hasParent() {
-		return transform.hasParent();
-	}
-
-	/** Return the parent of the object (even if parentRel is None -> can be null). */
-	public Object parent() {
-		return transform.parent().object;
-	}
-
-	/** Return true if this has a parentRel link with other */
-	public boolean isRelated(Object other) {
-		return transform.isRelated(other.transform);
-	}
-	
-	/** Return the fist child (dfs) that satisfy the predicate, */
-	public Object childThat(Function<Object, Boolean> predicate) {
-		return transform.childThat(predicate);
-	}
-
-	/** Return the fist parent that satisfy the predicate, */
-	public Object parentThat(Function<Object, Boolean> predicate) {
-		return transform.parentThat(predicate);
-	}
-	
-	/** 
-	 * Set the new parent object of this object. This will now follow the parent and 
-	 * apply this' and parent's loc and rot (depending on parentRel) to get in local space. 
-	 * If newParent is null, parentRel should be None or null, otherwise set parentRel to Full if it was None. 
-	 * Set the transform/push relationship from this with his parent (no parent -> root).
-	 * Return true if the parent changed.
-	 **/
-	public void setParent(Object newParent, ParentRelationship newParentRel) {
-		transform.setParent(newParent == null ? null : newParent.transform, newParentRel);
-		model.notifyChange(Change.Parent);
-	}
-
-	// --- Update stuff (+transformChanged) ---
-
 	/** 
 	 * 	Update the object and his children.
 	 * 	Called every frame with the updated flag. Update parent first.
 	 * 	Return true if the object was updated or false if it already was for this frame.
 	 **/
-	protected void update() {
+	public void update() {
 		if (scene == null)
 			throw new IllegalArgumentException("The object \""+toString()+"\" should be added to the scene before updating it.");
 		
-		// update it
-		transform.update();
-		if (transform.changed())
-			updateAbs();
-
-		// update the children
-		transform.children.forEach(t -> t.object.update());
+		super.update();
 	}
 	
 	/** 
@@ -230,38 +147,8 @@ public class Object extends ProMaster {
 			synchronized (this) {
 				setChanged();
 				notifyObservers(change);
-				transform.children.forEach(t -> t.object.model.notifyChange(change));
+				children.forEach(c -> ((Object)c).model.notifyChange(change));
 			}
 		}
-	}
-
-	// --- push & pop local ---
-	
-	/** 
-	 * push local to the object depending on the parent relationship. 
-	 * update the abs variables if needed (matrix & locationAbs). 
-	 **/
-	protected void pushLocal() {
-		transform.pushLocal();
-	}
-	
-	protected void popLocal() {
-		transform.popLocal();
-	}
-	
-	// --- syntactic sugar for space change ---
-
-	protected Vector[] absolute(Vector[] rels) {
-		Vector[] ret = new Vector[rels.length];
-		for (int i=0; i<rels.length; i++)
-			ret[i] = transform.absolute(rels[i]);
-		return ret;
-	}
-	
-	protected Line[] absolute(Line[] rels) {
-		Line[] ret = new Line[rels.length];
-		for (int i=0; i<rels.length; i++)
-			ret[i] = rels[i].absoluteFrom(this);
-		return ret;
 	}
 }

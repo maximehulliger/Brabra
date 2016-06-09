@@ -156,7 +156,7 @@ public class Box extends PseudoPolyedre {
 	// --- from PseudoPolyedre ---
 	
 	public boolean isIn(Vector abs) {
-		float[] loc = transform.relative(abs).array();
+		float[] loc = relative(abs).array();
 		for (int i=0; i<3; i++)
 			if (abs(loc[i]) >= dim.array()[0])
 				return false;

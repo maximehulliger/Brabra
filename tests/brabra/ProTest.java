@@ -106,11 +106,11 @@ public class ProTest extends ProMaster {
 	}
 
 	/** Return n transforms. */
-	protected ArrayList<Transform<Integer>> someTransform(int n) {
-		final ArrayList<Transform<Integer>> trans = new ArrayList<>(n);
+	protected ArrayList<Transform> someTransform(int n) {
+		final ArrayList<Transform> trans = new ArrayList<>(n);
 		for (int i=0; i<n; i++) {
 			final Vector loc = Vector.randomVec(100);
-			final Transform<Integer> t = new  Transform<Integer>(n);
+			final Transform t = new  Transform();
 			t.set(loc, Quaternion.randomQuat());
 			trans.add(t);
 		}

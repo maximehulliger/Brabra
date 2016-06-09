@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import brabra.ProMaster;
 import brabra.Brabra;
 import brabra.game.Color;
-import brabra.game.scene.Object;
 
 /** A line characterized by 2 points (or 1 point and 1 vector). Can be finite.*/
 public final class Line extends ProMaster {
@@ -50,8 +49,8 @@ public final class Line extends ProMaster {
 	}
 	
 	/** Return a new line in absolute space from this object's relative space. */
-	public Line absoluteFrom(Object o) {
-		return new Line(o.transform.absolute(base), o.transform.absolute(end), finite);
+	public Line absoluteFrom(Transform t) {
+		return new Line(t.absolute(base), t.absolute(end), finite);
 	}
 
 	/** retourne la projection du point sur la ligne. */

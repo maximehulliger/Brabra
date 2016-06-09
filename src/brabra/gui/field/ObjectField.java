@@ -10,7 +10,6 @@ import brabra.game.physic.Collider;
 import brabra.game.physic.geo.Box;
 import brabra.game.physic.geo.Plane;
 import brabra.game.physic.geo.Sphere;
-import brabra.game.physic.geo.Transform;
 import brabra.game.scene.Movable;
 import brabra.game.scene.Object;
 import brabra.game.scene.Object.Change;
@@ -38,7 +37,6 @@ public class ObjectField extends Field implements Observer {
 		final ArrayList<Field> fields = new ArrayList<>(16);
 
 		// > first Object
-		final Transform<Object> transform = object.transform;
 		//name
 		fields.add(new StringField.Pro(
 				nm -> object.setName(nm),
@@ -56,11 +54,11 @@ public class ObjectField extends Field implements Observer {
 				.respondingTo(Change.Rotation)
 				.set("Absolute Rotation", false, false));
 		// location rel
-		fields.add(new VectorField.Final(transform.locationRel)
+		fields.add(new VectorField.Final(object.locationRel)
 				.respondingTo(Change.Location)
 				.set("Relative Location", false, true));
 		// rotation rel
-		fields.add(new QuaternionField.Pro(transform.rotationRel)
+		fields.add(new QuaternionField.Pro(object.rotationRel)
 				.respondingTo(Change.Rotation)
 				.set("Rotation rel", false, true));
 

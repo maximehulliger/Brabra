@@ -6,7 +6,6 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 import brabra.calibration.Calibration;
 import brabra.game.RealGame;
-import brabra.game.physic.geo.ProTransform;
 import brabra.gui.ToolWindow;
 import brabra.imageprocessing.ImageAnalyser;
 import brabra.trivial.TrivialGame;
@@ -59,7 +58,7 @@ public class Brabra extends PApplet {
 	}
 	
 	public Brabra() {
-		ProTransform.app = ProMaster.app = Brabra.app = this;
+		ProMaster.app = Brabra.app = this;
 		
 		// set window location
 		GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();

@@ -6,7 +6,6 @@ import brabra.Debug;
 import brabra.game.Color;
 import brabra.game.physic.geo.Vector;
 import brabra.game.physic.geo.ProTransform;
-import brabra.game.physic.geo.Transform.ParentRelationship;
 import brabra.game.scene.SceneLoader.Attributes;
 import processing.core.PShape;
 
@@ -127,10 +126,10 @@ public class Camera extends Object {
 	/** Change the camera mode and location. call setParent if needed. */
 	public void setMode(FollowMode mode) {
 		if (mode == followMode)
-			assert(transform.locationRel.equals(getDist(mode))); //should already be set
+			assert(locationRel.equals(getDist(mode))); //should already be set
 		else {
 			followMode = mode;
-			transform.locationRel.set(getDist(mode));
+			locationRel.set(getDist(mode));
 			if (hasParent())
 				setParent(parent(), null);
 		}
@@ -229,7 +228,7 @@ public class Camera extends Object {
 		final String mode = atts.getValue("mode");
 		if (mode != null) {
 			final String distString = atts.getValue("dist");
-			final Vector dist = distString != null ? vec(distString) : transform.locationRel;
+			final Vector dist = distString != null ? vec(distString) : locationRel;
 			if (dist == null)
 				Debug.err("for camera: dist (or pos) should be set with mode. ignoring.");
 			else if (dist.equals(zero))

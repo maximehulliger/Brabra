@@ -1,10 +1,8 @@
 package brabra.game.physic.geo;
 
-import processing.core.PApplet;
+import brabra.ProMaster;
 
-public class ProTransform {
-	
-	public static PApplet app;
+public class ProTransform extends ProMaster {
 
 	// --- Transformations (location, rotation) ---
 
