@@ -2,7 +2,7 @@
 <Scene>
 	<Settings gravity="0.2" running="true" verbosity="max" displayAllColliders="false"></Settings>
 	
-	<Camera displaySkybox="true" mode="not" dist="(300,300,300)" debug="false"></Camera>
+	<Camera displaySkybox="true" mode="none" dist="(300,300,300)" debug="false"></Camera>
 	
 	<Floor pos="zero" color="grass"></Floor> 
 	

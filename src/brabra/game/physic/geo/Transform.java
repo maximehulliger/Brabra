@@ -123,13 +123,22 @@ public class Transform extends ProTransform {
 	 **/
 	public enum ParentRelationship {
 		Full, Static, None;
+		
+		public ParentRelationship next() {
+			return values()[(this.ordinal()+1) % values().length];
+		}
+		
 		public static ParentRelationship fromString(String f) {
-			if (f!=null && f.equals("static"))
-				return Static;
-			else if (f!=null && f.equals("none"))
-				return None;
-			else 
-				return Full;
+			if (f.equals("static"))
+				return ParentRelationship.Static;
+			else if (f.equals("full") || f.equals("relative"))
+				return ParentRelationship.Full;
+			else if (f.equals("fixed") || f.equals("none"))
+				return ParentRelationship.None;
+			else {
+				Debug.err("Parent relationship unknown: \""+f+"\", taking None");
+				return ParentRelationship.None;
+			}
 		}
 	}
 

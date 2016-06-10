@@ -6,7 +6,6 @@ import brabra.Debug;
 import brabra.game.Color;
 import brabra.game.physic.geo.Vector;
 import brabra.game.physic.geo.ProTransform;
-import brabra.game.physic.geo.Transform;
 import brabra.game.scene.SceneLoader.Attributes;
 import processing.core.PShape;
 
@@ -17,30 +16,6 @@ import processing.core.PShape;
  * the camera position will be 1 frame late from the objects in scene. 
  **/ 
 public class Camera extends Object {
-	/** 
-	 * All the modes for the camera. <p>
-	 * None: fixed at distNot, looking at zero. <p>
-	 * Static: follow the parent in static mode. <p>
-	 * Full: follow the parent in full mode.
-	 **/
-	public enum FollowMode {
-		None, Static, Full;
-		public FollowMode next() {
-			return values()[(this.ordinal()+1) % values().length];
-		}
-		public static FollowMode fromString(String f) {
-			if (f.equals("static"))
-				return FollowMode.Static;
-			else if (f.equals("full") || f.equals("relative"))
-				return FollowMode.Full;
-			else if (f.equals("fixed") || f.equals("not") || f.equals("none"))
-				return FollowMode.None;
-			else {
-				Debug.err("camera mode unknown: \""+f+"\", taking None");
-				return FollowMode.None;
-			}
-		}
-	}
 
 	// static / definitive stuff
 	public static final float close = 0.05f;
@@ -57,60 +32,32 @@ public class Camera extends Object {
 	// intern, mode related
 	/** The absolute point that looks the camera. */
 	private final Vector orientation = defaultOrientation.copy();
-	private final Vector distNot = Vector.cube(300);
+	private final Vector distNone = Vector.cube(300);
 	private final Vector distStatic = Vector.cube(300);
 	private final Vector distFull = add(up(90), behind(135));
 
-	private FollowMode followMode = FollowMode.None;
+	private Object followed = null;
 	
 	/** Creates a new camera. */
 	public Camera() {
-		super(Vector.cube(100));
+		super(Vector.zero);
 		setName("Camera");
+		setMode(ParentRelationship.None);
 	}
 
 	// --- Setters ---
 
-	/** Set the object followed by the camera. toFollow & followMode should be non-null. */
-	public void set(Transform toFollow, String followMode, String dist) {
-		assert(toFollow != null && followMode != null);
-		
-		// get follow mode
-		setMode(FollowMode.fromString(followMode));
-		
-		// update dist if set
-		if (dist != null)
-			setDist(this.followMode, vec(dist));
-		
-		// apply
-		this.setParent(toFollow);
-	}
-
-	/** To let parentRel be consistent with followMode. */
-	public void setParent(Transform newParent) {
-		// get Object parent relation for the camera
-		ParentRelationship rel4Cam;
-		switch (followMode) {
-		case None:
-			rel4Cam = ParentRelationship.None;
-			break;
-		case Full:
-			rel4Cam = ParentRelationship.Full;
-			break;
-		default: // Static
-			rel4Cam = ParentRelationship.Static;
-			break;
-		}
-
-		// give it to Object
-		super.setParent(newParent, rel4Cam);
+	/** Set the object followed by the camera. */
+	public void setParent(Object toFollow, ParentRelationship rel) {
+		followed = toFollow;
+		super.setParent(toFollow, rel);
 	}
 
 	/** Set the camera relative dist for this mode. */
-	public void setDist(FollowMode mode, Vector dist) {
+	public void setDist(ParentRelationship mode, Vector dist) {
 		switch(mode) {
 		case None:
-			distNot.set(dist);
+			distNone.set(dist);
 			break;
 		case Static:
 			distStatic.set(dist);
@@ -121,22 +68,16 @@ public class Camera extends Object {
 		}
 	}
 
-	/** Change the camera mode and location. call setParent if needed. */
-	public void setMode(FollowMode mode) {
-		if (mode == followMode)
-			assert(locationRel.equals(getDist(mode))); //should already be set
-		else {
-			followMode = mode;
-			locationRel.set(getDist(mode));
-			if (hasParent())
-				setParent(parent());
-		}
+	/** Change the camera mode and location. */
+	public void setMode(ParentRelationship mode) {
+		locationRel.set(getDist(mode));
+		setParent(followed, mode);
 	}
 
-	/** Switch camera mode. */
+	/** Switch the camera mode. */
 	public void nextMode() {
-		if (parent() != null)
-			setMode(followMode.next());
+		if (followed != null)
+			setMode(parentRel().next());
 		else
 			Debug.msg(3, "Camera need an object to focus on.");
 	}
@@ -174,20 +115,20 @@ public class Camera extends Object {
 	    System.out.println("cam to focus: "+Vector.sub(locationAbs, focus));
 	}*/
 
-	// --- main usage (draw) ---
+	// --- Main usage (draw) ---
 
 	/** Put the camera in the processing scene and carry his job (see class doc). */
 	public void place() {
 		Debug.setCurrentWork("camera");
 		final Vector focus = hasParent() ? parent().location() : zero;
 
-		// we remove the objects too far away.
+		// Remove the objects too far away.
 		game.scene.forEachObjects(o -> {
 			if (ProMaster.distSq(focus, o.location()) > distSqBeforeRemove)
 				game.scene.remove(o);
 		});
 
-		// draw all the stuff
+		// Draw all the stuff
 		app.background(200);
 		final Vector location = location();
 		app.camera(location.x, location.y, location.z, 
@@ -198,9 +139,6 @@ public class Camera extends Object {
 			ProTransform.translate(location);
 			app.shape(skybox());
 			app.popMatrix();
-		} else {
-			//app.directionalLight(50, 100, 125, 0, -1, 0);
-			//app.ambientLight(255, 255, 255);
 		}
 
 		if (app.para.displayAxis())
@@ -232,7 +170,7 @@ public class Camera extends Object {
 			else if (dist.equals(zero))
 				Debug.err("for camera: dist (or pos) should not be zero. ignoring.");
 			else
-				setDist(FollowMode.fromString(mode), dist);
+				setDist(ParentRelationship.fromString(mode), dist);
 		}
 		final String displaySkybox = atts.getValue("displaySkybox");
 		if (displaySkybox != null)
@@ -249,42 +187,6 @@ public class Camera extends Object {
 		super.onDelete();
 	}
 
-//	protected void updateAbs() {
-//	super.updateAbs();
-//
-//		// get new values.
-//		Vector newFocus;
-//		Vector newOrientation;
-//		Vector newLocationRel = getDist(followMode);
-//
-//		if (!hasParent() || parent()==null) {
-//			assert (followMode == FollowMode.Not);
-//		}
-//
-//		switch(followMode) {
-//		case Static:
-//			newFocus = parent().location();
-//			newOrientation = defaultOrientation;
-//			break;
-//		case Full:
-//			newFocus = parent().absolute(up(60));
-//			newOrientation = absoluteDir(down);
-//			break;
-//		default: //Not
-//			newFocus = zero;
-//			newOrientation = defaultOrientation;
-//			break;
-//		}
-//
-//		// apply them if needed.
-//		if (!locationRel.equals(newLocationRel))
-//			locationRel.set(newLocationRel);
-//		if (!orientation.equals(newOrientation))
-//			orientation.set(newOrientation);
-//		if (!focus.equals(newFocus))
-//			focus.set(newFocus);
-//	}
-
 	// --- private ---
 
 	private static PShape skybox() {
@@ -295,14 +197,14 @@ public class Camera extends Object {
 		return skybox;
 	}
 
-	private Vector getDist(FollowMode mode) {
-		switch(followMode) {
+	private Vector getDist(ParentRelationship mode) {
+		switch(mode) {
 		case Static:
 			return distStatic;
 		case Full:
 			return distFull;
-		default:
-			return distNot;
+		default: // None
+			return distNone;
 		}
 	}
 
