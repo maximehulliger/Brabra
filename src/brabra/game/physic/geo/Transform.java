@@ -238,9 +238,6 @@ public class Transform extends ProTransform {
 				if (hasParent())
 					parent.addChild(this);
 				
-				// always valid
-				updateAbs();
-				
 				// notify the children
 				unvalidateAbs();
 			}

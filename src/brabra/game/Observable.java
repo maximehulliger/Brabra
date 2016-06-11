@@ -155,7 +155,7 @@ public interface Observable {
 		public void set(Vector rotAxis, float angle) { super.set(rotAxis, angle); onChange(); }
 		public void set(Quaternion quat) { super.set(quat); onChange(); }
 		public void setAngle(float angle) { super.setAngle(angle); onChange(); }
-		public void rotate(Quaternion r) { super.set(r); onChange(); }
+		public void rotate(Quaternion r) { super.rotate(r); onChange(); }
 
 		private Quaternion onChange() {
 			changedCurrent = true;
