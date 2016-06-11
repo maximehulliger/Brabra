@@ -67,6 +67,7 @@ public abstract class Body extends Movable {
 	protected void onCollision(Collider col, Vector impact) {}
 
 	public void validate(Attributes atts) {
+		super.validate(atts);
 		final String color = atts.getValue("color");
 		if (color != null)
 			setColor( new Color(color, atts.getValue("stroke")) );
@@ -76,55 +77,36 @@ public abstract class Body extends Movable {
 		final String life = atts.getValue("life");
 		if (life != null)
 			setLife(life);
-		final String impulse = atts.getValue("impulse");
-		if (impulse != null)
-			applyImpulse(vec(impulse));
-		super.validate(atts);
 	}
 	
 	/** applique les forces et update l'etat. return true if this was updated. */
 	public void update() {
-			// before update
+			// before update: add forces & torques officially
 			if (onUpdate != null)
 				onUpdate.accept(this);
 			
 			// apply if needed
-			final boolean touched = forcesLocToAdd.hasChangedCurrent() || torquesLocToAdd.hasChangedCurrent();
-			if (inverseMass > 0 && touched) {
+			if (inverseMass > 0) {
 				// translation
-				Vector acceleration = forcesLocToAdd.multBy(inverseMass);
-				if (!acceleration.equals(zero))
-					velocityRel.add( acceleration );
+				if (forcesLocToAdd.hasChangedCurrent()) {
+					final Vector acceleration = forcesLocToAdd.multBy(inverseMass);
+					if (!acceleration.equals(zero))
+						velocityRel.add( acceleration );
+				}
 				// rotation, vitesse angulaire, on prend rotation axis comme L/I
-				Vector dL = torquesLocToAdd.multElementsBy(inverseInertiaMom);
-//				TODO: if (!dL.equals(zero))
-//					rotationRelVel.addAngularMomentum( dL );
-				if (!dL.equals(zero))
-					//rotationRelVel.addAngularMomentum( dL );
-					addAngularMomentum( dL );
+				if (torquesLocToAdd.hasChangedCurrent()) {
+					final Vector dL = torquesLocToAdd.multElementsBy(inverseInertiaMom);
+					if (!dL.equals(zero))
+						addAngularMomentum( dL );
+				}
 			}
 			
 			// reset
-			if (touched) {
-				forcesLocToAdd.reset(zero);
-				torquesLocToAdd.reset(zero);
-			} 
+			forcesLocToAdd.reset(zero);
+			torquesLocToAdd.reset(zero);
 			
-			super.update(); //always true
-//======= TODO
-//				onUpdate.run();
-//			//1. translation
-//			Vector acceleration = forcesLocToAdd.multBy(inverseMass);
-//			if (!acceleration.equals(zero))
-//				velocityRel.add( acceleration );
-//			//2. rotation, vitesse angulaire, on prend rotation axis comme L/I
-//			Vector dL = torquesLocToAdd.multElementsBy(inverseInertiaMom);
-//			if (!dL.equals(zero))
-//				addAngularMomentum( dL );
-//
-//			forcesLocToAdd.set(zero);
-//			torquesLocToAdd.set(zero);
-//>>>>>>> refs/remotes/origin/master
+			// apply the movement in Movable
+			super.update();
 	}
 	
 	/** Display the interactions... maybe. In local space (should be call after pushLocal()). */
@@ -255,6 +237,49 @@ public abstract class Body extends Movable {
 		return inverseMass > 0 ? mass : Float.POSITIVE_INFINITY;
 	}
 
+	/** Apply a force on the body at this point (absolu). */
+	public void applyForce(Vector posAbs, Vector forceAbs) {
+		applyForceLoc(local(posAbs), localDir(forceAbs)); 
+	}
+	
+	/** Apply a force on the body at this point (in this object's space). */
+	public void applyForceRel(Vector posRel, Vector forceRel) {
+		final Vector posLoc = localFromRel(posRel);
+		final Vector forceLoc = localDirFromRel(forceRel);
+		assert(!forceRel.equals(zero));
+		interactionsRel.add(new Line(posRel, add(posRel, forceRel.multBy(4)), true));
+		if (posLoc.isZeroEps(false) || posRel.cross(forceRel).isZeroEps(false)) {
+			// if the force is against (or on) the mass center -> just translation
+			applyForceLoc( forceLoc );
+		} else {
+			Vector posLocN = posLoc.normalized();
+			// for translation, just in absolute
+			float forceFactor = forceLoc.dot(posLocN);
+			if (forceFactor != 0)
+				applyForceLoc( posLocN.multBy(forceFactor) );
+			// for rotation, we want to stay coherent with inertia moment.
+			applyTorqueLoc( posRel.cross(forceRel) );
+		}
+		
+	}
+	/** Main methods to add a force. we work in local space. */
+	private void applyForceLoc(Vector posLoc, Vector forceLoc) {
+		assert(!forceLoc.equals(zero));
+		interactionsRel.add(new Line(relativeFromLocal(posLoc), relativeFromLocal(add(posLoc, forceLoc.multBy(4))), true));
+		if (posLoc.isZeroEps(false) || posLoc.cross(forceLoc).isZeroEps(false)) {
+			// if the force is against (or on) the mass center -> just translation
+			applyForceLoc( forceLoc );
+		} else {
+			Vector posLocN = posLoc.normalized();
+			// for translation, just in absolute
+			float forceFactor = forceLoc.dot(posLocN);
+			if (forceFactor != 0)
+				applyForceLoc( posLocN.multBy(forceFactor) );
+			// for rotation, we want to stay coherent with inertia moment.
+			applyTorqueLoc( posLoc.cross(forceLoc) );
+		}
+	}
+
 	/** Add momentum to the body at this point (absolute). */
 	public void applyImpulse(Vector posAbs, Vector impulseAbs) {
 		assert(!impulseAbs.equals(zero));
@@ -277,55 +302,11 @@ public abstract class Body extends Movable {
 				addAngularMomentum( dL );
 		}
 	}
-	
-	/** Add linear momentum to the body (absolute). */
-	public void applyImpulse(Vector impulseAbs) {
-		applyImpulse(location(), impulseAbs);
-	}
-
-	/** Apply a force on the body at this point (absolu). */
-	public void applyForce(Vector posAbs, Vector forceAbs) {
-		applyForceLoc(local(posAbs), localDir(forceAbs));
-	}
-	
-	/** Apply a force on the body at this point (in this object's space). */
-	public void applyForceRel(Vector posRel, Vector forceRel) {
-		applyForceLoc(localFromRel(posRel), localDirFromRel(forceRel));
-	}
-
-	/** Add a pure translation force on the body at the mass center (from absolute). */
-	public void applyForce(Vector forceAbs) {
-		applyForceLoc(localDir(forceAbs));
-	}
-
-	/** Add a pure translation force on the body at the mass center (from relative). */
-	public void applyForceRel(Vector forceRel) {
-		applyForceLoc(localDirFromRel(forceRel));
-	}
-
-	/** Main methods to add a force. we work in local space. */
-	private void applyForceLoc(Vector posLoc, Vector forceLoc) {
-		assert(!forceLoc.equals(zero));
-		interactionsRel.add(new Line(relativeFromLocal(posLoc), relativeFromLocal(add(posLoc, forceLoc.multBy(4))), true));
-		if (posLoc.isZeroEps(false) || posLoc.cross(forceLoc).isZeroEps(false)) {
-			// if the force is against (or on) the mass center -> just translation
-			applyForceLoc( forceLoc );
-		} else {
-			Vector posLocN = posLoc.normalized();
-			// for translation, just in absolute
-			float forceFactor = forceLoc.dot(posLocN);
-			if (forceFactor != 0)
-				applyForceLoc( posLocN.multBy(forceFactor) );
-			// for rotation, we want to stay coherent with inertia moment.
-			applyTorqueLoc( posLoc.cross(forceLoc) );
-		}
-	}
 
 	/** add a pure translation force on the body at the mass center (from parent space). */
 	private void applyForceLoc(Vector forceLoc) {
 		assert(!forceLoc.equals(zero));
-		if (!forceLoc.equals(zero))
-			forcesLocToAdd.add(forceLoc);
+		forcesLocToAdd.add(forceLoc);
 	}
 
 	/** add a torque (rotational force) on the body (from parent space). */
@@ -352,11 +333,11 @@ public abstract class Body extends Movable {
 		if (mass == -1)
 			//throw new IllegalArgumentException("un objet de mass infini ne devrait pas peser !"); now tolerated :)
 			return;
-		applyForce( app.para.gravity().multBy(mass) );
+		applyForce( location(), app.para.gravity().multBy(mass) );
 	}
 	
 	public void avance(float forceFront) {
 		assert(forceFront != 0);
-		applyForceRel( front(forceFront) );
+		applyForceRel( zero, front(forceFront) );
 	}
 }

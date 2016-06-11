@@ -1,14 +1,9 @@
 package brabra.game;
 
-import java.util.ArrayList;
-
 import brabra.ProMaster;
 import brabra.Brabra;
 import brabra.Debug;
 import brabra.game.physic.Body;
-import brabra.game.physic.Collider;
-import brabra.game.physic.geo.Line;
-import brabra.game.physic.geo.Line.Projection;
 import brabra.game.physic.geo.Vector;
 import brabra.game.scene.weapons.Weaponry;
 import brabra.game.scene.Object;
@@ -44,20 +39,19 @@ public final class PhysicInteraction extends ProMaster {
 	public void update() {
 		Debug.setCurrentWork("interaction");
 		//check for armement changes (in focused children)
-		if (hasFocused() && focused.childrenChanged()) {
+		if (hasFocused() && focused.childrenChanged())
 			weaponry = getWeaponry();
-		}
 		
 		// force change
-		if (game.input.scrollDiff != 0) {
-			
+		if (game.input.scrollDiff != 0)
 			app.para.setInteractionForce(
 					PApplet.constrain(
 							app.para.interactionForce() + game.input.scrollDiff*forceRange/Input.scrollRange,
-					forceMin, forceMax));
-		}
+							forceMin, forceMax));
+		
 		// apply forces to focused
 		applyForces();
+		
 		// fire if needed
 		if (weaponry != null) {
 			if (app.imgAnalyser.running()) {
@@ -97,19 +91,22 @@ public final class PhysicInteraction extends ProMaster {
 			forceRot.add( pitchAxis(game.input.mouseDrag().y * -1f) );
 			forceRot.add( rollAxis(game.input.mouseDrag().x * 1f) );
 			forceRot.mult(this.forceRot);
+			
 			//> apply force rot: up (pitch, roll)
 			if (forceRot.x != 0 || forceRot.z != 0) {
 				Vector upAP = up(100);
 				Vector forceRel = zero.copy();
 				forceRel.add( front(forceRot.x * 3/2) );
 				forceRel.add( right(forceRot.z * 3/2) );
-				focusedBody.applyForce(focused.absolute(upAP), focused.absoluteDir(forceRel));
+				//focusedBody.applyForce(focused.absolute(upAP), focused.absoluteDir(forceRel));
+				focusedBody.applyForceRel(upAP, forceRel);
 			}
 			//> apply force rot: front (yaw)
 			if (forceRot.y != 0) {
 				Vector frontAP = front(150);
 				Vector frontForceRel = right(forceRot.y);
-				focusedBody.applyForce(focused.absolute(frontAP), focused.absoluteDir(frontForceRel));
+				//focusedBody.applyForce(focused.absolute(frontAP), focused.absoluteDir(frontForceRel));
+				focusedBody.applyForceRel(frontAP, frontForceRel);
 			}
 			
 			// 2. forward
@@ -138,7 +135,7 @@ public final class PhysicInteraction extends ProMaster {
 	}
 	
 	// --- Raycast ---
-
+/*
 	public static Collider raycast(Vector from, Vector dir) {
 		assert(!dir.equals(zero));
 		Line ray = new Line(from, add(from,dir), true);
@@ -185,7 +182,7 @@ public final class PhysicInteraction extends ProMaster {
 			return best;
 		}
 	}
-
+*/
 	// --- private ---
 	
 	private Weaponry getWeaponry() {

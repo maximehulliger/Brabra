@@ -222,9 +222,9 @@ public class Vector extends PVector {
 
 	/** Return true if p is zero or zero eps (nearly zero). if clean & zero eps, reset p. */
 	public boolean isZeroEps(boolean clean) {
-		return isZeroEps(this, clean);
+		return isZeroEps(this, clean, Physic.epsilon);
 	}
-
+	
 	/** return true if this is close to reference. if clean, set p1 to p2. */
 	public boolean equalsEps(Vector reference, boolean clean) {
 		return equalsEps(this, reference, clean, Physic.epsilon);
@@ -235,12 +235,26 @@ public class Vector extends PVector {
 		return equalsEps(this, reference, clean, epsilon);
 	}
 	
+	/** return true if close to zero. if clean, set p1 to p2. */
+	private static boolean equalsEps(Vector v, Vector reference, boolean clean, float epsilon) {
+		if (v == reference)
+			return true;
+		else if (v == null || reference == null)
+			return false;
+		else {
+			final boolean isZero = isZeroEps(v.minus(reference), false, epsilon);
+			if (clean && isZero)
+				v.set(reference);
+			return isZero;
+		}
+	}
+
 	/** Return true if p is zero or zero eps (nearly zero). if clean & zero eps, reset p. */
-	public static boolean isZeroEps(PVector v, boolean clean) {
+	public static boolean isZeroEps(PVector v, boolean clean, float epsilon) {
 		if (v.equals(zero))
 			return true;
 		else {
-			if (Physic.isZeroEps(v.x) && Physic.isZeroEps(v.y) && Physic.isZeroEps(v.z)) {
+			if (Physic.isZeroEps(v.x, epsilon) && Physic.isZeroEps(v.y, epsilon) && Physic.isZeroEps(v.z, epsilon)) {
 				if (clean)
 					v.x = v.y = v.z = 0;
 				return true;
@@ -249,17 +263,4 @@ public class Vector extends PVector {
 		}
 	}
 
-	/** return true if close to zero. if clean, set p1 to p2. */
-	private static boolean equalsEps(Vector v, Vector reference, boolean clean, float epsilon) {
-		if (v == reference)
-			return true;
-		else if (v == null || reference == null)
-			return false;
-		else {
-			final boolean isZero = isZeroEps( v.minus(reference), false );
-			if (clean && isZero)
-				v.set(reference);
-			return isZero;
-		}
-	}
 }
