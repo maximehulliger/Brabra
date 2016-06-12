@@ -56,15 +56,11 @@ public class TransformTest extends ProTest {
 			final Vector vec = Vector.randomVec(100);
 			
 			// abs -> loc -> abs
-			final Vector vecFromLoc = t.absoluteFromLocal(t.local(vec));
 			final Vector dirFromLoc = t.absoluteDirFromLocal(t.localDir(vec));
-			assertEqualsEps("", vec, vecFromLoc);
 			assertEqualsEps("", vec, dirFromLoc);
 			
 			// loc -> abs -> loc
-			final Vector vecFromAbs = t.local(t.absoluteFromLocal(vec));
 			final Vector dirFromAbs = t.localDir(t.absoluteDirFromLocal(vec));
-			assertEqualsEps("", vec, vecFromAbs);
 			assertEqualsEps("", vec, dirFromAbs);
 		}
 	}

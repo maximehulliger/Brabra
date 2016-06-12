@@ -90,7 +90,7 @@ public class ObjectField extends Field implements Observer {
 							oldValidMass = asBody.mass();
 						asBody.setMass(!ac ? oldValidMass : -1);
 					},
-					() -> !asBody.affectedByCollision())
+					() -> !asBody.affectedByPhysic())
 					.respondingTo(Change.Mass)
 					.set("Heavy", false, true));
 			// ghost (mass)

@@ -368,7 +368,7 @@ public class Transform extends ProTransform {
 		app.popMatrix();
 	}
 
-	// --- conversion position local <-> *absolute* <-> relative ---
+	// --- conversion position relative <-> *absolute* <-> local ---
 	
 	/** Retourne la position de rel, un point relatif au body en absolu. */
 	public Vector absolute(Vector rel) {
@@ -384,17 +384,8 @@ public class Transform extends ProTransform {
 		return relative(hasParent() ? parent.relative(posLoc) : posLoc, Vector.zero, rotationRel);
 	}
 
-	public Vector local(Vector posAbs) {
-		return posAbs.minus(location());
-	}
-
 	public Vector localFromRel(Vector posRel) {
 		return absolute(posRel, Vector.zero, rotationRel);
-	}
-	
-	/** Retourne la position absolue de posLoc, un point local au body. */
-	public Vector absoluteFromLocal(Vector posLoc) {
-		return location().plus(posLoc);
 	}
 	
 	// --- direction conversion: local <-> *absolute* <-> relative ---
@@ -405,16 +396,16 @@ public class Transform extends ProTransform {
 		return hasParent() ? parent.absoluteDir(inParentSpace) : inParentSpace;
 	}
 
-	/** Return the absolute direction from a relative direction in the body space. result is only rotated -> same norm. */
-	public Vector absoluteDirFromLocal(Vector dirLoc) {
-		return hasParent() ? parent().absoluteDir(dirLoc) : dirLoc;
-	}
-
 	/** Return the relative direction in the body body space from an absolute direction. result is only rotated -> same norm. */
 	public Vector relativeDir(Vector dirAbs) {
 		return hasParent() 
 				? relative(parent.relativeDir(dirAbs), Vector.zero, rotationRel) 
 				: relative(dirAbs, Vector.zero, rotationRel);
+	}
+	
+	/** Return the absolute direction from a relative direction in the body space. result is only rotated -> same norm. */
+	public Vector absoluteDirFromLocal(Vector dirLoc) {
+		return hasParent() ? parent().absoluteDir(dirLoc) : dirLoc;
 	}
 
 	/** Return the local direction in the object space from an absolute direction. result is only rotated -> same norm. */

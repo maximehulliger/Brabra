@@ -14,7 +14,7 @@ public abstract class Collision extends ProMaster {
 	public Collision(Collider c1, Collider c2) {
 		this.c1 = c1;
 		this.c2 = c2;
-		assert( c1.affectedByCollision() || c2.affectedByCollision() );
+		assert( c1.affectedByPhysic() || c2.affectedByPhysic() );
 		assert( c1.inverseMass > 0 || c1.inverseMass > 0 );
 	}
 	
@@ -37,9 +37,9 @@ public abstract class Collision extends ProMaster {
 			
 			Vector impulse = norm.multBy( -(c2.restitution+c1.restitution)*relVdotN/(c1.inverseMass+c2.inverseMass) );
 			
-			if (c1.affectedByCollision())
+			if (c1.affectedByPhysic())
 				c1.applyImpulse(impact, impulse);
-			if (c2.affectedByCollision())
+			if (c2.affectedByPhysic())
 				c2.applyImpulse(impact, impulse.multBy(-1));
 			
 			

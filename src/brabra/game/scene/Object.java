@@ -74,8 +74,10 @@ public class Object extends Transform {
 		// focus: here because we want to do that with the children set.
 		final String focus = atts.getValue("focus");
 		if (focus != null && Boolean.parseBoolean(focus)) {
+			game.physicInteraction.setFocused(this);
 			final String force = atts.getValue("force");
-			game.physicInteraction.setFocused(this, force != null ? Float.parseFloat(force) : -1);
+			if (force != null)
+				game.physicInteraction.setForce(Float.parseFloat(force));
 		}
 	}
 	

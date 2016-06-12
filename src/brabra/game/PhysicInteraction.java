@@ -20,15 +20,32 @@ public final class PhysicInteraction extends ProMaster {
 	private float ratioTrans = 10, ratioRot = 0.004f;
 	private float forceTrans = app.para.interactionForce()*ratioTrans, forceRot = app.para.interactionForce()*ratioRot;
 	
-	private Object focused;
-	private Body focusedBody;
-	private Weaponry weaponry;
+	private Object focused = null;
+	private Body focusedBody = null;
+	private Weaponry weaponry = null;
 
-	/** Set focused and force (except if force = -1). displayState. */
-	public void setFocused(Object focused, float force) {
-		if (force != -1)
-			setForce(force);
-		setFocused(focused);
+	/** Set the force of interaction. if displayIfChange & changed, displayState. */
+	public void setForce(float force) {
+		if (force < forceMin) {
+			Debug.err("interaction force min is "+forceMin+" ("+force+")");
+			force = forceMin;
+		} else if (force > forceMax) {
+			Debug.err("interaction force max is "+forceMax+" ("+force+")");
+			force = forceMax;
+		}
+		force = PApplet.constrain(force, forceMin, forceMax);
+		if (force != app.para.interactionForce()) {
+			app.para.setInteractionForce(force);
+			this.forceTrans = force*ratioTrans;
+			this.forceRot = force*ratioRot;
+		}
+	}
+
+	/** Set focused. displayState. */
+	public void setFocused(Object focused) {
+		this.focused = focused;
+		this.focusedBody = focused instanceof Body ? (Body)focused : null;
+		this.weaponry = getWeaponry();
 	}
 
 	public boolean hasFocused() {
@@ -38,6 +55,7 @@ public final class PhysicInteraction extends ProMaster {
 	/** Update interaction & apply forces. */
 	public void update() {
 		Debug.setCurrentWork("interaction");
+		
 		//check for armement changes (in focused children)
 		if (hasFocused() && focused.childrenChanged())
 			weaponry = getWeaponry();
@@ -98,15 +116,15 @@ public final class PhysicInteraction extends ProMaster {
 				Vector forceRel = zero.copy();
 				forceRel.add( front(forceRot.x * 3/2) );
 				forceRel.add( right(forceRot.z * 3/2) );
-				//focusedBody.applyForce(focused.absolute(upAP), focused.absoluteDir(forceRel));
-				focusedBody.applyForceRel(upAP, forceRel);
+				focusedBody.applyForce(focused.absolute(upAP), focused.absoluteDir(forceRel));
+				//focusedBody.applyForceRel(upAP, forceRel);
 			}
 			//> apply force rot: front (yaw)
 			if (forceRot.y != 0) {
 				Vector frontAP = front(150);
 				Vector frontForceRel = right(forceRot.y);
-				//focusedBody.applyForce(focused.absolute(frontAP), focused.absoluteDir(frontForceRel));
-				focusedBody.applyForceRel(frontAP, frontForceRel);
+				focusedBody.applyForce(focused.absolute(frontAP), focused.absoluteDir(frontForceRel));
+				//focusedBody.applyForceRel(frontAP, frontForceRel);
 			}
 			
 			// 2. forward
@@ -187,29 +205,5 @@ public final class PhysicInteraction extends ProMaster {
 	
 	private Weaponry getWeaponry() {
 		return focused == null ? null : (Weaponry)focused.childThat(c -> c instanceof Weaponry);
-	}
-	
-	/** Set the force of interaction. if displayIfChange & changed, displayState. */
-	private void setForce(float force) {
-		if (force < forceMin) {
-			Debug.err("interaction force min is "+forceMin+" ("+force+")");
-			force = forceMin;
-		} else if (force > forceMax) {
-			Debug.err("interaction force max is "+forceMax+" ("+force+")");
-			force = forceMax;
-		}
-		force = PApplet.constrain(force, forceMin, forceMax);
-		if (force != app.para.interactionForce()) {
-			app.para.setInteractionForce(force);
-			this.forceTrans = force*ratioTrans;
-			this.forceRot = force*ratioRot;
-		}
-	}
-
-	/** Set focused. displayState. */
-	private void setFocused(Object focused) {
-		this.focused = focused;
-		this.focusedBody = focused instanceof Body ? (Body)focused : null;
-		this.weaponry = getWeaponry();
 	}
 }

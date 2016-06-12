@@ -31,7 +31,7 @@ public class Physic extends ProMaster {
 		try {
 			//2. on determine et filtre les collisions pour chaque paire possible (c, o).
 			forAllPairs(scene.activeColliders(), (c,o)-> {
-				if ( (o.affectedByCollision() || c.affectedByCollision())
+				if ( (o.affectedByPhysic() || c.affectedByPhysic())
 						&& !c.isRelated(o) 
 						&& (o.doCollideFast(c) && c.doCollideFast(o)) ) {
 					// easy first: with at least one sphere

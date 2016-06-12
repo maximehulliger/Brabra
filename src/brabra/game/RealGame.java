@@ -21,7 +21,7 @@ public class RealGame extends Interface {
 	public void onShow() {
 		clearConsole();
 		Debug.info(0, "loading scene");
-		physicInteraction.setFocused(null, -1);
+		physicInteraction.setFocused(null);
 		scene.loader.loadLocalFiles();
 		scene.loader.load();
 		app.imgAnalyser.detectButtons = true;
