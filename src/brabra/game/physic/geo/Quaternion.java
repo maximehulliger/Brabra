@@ -133,14 +133,14 @@ public class Quaternion extends ProMaster {
 			if (printEverything) 
 				return toStringDebug();
 			else
-				return "around "+rotAxis()+" with angle "+(angle()*toDegrees)+"�";
+				return (angle()*toDegrees)+"° around "+rotAxis();
 		}
 	}
 	
 	public String toStringDebug() {
 		return    "quat: (wxyz:"+w+", "+xyz.x+", "+xyz.y+", "+xyz.z+")"
 				+ (validRotAxis 
-					? " \naround "+rotAxis()+" with angle "+(angle()*toDegrees)+"�"
+					? " \n"+(angle()*toDegrees)+"° around "+rotAxis()
 					: " with unknown axis");
 	}
 	
@@ -177,7 +177,7 @@ public class Quaternion extends ProMaster {
 	public String formated() {
 		//TODO not good epsilon
 		return rotAxis()==null ? "identity" 
-				: "around "+rotAxis().formated(Physic.epsilon)+" with angle "+Master.formatFloat(angle()*180/pi, Physic.epsilon)+"°";
+				: Master.formatFloat(angle()*180/pi, Physic.epsilon)+"° around "+rotAxis().formated(Physic.epsilon);
 	}
 
 	/** wxyz -> (rotAxis, angle). update rot axis & angle if needed (!validRotAxis). set validRotAxis to true. */

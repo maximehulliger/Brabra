@@ -31,7 +31,7 @@ import javafx.stage.WindowEvent;
 public class ToolWindow extends Application {
 	
 	public static final String name = "Tool Window";
-	public static final int width = 360;
+	public static final int width = 400;
 	public static final Lock launchedLock = new ReentrantLock();
 	public static FeedbackPopup feedbackPopup;
 	

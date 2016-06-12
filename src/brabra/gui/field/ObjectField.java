@@ -46,20 +46,20 @@ public class ObjectField extends Field implements Observer {
 		// location abs (not modifiable)
 		fields.add(new VectorField.Final(
 				object.model.locationAbs)
-				.respondingTo(Change.Location)
-				.set("Absolute Location", false, false));
+				.respondingTo(Change.Transform)
+				.set("Absolute Transform", false, false));
 		// rotation abs (not modifiable)
 		fields.add(new QuaternionField.Pro(
 				object.model.rotationAbs)
-				.respondingTo(Change.Rotation)
+				.respondingTo(Change.Transform)
 				.set("Absolute Rotation", false, false));
 		// location rel
 		fields.add(new VectorField.Final(object.locationRel)
-				.respondingTo(Change.Location)
-				.set("Relative Location", false, true));
+				.respondingTo(Change.Transform)
+				.set("Relative Transform", false, true));
 		// rotation rel
 		fields.add(new QuaternionField.Pro(object.rotationRel)
-				.respondingTo(Change.Rotation)
+				.respondingTo(Change.Transform)
 				.set("Rotation rel", false, true));
 
 		// > if Movable

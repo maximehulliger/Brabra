@@ -11,7 +11,6 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.StackPane;
 
 
 public class SceneField extends Field {
@@ -37,10 +36,11 @@ public class SceneField extends Field {
 		// 	   imagePath = toDefaultSceneImg;
 		if (imagePath != null) {
 			final ImageView imageView = View.getNewImage(imagePath);
-			final StackPane image = new StackPane();
-			image.getChildren().add(imageView);
-			image.getStyleClass().add("sceneField-img");
-			upHolder.getChildren().add(image);
+			imageView.getStyleClass().add("sceneField-img");
+			imageView.setFitWidth(200);
+			imageView.setPreserveRatio(true);
+			imageView.setSmooth(true);
+			upHolder.getChildren().add(imageView);
 		}
 		
 		// buttons

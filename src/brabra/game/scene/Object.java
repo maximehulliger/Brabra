@@ -25,8 +25,8 @@ public class Object extends Transform {
 		setName(getClass().getSimpleName());
 		
 		// to notify model:
-		locationRel.addOnChange(() -> model.notifyChange(Change.Location));
-		rotationRel.addOnChange(() -> model.notifyChange(Change.Rotation));
+		locationRel.addOnChange(() -> model.notifyChange(Change.Transform));
+		rotationRel.addOnChange(() -> model.notifyChange(Change.Transform));
 	}
 	
 	/** Create a Body with this location & no initial rotation. */
@@ -142,7 +142,7 @@ public class Object extends Transform {
 	// --- Observation ---
 	
 	public enum Change {
-		Location, Rotation, Velocity, RotVelocity, DisplayCollider, Mass, Name, Size, Parent
+		Transform, Velocity, RotVelocity, DisplayCollider, Mass, Name, Size, Parent
 	}
 	
 	public final ObjectModel model = new ObjectModel();
