@@ -2,11 +2,13 @@ package brabra.game.physic.geo;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Observable;
 import java.util.function.Function;
 
 import brabra.Debug;
 import brabra.game.Observable.NQuaternion;
 import brabra.game.Observable.NVector;
+import brabra.game.scene.Object;
 import brabra.game.scene.SceneLoader.Attributes;
 import processing.core.PMatrix;
 
@@ -211,8 +213,9 @@ public class Transform extends ProTransform {
 	 * Return true if the parent changed.
 	 **/
 	public void setParent(Transform newParent, ParentRelationship newParentRel) {
-		if (newParent == null) {
+		if (newParent == null || newParentRel == ParentRelationship.None) {
 			newParentRel = ParentRelationship.None;
+			newParent = null;
 		} else if (newParentRel == null)
 			newParentRel = ParentRelationship.Full;
 		
@@ -225,21 +228,29 @@ public class Transform extends ProTransform {
 			if (newParent != null && newParent.isChildOf(this))
 				Debug.err(toString()+": new parent "+newParent+" already related ! (plz no childhood vicious cylce)");
 			else {
-				
-				// remove this child from old parent
-				if (hasParent())
-					parent.children.remove(this);
+				final Transform oldParent = parent;
 				
 				// update & changes
 				this.parentRel = newParentRel;
 				this.parent = newParent;
-				
-				// add this child to new parent
-				if (hasParent())
-					parent.addChild(this);
-				
-				// notify the children
+
+				// notify self & the children
 				unvalidateAbs();
+
+				// update children lists + notification
+				if (parentChanged) {
+					// remove this child from old parent
+					if (oldParent != null) {
+						oldParent.children.remove(this);
+						oldParent.model.notifyChange(Change.Children);
+					}
+					// add this child to new parent
+					if (parent != null) {
+						parent.addChild(this);
+						parent.model.notifyChange(Change.Children);
+					}
+				}
+				model.notifyChange(Change.Parentship);
 			}
 		}
 	}
@@ -295,7 +306,6 @@ public class Transform extends ProTransform {
 	 **/
 	private void updateAbs() {
 		if (!absValid) {
-			
 			// check the parent
 			if (hasParent() && !parent.absValid)
 				parent.updateAbs();
@@ -430,5 +440,26 @@ public class Transform extends ProTransform {
 		for (int i=0; i<rels.length; i++)
 			ret[i] = rels[i].absoluteFrom(this);
 		return ret;
+	}
+
+	// --- Observation ---
+	
+	public enum Change {
+		Transform, Velocity, RotVelocity, DisplayCollider, 
+		Mass, Name, Size, Parentship, Children
+	}
+	
+	public final ObjectModel model = new ObjectModel();
+	
+	/** To let someone watch this object */
+	public final class ObjectModel extends Observable {
+		
+		public void notifyChange(Change change) {
+			synchronized (this) {
+				setChanged();
+				notifyObservers(change);
+				children.forEach(c -> ((Object)c).model.notifyChange(change));
+			}
+		}
 	}
 }

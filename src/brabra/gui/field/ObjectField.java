@@ -10,9 +10,9 @@ import brabra.game.physic.Collider;
 import brabra.game.physic.geo.Box;
 import brabra.game.physic.geo.Plane;
 import brabra.game.physic.geo.Sphere;
+import brabra.game.physic.geo.Transform.Change;
 import brabra.game.scene.Movable;
 import brabra.game.scene.Object;
-import brabra.game.scene.Object.Change;
 import javafx.scene.control.Tooltip;
 
 /** A field containing an object. */
@@ -45,12 +45,12 @@ public class ObjectField extends Field implements Observer {
 				.set("Name", false, true));
 		// location abs (not modifiable)
 		fields.add(new VectorField.Final(
-				object.model.locationAbs)
+				object.location())
 				.respondingTo(Change.Transform)
 				.set("Absolute Transform", false, false));
 		// rotation abs (not modifiable)
 		fields.add(new QuaternionField.Pro(
-				object.model.rotationAbs)
+				object.rotation())
 				.respondingTo(Change.Transform)
 				.set("Absolute Rotation", false, false));
 		// location rel
@@ -164,7 +164,7 @@ public class ObjectField extends Field implements Observer {
 			Brabra.app.fxApp.runLater(() -> {
 				if (arg == Change.Name)
 					super.setName(object.toString());
-				else if (arg == Change.Parent)
+				else if (arg == Change.Parentship)
 					setToolTip();
 			});
 		}

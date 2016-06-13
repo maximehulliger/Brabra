@@ -1,10 +1,15 @@
 package brabra.game;
 
 import brabra.ProMaster;
+
+import java.util.Observable;
+import java.util.Observer;
+
 import brabra.Brabra;
 import brabra.Debug;
 import brabra.game.physic.Body;
 import brabra.game.physic.geo.Vector;
+import brabra.game.physic.geo.Transform.Change;
 import brabra.game.scene.weapons.Weaponry;
 import brabra.game.scene.Object;
 import processing.core.PApplet;
@@ -13,7 +18,7 @@ import processing.core.PApplet;
  * Class to enable interaction with the scene's bodies.
  * Reacts to user input: wasd, space, alt, mouse drag, scroll.
  */
-public final class PhysicInteraction extends ProMaster {
+public final class PhysicInteraction extends ProMaster implements Observer {
 	/** Puissance of the interaction. */
 	private static final float forceMin = 20, forceMax = 150, forceRange = forceMax - forceMin; 
 	
@@ -55,10 +60,6 @@ public final class PhysicInteraction extends ProMaster {
 	/** Update interaction & apply forces. */
 	public void update() {
 		Debug.setCurrentWork("interaction");
-		
-		//check for armement changes (in focused children)
-		if (hasFocused() && focused.childrenChanged())
-			weaponry = getWeaponry();
 		
 		// force change
 		if (game.input.scrollDiff != 0)
@@ -205,5 +206,12 @@ public final class PhysicInteraction extends ProMaster {
 	
 	private Weaponry getWeaponry() {
 		return focused == null ? null : (Weaponry)focused.childThat(c -> c instanceof Weaponry);
+	}
+
+	@Override
+	public void update(Observable o, java.lang.Object arg) {
+		if (arg == Change.Children) {
+			weaponry = getWeaponry();
+		}
 	}
 }

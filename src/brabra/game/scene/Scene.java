@@ -56,7 +56,6 @@ public class Scene extends Observable {
 	public Object add(Object o) {
 		if (!objects.contains(o)) {
 			objects.add(o);
-			o.scene = this;
 			if (o instanceof Collider)
 				colliders.add((Collider)o);
 			notifyChange(Change.ObjectAdded, o);

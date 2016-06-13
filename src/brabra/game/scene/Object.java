@@ -1,7 +1,5 @@
 package brabra.game.scene;
 
-import java.util.Observable;
-
 import brabra.Master;
 import brabra.game.physic.geo.Quaternion;
 import brabra.game.physic.geo.Transform;
@@ -14,8 +12,6 @@ import brabra.game.scene.SceneLoader.Attributes;
  * that is updated every frame (the children depends on the parent). 
  **/
 public class Object extends Transform {
-	
-	protected Scene scene = null;
 	
 	// > Flags, other
 	private String name;
@@ -122,43 +118,8 @@ public class Object extends Transform {
 	}
 	
 	/** 
-	 * 	Update the object and his children.
-	 * 	Called every frame with the updated flag. Update parent first.
-	 * 	Return true if the object was updated or false if it already was for this frame.
-	 **/
-	public void update() {
-		if (scene == null)
-			throw new IllegalArgumentException("The object \""+toString()+"\" should be added to the scene before updating it.");
-		
-		super.update();
-	}
-	
-	/** 
 	 * Update the absolute variables from relative variable if needed. 
 	 * Should be called at first by child class.
 	 **/
 	protected void updateAbs() {}
-	
-	// --- Observation ---
-	
-	public enum Change {
-		Transform, Velocity, RotVelocity, DisplayCollider, Mass, Name, Size, Parent
-	}
-	
-	public final ObjectModel model = new ObjectModel();
-	
-	/** To let someone watch this object */
-	public final class ObjectModel extends Observable {
-		
-		public Vector locationAbs = location();
-		public Quaternion rotationAbs = rotation();
-		
-		public void notifyChange(Change change) {
-			synchronized (this) {
-				setChanged();
-				notifyObservers(change);
-				children.forEach(c -> ((Object)c).model.notifyChange(change));
-			}
-		}
-	}
 }

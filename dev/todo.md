@@ -1,11 +1,7 @@
 #TODO V 1.0
-## 1. Important
--> todoJavaFX
-- Transform fix
-
-## 2. Less important
-- shoot.
-- cube/box without faces
+- children change notif.
+- shooting
+- collision sphere vs floor
 
 <br>
 
@@ -18,4 +14,4 @@ simple gui (line, point) not drawn from gui() in Input & Camera.
 - raycast
 - object selection
 	- with stroke
-- 
+- cube/box without faces

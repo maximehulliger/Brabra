@@ -37,6 +37,7 @@ public class SceneField extends Field {
 		if (imagePath != null) {
 			final ImageView imageView = View.getNewImage(imagePath);
 			imageView.getStyleClass().add("sceneField-img");
+			// TODO: style to css...
 			imageView.setFitWidth(200);
 			imageView.setPreserveRatio(true);
 			imageView.setSmooth(true);
