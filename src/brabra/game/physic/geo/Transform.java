@@ -37,11 +37,17 @@ public class Transform extends ProTransform {
 	/** Indicate if the children changed. */
 	private boolean childrenChanged = false, childrenChangedCurrent = false;
 	
-	public Transform() {
+	public Transform(Vector location, Quaternion rotation) {
+		locationRel.set(location);
+		rotationRel.set(rotation);
 		locationRel.addOnChange(() -> unvalidateAbs());
 		rotationRel.addOnChange(() -> unvalidateAbs());
 	}
 
+	public Transform() {
+		this(Vector.zero, Quaternion.identity);
+	}
+	
 	private void unvalidateAbs() {
 		absValid = false;
 		children.forEach(t -> t.unvalidateAbs());
@@ -280,7 +286,6 @@ public class Transform extends ProTransform {
 	 * 	Update the state of this transform only. 
 	 **/
 	public void update() {
-
 		// update changes
 		locationRel.update();
 		rotationRel.update();
@@ -290,9 +295,6 @@ public class Transform extends ProTransform {
 		childrenChanged = childrenChangedCurrent;
 		childrenChangedCurrent = false;
 		
-		if (changed())
-			updateAbs();
-
 		// update the children
 		children.forEach(t -> t.update());
 	}

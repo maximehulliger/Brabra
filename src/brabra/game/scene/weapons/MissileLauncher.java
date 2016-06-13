@@ -5,8 +5,8 @@ import brabra.game.physic.Collider;
 import brabra.game.physic.geo.Quaternion;
 import brabra.game.physic.geo.Sphere;
 import brabra.game.physic.geo.Vector;
-import brabra.game.scene.Effect;
 import brabra.game.scene.Movable;
+import brabra.game.scene.fun.Explosion;
 import processing.core.PImage;
 import processing.core.PShape;
 
@@ -47,7 +47,6 @@ public class MissileLauncher extends Weapon {
 		super.setName("Missile launcher t"+tier);
 	}
 	
-	
 	public boolean fire() {
 		if (super.fire()) {
 			game.scene.add(new Missile());
@@ -70,7 +69,7 @@ public class MissileLauncher extends Weapon {
 			super.addOnUpdate(m -> m.avance( puissance()*3 ));
 			super.setName("Missile t"+tier()+" p("+puissance+")");
 			super.setMass(puissance);
-			super.setParent(master().parent(), null);
+			// TODO: super.setParent(launcher, null);
 			Movable movableParent = Master.as(launcher, Movable.class);
 			if (movableParent != null)
 				super.velocityRel.set(movableParent.velocity());
@@ -90,7 +89,7 @@ public class MissileLauncher extends Weapon {
 		public void onCollision(Collider col, Vector impact) {
 			// explodes and disappears
 			game.scene.remove( this );
-			game.scene.add( new Effect.Explosion( impact, 30 ) );
+			game.scene.add( new Explosion( impact, tiersSize[tier] ) );
 			// to damage the targets
 			if (col instanceof Target) {
 				((Target)col).damage(puissance);

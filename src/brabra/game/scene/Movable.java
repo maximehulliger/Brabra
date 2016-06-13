@@ -133,6 +133,7 @@ public class Movable extends Object {
 			rotationRelVel.update();
 			model.notifyChange(Change.RotVelocity);
 		}
+		super.update();
 	}
 
 	// --- cooked methods to brake ---

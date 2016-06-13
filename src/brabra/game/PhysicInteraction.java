@@ -48,9 +48,15 @@ public final class PhysicInteraction extends ProMaster implements Observer {
 
 	/** Set focused. displayState. */
 	public void setFocused(Object focused) {
-		this.focused = focused;
-		this.focusedBody = focused == null ? null : focused.as(Body.class);
-		this.weaponry = getWeaponry();
+		if (focused == null) {
+			this.focused = this.focusedBody = null;
+			this.weaponry = null;
+		} else {
+			this.focused = focused;
+			this.focusedBody = focused.as(Body.class);
+			this.weaponry = getWeaponry();
+			focused.model.addObserver(this);
+		}
 	}
 	
 	/** Update interaction & apply forces. */

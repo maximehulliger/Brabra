@@ -3,11 +3,11 @@ package brabra.game.scene.fun;
 import brabra.game.physic.geo.Box;
 import brabra.game.physic.geo.Sphere;
 import brabra.game.physic.geo.Vector;
-import brabra.game.scene.Effect;
 import processing.core.PShape;
+import brabra.game.scene.Object;
 
 /** Pop meteors randomly in a box (in front of the parent). */
-public final class MeteorSpawner extends Effect {
+public final class MeteorSpawner extends Object {
 	
 	private static final int nbMeteorMax = 60;
 	private static final int ratioRandomToPlayer = 10; //nb de météorite tirée aléatoirement pour une contre le joueur.

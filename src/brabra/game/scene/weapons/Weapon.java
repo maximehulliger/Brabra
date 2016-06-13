@@ -117,6 +117,7 @@ public abstract class Weapon extends Object {
 	
 	/** Takes: tier, displayColliders & check for master. */
 	public void validate(Attributes atts) {
+		super.validate(atts);
 		String tier = atts.getValue("tier");
 		setTier(tier==null ? 1 : Integer.parseInt(tier));
 		final String displayColliders = atts.getValue("displayColliders");

@@ -18,6 +18,7 @@ public class Object extends Transform {
 
 	/** Create a Body with this location & rotation. rotation can be null. */
 	public Object(Vector location, Quaternion rotation) {
+		super(location, rotation);
 		setName(getClass().getSimpleName());
 		
 		// to notify model:

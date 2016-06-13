@@ -106,6 +106,7 @@ public class Weaponry extends Object {
 	// --- life cycle ---
 
 	public void validate(Attributes atts) {
+		super.validate(atts);
 		// display colliders & puissance
 		final String displayColliders = atts.getValue("displayColliders");
 		if (displayColliders != null)
