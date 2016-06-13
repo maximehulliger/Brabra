@@ -49,12 +49,8 @@ public final class PhysicInteraction extends ProMaster implements Observer {
 	/** Set focused. displayState. */
 	public void setFocused(Object focused) {
 		this.focused = focused;
-		this.focusedBody = focused instanceof Body ? (Body)focused : null;
+		this.focusedBody = focused == null ? null : focused.as(Body.class);
 		this.weaponry = getWeaponry();
-	}
-
-	public boolean hasFocused() {
-		return focused != null;
 	}
 	
 	/** Update interaction & apply forces. */
@@ -90,7 +86,7 @@ public final class PhysicInteraction extends ProMaster implements Observer {
 	}
 
 	private void applyForces() {
-		if (hasFocused() && focusedBody != null) {
+		if (focusedBody != null) {
 			// 1. rotation (plate, mouse, horizontal)
 			Vector forceRot = zero.copy(); // [pitch, yaw, roll]
 			//> from the plate

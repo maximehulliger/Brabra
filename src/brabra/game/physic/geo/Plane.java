@@ -117,7 +117,7 @@ public class Plane extends PseudoPolyedre {
 		popLocal();
 	}
 
-	public void updateAbs() {
+	protected void updateAbs() {
 		// for plane
 		Vector[] vertices = absolute(natCo);
 		vx = new Line(vertices[0], vertices[1], finite); 	// x

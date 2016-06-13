@@ -85,38 +85,31 @@ public final class SceneLoader extends ProMaster {
 	}
 
 	private class SceneFileHandler extends DefaultHandler {
+		
 		private final Stack<Object> parentStack = new Stack<>();
-		private final Stack<Attributes> attrStack = new Stack<>();
 		
 	    public void startElement(String namespaceURI, String localName,String qName, org.xml.sax.Attributes atts) 
 	    		throws SAXException {
-	    	if (localName.equals("Scene"))
-	    		return;
-	    	else if (localName.equals("Settings") || localName.equals("Physic"))
+	    	if (localName.equals("Scene") || localName.equals("Settings") || localName.equals("Physic")) {
 	    		app.para.validate(atts);
-	    	else {
+	    		parentStack.push(null);
+	    	} else {
 	    		// get loc & dir
 	    		final String locString = atts.getValue("pos");
 	    		final String dirString = atts.getValue("dir");
 	    		final Vector loc = locString != null ? vec(locString) : zero;
 	    		final Quaternion rot = dirString != null ? Quaternion.fromDirection(vec(dirString), Vector.up) : identity;
-	    		// create object
+	    		// create object & add it to the scene
 	    		final Object newObj = game.scene.getPrefab(localName, loc, rot);
-				attrStack.push(new Attributes(atts, parentStack.empty() ? null : parentStack.peek()));
+	    		newObj.validate(new Attributes(atts, parentStack.peek()));
+    			game.scene.add(newObj);
 				parentStack.push(newObj);
 	    	}
 	    }
 	    
 		public void endElement(String uri, String localName, String qName) 
 				throws SAXException {
-			if (!localName.equals("Scene") && !localName.equals("Physic") && !localName.equals("Settings")) {
-	    		final Object obj = parentStack.pop();
-	    		final Attributes atts = attrStack.pop();
-	    		if (obj != null) {
-	    			obj.validate(atts);
-	    			game.scene.add(obj);
-	    		}
-	    	}
+			parentStack.pop();
 		}
 	}
 	

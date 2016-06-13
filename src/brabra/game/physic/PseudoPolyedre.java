@@ -62,4 +62,7 @@ public abstract class PseudoPolyedre extends Collider {
 
 	/** Return the potential plans that an object at this location could collide against. */
 	public abstract Plane[] plansSeparationFor(Vector colliderLocation);
+
+	/** Update the absolute variables from relative variable. */
+	protected abstract void updateAbs();
 }

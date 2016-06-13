@@ -116,10 +116,4 @@ public class Object extends Transform {
 		setName(name);
 		return this;
 	}
-	
-	/** 
-	 * Update the absolute variables from relative variable if needed. 
-	 * Should be called at first by child class.
-	 **/
-	protected void updateAbs() {}
 }

@@ -183,7 +183,7 @@ public class Transform extends ProTransform {
 		return false;
 	}
 	
-	/** Return the fist child (dfs) that satisfy the predicate, */
+	/** Return the fist child (dfs) that satisfy the predicate or null. */
 	public Transform childThat(Function<Transform, Boolean> predicate) {
 		for (Transform child : children) {
 			if (predicate.apply(child))
