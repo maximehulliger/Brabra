@@ -16,8 +16,8 @@ public class Sphere extends Collider {
 		setRadius(radius);
 	}
 
-	public Sphere(Vector location, float radius) {
-		this(location, identity, radius);
+	public Sphere(float radius) {
+		this(Vector.zero, Quaternion.identity, radius);
 	}
 
 	public void copy(Object o) {

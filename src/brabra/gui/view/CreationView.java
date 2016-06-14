@@ -5,9 +5,7 @@ import java.util.ArrayList;
 import brabra.Brabra;
 import brabra.game.physic.geo.Box;
 import brabra.game.physic.geo.Plane;
-import brabra.game.physic.geo.Quaternion;
 import brabra.game.physic.geo.Sphere;
-import brabra.game.physic.geo.Vector;
 import brabra.game.scene.Movable;
 import brabra.game.scene.Object;
 import brabra.game.scene.fun.Starship;
@@ -109,6 +107,6 @@ public class CreationView extends View {
 	}
 
 	private <T extends Object> Object getNewObject(Class <T> type) {
-		return Brabra.app.game.scene.getPrefab(type.getSimpleName(), Vector.zero, Quaternion.identity);
+		return Brabra.app.game.scene.getPrefab(type.getSimpleName());
 	}
 }

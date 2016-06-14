@@ -13,7 +13,6 @@ import brabra.game.physic.Body;
 import brabra.game.physic.Collider;
 import brabra.game.physic.geo.Box;
 import brabra.game.physic.geo.Plane;
-import brabra.game.physic.geo.Quaternion;
 import brabra.game.physic.geo.Sphere;
 import brabra.game.physic.geo.Vector;
 import brabra.game.scene.fun.Starship;
@@ -121,35 +120,35 @@ public class Scene extends Observable {
 	 *	Supported names: <p>
 	 *	Object, Movable, Camera, Box, Ball, Floor, Target, Starship, Weaponry, missile_launcher.
 	 */
-	public Object getPrefab(String name, Vector location, Quaternion rotation) {
+	public Object getPrefab(String name) {
 		final Object obj;
 		final Body body;
 		if (name.equals(Object.class.getSimpleName()))
-			obj = new Object(location, rotation);
+			obj = new Object();
 		else if (name.equals(Movable.class.getSimpleName()))
-			obj = new Movable(location, rotation);
+			obj = new Movable();
 		else if (name.equals(Camera.class.getSimpleName())) {
 			return game.camera(); // already in scene
 		} else if (name.equals(Box.class.getSimpleName())) {
-			obj = body = new Box(location, rotation, new Vector(20,20,20));
+			obj = body = new Box(new Vector(20,20,20));
 			body.setMass(1);
 			body.addOnUpdate(b -> b.pese());
 		} else if (name.equals(Sphere.class.getSimpleName()) || name.equals("Ball")) {
-			obj = body = new Sphere(location, 10);
+			obj = body = new Sphere(10);
 			body.setMass(1);
 			body.addOnUpdate(b -> b.pese());
 		} else if (name.equals("Floor"))
-			obj = new Plane(location, rotation).withName("Floor");
+			obj = new Plane().withName("Floor");
 		else if (name.equals(Plane.class.getSimpleName()))
-			obj = new Plane(location, rotation);
+			obj = new Plane();
 		else if (name.equals(Target.class.getSimpleName()))
-			obj = new Target(location, rotation);
+			obj = new Target();
 		else if (name.equals(Starship.class.getSimpleName()))
-			obj = new Starship(location, rotation);
+			obj = new Starship();
 		else if (name.equals(Weaponry.class.getSimpleName()))
-			obj = new Weaponry(location, rotation);
+			obj = new Weaponry();
 		else if (name.equals("missile_launcher"))
-			obj = new MissileLauncher(location, rotation);
+			obj = new MissileLauncher();
 		else {
 			Debug.err("\""+name+"\" unknown, ignoring.");
 			return null;

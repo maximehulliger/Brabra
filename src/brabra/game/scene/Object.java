@@ -25,10 +25,15 @@ public class Object extends Transform {
 		locationRel.addOnChange(() -> model.notifyChange(Change.Transform));
 		rotationRel.addOnChange(() -> model.notifyChange(Change.Transform));
 	}
-	
+
 	/** Create a Body with this location & no initial rotation. */
 	public Object(Vector location) {
 		this(location, identity);
+	}
+
+	/** Create a Body with this location zero & no initial rotation. */
+	public Object() {
+		this(Vector.zero);
 	}
 	
 	/** Set this to the other object. should be overridden to make the copy complete & called. */
@@ -48,6 +53,14 @@ public class Object extends Transform {
 	 **/
 	public void validate(Attributes atts) {
 		super.validate(atts);
+		
+		// get loc & dir
+		final String locString = atts.getValue("pos");
+		final String dirString = atts.getValue("dir");
+		if (locString != null)
+			locationRel.set(vec(locString));
+		if (dirString != null)
+			rotationRel.set(Quaternion.fromDirection(vec(dirString), Vector.up));
 		
 		// set parent first !
 		final String parentRel = atts.getValue("parentRel");

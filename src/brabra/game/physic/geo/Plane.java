@@ -28,12 +28,22 @@ public class Plane extends PseudoPolyedre {
 		super.setName("Quad");
 		setSize(size2d);
 	}
+
+	/** Create a plan (quad) of size size2d (x,z). */
+	public Plane(Vector size2d) {
+		this(Vector.zero, Quaternion.identity, size2d);
+	}
 	
 	/** Create an infinite plan (with infinite mass). */
 	public Plane(Vector loc, Quaternion rot) {
 		super(loc, rot);
 		super.setName("Plane");
 		setSize(infiniteSize);
+	}
+
+	/** Create an infinite plan (with infinite mass). */
+	public Plane() {
+		this(Vector.zero, Quaternion.identity);
 	}
 	
 	public void copy(Object o) {

@@ -43,6 +43,10 @@ public class Weaponry extends Object {
 		setName("Weaponry");
 	}
 
+	public Weaponry() {
+		this(Vector.zero, Quaternion.identity);
+	}
+	
 	// --- Modifiers ---
 
 	/** 

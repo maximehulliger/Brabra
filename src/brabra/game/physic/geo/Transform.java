@@ -44,8 +44,12 @@ public class Transform extends ProTransform {
 		rotationRel.addOnChange(() -> unvalidateAbs());
 	}
 
+	public Transform(Vector location) {
+		this(location, Quaternion.identity);
+	}
+
 	public Transform() {
-		this(Vector.zero, Quaternion.identity);
+		this(Vector.zero);
 	}
 	
 	private void unvalidateAbs() {

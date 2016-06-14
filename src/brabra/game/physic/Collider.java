@@ -15,14 +15,9 @@ public abstract class Collider extends Body {
 	
 	private float radiusEnveloppe;
 	private boolean displayCollider = false;
-	
+
 	public Collider(Vector location, Quaternion rotation) {
 		super(location, rotation);
-	}
-
-	public Collider withName(String name) {
-		super.setName(name);
-		return this;
 	}
 	
 	/** Set the radius of the enveloppe sphere used to check if collide fast. */

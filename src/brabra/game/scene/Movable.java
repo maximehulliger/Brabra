@@ -28,6 +28,14 @@ public class Movable extends Object {
 		super(location, rotation);
 	}
 
+	public Movable(Vector location) {
+		this(location, Quaternion.identity);
+	}
+
+	public Movable() {
+		this(Vector.zero);
+	}
+
 	public void copy(Object o) {
 		super.copy(o);
 		Movable om = this.as(Movable.class);

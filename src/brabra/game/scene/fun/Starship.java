@@ -29,6 +29,10 @@ public class Starship extends Box {
 		setMass(200);
 		setName("Starship");
 	}
+
+	public Starship() {
+		this(Vector.zero, Quaternion.identity);
+	}
 	
 	public Weaponry armement() {
 		return armement;

@@ -5,8 +5,8 @@ import brabra.game.physic.Collider;
 import brabra.game.physic.geo.Quaternion;
 import brabra.game.physic.geo.Sphere;
 import brabra.game.physic.geo.Vector;
+import brabra.game.scene.Effect;
 import brabra.game.scene.Movable;
-import brabra.game.scene.fun.Explosion;
 import processing.core.PImage;
 import processing.core.PShape;
 
@@ -35,6 +35,10 @@ public class MissileLauncher extends Weapon {
 				if (pixels[i] == app.color(0))
 					pixels[i] = app.color(0, 0);
 		}
+	}
+
+	public MissileLauncher() {
+		this(Vector.zero, Quaternion.identity);
 	}
 	
 	public PImage img() {
@@ -89,7 +93,7 @@ public class MissileLauncher extends Weapon {
 		public void onCollision(Collider col, Vector impact) {
 			// explodes and disappears
 			game.scene.remove( this );
-			game.scene.add( new Explosion( impact, tiersSize[tier] ) );
+			game.scene.add( new Effect.Explosion( impact, tiersSize[tier] ) );
 			// to damage the targets
 			if (col instanceof Target) {
 				((Target)col).damage(puissance);

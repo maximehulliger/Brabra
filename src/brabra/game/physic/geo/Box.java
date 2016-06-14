@@ -25,6 +25,10 @@ public class Box extends PseudoPolyedre {
 	    setSize(size);
 	}
 
+	public Box(Vector size) {
+		this(Vector.zero, Quaternion.identity, size);
+	}
+
 	public void copy(Object o) {
 		super.copy(o);
 		Box ob = this.as(Box.class);
