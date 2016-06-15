@@ -1,5 +1,8 @@
 package brabra.game.scene;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import brabra.Brabra;
 import brabra.game.physic.geo.Vector;
 
@@ -46,6 +49,7 @@ public abstract class Effect extends Object {
 	
 	public static class Explosion extends Effect {
 		private float radius;
+		private List<Bulbe> bulbes =  new ArrayList<>();
 		
 		public Explosion(Vector location, float radius) {
 			super(location, toFrame(0.6f));
@@ -61,12 +65,12 @@ public abstract class Effect extends Object {
 		public void update() {
 			super.update();
 			for (int i=0; i<5; i++)
-				game.scene.add( new Bulbe(randomPos()) );
+				bulbes.add( new Bulbe(randomPos()) );
 		}
 		
 		//affiche l'onde de choc
 		public void display() {
-			
+			bulbes.forEach(b -> b.display());
 		}
 		
 		private class Bulbe extends Effect {
@@ -87,7 +91,6 @@ public abstract class Effect extends Object {
 				app.sphere(radius*etatCrete());
 				popLocal();
 			}
-			
 		}
 	}
 }

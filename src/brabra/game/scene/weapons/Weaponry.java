@@ -20,7 +20,7 @@ public class Weaponry extends Object {
 	/** Threshold for the button input (from the plate) to fire a tier of weapon. */
 	private static final float[] etatThreshold = new float[] { 0, 0, 0.8f };
 	private static final int nbPrefab = 2;
-	private int guiWidthWished = 400, puissanceWished = 400;
+	private int guiWidthWished = 150/*TODO: 400*/, puissanceWished = 400;
 
 	// for the weapons
 	protected float guiRatio = 1;

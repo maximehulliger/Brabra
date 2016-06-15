@@ -72,14 +72,13 @@ public class Object extends Transform {
 			setName(name);
 		final String cameraMode = atts.getValue("camera");
 		if (cameraMode != null) {
-			Camera cam = game.camera();
 			// set this as camera's parent with the given relation
 			ParentRelationship rel = ParentRelationship.fromString(cameraMode);
-			cam.setParent(this, rel);
+			game.camera.setParent(this, rel);
 			// set the distance for this mode
 			String dist = atts.getValue("cameraDist");
 			if (dist != null)
-				cam.setDist(rel, vec(dist));
+				game.camera.setDist(rel, vec(dist));
 		}
 		// focus: here because we want to do that with the children set.
 		final String focus = atts.getValue("focus");

@@ -47,10 +47,8 @@ public final class SceneView extends View implements Observer {
 				} else if (change == Scene.Change.ObjectRemoved) {
 					// we remove the object field of the object that is no longer in the scene.
 					final List<ObjectField> deadFields = objectFields.stream().filter(of -> of.object == obj).collect(Collectors.toList());
-					assert(deadFields.size() >= 1);
-					final ObjectField deadField = deadFields.get(0);
-					removeContent(deadField);
-					objectFields.remove(deadField);
+					deadFields.forEach(df -> removeContent(df));
+					objectFields.removeAll(deadFields);
 				}
 			});
 		}

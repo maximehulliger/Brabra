@@ -43,7 +43,6 @@ public abstract class Body extends Movable {
 	private Consumer<Body> onUpdate = null;
 	private List<Line> interactionsRel = new ArrayList<>();
 	
-	
 	/** create a Body with this location & location and infinite mass. rotation can be null */
 	public Body(Vector location, Quaternion rotation) {
 		super(location, rotation);

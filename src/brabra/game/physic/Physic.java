@@ -29,6 +29,8 @@ public class Physic extends ProMaster {
 	public static void doMagic(Scene scene) {
 		Debug.setCurrentWork("physic magic");
 		try {
+			collisions.clear();
+			
 			//2. on determine et filtre les collisions pour chaque paire possible (c, o).
 			forAllPairs(scene.activeColliders(), (c,o)-> {
 				if ( (o.affectedByPhysic() || c.affectedByPhysic())
@@ -56,7 +58,6 @@ public class Physic extends ProMaster {
 			//4. on applique les collision aux agents (si n�cessaire)
 			for (Collision col : collisions)
 				col.apply();
-
 		} catch (Exception e) {
 			Debug.err("physical error :/");
 			e.printStackTrace();

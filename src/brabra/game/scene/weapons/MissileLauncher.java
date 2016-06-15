@@ -21,6 +21,7 @@ public class MissileLauncher extends Weapon {
 	private static PImage missileImg;
 	
 	private final MissileLauncher launcher;
+	private int missileNextId = 1;
 	
 	public MissileLauncher(Vector loc, Quaternion rot) {
 		super(loc, rot, tiersPuissance.length);
@@ -71,14 +72,13 @@ public class MissileLauncher extends Weapon {
 			this.tier = tier0();
 			this.puissance = puissance();
 			super.addOnUpdate(m -> m.avance( puissance()*3 ));
-			super.setName("Missile t"+tier()+" p("+puissance+")");
+			super.setName("Missile t"+tier()+" p("+puissance+") ["+missileNextId++ +"]");
 			super.setMass(puissance);
 			// TODO: super.setParent(launcher, null);
 			Movable movableParent = Master.as(launcher, Movable.class);
 			if (movableParent != null)
 				super.velocityRel.set(movableParent.velocity());
 			super.setDisplayCollider(displayColliders());
-			
 		}
 
 		public void display() {

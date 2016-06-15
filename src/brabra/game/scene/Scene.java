@@ -1,8 +1,8 @@
 package brabra.game.scene;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Observable;
-import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -23,8 +23,8 @@ import brabra.game.scene.weapons.Weaponry;
 /** Object representing the active working scene (model). **/
 public class Scene extends Observable {
 
-	public final ConcurrentLinkedDeque<Object> objects = new ConcurrentLinkedDeque<Object>();
-	public final ConcurrentLinkedDeque<Collider> colliders = new ConcurrentLinkedDeque<Collider>();
+	public final List<Object> objects = new ArrayList<>();
+	public final List<Collider> colliders = new ArrayList<>();
 	
 	public final SceneLoader loader;
 	public final SceneProviderLocal providerLocal;
@@ -51,24 +51,26 @@ public class Scene extends Observable {
 		objects.forEach(f);
 	}
 
-	/** Add an object to the scene. Return the object. */
-	public Object add(Object o) {
-		if (!objects.contains(o)) {
+	/** Add an object to the scene. */
+	public void add(Object o) {
+		assert (!objects.contains(o));
+		Brabra.app.runLater(() -> {
 			objects.add(o);
 			if (o instanceof Collider)
 				colliders.add((Collider)o);
 			notifyChange(Change.ObjectAdded, o);
-		}
-		return o;
+		});
 	}
 	
-	/** Remove an object from the scene. Return the object. */
-	public Object remove(Object o) {
-		objects.remove(o);
-		colliders.remove(o);
-		o.onDelete();
-		notifyChange(Change.ObjectRemoved, o);
-		return o;
+	/** Remove an object from the scene. */
+	public void remove(Object o) {
+		assert (objects.contains(o));
+		Brabra.app.runLater(() -> {
+			objects.remove(o);
+			colliders.remove(o);
+			o.onDelete();
+			notifyChange(Change.ObjectRemoved, o);
+		});
 	}
 	
 	/** Remove all object from the scene. */
@@ -128,7 +130,7 @@ public class Scene extends Observable {
 		else if (name.equals(Movable.class.getSimpleName()))
 			obj = new Movable();
 		else if (name.equals(Camera.class.getSimpleName())) {
-			return game.camera(); // already in scene
+			return game.camera;
 		} else if (name.equals(Box.class.getSimpleName())) {
 			obj = body = new Box(new Vector(20,20,20));
 			body.setMass(1);
