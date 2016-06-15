@@ -9,7 +9,6 @@ import brabra.Debug;
 import brabra.game.Observable.NQuaternion;
 import brabra.game.Observable.NVector;
 import brabra.game.scene.Object;
-import brabra.game.scene.SceneLoader.Attributes;
 import processing.core.PMatrix;
 
 /** Represent the transformation of this transform's object. */
@@ -34,8 +33,6 @@ public class Transform extends ProTransform {
 	private Transform parent = null;
 	private ParentRelationship parentRel = ParentRelationship.None;
 	public final List<Transform> children = new ArrayList<>();
-	/** Indicate if the children changed. */
-	private boolean childrenChanged = false, childrenChangedCurrent = false;
 	
 	public Transform(Vector location, Quaternion rotation) {
 		locationRel.set(location);
@@ -77,12 +74,6 @@ public class Transform extends ProTransform {
 		return forRel && forAbs;
 	}
 	
-	public void set(Vector location, Quaternion rotation) {
-		locationRel.set(location);
-		if (rotation != null)
-			rotationRel.set(rotation);
-	}
-	
 	// --- Transform simple getters/modifier ---
 
 	/** Return the absolute location of the object. update things if needed. the Vector should not be modified. */
@@ -112,18 +103,6 @@ public class Transform extends ProTransform {
 		rotationRel.rotate(rotAbs);
 	}
 
-	// --- State getters ---
-
-	/** Return if the transforms of the object or one of his parent changed during last frame. */
-	public boolean changed() { 
-		return locationRel.hasChanged() || rotationRel.hasChanged() || (hasParent() && parent.changed()) ;
-	}
-	
-	/** Return true if the children list was changed during last frame. */
-	public boolean childrenChanged() {
-		return childrenChanged;
-	}
-	
 	// >>> Family <<<
 	
 	/** 
@@ -158,7 +137,7 @@ public class Transform extends ProTransform {
 
 	/** Return true if the object should consider his parent. */
 	public boolean hasParent() {
-		return parent != null && parentRel != ParentRelationship.None;
+		return parent != null;
 	}
 
 	/** Return the parent of the object (even if parentRel is None -> can be null). */
@@ -269,7 +248,6 @@ public class Transform extends ProTransform {
 	private void addChild(Transform newChild) {
 		if (!children.contains(newChild)) {
 			children.add(newChild);
-			childrenChangedCurrent = true;
 		}
 		assert(newChild.parent == this);
 	}
@@ -279,7 +257,6 @@ public class Transform extends ProTransform {
 	private void removeChild(Transform oldChild) {
 		if (children.remove(oldChild)) {
 			assert(oldChild.parent == this);
-			childrenChangedCurrent = true;
 			oldChild.setParent(null, null);
 		}
 	}
@@ -295,9 +272,6 @@ public class Transform extends ProTransform {
 		rotationRel.update();
 		locationAbs.update();
 		rotationAbs.update();
-		
-		childrenChanged = childrenChangedCurrent;
-		childrenChangedCurrent = false;
 		
 		// update the children
 		children.forEach(t -> t.update());
@@ -359,13 +333,6 @@ public class Transform extends ProTransform {
 	public void onDelete() {
 		if (hasParent())
 			parent.removeChild(this);
-	}
-
-	public void validate(Attributes atts) {
-		final String pos = atts.getValue("pos");
-		if (pos != null)
-			locationRel.set(Vector.fromString(pos));
-		//TODO: for rotation
 	}
 
 	// --- push & pop local ---
@@ -464,7 +431,7 @@ public class Transform extends ProTransform {
 			synchronized (this) {
 				setChanged();
 				notifyObservers(change);
-				children.forEach(c -> ((Object)c).model.notifyChange(change));
+				children.forEach(c -> c.model.notifyChange(change));
 			}
 		}
 	}

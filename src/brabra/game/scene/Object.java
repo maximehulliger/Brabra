@@ -52,8 +52,6 @@ public class Object extends Transform {
 	 * Return true when this was valdated (only once). 
 	 **/
 	public void validate(Attributes atts) {
-		super.validate(atts);
-		
 		// get loc & dir
 		final String locString = atts.getValue("pos");
 		final String dirString = atts.getValue("dir");

@@ -1,6 +1,5 @@
 package brabra.game.scene.weapons;
 
-import brabra.Master;
 import brabra.game.physic.Collider;
 import brabra.game.physic.geo.Quaternion;
 import brabra.game.physic.geo.Sphere;
@@ -74,8 +73,8 @@ public class MissileLauncher extends Weapon {
 			super.addOnUpdate(m -> m.avance( puissance()*3 ));
 			super.setName("Missile t"+tier()+" p("+puissance+") ["+missileNextId++ +"]");
 			super.setMass(puissance);
-			// TODO: super.setParent(launcher, null);
-			Movable movableParent = Master.as(launcher, Movable.class);
+			super.setParent(launcher, ParentRelationship.None);
+			Movable movableParent = launcher.as(Movable.class);
 			if (movableParent != null)
 				super.velocityRel.set(movableParent.velocity());
 			super.setDisplayCollider(displayColliders());
