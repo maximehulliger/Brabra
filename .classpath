@@ -18,7 +18,6 @@
 	<classpathentry exported="true" kind="lib" path="lib/core/jogl-all-natives-windows-i586.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/core/jogl-all.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/papaya.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/video.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/jersey-client.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/javax.ws.rs-api-2.0.1.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/jersey-common.jar"/>
@@ -41,6 +40,9 @@
 	<classpathentry exported="true" kind="lib" path="lib/osgi-resource-locator-1.0.1.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/persistence-api-1.0.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/validation-api-1.1.0.Final.jar"/>
+	<classpathentry kind="lib" path="lib/video/gstreamer-java.jar"/>
+	<classpathentry kind="lib" path="lib/video/jna.jar"/>
+	<classpathentry kind="lib" path="lib/video/video.jar"/>
 	<classpathentry exported="true" kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
 	<classpathentry kind="output" path="bin"/>

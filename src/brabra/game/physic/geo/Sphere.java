@@ -39,6 +39,11 @@ public class Sphere extends Collider {
 	    return v.magSq() < (r1+r2)*(r1+r2);
 	}
 
+	public Projection projetteSur(Line ligne) {
+		float proj = ligne.projectionFactor(location());
+		return new Projection(proj-this.radius, proj+this.radius);
+	}
+
 	// --- Setters ---
 	
 	public void setRadius(float radius) {
@@ -60,6 +65,7 @@ public class Sphere extends Collider {
 
 	public void display() {
 		pushLocal();
+		displayInteractionMaybe();
 		if (!displayColliderMaybe()) {
 			color.fill();
 			displayShape();
@@ -82,25 +88,5 @@ public class Sphere extends Collider {
 			if (tSize != null)
 				setRadius(Float.parseFloat(tSize));
 		}
-	}
-	
-	// --- physic (collider) ---
-	
-	public Projection projetteSur(Line ligne) {
-	  float proj = ligne.projectionFactor(location());
-	  return new Projection(proj-this.radius, proj+this.radius);
-	}
-	
-	public Vector projette(Vector point) {
-		Vector v = point.minus(location()).withMag(radius);
-		return v.plus(location());
-	}
-	
-	public Line collisionLineFor(Vector p) {
-		//on prend le vecteur this->c. la ligne part du perimetre a  c.
-		Vector sc = p.minus(location());
-		sc.setMag(radius);
-		Vector base = location().plus(sc);
-		return new Line(base, base.plus(sc), false);
 	}
 }

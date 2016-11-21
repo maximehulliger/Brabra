@@ -1,9 +1,7 @@
 package brabra.game.physic;
 
 import brabra.game.Color;
-import brabra.game.physic.geo.Line;
 import brabra.game.physic.geo.Quaternion;
-import brabra.game.physic.geo.Line.Projection;
 import brabra.game.scene.Object;
 import brabra.game.scene.SceneLoader.Attributes;
 import brabra.game.physic.geo.Vector;
@@ -45,7 +43,7 @@ public abstract class Collider extends Body {
 	}
 	
 	public boolean doCollideFast(Collider c) {
-		return this.location().minus(c.location()).magSq() < sq(this.radiusEnveloppe + c.radiusEnveloppe);
+		return this.location().minus(c.location()).magSq() < sq(this.radiusEnveloppe) + sq(c.radiusEnveloppe);
 	}
 	
 	// --- Setters ---
@@ -59,9 +57,6 @@ public abstract class Collider extends Body {
 
 	/** To display the shape of the collider (without color, in relative space). */
 	public abstract void displayShape();
-	
-	/** Return the projection of this collider on the line. */
-	public abstract Projection projetteSur(Line ligne);
 	
 	/** 
 	 * Display the collider... maybe. 
@@ -84,15 +79,4 @@ public abstract class Collider extends Body {
 		if (displayCollider != null)
 			setDisplayCollider( Boolean.parseBoolean(displayCollider) );
 	}
-
-	// --- obstacle --- ?
-	
-	//point Ã  la surface du collider le plus dans l'obstacle.
-	//public abstract Vector[] getIntruderPointOver(Line colLine);
-	
-	/** La ligne sur laquelle on va projeter. Basé à la surface de l'obstacle. */
-	public abstract Line collisionLineFor(Vector p);
-	
-	/** Projette ce point dans la face la plus proche de l'obstacle. */
-	public abstract Vector projette(Vector point);
 }

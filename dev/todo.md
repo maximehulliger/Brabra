@@ -1,6 +1,4 @@
 #TODO V 1.0
-- children change notif.
-- shooting
 - collision sphere vs floor
 
 <br>

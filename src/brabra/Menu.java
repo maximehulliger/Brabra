@@ -1,6 +1,5 @@
 package brabra;
 
-import brabra.imageprocessing.ImageAnalyser;
 import processing.core.PApplet;
 import processing.core.PFont;
 import processing.core.PImage;
@@ -57,13 +56,6 @@ public class Menu extends Interface {
 	private int rainbow = 0;
 	private float etatInfo = 0;
 	
-	public void wakeUp() {
-		app.imgAnalyser.play(false);
-		app.imgAnalyser.forced = false;
-		app.imgAnalyser.detectButtons = false;
-		ImageAnalyser.displayQuadRejectionCause = false; 
-	}
-
 	public void draw() {
 		if(imgBoutonUp == null) {
 			imgBoutonUp = app.loadImage("boutonUp.png");

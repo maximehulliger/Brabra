@@ -25,14 +25,11 @@ public class ButtonDetection extends ProMaster {
 	
 	public final ReentrantLock inputLock = new ReentrantLock();
 	public float[] paraBoutons;
-	private PImage inputImg;
 	
 	public final ReentrantLock outputLock = new ReentrantLock();
 	private float leftScore = -1, rightScore = -1; //[0, 1], -1 si invisible, 0 si presque
-	public final ReentrantLock jobOverLock = new ReentrantLock();
 	public PImage threshold2Button;
 	
-	private PVector[] corners;
 	private List<Integer[]> blobs = null;
 	
 	public ButtonDetection() {
@@ -56,11 +53,6 @@ public class ButtonDetection extends ProMaster {
 		} finally {
 			outputLock.unlock();
 		}
-	}
-	
-	public void setInput(PImage input, PVector[] corners) {
-		this.inputImg = input;
-		this.corners = corners;
 	}
 	
 	public void drawButtons(PGraphics input) {
@@ -94,8 +86,7 @@ public class ButtonDetection extends ProMaster {
 	}
 	
 	/** detect blobs instance within the four corners of the Lego board from a thresholded image of the buttons. */
-	public void detect() {
-		jobOverLock.lock();
+	public void detect(PImage inputImg, PVector[] corners) {
 		Polygon quad = new Polygon();
 		for (int i=0; i<corners.length; i++)
 			quad.addPoint((int) corners[i].x, (int) corners[i].y);
@@ -231,7 +222,6 @@ public class ButtonDetection extends ProMaster {
 		leftScore = PApplet.map(leftScoreApp, paraBoutons[12], paraBoutons[13], 0, 1);
 		rightScore = PApplet.map(rightScoreApp, paraBoutons[14], paraBoutons[15], 0, 1);
 		outputLock.unlock();
-		jobOverLock.unlock();
 		if (printButtonScore) {
 			System.out.println("bout: gauche: "+leftScore+", droite: "+rightScore);
 		}

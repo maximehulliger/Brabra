@@ -128,6 +128,7 @@ public class Box extends PseudoPolyedre {
 
 	public void display() {
 		pushLocal();
+		displayInteractionMaybe();
 		if (!displayColliderMaybe()) {
 			color.fill();
 			displayShape();

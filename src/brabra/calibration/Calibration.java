@@ -9,8 +9,6 @@ import processing.core.PApplet;
 import processing.core.PFont;
 
 public class Calibration extends Interface {
-	private final static boolean displayParameters = true; //sortie console
-	
 	private ImageAnalyser ia;
 	private HScrollbar[] bar;
 	private float[] currentPara;
@@ -27,23 +25,22 @@ public class Calibration extends Interface {
 	public boolean buttonCalibrationMode = false;
 	
 	public Calibration() {
-		ia = app.imgAnalyser;
+		
 	}
 
-	public void wakeUp() {
+	public void onShow() {
+		ia = app.imgAnalyser;
 		if (fontLabel == null) {
 			fontLabel = app.createFont("Arial", 18, true);
 			fontImages = app.createFont("Arial", (Brabra.height - 275)/17, true);
 		}
-		ia.inputLock.lock();
-		ImageAnalyser.displayQuadRejectionCause = true;
-		ia.forced = true;
-		ia.detectButtons = true;
-		ia.play(true);
-		ia.inputLock.unlock();
-		
+		ia.play(true, true);
 		updateCurrentPara();
 		createBars();
+	}
+	
+	public void onHide() {
+		app.setImgAnalysis(false);
 	}
 	
 	/** create bars from current state and currentPara */
@@ -84,16 +81,15 @@ public class Calibration extends Interface {
 			app.textAlign(PApplet.RIGHT, PApplet.BOTTOM);
 			app.fill(200, 100, 0, 180);
 			
-			if (ia.paused()) {
+			if (!ia.running())
 				app.text("paused", displayWid, displayHei);
-			}
 			
 			if (buttonCalibrationMode) {
 				if (ia.hasFoundQuad && ia.buttonDetection.threshold2Button != null)
 					app.image(ia.buttonDetection.threshold2Button, displayWid, 0, displayWid, displayHei);
 				if (!ia.hasFoundQuad)
 					app.text("button detection mode: need to detect the plate. ", displayWid*2, displayHei);
-				else if (ia.paused())
+				else if (!ia.running())
 					app.text("button detection mode  :)  ", displayWid*2, displayHei);
 				else
 					app.text("button detection mode (pause (p) to help yourself)  ", displayWid*2, displayHei);
@@ -112,58 +108,47 @@ public class Calibration extends Interface {
 		for (int i=0; i<currentPara.length; i++) {
 			bar[i].update();
 			bar[i].display();
-			app.text(currentInfo[i], 30,Brabra.height-caraBarsHeight+17+20*i);
+			app.text(currentInfo[i], 30, Brabra.height-caraBarsHeight+17+20*i);
 		}
 	}
 	
 	public void keyPressed() {
 		if (app.key == 'q') {
 			ia.inputLock.lock();
-			if (ia.takeMovie) {
-				ia.restartMovie();
-				ia.paraMovie = ImageProcessing.paraMovieBase.clone();
-			} else if (buttonCalibrationMode) {
-				ia.paraCamera = ia.imgProc.paraCameraBase.clone();
-			} else {
+			if (buttonCalibrationMode)
+				ia.parametres = ia.imgProc.paraCameraBase.clone();
+			else {
 				ia.buttonDetection.inputLock.lock();
 				ia.buttonDetection.paraBoutons = ia.imgProc.paraBoutonsBase.clone();
 				ia.buttonDetection.inputLock.unlock();
 			}
 			ia.inputLock.unlock();
-		}
-		
-		if (app.key=='Q') {		//all parameters reset -> update etat bars
+		} else if (app.key=='Q')		//all parameters reset -> update etat bars
 			updateBars();
-		}
-		if (app.key=='i') {
-			buttonCalibrationMode = buttonCalibrationMode && !ia.takeMovie; //only with camera
-			updateBars();
-		}
-		if (app.key=='b' && !ia.takeMovie) {
+		else if (app.key=='b') {
 			buttonCalibrationMode = !buttonCalibrationMode;
 			updateCurrentPara();
 			createBars();
-		}
-		
-		if (app.key == 'l') {
+		} else if (app.key == 'l')
 			updateBars();
-		}
-		if (app.key == 's') {
+		else if (app.key == 's')
 			app.imgAnalyser.imgProc.saveParameters();
+		else if (app.key == 'r') {
+			boolean even = true;
+			for (int i=0; i<ImageProcessing.nbParaBase; i++) {
+				currentPara[i] = even ? 0 : ImageProcessing.basicParaMaxValue;
+				even = !even;
+			}
+			updateBars();
 		}
 	}
 	
 	/** update bars & currentPara from img analyser */
 	public void updateBars() {
 		updateCurrentPara();
-		
 		//update base & special bars
-		for (int i=0; i<ImageProcessing.nbParaBase; i++) {
+		for (int i=0; i<currentPara.length; i++)
 			bar[i].setEtat(currentPara[i]);
-		}
-		for (int i=ImageProcessing.nbParaBase; i<currentPara.length; i++) {
-			bar[i].setEtat(currentPara[i]);
-		}
 	}
 	
 	private void updateCurrentPara() {
@@ -191,14 +176,6 @@ public class Calibration extends Interface {
 				ia.buttonDetection.inputLock.unlock();
 			else
 				ia.inputLock.unlock();
-		}
-
-		if (displayParameters) {
-			System.out.println("----------------");
-			for (int i=0; i<currentPara.length/2; i++)
-				System.out.printf(" %d: [%.2f, %.2f]\n", i, currentPara[2*i], currentPara[2*i+1]);
-			if (ia.hough != null)
-				System.out.println("=> "+ia.hough.lines.size()+" lignes");
 		}
 	}
 }

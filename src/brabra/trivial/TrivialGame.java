@@ -31,15 +31,18 @@ public class TrivialGame extends Interface {
 		Cylinders.trivialGame = this;
 	}
 	
-	public void wakeUp() {
-		app.imgAnalyser.detectButtons = false;
-		app.imgAnalyser.play(true);
+	public void onShow() {
+		app.imgAnalyser.play(false, false);
 		mover = new Mover(this);
 		cylinders = new Cylinders();
 		tiltSpeed = 1;
 		platRot = zero.copy();
 		mode = Mode.Jeu;
 		etat = 0; //entre 0 (jeu) et 1 (controle)
+	}
+
+	public void onHide() {
+		app.setImgAnalysis(false);
 	}
 	
 	public void draw() {
@@ -158,7 +161,7 @@ public class TrivialGame extends Interface {
 	public void keyReleased() {
 		//shift: mode contrôle
 		if (app.keyCode == PApplet.SHIFT || app.keyCode == PApplet.CONTROL) {
-			app.imgAnalyser.play(true);
+			app.imgAnalyser.play(false, false);
 			
 			switch (mode) {
 			case Placement:
@@ -187,7 +190,7 @@ public class TrivialGame extends Interface {
 			switch (mode) {
 			case Jeu:
 			case TransDown:
-				app.imgAnalyser.play(false);
+				app.imgAnalyser.stop();
 				setMode(Mode.TransUp);
 			default:
 				break;

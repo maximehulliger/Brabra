@@ -16,7 +16,7 @@ import brabra.game.scene.Camera;
  **/
 public abstract class ProMaster extends Master {
 	
-	protected static Brabra app;
+	public static Brabra app;
 	protected static RealGame game;
 	
 	// --- some constants ---

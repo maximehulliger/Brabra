@@ -26,14 +26,14 @@ public abstract class Body extends Movable {
 	private static final Color interactionColor = new Color("white", true);
 	
 	/** Mass of the body. -2 for ghost, -1 for infinite or bigger than 0 (never equals 0).*/
-	protected float mass = -2;
+	protected float mass = -1;
 	/** Inverse of the body mass. 0 for infinite mass or bigger than 0. */
 	protected float inverseMass = 0;
 	protected Vector inertiaMom = null;
 	protected Vector inverseInertiaMom = null;
 	protected Color color = Color.basic;
 	/** Coefficient of restitution in [0, 1] for stable simulation. */
-	protected float restitution = 0.8f;
+	protected float restitution = 0.0f;
 	protected int life = -1;
 	protected int maxLife = -1;
 	
@@ -263,12 +263,12 @@ public abstract class Body extends Movable {
 
 	/** Add momentum to the body at this point (absolute). */
 	public void applyImpulse(Vector posAbs, Vector impulseAbs) {
-		assert(!impulseAbs.equals(zero));
+		//assert(!impulseAbs.equals(zero));
 		final Vector posRel = relative(posAbs);
 		final Vector impulseRel = relativeDir(impulseAbs);
 		final Vector impulseLoc = localDirFromRel(impulseRel);
 		// in local space
-		interactionsRel.add(new Line(relative(posRel), relative(add(posRel, impulseRel.multBy(4))), true));		
+		interactionsRel.add(new Line(posRel, add(posRel, impulseRel.multBy(4)), true));		
 		// test if the impulse is against (or on) the mass center -> just translation
 		if (posRel.isZeroEps(false) || posRel.cross(impulseRel).isZeroEps(false)) {
 			velocityRel.add( impulseLoc.multBy(this.inverseMass) );

@@ -286,15 +286,38 @@ public class Quaternion extends ProMaster {
 			assert(!right.equals(zero));
 			final Vector up = forward.cross(right).normalized();
 			assert(!up.equals(zero));
-			final float in = 1.0f + right.x + up.y + forward.z;
-	        if (in == 0) {
-	        	return identity.copy();
+
+			final float m00 = right.x;
+			final float m01 = right.y;
+			final float m02 = right.z;
+			final float m10 = up.x;
+			final float m11 = up.y;
+			final float m12 = up.z;
+			final float m20 = forward.x;
+			final float m21 = forward.y;
+			final float m22 = forward.z;
+
+	        float a = (m00 + m11) + m22;
+	        if (a > 0.0) {
+	        	final float b = sqrt(a + 1);
+	        	final float c = 0.5f / b;
+	            return new Quaternion(b * 0.5f, (m12 - m21) * c, 
+	            		(m20 - m02) * c, (m01 - m10) * c);
+	        } else if ((m00 >= m11) && (m00 >= m22)) {
+	        	final float num7 = sqrt(1 + m00 - m11 - m22);
+	        	final float num4 = 0.5f / num7;
+	            return new Quaternion((m12 - m21) * num4, 0.5f * num7, 
+	            		(m01 + m10) * num4, (m02 + m20) * num4);
+	        } else if (m11 > m22) {
+	        	final float num6 = sqrt(1 + m11 - m00 - m22);
+	        	final float num3 = 0.5f / num6;
+	            return new Quaternion((m20 - m02) * num3, (m10 + m01) * num3,
+	            		0.5f * num6, (m21 + m12) * num3);
 	        } else {
-	        	assert (in > 0);
-				final float w = PApplet.sqrt(in) / 2.0f;
-		        final float dfwScale = w * 4.0f;
-		        return new Quaternion(w, (forward.y - up.z) / dfwScale,
-		        		(right.z - forward.x) / dfwScale, (up.x - right.y) / dfwScale);
+		        float num5 = sqrt(1 + m22 - m00 - m11);
+		        float num2 = 0.5f / num5;
+		        return new Quaternion((m01 - m10) * num2, (m20 + m02) * num2,
+		        		(m21 + m12) * num2, 0.5f * num5);
 	        }
 		}
     }

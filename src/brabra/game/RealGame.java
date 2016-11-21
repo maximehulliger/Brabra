@@ -25,12 +25,12 @@ public class RealGame extends Interface {
 		physicInteraction.setFocused(null);
 		scene.loader.loadLocalFiles();
 		scene.loader.load();
-		app.imgAnalyser.detectButtons = true;
-		app.imgAnalyser.play(false);
+		app.imgAnalyser.play(true, false);
 	}
 
 	public void onHide() {
 		scene.clear();
+		app.setImgAnalysis(false);
 	}
 	
 	// mother method of all life:

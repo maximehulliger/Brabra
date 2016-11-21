@@ -38,16 +38,6 @@ public final class ImageProcessing extends ProMaster {
 		200, //MaxVoteTight
 	};
 	
-	public static final float[] paraMovieBase = { 
-		101.6f, 127.1f, //hue
-		0, 209f, 		//bright
-		37.8f, 255f,	//satur
-		0, 255f, 		//r
-		81.8f, 202f, 	//g
-		51f, 236,		//b
-		35f, 25.4f,		//min vote, neighbour
-		6f, 0.3f };		//nb line kept, sobel threshold
-	
 	public float[] paraCameraBase = { 
 		67.6f, 107.5f, 	//hue
 		54.3f, 255f, 	//bright
@@ -57,6 +47,7 @@ public final class ImageProcessing extends ProMaster {
 		0f, 175f,		//b
 		50f, 38f,		//min vote, neighbour
 		6f, 0.13f };	//nb line kept, sobel threshold
+	
 	public float[] paraBoutonsBase = { 
 		243.7f, 6f, 	//hue
 		0.0f,255f, 		//bright
@@ -276,8 +267,8 @@ public final class ImageProcessing extends ProMaster {
 			    JFileChooser.APPROVE_OPTION) {
 				File fichier = dialogue.getSelectedFile();
 				PrintWriter sortie = new PrintWriter(new FileWriter(fichier.getPath(), false));
-				for (int i=0; i<app.imgAnalyser.paraCamera.length; i++) {
-					sortie.print(app.imgAnalyser.paraCamera[i] + " ");
+				for (int i=0; i<app.imgAnalyser.parametres.length; i++) {
+					sortie.print(app.imgAnalyser.parametres[i] + " ");
 				}
 				for (int i=0; i<app.imgAnalyser.buttonDetection.paraBoutons.length; i++) {
 					sortie.print(app.imgAnalyser.buttonDetection.paraBoutons[i] + " ");

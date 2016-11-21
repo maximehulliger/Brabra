@@ -1,7 +1,6 @@
 package brabra.game.physic.geo;
 
 import brabra.Debug;
-import brabra.game.physic.Collider;
 import brabra.game.physic.PseudoPolyedre;
 import brabra.game.physic.geo.Line.Projection;
 import brabra.game.scene.Object;
@@ -120,6 +119,7 @@ public class Plane extends PseudoPolyedre {
 
 	public void display() {
 		pushLocal();
+		displayInteractionMaybe();
 		if (!displayColliderMaybe()) {
 			color.fill();
 			displayShape();
@@ -177,10 +177,6 @@ public class Plane extends PseudoPolyedre {
 	public Vector projette(Vector point) {
 		updateAbs();
 		return add( vx.projette(point) , vz.projetteLocal(point) );
-	}
-
-	public boolean doCollideFast(Collider c) {
-		return c.projetteSur(normale()).comprend(0) && (!finite || super.doCollideFast(c));
 	}
 
 	public Vector pointContre(Vector normale) {

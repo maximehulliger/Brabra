@@ -1,18 +1,14 @@
 package brabra.game.physic;
 
-import brabra.game.physic.geo.Line;
-import brabra.game.physic.geo.Vector;
-
-public class CollisionPPolyedre extends Collision {
-	private final PseudoPolyedre p1, p2;
+public class CollisionPPolyedre extends Collision<PseudoPolyedre, PseudoPolyedre> {
 	
 	public CollisionPPolyedre(PseudoPolyedre p1, PseudoPolyedre p2) {
 		super(p1, p2);
-		this.p1 = p1;
-		this.p2 = p2;
 	}
 
 	public void resolve() {
+		ignore();
+		/*
 		if (!areCollidingFast(c1, c2))
 			return;
 		
@@ -28,24 +24,12 @@ public class CollisionPPolyedre extends Collision {
 			Line colLine = p2.collisionLineFor(impact);
 			norm = colLine.norm;
 			correction = impact.minus(pCont1);
-			nulle = false;
 		} else if (p1.isIn(pCont2)) {
 			impact = p1.projette(pCont2);
 			Line colLine = p1.collisionLineFor(impact);
 			norm = colLine.norm;
 			correction = impact.minus(pCont2);
-			nulle = false;
 		}
-		
-		/*
-		impact = obstacle.projette(sphere.location);
-		if (distSq(sphere.location, impact) >= sq(sphere.radius)) 
-			return;
-		
-		Line colLine = obstacle.collisionLineFor(sphere.location);
-		norm = colLine.norm;
-		Vector contact = sphere.projette(impact);
-		correction = Vector.sub(impact, contact);
-		nulle = false;*/
+		*/
 	}
 }

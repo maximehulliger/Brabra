@@ -1,17 +1,20 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
 <Scene>
-	<Settings gravity="0.2" running="true" verbosity="max" displayAllColliders="false"></Settings>
+	<Settings gravity="0.2" running="true" verbosity="max" displayAllColliders="true"></Settings>
 	
 	<Camera displaySkybox="true" mode="none" dist="(300,300,300)" debug="false"></Camera>
 	
+	<Floor pos="zero" color="grass" dir="(0 100 -100)"></Floor> 
+	<Floor pos="zero" color="grass" dir="(0 100 100)"></Floor> 
+	<Ball pos="(0,200,0)" mass="500" color="red" radius="10"></Ball>
+	
 	<Starship pos="(0,200,0)" focus="true" camera="static">
-		
 		<Weaponry puissance="400" prefab="none" displayColliders="false">
 			<missile_launcher pos="(0,-15,0)" tier="3" upgrade="1.2"></missile_launcher>
 		</Weaponry>
 	</Starship>
-	<!-- 
 	
+	<!-- 
 	
 	<Box pos="(40,0,-20)" name="pink box" mass="0" color="pink">
 			<Ball pos="(0,40,0)" name="upper ball" color="blue" mass="0"></Ball>
