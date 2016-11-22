@@ -38,7 +38,7 @@ public final class ImageProcessing extends ProMaster {
 		200, //MaxVoteTight
 	};
 	
-	public float[] paraCameraBase = { 
+	public static float[] paraCameraBase = { 
 		67.6f, 107.5f, 	//hue
 		54.3f, 255f, 	//bright
 		109f, 255f,		//satur
@@ -48,7 +48,7 @@ public final class ImageProcessing extends ProMaster {
 		50f, 38f,		//min vote, neighbour
 		6f, 0.13f };	//nb line kept, sobel threshold
 	
-	public float[] paraBoutonsBase = { 
+	public static float[] paraBoutonsBase = { 
 		243.7f, 6f, 	//hue
 		0.0f,255f, 		//bright
 		114f, 255f,		//satur
@@ -227,7 +227,7 @@ public final class ImageProcessing extends ProMaster {
 	}
 
 	/** Open the parameter file selection dialogue. */
-	public void selectParameters() {
+	public static void selectParameters() {
 		try {
 			JFileChooser dialogue = new JFileChooser(new File("."));
 			
@@ -260,7 +260,7 @@ public final class ImageProcessing extends ProMaster {
 		}
 	}
 	
-	public void saveParameters() {
+	public static void saveParameters() {
 		try {
 			JFileChooser dialogue = new JFileChooser(new File("."));
 			if (dialogue.showOpenDialog(null)== 

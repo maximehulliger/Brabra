@@ -1,6 +1,7 @@
 package brabra.calibration;
 
 import brabra.Interface;
+import brabra.Master;
 import brabra.Brabra;
 import brabra.calibration.HScrollbar;
 import brabra.imageprocessing.ImageAnalyser;
@@ -9,24 +10,26 @@ import processing.core.PApplet;
 import processing.core.PFont;
 
 public class Calibration extends Interface {
+	private static final int selectionCursorSizeNormal = 10;
+	private static final int selectionCursorSizeButton = 5;
+	private static final int caraBarsHeight = ImageProcessing.paraCameraBase.length*20;
+	private static final int displayWidth = Brabra.width/3 + 1;
+	private static final int displayHeight = Brabra.height - caraBarsHeight - 75;
+	private static final String[] infoInput = { "Hue min", "Hue max", "Brigh min", "Brigh max", "Satur min", "Satur max", 
+			"r min", "r max", "g min", "g max", "b min", "b max", 
+			"min vote", "neighbourhood", "nb lignes", "sobel threshold"};
+	private static final String[] infoButton = { "Hue min", "Hue max", "Brigh min", "Brigh max", "Satur min", "Satur max", 
+			"r min", "r max", "g min", "g max", "b min", "b max", 
+			"min vote left", "max vote left", "min vote right", "max vote right"};
+	
 	private ImageAnalyser ia;
 	private HScrollbar[] bar;
 	private float[] currentPara;
 	private PFont fontLabel;
 	public PFont fontImages;
-	private int caraBarsHeight;
-	private String[] infoInput = { "Hue min", "Hue max", "Brigh min", "Brigh max", "Satur min", "Satur max", 
-			"r min", "r max", "g min", "g max", "b min", "b max", 
-			"min vote", "neighbourhood", "nb lignes", "sobel threshold"};
-	private String[] infoButton = { "Hue min", "Hue max", "Brigh min", "Brigh max", "Satur min", "Satur max", 
-			"r min", "r max", "g min", "g max", "b min", "b max", 
-			"min vote left", "max vote left", "min vote right", "max vote right"};
+	
 	private String[] currentInfo;
 	public boolean buttonCalibrationMode = false;
-	
-	public Calibration() {
-		
-	}
 
 	public void onShow() {
 		ia = app.imgAnalyser;
@@ -36,16 +39,8 @@ public class Calibration extends Interface {
 		}
 		ia.play(true, true);
 		updateCurrentPara();
-		createBars();
-	}
-	
-	public void onHide() {
-		app.setImgAnalysis(false);
-	}
-	
-	/** create bars from current state and currentPara */
-	public void createBars() {
-		caraBarsHeight = currentPara.length*20;
+		
+		// create Bars
 		bar = new HScrollbar[currentPara.length];
 		
 		float[] specialParaEtatMax;
@@ -64,17 +59,19 @@ public class Calibration extends Interface {
 					currentPara[i], specialParaEtatMax[i-ImageProcessing.nbParaBase]);
 		}
 	}
-
+	
+	public void onHide() {
+		app.setImgAnalysis(false);
+	}
+	
 	public void draw() {
 		app.background(0);
 		app.fill(255, 255);
 		ia.imagesLock.lock();
 		if (ia.inputImg != null) {
-			int displayWid = Brabra.width/3 + 1;
-			int displayHei = Brabra.height - caraBarsHeight - 75;
 			
 			ia.quadDetectionLock.lock();
-			app.image(ia.quadDetection, 0, 0, displayWid, displayHei);
+			app.image(ia.quadDetection, 0, 0, displayWidth, displayHeight);
 			ia.quadDetectionLock.unlock();
 			
 			app.textFont( ia.standardFont );
@@ -82,22 +79,30 @@ public class Calibration extends Interface {
 			app.fill(200, 100, 0, 180);
 			
 			if (!ia.running())
-				app.text("paused", displayWid, displayHei);
+				app.text("paused", displayWidth, displayHeight);
 			
 			if (buttonCalibrationMode) {
 				if (ia.hasFoundQuad && ia.buttonDetection.threshold2Button != null)
-					app.image(ia.buttonDetection.threshold2Button, displayWid, 0, displayWid, displayHei);
+					app.image(ia.buttonDetection.threshold2Button, displayWidth, 0, displayWidth, displayHeight);
 				if (!ia.hasFoundQuad)
-					app.text("button detection mode: need to detect the plate. ", displayWid*2, displayHei);
+					app.text("button detection mode: need to detect the plate. ", displayWidth*2, displayHeight);
 				else if (!ia.running())
-					app.text("button detection mode  :)  ", displayWid*2, displayHei);
+					app.text("button detection mode  :)  ", displayWidth*2, displayHeight);
 				else
-					app.text("button detection mode (pause (p) to help yourself)  ", displayWid*2, displayHei);
+					app.text("button detection mode (pause (p) to help yourself)  ", displayWidth*2, displayHeight);
 				
 			} else
-				app.image(ia.threshold2g, displayWid, 0, displayWid, displayHei);
+				app.image(ia.threshold2g, displayWidth, 0, displayWidth, displayHeight);
 			
-			app.image(ia.inputImg, 2*displayWid, 0, displayWid, displayHei);
+			app.image(ia.inputImg, 2*displayWidth, 0, displayWidth, displayHeight);
+			
+			// draw the cursor for color selection
+			if (app.mouseX > 2*displayWidth && app.mouseY < displayHeight) {
+				final int selectionCursorSize = buttonCalibrationMode ? selectionCursorSizeButton : selectionCursorSizeNormal;
+				app.rectMode(PApplet.CENTER);
+				app.rect(app.mouseX, app.mouseY, selectionCursorSize, selectionCursorSize);
+				app.rectMode(PApplet.CORNER);
+			}
 		}
 		ia.imagesLock.unlock();
 
@@ -116,10 +121,10 @@ public class Calibration extends Interface {
 		if (app.key == 'q') {
 			ia.inputLock.lock();
 			if (buttonCalibrationMode)
-				ia.parametres = ia.imgProc.paraCameraBase.clone();
+				ia.parametres = ImageProcessing.paraCameraBase.clone();
 			else {
 				ia.buttonDetection.inputLock.lock();
-				ia.buttonDetection.paraBoutons = ia.imgProc.paraBoutonsBase.clone();
+				ia.buttonDetection.paraBoutons = ImageProcessing.paraBoutonsBase.clone();
 				ia.buttonDetection.inputLock.unlock();
 			}
 			ia.inputLock.unlock();
@@ -128,15 +133,15 @@ public class Calibration extends Interface {
 		else if (app.key=='b') {
 			buttonCalibrationMode = !buttonCalibrationMode;
 			updateCurrentPara();
-			createBars();
+			updateBars();
 		} else if (app.key == 'l')
 			updateBars();
 		else if (app.key == 's')
-			app.imgAnalyser.imgProc.saveParameters();
+			ImageProcessing.saveParameters();
 		else if (app.key == 'r') {
 			boolean even = true;
 			for (int i=0; i<ImageProcessing.nbParaBase; i++) {
-				currentPara[i] = even ? 0 : ImageProcessing.basicParaMaxValue;
+				currentPara[i] = even ? ImageProcessing.basicParaMaxValue : 0;
 				even = !even;
 			}
 			updateBars();
@@ -168,14 +173,43 @@ public class Calibration extends Interface {
 			else
 				ia.inputLock.lock();
 
-			for (int i=0; i<currentPara.length; i++) {
+			for (int i=0; i<currentPara.length; i++)
 				currentPara[i] = bar[i].getEtat();
-			}
 
 			if (buttonCalibrationMode)
 				ia.buttonDetection.inputLock.unlock();
 			else
 				ia.inputLock.unlock();
+		} else {
+			if (app.mouseX > 2*displayWidth && app.mouseY < displayHeight) {
+				final int selectionCursorSize = buttonCalibrationMode ? selectionCursorSizeButton : selectionCursorSizeNormal;
+				final float[] parametres = buttonCalibrationMode ? ia.buttonDetection.paraBoutons : ia.parametres;
+				final int mouseOnImgX = (int)((app.mouseX - 2*displayWidth)*ia.inputImg.width/displayWidth);
+				final int mouseOnImgY = (int)((app.mouseY)*ia.inputImg.height/displayHeight);
+				final int startX = Master.max(0, mouseOnImgX-selectionCursorSize/2);
+				final int startY = Master.max(0, mouseOnImgY-selectionCursorSize/2);
+				final int endX = Master.min(displayWidth, mouseOnImgX+selectionCursorSize/2);
+				final int endY = Master.min(displayHeight, mouseOnImgY+selectionCursorSize/2);
+				ia.inputLock.lock();
+				for (int x = startX; x<endX; x++)
+					for (int y = startY; y<endY; y++) {
+						final int p = ia.inputImg.get(x, y);
+						float[] pVals = new float[] {
+								app.hue(p), app.saturation(p), app.brightness(p),
+								app.red(p), app.green(p), app.blue(p) };
+						
+						for (int i=1; i<6; i++) {
+							final int paraMinIdx = i*2;
+							final int paraMaxIdx = paraMinIdx+1;
+							if (pVals[i] < parametres[paraMinIdx])
+								parametres[paraMinIdx] = pVals[i]-1;
+							if (pVals[i] > parametres[paraMaxIdx])
+								parametres[paraMaxIdx] = pVals[i]+1;
+						}
+					}
+				ia.inputLock.unlock();
+				updateBars();
+			}
 		}
 	}
 }

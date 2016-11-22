@@ -33,7 +33,7 @@ public class ButtonDetection extends ProMaster {
 	private List<Integer[]> blobs = null;
 	
 	public ButtonDetection() {
-		paraBoutons = app.imgAnalyser.imgProc.paraBoutonsBase.clone();
+		paraBoutons = ImageProcessing.paraBoutonsBase.clone();
 	}
 	
 	/** [0, 1], -1 if invisible, 0 if nearly visible */

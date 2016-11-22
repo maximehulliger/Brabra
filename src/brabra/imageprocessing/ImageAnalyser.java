@@ -32,7 +32,6 @@ public class ImageAnalyser extends ProMaster {
 	
 	//--- images & quad detection (control img)
 	public final ReentrantLock imagesLock = new ReentrantLock();
-	public final ImageProcessing imgProc = new ImageProcessing();
 	public PImage inputImg;
 	public PImage threshold2g;
 	private PImage sobel;
@@ -72,7 +71,7 @@ public class ImageAnalyser extends ProMaster {
 		
 		// font & parametres
 		standardFont = app.createFont("Arial", Brabra.height/40f);
-		parametres = imgProc.paraCameraBase.clone();
+		parametres = ImageProcessing.paraCameraBase.clone();
 		
 		// main loop
 		while (!app.isOver()) {
@@ -209,8 +208,8 @@ public class ImageAnalyser extends ProMaster {
 	
 	public void resetAllParameters(boolean movieToo) {
 		inputLock.lock();
-		parametres = imgProc.paraCameraBase.clone();
-		buttonDetection.paraBoutons = imgProc.paraBoutonsBase.clone();
+		parametres = ImageProcessing.paraCameraBase.clone();
+		buttonDetection.paraBoutons = ImageProcessing.paraBoutonsBase.clone();
 		newInput = true;
 		inputLock.unlock();
 	}

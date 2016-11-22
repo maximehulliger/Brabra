@@ -226,7 +226,7 @@ public class Brabra extends PApplet {
 			Debug.info(3, "starting img analysis thread.");
 			Master.launch(() -> imgAnalyser.launch());
 		}
-		if (!hasImgAnalysis)
+		if (!hasImgAnalysis && imgAnalyser.running())
 			imgAnalyser.stop();
 		imgAnalysis = hasImgAnalysis;
 	}
