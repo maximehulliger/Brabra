@@ -198,7 +198,7 @@ public class Calibration extends Interface {
 								app.hue(p), app.saturation(p), app.brightness(p),
 								app.red(p), app.green(p), app.blue(p) };
 						
-						for (int i=1; i<6; i++) {
+						for (int i=0; i<6; i++) {
 							final int paraMinIdx = i*2;
 							final int paraMaxIdx = paraMinIdx+1;
 							if (pVals[i] < parametres[paraMinIdx])

@@ -103,9 +103,9 @@ public class ImageAnalyser extends ProMaster {
 			if ( (newImage && !paused) || (forced && inputImg != null)) {
 				
 				// analyse input to find a green quad
-				PImage threshold1g = ImageProcessing.colorThreshold(inputImg, parametres[0], parametres[1], parametres[2], parametres[3], parametres[4], parametres[5]);
-				PImage bluredg = ImageProcessing.blur(threshold1g);
-				threshold2g = ImageProcessing.intensityThreshold(bluredg, parametres[6], parametres[7], parametres[8], parametres[9], parametres[10], parametres[11]);
+				PImage bluredg = ImageProcessing.blur(inputImg);
+				PImage threshold1g = ImageProcessing.colorThreshold(bluredg, parametres[0], parametres[1], parametres[2], parametres[3], parametres[4], parametres[5]);
+				threshold2g = ImageProcessing.intensityThreshold(threshold1g, parametres[6], parametres[7], parametres[8], parametres[9], parametres[10], parametres[11]);
 				sobel = ImageProcessing.sobel(threshold2g, parametres[15]);
 				HoughLine.minVotes = PApplet.round(parametres[12]);
 				HoughLine.neighbourhood = PApplet.round(parametres[13]);
