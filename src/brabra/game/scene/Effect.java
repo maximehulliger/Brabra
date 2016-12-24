@@ -3,6 +3,9 @@ package brabra.game.scene;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.ode4j.ode.DSpace;
+import org.ode4j.ode.DWorld;
+
 import brabra.Brabra;
 import brabra.game.physic.geo.Vector;
 
@@ -12,7 +15,7 @@ public abstract class Effect extends Object {
 
 	/** Create an effect at this location. lifetime in frame, -1 -> infinite */
 	public Effect(Vector location, int lifeTime) {
-		super(location);
+		position.set(location);
 		this.timeLeft = lifeTime;
 		this.lifeTime = lifeTime;
 	}
@@ -59,7 +62,7 @@ public abstract class Effect extends Object {
 		private Vector randomPos() {
 			Vector pos = new Vector(random.nextFloat(), random.nextFloat(), random.nextFloat());
 			pos.mult( radius * etatCrete() );
-			return location().plus(pos);
+			return position.plus(pos);
 		}
 		
 		public void update() {
@@ -71,6 +74,11 @@ public abstract class Effect extends Object {
 		//affiche l'onde de choc
 		public void display() {
 			bulbes.forEach(b -> b.display());
+		}
+
+		@Override
+		public void addToScene(DWorld world, DSpace space) {
+			
 		}
 		
 		private class Bulbe extends Effect {
@@ -90,6 +98,12 @@ public abstract class Effect extends Object {
 				app.fill(color, 150);
 				app.sphere(radius*etatCrete());
 				popLocal();
+			}
+
+
+			@Override
+			public void addToScene(DWorld world, DSpace space) {
+				
 			}
 		}
 	}
