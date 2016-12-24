@@ -7,6 +7,7 @@ import brabra.game.physic.geo.Box;
 import brabra.game.physic.geo.Plane;
 import brabra.game.physic.geo.Sphere;
 import brabra.game.scene.Object;
+import brabra.game.scene.SceneLoader;
 import brabra.game.scene.fun.Starship;
 import brabra.gui.field.ObjectField;
 import javafx.scene.control.Button;
@@ -104,6 +105,6 @@ public class CreationView extends View {
 	}
 
 	private <T extends Object> Object getNewObject(Class <T> type) {
-		return Brabra.app.game.scene.getPrefab(type.getSimpleName());
+		return SceneLoader.getPrefab(type.getSimpleName());
 	}
 }

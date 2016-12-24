@@ -15,7 +15,16 @@ import org.xml.sax.helpers.DefaultHandler;
 
 import brabra.Debug;
 import brabra.ProMaster;
+import brabra.game.physic.Body;
+import brabra.game.physic.geo.Box;
+import brabra.game.physic.geo.Plane;
+import brabra.game.physic.geo.Sphere;
+import brabra.game.physic.geo.Vector;
 import brabra.game.scene.SceneFile;
+import brabra.game.scene.fun.Starship;
+import brabra.game.scene.weapons.MissileLauncher;
+import brabra.game.scene.weapons.Target;
+import brabra.game.scene.weapons.Weaponry;
 
 /** 
  * Class responsible for getting the scene files 
@@ -93,7 +102,7 @@ public final class SceneLoader extends ProMaster {
 	    		parentStack.push(null);
 	    	} else {
 	    		// create object & add it to the scene
-	    		final Object newObj = game.scene.getPrefab(localName);
+	    		final Object newObj = getPrefab(localName);
 	    		newObj.validate(new Attributes(atts, parentStack.peek()));
     			game.scene.add(newObj);
 				parentStack.push(newObj);
@@ -128,5 +137,44 @@ public final class SceneLoader extends ProMaster {
 		public Object parent() {
 			return parent;
 		}
+	}
+
+	// --- Prefab help method ---
+	
+	/**
+	 *  Help method to get a new object (not in the scene).
+	 *	Supported names: <p>
+	 *	Object, Movable, Camera, Box, Ball, Floor, Target, Starship, Weaponry, missile_launcher.
+	 */
+	public static Object getPrefab(String name) {
+		final Object obj;
+		final Body body;
+		if (name.equals(Camera.class.getSimpleName())) {
+			return game.camera;
+		} else if (name.equals(Box.class.getSimpleName())) {
+			obj = body = new Box(new Vector(20,20,20));
+			body.setMass(1);
+			body.addOnUpdate(b -> b.pese());
+		} else if (name.equals(Sphere.class.getSimpleName()) || name.equals("Ball")) {
+			obj = body = new Sphere(10);
+			body.setMass(1);
+			body.addOnUpdate(b -> b.pese());
+		} else if (name.equals("Floor"))
+			obj = new Plane().withName("Floor");
+		else if (name.equals(Plane.class.getSimpleName()))
+			obj = new Plane();
+		else if (name.equals(Target.class.getSimpleName()))
+			obj = new Target();
+		else if (name.equals(Starship.class.getSimpleName()))
+			obj = new Starship();
+		else if (name.equals(Weaponry.class.getSimpleName()))
+			obj = new Weaponry();
+		else if (name.equals("missile_launcher"))
+			obj = new MissileLauncher();
+		else {
+			Debug.err("\""+name+"\" unknown, ignoring.");
+			return null;
+		}
+		return obj;
 	}
 }

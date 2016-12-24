@@ -108,10 +108,7 @@ public class Scene {
 				for (int i=0; i<n; i++) {
 					DContact contact = contacts.get(i);
 					contact.surface.mode = dContactSlip1 | dContactSlip2 | dContactSoftERP | dContactSoftCFM | dContactApprox1;
-					if ( o1 instanceof Sphere || o2 instanceof Sphere )
-						contact.surface.mu = 20;
-					else
-						contact.surface.mu = 0.5;
+					contact.surface.mu = 0.5;
 					contact.surface.slip1 = 0.0;
 					contact.surface.slip2 = 0.0;
 					contact.surface.soft_erp = 0.8;
@@ -164,44 +161,5 @@ public class Scene {
 				this.notifyObservers(new Arg(change, o));
 			}
 		}
-	}
-
-	// --- Prefab help method ---
-	
-	/**
-	 *  Help method to get a new object (not in the scene).
-	 *	Supported names: <p>
-	 *	Object, Movable, Camera, Box, Ball, Floor, Target, Starship, Weaponry, missile_launcher.
-	 */
-	public Object getPrefab(String name) {
-		final Object obj;
-		final Body body;
-		if (name.equals(Camera.class.getSimpleName())) {
-			return game.camera;
-		} else if (name.equals(Box.class.getSimpleName())) {
-			obj = body = new Box(new Vector(20,20,20));
-			body.setMass(1);
-			body.addOnUpdate(b -> b.pese());
-		} else if (name.equals(Sphere.class.getSimpleName()) || name.equals("Ball")) {
-			obj = body = new Sphere(10);
-			body.setMass(1);
-			body.addOnUpdate(b -> b.pese());
-		} else if (name.equals("Floor"))
-			obj = new Plane().withName("Floor");
-		else if (name.equals(Plane.class.getSimpleName()))
-			obj = new Plane();
-		else if (name.equals(Target.class.getSimpleName()))
-			obj = new Target();
-		else if (name.equals(Starship.class.getSimpleName()))
-			obj = new Starship();
-		else if (name.equals(Weaponry.class.getSimpleName()))
-			obj = new Weaponry();
-		else if (name.equals("missile_launcher"))
-			obj = new MissileLauncher();
-		else {
-			Debug.err("\""+name+"\" unknown, ignoring.");
-			return null;
-		}
-		return obj;
 	}
 }
