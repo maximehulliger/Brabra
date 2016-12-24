@@ -3,10 +3,10 @@ package brabra.gui.view;
 import java.util.ArrayList;
 import java.util.List;
 
-import brabra.Brabra;
 import brabra.Master;
 import brabra.Parameters;
 import brabra.Parameters.Change;
+import brabra.game.scene.Scene;
 import brabra.gui.ToolWindow;
 import brabra.gui.field.BooleanField;
 import brabra.gui.field.Field;
@@ -102,7 +102,7 @@ public class ParametersView extends View {
 		
 		pingButton.setOnAction(e -> {
 			Master.launch(() -> {
-				final boolean ok = Brabra.app.game.scene.providerDistant.pingSafe();
+				final boolean ok = Scene.providerDistant.pingSafe();
 				ToolWindow.feedbackPopup.displayMessage(ok ? "Pong !" : "Nobody there :(", ok, 0.5f);
 			});
 		});

@@ -69,7 +69,7 @@ public final class SceneLoader extends ProMaster {
 	public void loadLocalFiles() {
 		scenes.clear();
 		
-		scenes.addAll(game.scene.providerLocal.fetch());
+		scenes.addAll(Scene.providerLocal.fetch());
 
 		
 		// set default
@@ -79,7 +79,7 @@ public final class SceneLoader extends ProMaster {
 		if (scenes.size() == 0)
 			Debug.err("no .xml scene files found in '/resource/scenes/' :'(");
 		
-		game.scene.notifyChange(Scene.Change.SceneFileChanged, null);
+		game.scene.model.notifyChange(Scene.Model.Change.SceneFileChanged, null);
 	}
 
 	private class SceneFileHandler extends DefaultHandler {

@@ -3,11 +3,11 @@ package brabra.game.scene.weapons;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.ode4j.ode.DSpace;
+import org.ode4j.ode.DWorld;
+
 import brabra.Brabra;
 import brabra.Debug;
-import brabra.Master;
-import brabra.game.physic.Collider;
-import brabra.game.physic.geo.Quaternion;
 import brabra.game.physic.geo.Vector;
 import brabra.game.scene.Object;
 import brabra.game.scene.SceneLoader.Attributes;
@@ -38,13 +38,8 @@ public class Weaponry extends Object {
 	private int prefab = 0;
 
 	/** t0-2 : thresholds pour répartir la l'amélioration puissance sur les differents tiers d'armement. */
-	public Weaponry(Vector loc, Quaternion rot) {
-		super(loc, rot);
-		setName("Weaponry");
-	}
-
 	public Weaponry() {
-		this(Vector.zero, Quaternion.identity);
+		setName("Weaponry");
 	}
 	
 	// --- Modifiers ---
@@ -56,7 +51,7 @@ public class Weaponry extends Object {
 	 **/
 	protected void addWeapon(Weapon w) {
 		game.scene.add(w);
-		w.setParent(this, null);
+		w.setParent(this);
 		w.setMaster(this);
 		weapons.add(w);
 		valid = false;
@@ -136,20 +131,20 @@ public class Weaponry extends Object {
 					weapons.clear();
 				}
 				setName("Weaponry prefab "+prefab);
-				final Collider parent = Master.as(parent(), Collider.class);
-				final float r = parent == null ? 5 : parent.radiusEnveloppe();
+				//final Collider parent = Master.as(parent(), Collider.class);
+				//final float r = parent == null ? 5 : parent.radiusEnveloppe();
 				if (prefab == 1) {
-					addWeapon(new MissileLauncher(vec(r*-0.65f, -10, 0), null).withTier(1));
+					/* TODO addWeapon(new MissileLauncher(vec(r*-0.65f, -10, 0), null).withTier(1));
 					addWeapon(new MissileLauncher(vec(r*-0.25f, -10, 0), null).withTier(2));
 					addWeapon(new MissileLauncher(vec(r*+0.25f, -10, 0), null).withTier(2));
-					addWeapon(new MissileLauncher(vec(r*+0.65f, -10, 0), null).withTier(1));
+					addWeapon(new MissileLauncher(vec(r*+0.65f, -10, 0), null).withTier(1));*/
 				} else if (prefab == 2) {
-					addWeapon(new MissileLauncher(vec(r*-0.55f, -10, 0), null).withTier(1));
+					/*addWeapon(new MissileLauncher(vec(r*-0.55f, -10, 0), null).withTier(1));
 					addWeapon(new MissileLauncher(vec(r*+0.55f, -10, 0), null).withTier(1));
 					addWeapon(new MissileLauncher(vec(r*-0.30f, -5,  0), null).withTier(1));
 					addWeapon(new MissileLauncher(vec(r*+0.30f, -5,  0), null).withTier(1));
 					addWeapon(new MissileLauncher(vec(r*-0.20f, -15, 0), null).withTier(1));
-					addWeapon(new MissileLauncher(vec(r*+0.20f, -15, 0), null).withTier(1));
+					addWeapon(new MissileLauncher(vec(r*+0.20f, -15, 0), null).withTier(1));*/
 				} else
 					assert(false);
 			}
@@ -175,14 +170,26 @@ public class Weaponry extends Object {
 			puissanceRatio = puissance / puissanceWished;
 			basGauche.set((Brabra.width-guiWidth)/2, Brabra.height);
 			// weapons
-			weapons.sort((a,b) -> round(b.location().x - a.location().x));
+			weapons.sort((a,b) -> round(b.position.x - a.position.x));
 			weaponsOrdered.clear();
 			weaponsOrdered.addAll(weapons);
 			weaponsOrdered.sort((a,b) -> {
 				int score = round(a.puissance() - b.puissance());
-				return score == 0 ? round(abs(a.location().x) - abs(b.location().x)) : score;
+				return score == 0 ? round(abs(a.position.x) - abs(b.position.x)) : score;
 			});
 			valid = true;
 		}
+	}
+
+	@Override
+	public void addToScene(DWorld world, DSpace space) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void display() {
+		// TODO Auto-generated method stub
+		
 	}
 }

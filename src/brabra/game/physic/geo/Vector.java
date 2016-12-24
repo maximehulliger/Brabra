@@ -2,6 +2,8 @@ package brabra.game.physic.geo;
 
 import java.util.regex.Matcher;
 
+import org.ode4j.math.DVector3;
+
 import brabra.Master;
 import brabra.game.physic.Physic;
 import processing.core.PVector;
@@ -81,6 +83,10 @@ public class Vector extends PVector {
 	
 	// --- Getters ---
 
+	public DVector3 toOde() {
+		return new DVector3(x, y, z);
+	}
+	
 	public Vector copy() {
 		return new Vector(this);
 	}

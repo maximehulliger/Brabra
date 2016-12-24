@@ -11,7 +11,6 @@ import brabra.game.physic.geo.Box;
 import brabra.game.physic.geo.Plane;
 import brabra.game.physic.geo.Sphere;
 import brabra.game.physic.geo.Transform.Change;
-import brabra.game.scene.Movable;
 import brabra.game.scene.Object;
 import javafx.scene.control.Tooltip;
 
@@ -20,7 +19,6 @@ public class ObjectField extends Field implements Observer {
 
 	public final Object object;
 
-	private final Movable asMovable;
 	private final Body asBody;
 	private final Collider asCollider;
 	private final Box asBox;
@@ -45,23 +43,15 @@ public class ObjectField extends Field implements Observer {
 				.set("Name", false, true));
 		// location abs (not modifiable)
 		fields.add(new VectorField.Final(
-				object.location())
+				object.position)
 				.respondingTo(Change.Transform)
-				.set("Absolute Transform", false, false));
+				.set("Position", false, true));
 		// rotation abs (not modifiable)
 		fields.add(new QuaternionField.Pro(
-				object.rotation())
+				object.rotation)
 				.respondingTo(Change.Transform)
-				.set("Absolute Rotation", false, false));
-		// location rel
-		fields.add(new VectorField.Final(object.locationRel)
-				.respondingTo(Change.Transform)
-				.set("Relative Transform", false, true));
-		// rotation rel
-		fields.add(new QuaternionField.Pro(object.rotationRel)
-				.respondingTo(Change.Transform)
-				.set("Rotation rel", false, true));
-
+				.set("Rotation", false, true));
+/*TODO
 		// > if Movable
 		if ((asMovable = object.as(Movable.class)) != null) {
 			// velocity (rel)
@@ -72,7 +62,7 @@ public class ObjectField extends Field implements Observer {
 			fields.add(new QuaternionField.Pro(asMovable.rotationRelVel())
 					.respondingTo(Change.RotVelocity)
 					.set("Rotational vel (rel)", false, true));
-		}
+		}*/
 
 		// > if Body
 		if ((asBody = object.as(Body.class)) != null) {
@@ -93,16 +83,6 @@ public class ObjectField extends Field implements Observer {
 					() -> !asBody.affectedByPhysic())
 					.respondingTo(Change.Mass)
 					.set("Heavy", false, true));
-			// ghost (mass)
-			fields.add(new BooleanField.Pro( 
-					g -> {
-						if (realMassForPhysic(asBody.mass()))
-							oldValidMass = asBody.mass();
-						asBody.setMass(g ? 0 : oldValidMass);
-					},
-					() -> asBody.ghost())
-					.respondingTo(Change.Mass)
-					.set("Ghost", false, true));
 		}
 
 		// > if Collider

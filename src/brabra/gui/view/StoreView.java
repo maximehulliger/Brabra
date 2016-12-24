@@ -72,7 +72,7 @@ public class StoreView extends View {
 		final ArrayList<SceneFile> files = new ArrayList<>();
 		
 		// get them from server
-		scene.providerDistant.fetchSafe(files);
+		Scene.providerDistant.fetchSafe(files);
 		
 		//TODO: filter them
 		

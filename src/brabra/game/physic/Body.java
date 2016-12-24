@@ -4,13 +4,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
+import org.ode4j.math.DQuaternionC;
+import org.ode4j.math.DVector3C;
+import org.ode4j.ode.DBody;
+import org.ode4j.ode.DGeom;
+
 import brabra.Debug;
 import brabra.game.Color;
-import brabra.game.Observable.NVector;
 import brabra.game.physic.geo.Line;
 import brabra.game.physic.geo.Quaternion;
 import brabra.game.physic.geo.Vector;
-import brabra.game.scene.Movable;
 import brabra.game.scene.Object;
 import brabra.game.scene.SceneLoader.Attributes;
 
@@ -20,33 +23,27 @@ import brabra.game.scene.SceneLoader.Attributes;
  * You can apply forces and impulse (interactions) to it to move it.
  * TODO: If has a parent, apply it to the parent.
  **/
-public abstract class Body extends Movable {
+public abstract class Body extends Object {
 	
 	private static final boolean displayInteractions = true; //forces & impulse
 	private static final Color interactionColor = new Color("white", true);
+
+	protected DBody body = null;
+	public DGeom geom = null;
 	
 	/** Mass of the body. -2 for ghost, -1 for infinite or bigger than 0 (never equals 0).*/
 	protected float mass = -1;
 	/** Inverse of the body mass. 0 for infinite mass or bigger than 0. */
 	protected float inverseMass = 0;
-	protected Vector inertiaMom = null;
-	protected Vector inverseInertiaMom = null;
 	protected Color color = Color.basic;
 	/** Coefficient of restitution in [0, 1] for stable simulation. */
 	protected float restitution = 0.0f;
 	protected int life = -1;
 	protected int maxLife = -1;
 	
-	/** Will be added on next update. */
-	private NVector forcesLocToAdd = new NVector(), torquesLocToAdd = new NVector();
 	/** Executed before updating the body. */
 	private Consumer<Body> onUpdate = null;
 	private List<Line> interactionsRel = new ArrayList<>();
-	
-	/** create a Body with this location & location and infinite mass. rotation can be null */
-	public Body(Vector location, Quaternion rotation) {
-		super(location, rotation);
-	}
 	
 	public void copy(Object o) {
 		super.copy(o);
@@ -79,34 +76,28 @@ public abstract class Body extends Movable {
 	
 	/** applique les forces et update l'etat. return true if this was updated. */
 	public void update() {
+			
 			// before update: add forces & torques officially
 			if (onUpdate != null)
 				onUpdate.accept(this);
 			
-			// apply if needed
-			if (inverseMass > 0) {
-				// translation
-				if (forcesLocToAdd.hasChangedCurrent()) {
-					final Vector acceleration = forcesLocToAdd.multBy(inverseMass);
-					if (!acceleration.equals(zero))
-						velocityRel.add( acceleration );
-				}
-				// rotation, vitesse angulaire, on prend rotation axis comme L/I
-				if (torquesLocToAdd.hasChangedCurrent()) {
-					final Vector dL = torquesLocToAdd.multElementsBy(inverseInertiaMom);
-					if (!dL.equals(zero))
-						addAngularMomentum( dL );
-				}
-			}
-			
-			// reset
-			if (forcesLocToAdd.hasChangedCurrent())
-				forcesLocToAdd.reset(zero);
-			if (torquesLocToAdd.hasChangedCurrent())
-				torquesLocToAdd.reset(zero);
-			
-			// apply the movement in Movable
 			super.update();
+			
+			if (position.hasChanged())
+				body.setPosition(position.toOde());
+			if (rotation.hasChanged())
+				body.setQuaternion(rotation.toOde());
+			
+			DVector3C odePos = body.getPosition();
+			Vector pos = new Vector((float)odePos.get0(), (float)odePos.get1(), (float)odePos.get2());
+			if (!pos.equals(position))
+				position.set(pos);
+			position.reset();
+			DQuaternionC odeRot = body.getQuaternion();
+			Quaternion rot = new Quaternion((float)odeRot.get0(), (float)odeRot.get1(), (float)odeRot.get2(), (float)odeRot.get3());
+			if (!rot.equals(rotation))
+				rotation.set(rot);
+			rotation.reset();
 	}
 	
 	/** Display the interactions... maybe. In local space (should be call after pushLocal()). */
@@ -125,6 +116,13 @@ public abstract class Body extends Movable {
 
 	// --- some setters
 	
+	void setPosition(Vector pos) {
+		this.position.set(pos);
+		if (body != null) {
+			body.setPosition(pos.x, pos.y, pos.z);
+		}
+	}
+	
 	/** To execute some code before this body is updated (for example to apply some forces). */
 	public void addOnUpdate(Consumer<Body> onUpdate) {
 		final Consumer<Body> oldAddForce = this.onUpdate;
@@ -142,22 +140,16 @@ public abstract class Body extends Movable {
 	 **/
 	public void setMass(float mass) {
 		if (mass < -1) {
-			Debug.err("invalide mass: "+mass+", taking 0 (ghost)");
+			Debug.err("invalide mass: "+mass+", taking 0 (kinematic)");
 			setMass(0);
-		} else if (mass == -1) {
+		} else if (mass == -1 || mass == 0) {
 			this.mass = -1;
 			this.inverseMass = 0;
-			this.inertiaMom = Vector.cube(Float.POSITIVE_INFINITY);
-			this.inverseInertiaMom = zero.copy();
-		} else if (mass == 0) {
-			setMass(-1);
-			this.mass = -2; //-> ghost
+			if (body != null)
+				body.setKinematic();
 		} else { //mass > 0
 			this.mass = mass;
 			this.inverseMass = 1/mass;
-			// to be set by concrete class
-			this.inertiaMom = null;
-			this.inverseInertiaMom = null;
 		}
 		model.notifyChange(Change.Mass);
 	}
@@ -222,11 +214,6 @@ public abstract class Body extends Movable {
 
 	// --- Physic management:  impulse, forces and torques ---
 
-	/** If true, the body doesn't interact with others (and others don't). */
-	public boolean ghost() {
-		return mass < -1;
-	}
-	
 	/** If false, the body doesn't react to the collision but others do. */
 	public boolean affectedByPhysic() {
 		return inverseMass > 0;
@@ -245,66 +232,38 @@ public abstract class Body extends Movable {
 	/** Apply a force on the body at this point (in this object's space). */
 	public void applyForceRel(Vector posRel, Vector forceRel) {
 		assert(!forceRel.equals(zero));
-		final Vector forceLoc = localDirFromRel(forceRel);
-		interactionsRel.add(new Line(posRel, add(posRel, forceRel.multBy(4)), true));
-		if (posRel.isZeroEps(false) || posRel.cross(forceRel).isZeroEps(false)) {
-			// if the force is against (or on) the mass center -> just translation
-			forcesLocToAdd.add( forceLoc );
-		} else {
-			final Vector posLocN = localFromRel(posRel).normalized();
-			// for translation, just in absolute
-			final float forceFactor = forceLoc.dot(posLocN);
-			if (forceFactor != 0)
-				forcesLocToAdd.add( posLocN.multBy(forceFactor) );
-			// for rotation, we want to stay coherent with inertia moment.
-			torquesLocToAdd.add( posRel.cross(forceRel) );
-		}
+		body.addRelForceAtRelPos(forceRel.x, forceRel.y, forceRel.z, posRel.x, posRel.y, posRel.z);
+		
 	}
 
-	/** Add momentum to the body at this point (absolute). */
-	public void applyImpulse(Vector posAbs, Vector impulseAbs) {
-		//assert(!impulseAbs.equals(zero));
-		final Vector posRel = relative(posAbs);
-		final Vector impulseRel = relativeDir(impulseAbs);
-		final Vector impulseLoc = localDirFromRel(impulseRel);
-		// in local space
-		interactionsRel.add(new Line(posRel, add(posRel, impulseRel.multBy(4)), true));		
-		// test if the impulse is against (or on) the mass center -> just translation
-		if (posRel.isZeroEps(false) || posRel.cross(impulseRel).isZeroEps(false)) {
-			velocityRel.add( impulseLoc.multBy(this.inverseMass) );
-		} else {
-			final Vector posLocN = localFromRel(posRel).normalized();
-			// for translation, just in absolute
-			final Vector dVel = posLocN.multBy( impulseLoc.dot(posLocN)*this.inverseMass );
-			if (!dVel.equals(zero))
-				velocityRel.add( dVel );
-			// for rotation, we want to stay coherent with inertia moment.
-			final Vector dL = inverseInertiaMom.multElementsBy(posRel.cross(impulseRel));
-			if (!dL.equals(zero))
-				addAngularMomentum( dL );
-		}
-	}
-
-	private void addAngularMomentum(Vector dL) {
-		assert (!dL.equals(zero));
-		if (rotationRelVel.isIdentity())
-			rotationRelVel.set(dL, dL.mag());
-		else {
-			final Vector newRotAxis = rotationRelVel.rotAxisAngle().plus(dL);
-			rotationRelVel.set(newRotAxis, newRotAxis.mag());
-		}
-	}
-	
 	// --- cooked methods to apply forces
 	
 	/** apply his weight to the object. */
 	public void pese() {
 		if (inverseMass > 0)
-			applyForce( location(), app.para.gravity().multBy(mass) );
+			applyForce( position, app.para.gravity().multBy(mass) );
 	}
 	
 	public void avance(float forceFront) {
 		assert(forceFront != 0);
 		applyForceRel( zero, front(forceFront) );
+	}
+
+	// --- cooked methods to brake ---
+
+	/** Force the object to lose some velocity and rotational velocity. loss in [0,1]. reset after eps. */
+	public void brake(float loss) {
+		brakeDepl(loss);
+		brakeRot(loss);
+	}
+
+	/** Force the object to lose some velocity. loss in [0,1]. reset after eps. */
+	public void brakeDepl(float loss) {
+		//TODO
+	}
+
+	/** Force the object to lose some rotational velocity. reset after eps. */
+	public void brakeRot(float loss) {
+		//TODO
 	}
 }

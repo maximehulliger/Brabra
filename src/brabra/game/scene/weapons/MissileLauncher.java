@@ -1,11 +1,12 @@
 package brabra.game.scene.weapons;
 
+import org.ode4j.ode.DSpace;
+import org.ode4j.ode.DWorld;
+
 import brabra.game.physic.Collider;
-import brabra.game.physic.geo.Quaternion;
 import brabra.game.physic.geo.Sphere;
 import brabra.game.physic.geo.Vector;
 import brabra.game.scene.Effect;
-import brabra.game.scene.Movable;
 import processing.core.PImage;
 import processing.core.PShape;
 
@@ -22,8 +23,8 @@ public class MissileLauncher extends Weapon {
 	private final MissileLauncher launcher;
 	private int missileNextId = 1;
 	
-	public MissileLauncher(Vector loc, Quaternion rot) {
-		super(loc, rot, tiersPuissance.length);
+	public MissileLauncher() {
+		super(tiersPuissance.length);
 		this.setTier(1);
 		this.launcher = this;
 		// load resources
@@ -37,10 +38,6 @@ public class MissileLauncher extends Weapon {
 		}
 	}
 
-	public MissileLauncher() {
-		this(Vector.zero, Quaternion.identity);
-	}
-	
 	public PImage img() {
 		return missileImg;
 	}
@@ -66,17 +63,16 @@ public class MissileLauncher extends Weapon {
 		private final int puissance;
 		
 		public Missile() {
-			super(launcher.location(), launcher.rotation(), tiersSize[tier0()]);
+			super(tiersSize[tier0()]);
+			position.set(launcher.position);
+			rotation.set(launcher.rotation);
 			//super(location, rotation, vec(sizeRatio*2, sizeRatio*2, sizeRatio*7));
 			this.tier = tier0();
 			this.puissance = puissance();
 			super.addOnUpdate(m -> m.avance( puissance()*3 ));
 			super.setName("Missile t"+tier()+" p("+puissance+") ["+missileNextId++ +"]");
 			super.setMass(puissance);
-			super.setParent(launcher, ParentRelationship.None);
-			Movable movableParent = launcher.as(Movable.class);
-			if (movableParent != null)
-				super.velocityRel.set(movableParent.velocity());
+			//super.setParent(launcher, ParentRelationship.None);
 			super.setDisplayCollider(displayColliders());
 		}
 
@@ -98,5 +94,17 @@ public class MissileLauncher extends Weapon {
 				((Target)col).damage(puissance);
 			}
 		}
+	}
+
+	@Override
+	public void addToScene(DWorld world, DSpace space) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void display() {
+		// TODO Auto-generated method stub
+		
 	}
 }

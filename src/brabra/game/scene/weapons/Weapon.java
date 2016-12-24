@@ -1,7 +1,6 @@
 package brabra.game.scene.weapons;
 
 import brabra.Debug;
-import brabra.game.physic.geo.Quaternion;
 import brabra.game.physic.geo.Vector;
 import brabra.game.scene.Object;
 import brabra.game.scene.SceneLoader.Attributes;
@@ -31,8 +30,7 @@ public abstract class Weapon extends Object {
 	private Weaponry master;
 	private boolean displayColliders = false;
 	
-	public Weapon(Vector loc, Quaternion rot, int tierMax) {
-		super(loc, rot);
+	public Weapon(int tierMax) {
 		this.tierMax = min(tierMax, tierMaxWeapon);
 	}
 	

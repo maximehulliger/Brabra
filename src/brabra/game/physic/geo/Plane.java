@@ -1,16 +1,22 @@
 package brabra.game.physic.geo;
 
+import org.ode4j.ode.DMass;
+import org.ode4j.ode.DPlane;
+import org.ode4j.ode.DSpace;
+import org.ode4j.ode.DWorld;
+import org.ode4j.ode.OdeHelper;
+
 import brabra.Debug;
-import brabra.game.physic.PseudoPolyedre;
-import brabra.game.physic.geo.Line.Projection;
+import brabra.game.physic.Collider;
 import brabra.game.scene.Object;
 import brabra.game.scene.SceneLoader.Attributes;
 import brabra.game.physic.geo.Vector;
 import processing.core.PApplet;
 
 /** A plane characterized by a normal++ and 2 direction vectors. Default norm is up (y+). Can be finite or infinite. */
-public class Plane extends PseudoPolyedre {
+public class Plane extends Collider {
 	
+	private final static Vector infiniteSize = Vector.cube(Float.POSITIVE_INFINITY);
 	/** The size of the plane. using x & z. */
 	private final Vector size = new Vector(); 
 	/** Native relative coordonates (4 points). */
@@ -22,29 +28,18 @@ public class Plane extends PseudoPolyedre {
 	private Line normale, vx, vz;
 
 	/** Create a plan (quad) of size size2d (x,z). */
-	public Plane(Vector loc, Quaternion rot, Vector size2d) {
-		super(loc, rot);
+	public Plane(Vector size2d) {
 		super.setName("Quad");
 		setSize(size2d);
 	}
-
-	/** Create a plan (quad) of size size2d (x,z). */
-	public Plane(Vector size2d) {
-		this(Vector.zero, Quaternion.identity, size2d);
-	}
 	
 	/** Create an infinite plan (with infinite mass). */
-	public Plane(Vector loc, Quaternion rot) {
-		super(loc, rot);
+	public Plane() {
 		super.setName("Plane");
+		setMass(-1);
 		setSize(infiniteSize);
 	}
 
-	/** Create an infinite plan (with infinite mass). */
-	public Plane() {
-		this(Vector.zero, Quaternion.identity);
-	}
-	
 	public void copy(Object o) {
 		super.copy(o);
 		Plane op;
@@ -83,16 +78,10 @@ public class Plane extends PseudoPolyedre {
 			mass = 0;
 		}
 		super.setMass(mass);
-		if (inverseMass > 0) {
-			float fact = mass/12;
-			super.inertiaMom = new Vector(
-					fact*sq(size.z), 
-					fact*(sq(size.x) + sq(size.z)), 
-					fact*sq(size.x) );
-			super.inverseInertiaMom = new Vector(
-					1/inertiaMom.x,
-					1/inertiaMom.y,
-					1/inertiaMom.z );
+		if (inverseMass > 0 && body != null) {
+			DMass m = OdeHelper.createMass();
+			m.setBoxTotal(mass, size.x, 0, size.z);
+			super.body.setMass (m);
 		} 
 	}
 
@@ -107,7 +96,7 @@ public class Plane extends PseudoPolyedre {
 			this.natCo = getNatCo(finite ? size2d : new Vector(1, 0, 1));
 			
 			super.setRadiusEnveloppe(finite ? size2d.mag()/2 : Float.POSITIVE_INFINITY);
-			if (!finite && !ghost())
+			if (!finite)
 				setMass(-1);
 			
 			updateAbs();
@@ -133,11 +122,7 @@ public class Plane extends PseudoPolyedre {
 		vx = new Line(vertices[0], vertices[1], finite); 	// x
 		vz = new Line(vertices[0], vertices[2], finite); 	// z
 		Vector norm = vz.norm.cross(vx.norm).normalized();
-		normale = new Line(location(), location().plus(norm), true);
-		// for polyhedron
-		Line v3 = new Line(vertices[1], vertices[3], true); // x'
-		Line v4 = new Line(vertices[2], vertices[3], true); // z'
-		setAbs(vertices, new Line[] { vx, vz, v3, v4 });
+		normale = new Line(position, position.plus(norm), true);
 	}
 
 	public void validate(Attributes atts) {
@@ -166,52 +151,7 @@ public class Plane extends PseudoPolyedre {
 		app.endShape();
 	}
 
-	public Line collisionLineFor(Vector p) {
-		return isFacing(p) ? normale() : new Line(projette(p), p, false);
-	}
-
-	public boolean isIn(Vector abs) {
-		return isFacing(abs) && normale().projectionFactor(abs)<0;
-	}
-
-	public Vector projette(Vector point) {
-		updateAbs();
-		return add( vx.projette(point) , vz.projetteLocal(point) );
-	}
-
-	public Vector pointContre(Vector normale) {
-		if (!finite) {
-			Debug.log("sure ?");
-			return normale.multBy(Float.POSITIVE_INFINITY);
-		}
-		updateAbs();
-		return Vector.sumOf(location(),
-				vx.norm.multBy(size.x * -0.5f * sgn(vx.norm.dot(normale))),
-				vz.norm.multBy(size.z * -0.5f * sgn(vz.norm.dot(normale))));
-	}
-
-	public Projection projetteSur(Line ligne) {
-		updateAbs();
-		if (ligne == normale)
-			throw new IllegalArgumentException("why projecting a plane on himself ??");
-			//return new Projection(0, 0);
-		else if (finite)
-			return ligne.projette( vertices() );
-		else
-			return new Projection(Float.MIN_VALUE, Float.MAX_VALUE);
-	}
-
-	public Plane[] plansSeparationFor(Vector colliderLocation) {
-		updateAbs();
-		return new Plane[] {this};
-	}
-
 	// --- private ---
-
-	private boolean isFacing(Vector p) {
-		updateAbs();
-		return !finite || (vx.isFacing(p) && vz.isFacing(p));
-	}
 
 	private static Vector[] getNatCo(Vector size2d) {
 		return new Vector[] { 
@@ -219,5 +159,24 @@ public class Plane extends PseudoPolyedre {
 				new Vector(size2d.x/2, 0, -size2d.z/2),
 				new Vector(-size2d.x/2, 0, size2d.z/2), 
 				new Vector(size2d.x/2, 0, size2d.z/2)};
+	}
+
+	@Override
+	public void addToScene(DWorld world, DSpace space) {
+		super.body = OdeHelper.createBody (world);
+		//shape
+		DPlane plane = OdeHelper.createPlane(space, -1, 1, 0, 0);
+		super.geom = plane;
+		super.geom.setBody(super.body);
+		//location & rotation
+		Vector norm = normale.norm;
+		plane.setParams(norm.x, norm.y, norm.z, norm.x*position.x+norm.y*position.y+norm.z*position.z);
+		//mass
+		if (inverseMass > 0) {
+			DMass m = OdeHelper.createMass();
+			m.setBoxTotal(mass, size.x, 0, size.z);
+			super.body.setMass (m);
+		} else
+			body.setKinematic();
 	}
 }

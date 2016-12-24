@@ -1,7 +1,11 @@
 package brabra.game.physic.geo;
 
+import org.ode4j.ode.DMass;
+import org.ode4j.ode.DSpace;
+import org.ode4j.ode.DWorld;
+import org.ode4j.ode.OdeHelper;
+
 import brabra.game.physic.Collider;
-import brabra.game.physic.geo.Line.Projection;
 import brabra.game.scene.Object;
 import brabra.game.scene.SceneLoader.Attributes;
 
@@ -10,14 +14,9 @@ public class Sphere extends Collider {
 	
 	private float radius;
 
-	public Sphere(Vector location, Quaternion rotation, float radius) {
-		super(location, rotation);
-	  	setName("Ball");
-		setRadius(radius);
-	}
-
 	public Sphere(float radius) {
-		this(Vector.zero, Quaternion.identity, radius);
+		setName("Ball");
+		setRadius(radius);
 	}
 
 	public void copy(Object o) {
@@ -34,16 +33,6 @@ public class Sphere extends Collider {
 		return radius;
 	}
 	
-	public static boolean areSpheresColliding(Vector p1, float r1, Vector p2, float r2) {
-	    Vector v = p1.minus(p2);
-	    return v.magSq() < (r1+r2)*(r1+r2);
-	}
-
-	public Projection projetteSur(Line ligne) {
-		float proj = ligne.projectionFactor(location());
-		return new Projection(proj-this.radius, proj+this.radius);
-	}
-
 	// --- Setters ---
 	
 	public void setRadius(float radius) {
@@ -54,10 +43,10 @@ public class Sphere extends Collider {
 	
 	public void setMass(float mass) {
 		super.setMass(mass);
-		if (inverseMass > 0) {
-			final float fact = mass*radius*2/5;
-			super.inertiaMom = Vector.cube(fact);
-			super.inverseInertiaMom = Vector.cube(1/fact);
+		if (inverseMass > 0 && body != null) {
+			DMass m = OdeHelper.createMass();
+			m.setSphereTotal(mass, radius);
+			super.body.setMass (m);
 		}
 	}
 	
@@ -88,5 +77,23 @@ public class Sphere extends Collider {
 			if (tSize != null)
 				setRadius(Float.parseFloat(tSize));
 		}
+	}
+
+	@Override
+	public void addToScene(DWorld world, DSpace space) {
+		super.body = OdeHelper.createBody (world);
+		//mass
+		if (inverseMass > 0) {
+			DMass m = OdeHelper.createMass();
+			m.setSphereTotal(mass, radius);
+			super.body.setMass (m);
+		} else
+			body.setKinematic();
+		//shape
+		super.geom = OdeHelper.createSphere (space, radius);
+		super.geom.setBody(super.body);
+		//location & rotation
+		body.setPosition(position.toOde());
+		body.setQuaternion(rotation.toOde());
 	}
 }

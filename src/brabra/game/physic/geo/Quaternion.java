@@ -1,5 +1,7 @@
 package brabra.game.physic.geo;
 
+import org.ode4j.math.DQuaternion;
+
 import brabra.Master;
 import brabra.ProMaster;
 import processing.core.PApplet;
@@ -142,6 +144,10 @@ public class Quaternion extends ProMaster {
 				+ (validRotAxis 
 					? " \n"+(angle()*toDegrees)+"° around "+rotAxis()
 					: " with unknown axis");
+	}
+	
+	public DQuaternion toOde() {
+		return new DQuaternion(w, xyz.x, xyz.y, xyz.z);
 	}
 	
 	// --- Setters ---

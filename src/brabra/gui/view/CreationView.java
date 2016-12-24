@@ -6,7 +6,6 @@ import brabra.Brabra;
 import brabra.game.physic.geo.Box;
 import brabra.game.physic.geo.Plane;
 import brabra.game.physic.geo.Sphere;
-import brabra.game.scene.Movable;
 import brabra.game.scene.Object;
 import brabra.game.scene.fun.Starship;
 import brabra.gui.field.ObjectField;
@@ -30,8 +29,6 @@ public class CreationView extends View {
 		// > choice view
 		// get the object choice buttons
 		ArrayList<Button> buttons = new ArrayList<>();
-		buttons.add(getButton(null, Object.class));
-		buttons.add(getButton(null, Movable.class));
 		buttons.add(getButton("resource/gui/ball.png", Sphere.class));
 		buttons.add(getButton("resource/gui/box.png", Box.class));
 		buttons.add(getButton("resource/gui/plane.png", Plane.class));

@@ -1,35 +1,47 @@
 package brabra.game;
 
 import brabra.Interface;
+
+import org.ode4j.ode.OdeHelper;
+
 import brabra.Debug;
-import brabra.game.physic.Physic;
 import brabra.game.scene.Camera;
 import brabra.game.scene.Scene;
-import processing.core.PApplet;
 import processing.event.MouseEvent;
 
 public class RealGame extends Interface {
 	
 	public final Input input = new Input();
 	public final PhysicInteraction physicInteraction = new PhysicInteraction();
-	public final Scene scene = new Scene(this);
+	public Scene scene = null;
+	public Scene.Model sceneModel = new Scene.Model();
 	
 	public Camera camera = null; //created on show to be independent of processing
 	
 	// --- life cycle ---
-	
+
 	public void onShow() {
 		clearConsole();
-		Debug.info(0, "loading scene");
+		Debug.info(0, "creating scene");
+		OdeHelper.initODE2(0);
+		scene = new Scene(this);
+		sceneModel.scene = scene;
+		scene.world.setGravity(0, -1, 0);
 		camera = new Camera();
+		
+		
 		physicInteraction.setFocused(null);
-		scene.loader.loadLocalFiles();
-		scene.loader.load();
-		app.imgAnalyser.play(true, false);
+		Scene.loader.loadLocalFiles();
+		Scene.loader.load();
+		//app.imgAnalyser.play(true, false);
+				
+		
+		//OdeHelper.createPlane(space,0, 1,0,0);
 	}
 
 	public void onHide() {
 		scene.clear();
+		OdeHelper.closeODE();
 		app.setImgAnalysis(false);
 	}
 	
@@ -41,7 +53,6 @@ public class RealGame extends Interface {
 			input.update();
 			physicInteraction.update();
 			scene.updateAll();
-			Physic.doMagic(scene);
 		}
 		scene.displayAll();	
 	}
@@ -60,9 +71,7 @@ public class RealGame extends Interface {
 	
 	public void keyReleased() {
 		input.keyReleased();
-		if (app.keyCode == PApplet.TAB)
-			camera.nextMode();
-		else if (app.key == 'p') {
+		if (app.key == 'p') {
 			setRunning(!running());
 		}
 	}

@@ -1,32 +1,25 @@
 package brabra.game.physic.geo;
 
+import org.ode4j.ode.DMass;
+import org.ode4j.ode.DSpace;
+import org.ode4j.ode.DWorld;
+import org.ode4j.ode.OdeHelper;
+
 import brabra.Debug;
-import brabra.game.physic.PseudoPolyedre;
-import brabra.game.physic.geo.Line.Projection;
+import brabra.game.physic.Collider;
 import brabra.game.scene.Object;
 import brabra.game.scene.SceneLoader.Attributes;
 
-public class Box extends PseudoPolyedre {
+public class Box extends Collider {
 	
 	/** Total size (local). */
 	public final Vector size = new Vector();
 	/** Size / 2. */
 	private Vector dim;
-	private Plane[] faces;
-	/** Vertices relative to the object. */
-	private Vector[] verticesRel;
-	/** Edges relative to the object. */
-	private Line[] edgesRel;
-
 	/** Create a cube with arretes of lenght dim. */
-	public Box(Vector location, Quaternion rotation, Vector size) {
-	    super(location, rotation);
+	public Box(Vector size) {
 	    super.setName("Cube");
 	    setSize(size);
-	}
-
-	public Box(Vector size) {
-		this(Vector.zero, Quaternion.identity, size);
 	}
 
 	public void copy(Object o) {
@@ -48,11 +41,6 @@ public class Box extends PseudoPolyedre {
 	public Vector dim() {
 		return dim;
 	}
-
-	/** Return the 6 faces of this box. */
-	public Plane[] faces() {
-		return faces;
-	}
 	
 	// --- Setters ---
 	
@@ -64,45 +52,8 @@ public class Box extends PseudoPolyedre {
 		    this.size.set(size);
 		    this.dim = size.multBy(0.5f);
 		    
-		    // --- Physic things:
-		    this.verticesRel = new Vector[] {
-					new Vector(dim.x, dim.y, dim.z), new Vector(-dim.x, -dim.y, -dim.z), 	//+++
-					new Vector(dim.x, dim.y, -dim.z), new Vector(-dim.x, -dim.y, dim.z), 	//++-
-					new Vector(dim.x, -dim.y, dim.z), new Vector(-dim.x, dim.y, -dim.z),	//+-+
-					new Vector(dim.x, -dim.y, -dim.z), new Vector(-dim.x, dim.y, dim.z)};	//+--
-		
-			this.edgesRel = new Line[] {
-					// -x -> x
-					new Line(verticesRel[1], verticesRel[6], true), new Line(verticesRel[3], verticesRel[4], true),
-					new Line(verticesRel[5], verticesRel[2], true), new Line(verticesRel[7], verticesRel[0], true),
-					// -y -> y
-					new Line(verticesRel[1], verticesRel[5], true), new Line(verticesRel[3], verticesRel[7], true),
-					new Line(verticesRel[4], verticesRel[0], true), new Line(verticesRel[6], verticesRel[2], true),
-					// -z -> z
-					new Line(verticesRel[1], verticesRel[3], true), new Line(verticesRel[2], verticesRel[0], true),
-					new Line(verticesRel[5], verticesRel[7], true), new Line(verticesRel[6], verticesRel[4], true)};
-			
 		    super.setRadiusEnveloppe(dim.mag());
 	
-			// --- Faces
-			this.faces =  new Plane[6];
-		    Vector[] facesLoc = new Vector[] {
-			    	new Vector(size.x/2, 0, 0), new Vector(-size.x/2, 0, 0), 	//gauche,  droite  (x)
-			    	new Vector(0, size.y/2, 0), new Vector(0, -size.y/2, 0), 	//dessus, dessous  (y)
-			  	    new Vector(0, 0, size.z/2), new Vector(0, 0, -size.z/2)};	//devant, derriere (z)
-		    Quaternion[] facesRot = new Quaternion[] {
-					Quaternion.fromDirection(left, up), Quaternion.fromDirection(right, up),
-					Quaternion.fromDirection(up, up), Quaternion.fromDirection(down, up),
-					Quaternion.fromDirection(front, up), Quaternion.fromDirection(behind, up)};
-		    Vector[] facesSize = new Vector[] {
-			    	new Vector(size.y, 0, size.z), new Vector(size.y, 0, size.z), 	//gauche,  droite  (x)
-			    	new Vector(size.x, 0, size.z), new Vector(size.x, 0, size.z), 	//dessus, dessous  (y)
-			  	    new Vector(size.x, 0, size.y), new Vector(size.x, 0, size.y)};	//devant, derriere (z)
-		    
-		    for (int i=0; i<6; i++) {
-		    	faces[i] = new Plane(facesLoc[i], facesRot[i], facesSize[i]);
-		    	faces[i].setParent(this, null);
-		    }
 
 		    // notify
 		    model.notifyChange(Change.Size);
@@ -111,16 +62,10 @@ public class Box extends PseudoPolyedre {
 	
 	public void setMass(float mass) {
 		super.setMass(mass);
-		if (inverseMass > 0) {
-			float fact = mass/12;
-			super.inertiaMom = new Vector(
-					fact*(sq(size.y) + sq(size.z)), 
-					fact*(sq(size.x) + sq(size.z)), 
-					fact*(sq(size.x) + sq(size.y)));
-			super.inverseInertiaMom = new Vector(
-					1/inertiaMom.x,
-					1/inertiaMom.y,
-					1/inertiaMom.z );
+		if (inverseMass > 0 && body != null) {
+			DMass m = OdeHelper.createMass();
+			m.setBoxTotal(mass, size.x, size.y, size.z);
+			super.body.setMass (m);
 		}
 	}
 	
@@ -150,97 +95,21 @@ public class Box extends PseudoPolyedre {
 			setSize(vec(size));
 	}
 	
-	public void updateAbs() {
-		// for Cube
-		for (Plane p : faces)
-			p.updateAbs();
-		// for polyhedron
-		super.setAbs(absolute(verticesRel), absolute(edgesRel));
-	}
-	
-	// --- from PseudoPolyedre ---
-	
-	public boolean isIn(Vector abs) {
-		float[] loc = relative(abs).array();
-		for (int i=0; i<3; i++)
-			if (abs(loc[i]) >= dim.array()[0])
-				return false;
-		return true;
-	}
-	
-	public Vector pointContre(Vector normaleAbs) {
-		Vector cNorm = normaleAbs.multBy(-1);
-		Vector proj = zero.copy();
-		for (int i=0; i<3; i++)
-			proj.add( Vector.mult( faces[i*2].normale().norm, dim.array()[i] * sgn(faces[i*2].normale().norm.dot(cNorm))) );
-		proj.add(location());
-		return proj;
-	}
-	
-	public float projetteSur(Vector normale) {
-		float proj = 0;
-		for (int i=0; i<3; i++) {
-			proj += dim.array()[i] * faces[i*2].normale().norm.dot(normale);
-		}
-		return proj;
-	}
-	
-	public Plane[] plansSeparationFor(Vector colliderLocation) {
-		Vector rel = colliderLocation.minus(location());
-		Plane[] ret = new Plane[3];
-		for (int i=0; i<3; i++) {
-			ret[i] = rel.dot(faces[i*2].normale().norm) > 0
-				? faces[i*2] : faces[i*2+1];
-		}
-		return ret;
-	}
-
-	public Line collisionLineFor(Vector p) {
-		float bestSqDist = Float.MAX_VALUE;
-		Line bestNormale = null;
-		for (Plane plane : faces) {
-			Line normale = plane.collisionLineFor(p);
-			float distSq = distSq(normale.base, p);
-			if (distSq < bestSqDist) {
-				bestSqDist = distSq;
-				bestNormale = normale;
-			}
-		}
-		assert(bestNormale != null);
-		return bestNormale;
-	}
-	
-	public Projection projetteSur(Line ligne) {
-	  float mid = ligne.projectionFactor(location());
-	  float proj = abs(projetteSur(ligne.norm));
-	  return new Projection(mid-proj, mid+proj);
-	}
-	
-	public Vector projette(Vector point) {
-		updateAbs();
-		float bestSqDist = Float.MAX_VALUE;
-		Vector bestProj = null;
-		for (Plane p : faces) {
-			Vector proj = p.projette(point);
-			float distSq = distSq(proj, point);
-			if (distSq < bestSqDist) {
-				bestSqDist = distSq;
-				bestProj = proj;
-			}
-		}
-		//assert(bestProj != null);
-		if (bestProj == null) {
-			bestSqDist = Float.MAX_VALUE;
-			bestProj = null;
-			for (Plane p : faces) {
-				Vector proj = p.projette(point);
-				float distSq = distSq(proj, point);
-				if (distSq < bestSqDist) {
-					bestSqDist = distSq;
-					bestProj = proj;
-				}
-			}
-		}
-		return bestProj;
+	@Override
+	public void addToScene(DWorld world, DSpace space) {
+		super.body = OdeHelper.createBody (world);
+		//mass
+		if (inverseMass > 0) {
+			DMass m = OdeHelper.createMass();
+			m.setBoxTotal(mass, size.x, size.y, size.z);
+			super.body.setMass (m);
+		} else
+			body.setKinematic();
+		//shape
+		super.geom = OdeHelper.createBox(space, size.x, size.y, size.z);
+		super.geom.setBody(super.body);
+		//location & rotation
+		body.setPosition(position.toOde());
+		body.setQuaternion(rotation.toOde());
 	}
 }

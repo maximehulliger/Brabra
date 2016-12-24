@@ -16,40 +16,43 @@ public final class SceneView extends View implements Observer {
 	
 	private static final String defaultTitle = "Empty Scene.";
 	private final List<ObjectField> objectFields = new ArrayList<>();
-	private final Scene sceneModel;
+	private final Scene.Model sceneModel;
 
 	
-	public SceneView(Scene scene) {
+	public SceneView(Scene.Model scene) {
 		this.sceneModel = scene;
 		
 		//--- View:
 		setTitle(defaultTitle);
-		scene.objects.forEach(o -> addObjectField(o));
-
+		
 		//--- Control:
 		sceneModel.addObserver(this);
+	}
+	
+	public void setScene(Scene scene) {
+		
 	}
 
 	public void update(Observable o, java.lang.Object arg) {
 		// get correct argument
-		final Scene.Arg sceneArg = (Scene.Arg)arg;
+		final Scene.Model.Arg sceneArg = (Scene.Model.Arg)arg;
 		final Object obj = sceneArg.object;
-		final Scene.Change change = sceneArg.change;
+		final Scene.Model.Change change = sceneArg.change;
 		// the view only react to object addition or deletion.
-		if (change == Scene.Change.ObjectAdded || change == Scene.Change.ObjectRemoved) {
+		if (change == Scene.Model.Change.ObjectAdded || change == Scene.Model.Change.ObjectRemoved) {
 			Brabra.app.fxApp.runLater(() -> {
 				// update the title
-				final int nbObj = sceneModel.objects.size();
-				setTitle(nbObj > 0 ? "Scene with "+nbObj+" objects:" : defaultTitle);
 				// add or remove fields
-				if (change == Scene.Change.ObjectAdded) {
+				if (change == Scene.Model.Change.ObjectAdded) {
 					addObjectField(obj);
-				} else if (change == Scene.Change.ObjectRemoved) {
+				} else if (change == Scene.Model.Change.ObjectRemoved) {
 					// we remove the object field of the object that is no longer in the scene.
 					final List<ObjectField> deadFields = objectFields.stream().filter(of -> of.object == obj).collect(Collectors.toList());
 					deadFields.forEach(df -> removeContent(df));
 					objectFields.removeAll(deadFields);
 				}
+				final int nbObj = objectFields.size();
+				setTitle(nbObj > 0 ? "Scene with "+nbObj+" objects:" : defaultTitle);
 			});
 		}
 	}

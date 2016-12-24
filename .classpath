@@ -45,5 +45,6 @@
 	<classpathentry kind="lib" path="lib/video/video.jar"/>
 	<classpathentry exported="true" kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/ode4j"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

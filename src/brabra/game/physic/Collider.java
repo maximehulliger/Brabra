@@ -1,10 +1,8 @@
 package brabra.game.physic;
 
 import brabra.game.Color;
-import brabra.game.physic.geo.Quaternion;
 import brabra.game.scene.Object;
 import brabra.game.scene.SceneLoader.Attributes;
-import brabra.game.physic.geo.Vector;
 
 /** A class able to init and react to a collision. */
 public abstract class Collider extends Body {
@@ -14,10 +12,6 @@ public abstract class Collider extends Body {
 	private float radiusEnveloppe;
 	private boolean displayCollider = false;
 
-	public Collider(Vector location, Quaternion rotation) {
-		super(location, rotation);
-	}
-	
 	/** Set the radius of the enveloppe sphere used to check if collide fast. */
 	protected final void setRadiusEnveloppe(float radiusEnveloppe) {
 		this.radiusEnveloppe = radiusEnveloppe;
@@ -40,10 +34,6 @@ public abstract class Collider extends Body {
 
 	public float radiusEnveloppe() {
 		return radiusEnveloppe;
-	}
-	
-	public boolean doCollideFast(Collider c) {
-		return this.location().minus(c.location()).magSq() < sq(this.radiusEnveloppe) + sq(c.radiusEnveloppe);
 	}
 	
 	// --- Setters ---

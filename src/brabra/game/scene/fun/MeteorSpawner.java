@@ -1,5 +1,8 @@
 package brabra.game.scene.fun;
 
+import org.ode4j.ode.DSpace;
+import org.ode4j.ode.DWorld;
+
 import brabra.game.physic.geo.Box;
 import brabra.game.physic.geo.Sphere;
 import brabra.game.physic.geo.Vector;
@@ -23,8 +26,9 @@ public final class MeteorSpawner extends Object {
 	private int nextPopTime;
 	
 	public MeteorSpawner(Vector location, Vector size) {
-		super(location);
-		spawnCage = new Box(location, identity, size);
+		position.set(location);
+		spawnCage = new Box(size);
+		spawnCage.position.set(location);
 		setNext();
 		// load resources
 		if (meteor==null) {
@@ -42,7 +46,7 @@ public final class MeteorSpawner extends Object {
 	}
 	
 	public void popMeteor() {
-		if (nbMeteor < nbMeteorMax) {
+		/*TODO if (nbMeteor < nbMeteorMax) {
 			int idxStartFace = random.nextInt(6);
 			Vector startPos = spawnCage.faces()[idxStartFace].randomPoint();
 			Vector goal;
@@ -55,7 +59,7 @@ public final class MeteorSpawner extends Object {
 			}
 			game.scene.add( new Meteor(startPos, goal) );
 			nbMeteor++;
-		}
+		}*/
 	}
 
 	private void setNext() {
@@ -65,15 +69,16 @@ public final class MeteorSpawner extends Object {
 	private class Meteor extends Sphere {
 
 		public Meteor(Vector startPos, Vector goal) {
-			super(startPos, identity, -1);
+			super(-1);
+			position.set(startPos);
 			
 			float tailleRatio = random.nextFloat();
 			setMass(minMass + tailleRatio * (maxMass - minMass));
 			setRadius(minRadius + tailleRatio * (maxRadius - minRadius));
 			
 			float speed = minSpeed + random.nextFloat() * (maxSpeed - minSpeed);
-			velocityRel.set( goal.minus(startPos).setMag(speed) );
-			rotationRelVel.set( Vector.randomVec(1), speed*random.nextFloat()/30 );
+			//TODO velocityRel.set( goal.minus(startPos).setMag(speed) );
+			//rotationRelVel.set( Vector.randomVec(1), speed*random.nextFloat()/30 );
 		}
 		
 		public void onDelete() {
@@ -88,5 +93,17 @@ public final class MeteorSpawner extends Object {
 			}
 			popLocal();
 		}
+	}
+
+	@Override
+	public void addToScene(DWorld world, DSpace space) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void display() {
+		// TODO Auto-generated method stub
+		
 	}
 }

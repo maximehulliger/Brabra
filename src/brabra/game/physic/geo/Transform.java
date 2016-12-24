@@ -15,15 +15,10 @@ import processing.core.PMatrix;
 public class Transform extends ProTransform {
 	// > core
 	/** Position relative to the parent. */
-	public final NVector locationRel = new NVector();
+	public final NVector position = new NVector();
 	/** Rotation relative to the parent. */
-	public final NQuaternion rotationRel = new NQuaternion();
-	
-	// > absolute variable
-	/** Absolute position. Equals locationRel if no parent. */
-	private final NVector locationAbs = new NVector();
-	/** Absolute rotation. Equals rotationRel if no parent. */
-	private final NQuaternion rotationAbs = new NQuaternion();
+	public final NQuaternion rotation = new NQuaternion();
+
 	/** Matrix representing the matrix transformations till this object (lazy). */
 	private PMatrix matrixAbs = null;
 	/** for the matrix and positions. */
@@ -31,24 +26,13 @@ public class Transform extends ProTransform {
 	
 	// > Family
 	private Transform parent = null;
-	private ParentRelationship parentRel = ParentRelationship.None;
 	public final List<Transform> children = new ArrayList<>();
 	
-	public Transform(Vector location, Quaternion rotation) {
-		locationRel.set(location);
-		rotationRel.set(rotation);
-		locationRel.addOnChange(() -> unvalidateAbs());
-		rotationRel.addOnChange(() -> unvalidateAbs());
-	}
-
-	public Transform(Vector location) {
-		this(location, Quaternion.identity);
-	}
-
 	public Transform() {
-		this(Vector.zero);
+		position.addOnChange(() -> unvalidateAbs());
+		rotation.addOnChange(() -> unvalidateAbs());
 	}
-	
+
 	private void unvalidateAbs() {
 		absValid = false;
 		children.forEach(t -> t.unvalidateAbs());
@@ -56,8 +40,8 @@ public class Transform extends ProTransform {
 	
 	/** Copy the other transform into this and return this. */
 	public Transform copy(Transform other) {
-		locationRel.set(other.locationRel);
-		rotationRel.set(other.rotationRel);
+		position.set(other.position);
+		rotation.set(other.rotation);
 		return this;
 	}
 
@@ -69,24 +53,10 @@ public class Transform extends ProTransform {
 	}
 
 	public boolean equals(Transform other) {
-		boolean forRel = rotationRel.equals(other.rotationRel) && locationRel.equals(other.locationRel);
-		boolean forAbs = rotation().equals(other.rotation()) && locationAbs.equals(other.locationAbs);
-		return forRel && forAbs;
+		return rotation.equals(other.rotation) && position.equals(other.position);
 	}
 	
 	// --- Transform simple getters/modifier ---
-
-	/** Return the absolute location of the object. update things if needed. the Vector should not be modified. */
-	public Vector location() {
-		updateAbs();
-		return locationAbs;
-	}
-	
-	/** Return the absolute rotation. update things if needed. the Quaternion should not be modified. */
-	public Quaternion rotation() {
-		updateAbs();
-		return rotationAbs;
-	}
 
 	/** Move this object with an absolute movement. */
 	public void move(Vector deplAbs) {
@@ -95,44 +65,16 @@ public class Transform extends ProTransform {
 	
 	/** Move this object with an absolute movement. */
 	public void moveRel(Vector deplLoc) {
-		locationRel.add(deplLoc);
+		position.add(deplLoc);
 	}
 
 	/** Rotate this object with an absolute rotation (same as relative). */
 	public void rotate(Quaternion rotAbs) {
-		rotationRel.rotate(rotAbs);
+		rotation.rotate(rotAbs);
 	}
 
 	// >>> Family <<<
 	
-	/** 
-	 * ParentRelationship define some ways to get in local space (via pushLocal()). 
-	 * Default is Full (if parent is set).<p>
-	 * Full: this will follow the parent (with the parent loc & rot). <p>
-	 * Relative: this will follow relatively the parent absolute loc (ignore parent final rotation). <p>
-	 * None: ignore parent but keep the parent field.
-	 **/
-	public enum ParentRelationship {
-		Full, Static, None;
-		
-		public ParentRelationship next() {
-			return values()[(this.ordinal()+1) % values().length];
-		}
-		
-		public static ParentRelationship fromString(String f) {
-			if (f.equals("static"))
-				return ParentRelationship.Static;
-			else if (f.equals("full") || f.equals("relative"))
-				return ParentRelationship.Full;
-			else if (f.equals("fixed") || f.equals("none"))
-				return ParentRelationship.None;
-			else {
-				Debug.err("Parent relationship unknown: \""+f+"\", taking None");
-				return ParentRelationship.None;
-			}
-		}
-	}
-
 	// --- Family getters ---
 
 	/** Return true if the object should consider his parent. */
@@ -145,11 +87,6 @@ public class Transform extends ProTransform {
 		return parent;
 	}
 
-	/** Return the parent of the object (even if parentRel is None -> can be null). */
-	public ParentRelationship parentRel() {
-		return parentRel;
-	}
-	
 	/** Return true if this is a children of other. */
 	public boolean isChildOf(Transform parent) {
 		for (Transform p=parent(); p!=null; p=p.parent())
@@ -201,16 +138,9 @@ public class Transform extends ProTransform {
 	 * otherwise set parentRel to Full if it was null.
 	 * Return true if the parent changed.
 	 **/
-	public void setParent(Transform newParent, ParentRelationship newParentRel) {
-		if (newParent == null || newParentRel == ParentRelationship.None) {
-			newParentRel = ParentRelationship.None;
-			newParent = null;
-		} else if (newParentRel == null)
-			newParentRel = ParentRelationship.Full;
+	public void setParent(Transform newParent) {
 		
-		final boolean parentChanged = newParent != this.parent;
-		final boolean parentRelChanged = newParentRel != this.parentRel;
-		if (parentChanged || parentRelChanged) {
+		if (newParent != this.parent) {
 			// check input
 			if (newParent == this)
 				Debug.err("Un objet ne sera pas son propre parent !");
@@ -220,25 +150,23 @@ public class Transform extends ProTransform {
 				final Transform oldParent = parent;
 				
 				// update & changes
-				this.parentRel = newParentRel;
 				this.parent = newParent;
 
 				// notify self & the children
 				unvalidateAbs();
 
 				// update children lists + notification
-				if (parentChanged) {
-					// remove this child from old parent
-					if (oldParent != null) {
-						oldParent.children.remove(this);
-						oldParent.model.notifyChange(Change.Children);
-					}
-					// add this child to new parent
-					if (parent != null) {
-						parent.addChild(this);
-						parent.model.notifyChange(Change.Children);
-					}
+				// remove this child from old parent
+				if (oldParent != null) {
+					oldParent.children.remove(this);
+					oldParent.model.notifyChange(Change.Children);
 				}
+				// add this child to new parent
+				if (parent != null) {
+					parent.addChild(this);
+					parent.model.notifyChange(Change.Children);
+				}
+				
 				model.notifyChange(Change.Parentship);
 			}
 		}
@@ -257,21 +185,19 @@ public class Transform extends ProTransform {
 	private void removeChild(Transform oldChild) {
 		if (children.remove(oldChild)) {
 			assert(oldChild.parent == this);
-			oldChild.setParent(null, null);
+			oldChild.setParent(null);
 		}
 	}
 	
 	// --- life cycle ---
 
 	/** 
-	 * 	Update the state of this transform only. 
+	 * 	Update the state of this transform and his children. 
 	 **/
 	public void update() {
 		// update changes
-		locationRel.update();
-		rotationRel.update();
-		locationAbs.update();
-		rotationAbs.update();
+		position.update();
+		rotation.update();
 		
 		// update the children
 		children.forEach(t -> t.update());
@@ -293,37 +219,15 @@ public class Transform extends ProTransform {
 			app.pushMatrix();
 			app.resetMatrix(); //we're working clean here !
 			
-			// depending on parent relation
-			switch(parentRel) {
-			case Full:
+			if (hasParent())
 				parent.pushLocal();
-				translate(locationRel);
-				rotateBy(rotationRel);
-				locationAbs.set(model(Vector.zero));
-				rotationAbs.set( parent.rotation().rotatedBy(rotationRel) );
-				matrixAbs = app.getMatrix();
+			translate(position);
+			rotateBy(rotation);
+			matrixAbs = app.getMatrix();
+			if (hasParent())
 				parent.popLocal();
-				break;
-			case Static:
-				locationAbs.set( parent.location().plus(locationRel) );
-				rotationAbs.set(rotationRel);
-				translate(locationAbs);
-				rotateBy(rotationRel);
-				matrixAbs = app.getMatrix();
-				break;
-			default: //None
-				translate(locationRel);
-				rotateBy(rotationRel);
-				matrixAbs = app.getMatrix();
-				locationAbs.set(locationRel);
-				rotationAbs.set(rotationRel);
-				break;
-			}
-			app.popMatrix();
 			
-			// caus' modification from inside -> no need of notif.
-			locationAbs.reset();
-			rotationAbs.reset();
+			app.popMatrix();
 			
 			absValid = true;
 		}
@@ -355,35 +259,35 @@ public class Transform extends ProTransform {
 	
 	/** Retourne la position de rel, un point relatif au body en absolu. */
 	public Vector absolute(Vector rel) {
-		Vector inParentSpace = absolute(rel, locationRel, rotationRel);
+		Vector inParentSpace = absolute(rel, position, rotation);
 		return hasParent() ? parent.absolute(inParentSpace) : inParentSpace;
 	}
 
 	public Vector relative(Vector posAbs) {
-		return relative(hasParent() ? parent.relative(posAbs) : posAbs, locationRel, rotationRel);
+		return relative(hasParent() ? parent.relative(posAbs) : posAbs, position, rotation);
 	}
 
 	public Vector relativeFromLocal(Vector posLoc) {
-		return relative(hasParent() ? parent.relative(posLoc) : posLoc, Vector.zero, rotationRel);
+		return relative(hasParent() ? parent.relative(posLoc) : posLoc, Vector.zero, rotation);
 	}
 
 	public Vector localFromRel(Vector posRel) {
-		return absolute(posRel, Vector.zero, rotationRel);
+		return absolute(posRel, Vector.zero, rotation);
 	}
 	
 	// --- direction conversion: local <-> *absolute* <-> relative ---
 	
 	/** Return the absolute direction from a relative direction in the body space. result is only rotated -> same norm. */
 	public Vector absoluteDir(Vector dirRel) {
-		Vector inParentSpace = absolute(dirRel, Vector.zero, rotationRel);
+		Vector inParentSpace = absolute(dirRel, Vector.zero, rotation);
 		return hasParent() ? parent.absoluteDir(inParentSpace) : inParentSpace;
 	}
 
 	/** Return the relative direction in the body body space from an absolute direction. result is only rotated -> same norm. */
 	public Vector relativeDir(Vector dirAbs) {
 		return hasParent() 
-				? relative(parent.relativeDir(dirAbs), Vector.zero, rotationRel) 
-				: relative(dirAbs, Vector.zero, rotationRel);
+				? relative(parent.relativeDir(dirAbs), Vector.zero, rotation) 
+				: relative(dirAbs, Vector.zero, rotation);
 	}
 	
 	/** Return the absolute direction from a relative direction in the body space. result is only rotated -> same norm. */
@@ -393,12 +297,12 @@ public class Transform extends ProTransform {
 
 	/** Return the local direction in the object space from an absolute direction. result is only rotated -> same norm. */
 	public Vector localDir(Vector dirAbs) {
-		return hasParent() ? relative(parent.localDir(dirAbs), Vector.zero, parent.rotationRel) : dirAbs;
+		return hasParent() ? relative(parent.localDir(dirAbs), Vector.zero, parent.rotation) : dirAbs;
 	}
 	
 	/** Return the local direction in the object space regardless of this' direction. result is only rotated -> same norm. */
 	public Vector localDirFromRel(Vector dirRel) {
-		return absolute(localDir(dirRel), Vector.zero, rotationRel);
+		return absolute(localDir(dirRel), Vector.zero, rotation);
 	}
 	
 	protected Vector[] absolute(Vector[] rels) {
