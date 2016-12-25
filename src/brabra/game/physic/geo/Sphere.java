@@ -1,5 +1,7 @@
 package brabra.game.physic.geo;
 
+import org.ode4j.ode.DBody;
+import org.ode4j.ode.DGeom;
 import org.ode4j.ode.DMass;
 import org.ode4j.ode.DSpace;
 import org.ode4j.ode.DWorld;
@@ -40,13 +42,13 @@ public class Sphere extends Collider {
 	    model.notifyChange(Change.Size);
 	}
 	
-	public void setMass(float mass) {
-		super.setMass(mass);
-		if (inverseMass > 0 && body != null) {
+	public void setOdeMass(DBody body) {
+		if (mass() > 0) {
 			DMass m = OdeHelper.createMass();
-			m.setSphereTotal(mass, radius);
-			super.body.setMass (m);
-		}
+			m.setSphereTotal(mass(), radius);
+			body.setMass (m);
+		} else
+			body.setKinematic();
 	}
 	
 	// --- life cycle ---
@@ -80,19 +82,9 @@ public class Sphere extends Collider {
 
 	@Override
 	public void addToScene(DWorld world, DSpace space) {
-		super.body = OdeHelper.createBody (world);
-		//mass
-		if (inverseMass > 0) {
-			DMass m = OdeHelper.createMass();
-			m.setSphereTotal(mass, radius);
-			super.body.setMass (m);
-		} else
-			body.setKinematic();
-		//shape
-		super.geom = OdeHelper.createSphere (space, radius);
-		super.geom.setBody(super.body);
-		//location & rotation
-		body.setPosition(position.toOde());
-		body.setQuaternion(rotation.toOde());
+		DBody body = OdeHelper.createBody (world);
+		DGeom geom = OdeHelper.createSphere (space, radius);
+		geom.setBody(body);
+		setBody(body);
 	}
 }

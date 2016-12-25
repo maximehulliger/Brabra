@@ -8,7 +8,6 @@ import brabra.Brabra;
 import brabra.game.physic.Body;
 import brabra.game.physic.Collider;
 import brabra.game.physic.geo.Box;
-import brabra.game.physic.geo.Plane;
 import brabra.game.physic.geo.Sphere;
 import brabra.game.physic.geo.Transform.Change;
 import brabra.game.scene.Object;
@@ -23,7 +22,6 @@ public class ObjectField extends Field implements Observer {
 	private final Collider asCollider;
 	private final Box asBox;
 	private final Sphere asSphere;
-	private final Plane asPlane;
 
 	private float oldValidMass;
 
@@ -78,9 +76,9 @@ public class ObjectField extends Field implements Observer {
 					ac -> {
 						if (realMassForPhysic(asBody.mass()))
 							oldValidMass = asBody.mass();
-						asBody.setMass(!ac ? oldValidMass : -1);
+						asBody.setMass(!ac ? oldValidMass : 0);
 					},
-					() -> !asBody.affectedByPhysic())
+					() -> asBody.mass()==0)
 					.respondingTo(Change.Mass)
 					.set("Heavy", false, true));
 		}
@@ -97,7 +95,6 @@ public class ObjectField extends Field implements Observer {
 
 		// > if Box
 		if ((asBox = object.as(Box.class)) != null) {
-			// display collider
 			fields.add(new VectorField(
 					s -> asBox.setSize(s),
 					() -> asBox.size())
@@ -108,7 +105,6 @@ public class ObjectField extends Field implements Observer {
 				
 		// > if Sphere
 		if ((asSphere = object.as(Sphere.class)) != null) {
-			// display collider
 			fields.add(new FloatField.Pro(
 					s -> asSphere.setRadius(s),
 					() -> asSphere.radius())
@@ -117,17 +113,6 @@ public class ObjectField extends Field implements Observer {
 					.set("Radius", false, true));
 		}
 		
-		// > if Plane
-		if ((asPlane = object.as(Plane.class)) != null) {
-			// display collider
-			fields.add(new VectorField(
-					s -> asPlane.setSize(s),
-					() -> asPlane.size())
-					.respondingTo(Change.Size)
-					.withValueValider(s ->  s.x!=0 && s.z!=0)
-					.set("Size (x,?,z)", false, true));
-		}
-				
 		//--- View:
 		nameText.getStyleClass().add("objectField-name");
 		subfields().addAll(fields);

@@ -1,5 +1,7 @@
 package brabra.game.physic.geo;
 
+import org.ode4j.ode.DBody;
+import org.ode4j.ode.DGeom;
 import org.ode4j.ode.DMass;
 import org.ode4j.ode.DSpace;
 import org.ode4j.ode.DWorld;
@@ -57,13 +59,13 @@ public class Box extends Collider {
 	    }
 	}
 	
-	public void setMass(float mass) {
-		super.setMass(mass);
-		if (inverseMass > 0 && body != null) {
+	public void setOdeMass(DBody body) {
+		if (mass() > 0) {
 			DMass m = OdeHelper.createMass();
-			m.setBoxTotal(mass, size.x, size.y, size.z);
-			super.body.setMass (m);
-		}
+			m.setBoxTotal(mass(), size.x, size.y, size.z);
+			body.setMass (m);
+		} else
+			body.setKinematic();
 	}
 	
 	// --- life cycle ---
@@ -94,19 +96,9 @@ public class Box extends Collider {
 	
 	@Override
 	public void addToScene(DWorld world, DSpace space) {
-		super.body = OdeHelper.createBody (world);
-		//mass
-		if (inverseMass > 0) {
-			DMass m = OdeHelper.createMass();
-			m.setBoxTotal(mass, size.x, size.y, size.z);
-			super.body.setMass (m);
-		} else
-			body.setKinematic();
-		//shape
-		super.geom = OdeHelper.createBox(space, size.x, size.y, size.z);
-		super.geom.setBody(super.body);
-		//location & rotation
-		body.setPosition(position.toOde());
-		body.setQuaternion(rotation.toOde());
+		DBody body = OdeHelper.createBody (world);
+		DGeom geom = OdeHelper.createBox(space, size.x, size.y, size.z);
+		geom.setBody(body);
+		super.setBody(body);
 	}
 }

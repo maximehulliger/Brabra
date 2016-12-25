@@ -3,9 +3,6 @@ package brabra.game.scene;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.ode4j.ode.DSpace;
-import org.ode4j.ode.DWorld;
-
 import brabra.Brabra;
 import brabra.game.physic.geo.Vector;
 
@@ -76,11 +73,6 @@ public abstract class Effect extends Object {
 			bulbes.forEach(b -> b.display());
 		}
 
-		@Override
-		public void addToScene(DWorld world, DSpace space) {
-			
-		}
-		
 		private class Bulbe extends Effect {
 			private static final float minRad = 5;
 			private static final float maxRad = 10;
@@ -98,12 +90,6 @@ public abstract class Effect extends Object {
 				app.fill(color, 150);
 				app.sphere(radius*etatCrete());
 				popLocal();
-			}
-
-
-			@Override
-			public void addToScene(DWorld world, DSpace space) {
-				
 			}
 		}
 	}

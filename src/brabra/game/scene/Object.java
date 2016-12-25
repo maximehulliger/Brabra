@@ -1,8 +1,5 @@
 package brabra.game.scene;
 
-import org.ode4j.ode.DSpace;
-import org.ode4j.ode.DWorld;
-
 import brabra.Master;
 import brabra.game.physic.geo.Quaternion;
 import brabra.game.physic.geo.Transform;
@@ -36,8 +33,6 @@ public abstract class Object extends Transform {
 	}
 	
 	// --- Methods to override if wanted (of course basically everything is ;) ) ---
-
-	public abstract void addToScene(DWorld world, DSpace space);
 
 	/** Override it to display the object. */
 	public abstract void display();

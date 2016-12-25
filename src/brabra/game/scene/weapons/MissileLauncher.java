@@ -1,8 +1,5 @@
 package brabra.game.scene.weapons;
 
-import org.ode4j.ode.DSpace;
-import org.ode4j.ode.DWorld;
-
 import brabra.game.physic.Collider;
 import brabra.game.physic.geo.Sphere;
 import brabra.game.physic.geo.Vector;
@@ -94,12 +91,6 @@ public class MissileLauncher extends Weapon {
 				((Target)col).damage(puissance);
 			}
 		}
-	}
-
-	@Override
-	public void addToScene(DWorld world, DSpace space) {
-		// TODO Auto-generated method stub
-		
 	}
 
 	@Override

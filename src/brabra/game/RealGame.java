@@ -26,7 +26,6 @@ public class RealGame extends Interface {
 		OdeHelper.initODE2(0);
 		scene = new Scene(this);
 		sceneModel.scene = scene;
-		scene.world.setGravity(0, -1, 0);
 		camera = new Camera();
 		
 		

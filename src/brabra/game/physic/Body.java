@@ -5,7 +5,8 @@ import java.util.List;
 import java.util.function.Consumer;
 
 import org.ode4j.ode.DBody;
-import org.ode4j.ode.DGeom;
+import org.ode4j.ode.DSpace;
+import org.ode4j.ode.DWorld;
 
 import brabra.Debug;
 import brabra.game.Color;
@@ -26,25 +27,23 @@ public abstract class Body extends Object {
 	private static final boolean displayInteractions = true; //forces & impulse
 	private static final Color interactionColor = new Color("white", true);
 
-	protected DBody body = null;
-	public DGeom geom = null;
+	private DBody body = null;
 	
 	/** Mass of the body. -2 for ghost, -1 for infinite or bigger than 0 (never equals 0).*/
-	protected float mass = -1;
-	/** Inverse of the body mass. 0 for infinite mass or bigger than 0. */
-	protected float inverseMass = 0;
+	private float mass = 0;
+	
 	protected Color color = Color.basic;
-	/** Coefficient of restitution in [0, 1] for stable simulation. */
-	protected float restitution = 0.0f;
-	protected int life = -1;
-	protected int maxLife = -1;
+	
+	protected int life = -1, maxLife = -1;
 	
 	/** Executed before updating the body. */
 	private Consumer<Body> onUpdate = null;
+	
 	private List<Line> interactionsRel = new ArrayList<>();
 	
+	
 	public Body() {
-		setMass(-1);
+		setMass(0);
 	}
 	
 	public void copy(Object o) {
@@ -56,10 +55,25 @@ public abstract class Body extends Object {
 			maxLife = ob.maxLife;
 			life = ob.life;
 			color = ob.color;
-			restitution = ob.restitution;
 		}
 	}
 
+	/** Methods called when the body is added to the world. Should call setBody. */
+	public abstract void addToScene(DWorld world, DSpace space);
+
+	public void setBody(DBody body) {
+		this.body = body;
+		
+		setOdeMass(body);
+		
+		setOdeTransform();
+	}
+	
+	public void setOdeTransform() {
+		body.setPosition(position.toOde());
+		body.setQuaternion(rotation.toOde());
+	}
+	
 	/** to react to a collision */
 	protected void onCollision(Collider col, Vector impact) {}
 
@@ -85,10 +99,8 @@ public abstract class Body extends Object {
 			
 			super.update();
 			
-			if (position.hasChanged())
-				body.setPosition(position.toOde());
-			if (rotation.hasChanged())
-				body.setQuaternion(rotation.toOde());
+			if (position.hasChanged() || rotation.hasChanged())
+				setOdeTransform();
 			
 			Vector pos = new Vector(body.getPosition());
 			if (!pos.equals(position))
@@ -132,27 +144,26 @@ public abstract class Body extends Object {
 
 	/** 
 	 * 	Set the body mass. 
-	 * 	If mass is -1, the body will have an infinite mass and inertia moment 
-	 * 	and won't be affected by collisions (but others will).
-	 * 	If mass is 0, the body becomes a ghost (with infinite mass -> same as -1) 
-	 * 	and don't react to physic (nor with others).
-	 *	Should be overload (and called) to set the inertia moment (depending on the shape). 
+	 * 	If mass is 0, the body will have an infinite mass and be kinematic.
 	 **/
 	public void setMass(float mass) {
-		if (mass < -1) {
+		if (mass < 0) {
 			Debug.err("invalide mass: "+mass+", taking 0 (kinematic)");
-			setMass(0);
-		} else if (mass == -1 || mass == 0) {
-			this.mass = -1;
-			this.inverseMass = 0;
-			if (body != null)
-				body.setKinematic();
-		} else { //mass > 0
-			this.mass = mass;
-			this.inverseMass = 1/mass;
+			this.mass = 0;
 		}
+		
+		if (mass == 0)
+			this.mass = Float.POSITIVE_INFINITY;
+		else
+			this.mass = mass;
+		
+		if (body != null)
+			setOdeMass(body);
+		
 		model.notifyChange(Change.Mass);
 	}
+	
+	public abstract void setOdeMass(DBody body);
 	
 	public void setColor(Color color) {
 		this.color = color;
@@ -213,15 +224,10 @@ public abstract class Body extends Object {
 	}
 
 	// --- Physic management:  impulse, forces and torques ---
-
-	/** If false, the body doesn't react to the collision but others do. */
-	public boolean affectedByPhysic() {
-		return inverseMass > 0;
-	}
 	
 	/** Return the mass of the body, bigger than 0 (can be Float.POSITIVE_INFINITY). */
 	public float mass() {
-		return inverseMass > 0 ? mass : Float.POSITIVE_INFINITY;
+		return mass;
 	}
 
 	/** Apply a force on the body at this point (absolute). */

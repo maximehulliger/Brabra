@@ -2,9 +2,6 @@ package brabra.game.scene;
 
 import brabra.ProMaster;
 
-import org.ode4j.ode.DSpace;
-import org.ode4j.ode.DWorld;
-
 import brabra.Brabra;
 import brabra.Debug;
 import brabra.game.Color;
@@ -162,11 +159,6 @@ public class Camera extends Object {
 		line(zero, x(far), xColor);
 		line(zero, y(far), yColor);
 		line(zero, z(far), zColor);
-	}
-
-	@Override
-	public void addToScene(DWorld world, DSpace space) {
-		
 	}
 
 	@Override

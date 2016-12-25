@@ -1,38 +1,39 @@
 package brabra.game.scene;
 
 import static org.ode4j.ode.OdeConstants.dContactApprox1;
-import static org.ode4j.ode.OdeConstants.dContactSlip1;
-import static org.ode4j.ode.OdeConstants.dContactSlip2;
 import static org.ode4j.ode.OdeConstants.dContactSoftCFM;
 import static org.ode4j.ode.OdeConstants.dContactSoftERP;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Observable;
+import java.util.Observer;
 import java.util.function.Consumer;
 
 import org.ode4j.ode.DBody;
 import org.ode4j.ode.DContact;
 import org.ode4j.ode.DContactBuffer;
 import org.ode4j.ode.DGeom;
+import org.ode4j.ode.DGeom.DNearCallback;
 import org.ode4j.ode.DJoint;
 import org.ode4j.ode.DJointGroup;
 import org.ode4j.ode.DSpace;
 import org.ode4j.ode.DWorld;
 import org.ode4j.ode.OdeHelper;
-import org.ode4j.ode.DGeom.DNearCallback;
 
 import brabra.Brabra;
 import brabra.Debug;
+import brabra.Parameters;
 import brabra.game.RealGame;
+import brabra.game.physic.Body;
 
 /** Object representing the active working scene (model). **/
-public class Scene {
+public class Scene implements Observer {
 
 	public final List<Object> objects = new ArrayList<>();
 	
-	public DWorld world = OdeHelper.createWorld();
-	public DSpace space = OdeHelper.createSimpleSpace();
+	private DWorld world = OdeHelper.createWorld();
+	private DSpace space = OdeHelper.createSimpleSpace();
 	private DJointGroup contactgroup = OdeHelper.createJointGroup();
 	
 	public static final SceneLoader loader = new SceneLoader();
@@ -43,6 +44,8 @@ public class Scene {
 	
 	public Scene(RealGame game) {
 		this.model = game.sceneModel;
+		world.setGravity(Brabra.app.para.gravity().toOde());
+		Brabra.app.para.addObserver(this);
 	}
 	
 	//--- Modifiers ---
@@ -55,7 +58,9 @@ public class Scene {
 	public void add(Object o) {
 		assert (!objects.contains(o));
 		Brabra.app.runLater(() -> {
-			o.addToScene(world, space);
+			Body b = o.as(Body.class);
+			if (b != null)
+				b.addToScene(world, space);
 			objects.add(o);
 			model.notifyChange(Model.Change.ObjectAdded, o);
 		});
@@ -77,6 +82,7 @@ public class Scene {
 		world.destroy();
 		contactgroup.clear();
 		world = OdeHelper.createWorld();
+		world.setGravity(Brabra.app.para.gravity().toOde());
 	}
 	
 	// --- life cycle ---
@@ -95,10 +101,8 @@ public class Scene {
 			if (n > 0) {
 				for (int i=0; i<n; i++) {
 					DContact contact = contacts.get(i);
-					contact.surface.mode = dContactSlip1 | dContactSlip2 | dContactSoftERP | dContactSoftCFM | dContactApprox1;
+					contact.surface.mode = dContactSoftERP | dContactSoftCFM | dContactApprox1;
 					contact.surface.mu = 0.5;
-					contact.surface.slip1 = 0.0;
-					contact.surface.slip2 = 0.0;
 					contact.surface.soft_erp = 0.8;
 					contact.surface.soft_cfm = 0.01;
 					DJoint c = OdeHelper.createContactJoint(world,contactgroup,contact);
@@ -149,5 +153,11 @@ public class Scene {
 				this.notifyObservers(new Arg(change, o));
 			}
 		}
+	}
+
+	@Override
+	public void update(Observable arg0, java.lang.Object arg1) {
+		if (arg1 == Parameters.Change.Gravity)
+			world.setGravity(((Parameters)arg0).gravity().toOde());
 	}
 }

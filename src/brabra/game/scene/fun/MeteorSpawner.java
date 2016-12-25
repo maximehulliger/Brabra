@@ -1,13 +1,10 @@
 package brabra.game.scene.fun;
 
-import org.ode4j.ode.DSpace;
-import org.ode4j.ode.DWorld;
-
 import brabra.game.physic.geo.Box;
 import brabra.game.physic.geo.Sphere;
 import brabra.game.physic.geo.Vector;
-import processing.core.PShape;
 import brabra.game.scene.Object;
+import processing.core.PShape;
 
 /** Pop meteors randomly in a box (in front of the parent). */
 public final class MeteorSpawner extends Object {
@@ -69,7 +66,7 @@ public final class MeteorSpawner extends Object {
 	private class Meteor extends Sphere {
 
 		public Meteor(Vector startPos, Vector goal) {
-			super(-1);
+			super(1);
 			position.set(startPos);
 			
 			float tailleRatio = random.nextFloat();
@@ -93,12 +90,6 @@ public final class MeteorSpawner extends Object {
 			}
 			popLocal();
 		}
-	}
-
-	@Override
-	public void addToScene(DWorld world, DSpace space) {
-		// TODO Auto-generated method stub
-		
 	}
 
 	@Override

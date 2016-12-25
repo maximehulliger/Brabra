@@ -3,9 +3,6 @@ package brabra.game.scene.weapons;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.ode4j.ode.DSpace;
-import org.ode4j.ode.DWorld;
-
 import brabra.Brabra;
 import brabra.Debug;
 import brabra.game.physic.geo.Vector;
@@ -179,12 +176,6 @@ public class Weaponry extends Object {
 			});
 			valid = true;
 		}
-	}
-
-	@Override
-	public void addToScene(DWorld world, DSpace space) {
-		// TODO Auto-generated method stub
-		
 	}
 
 	@Override
