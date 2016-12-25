@@ -24,16 +24,17 @@ public class Camera extends Object {
 	private static final float distSqBeforeRemove = far*far; //from camera
 	private static final Vector defaultOrientation = y(-1);
 	private static PShape skybox;
-	private static final Color 
-	xColor = new Color("red", true), 
-	yColor = new Color("green", true), 
-	zColor = new Color("blue", true),
+	private static final Color xColor = new Color("red", true), 
+			yColor = new Color("green", true), 
+			zColor = new Color("blue", true),
 	pointCentralColor = new Color("red", true);
 
 	// intern, mode related
 	/** The absolute point that looks the camera. */
 	private final Vector orientation = defaultOrientation.copy();
-
+	
+	private Object focused = null;
+	
 	/** Creates a new camera. */
 	public Camera() {
 		setName("Camera");
@@ -41,45 +42,12 @@ public class Camera extends Object {
 
 	// --- Setters ---
 
-	// TODO: --- Raycast from screen ---
-
-	/*public void drawMouseray(float dist) { 
-		float focal = 10;
-	    Vector mrel = new Vector(-(app.mouseX-app.width/2)/focal, -(app.mouseY-app.height/2)/focal, -focal);
-
-	    app.fill(0,0,0);
-	    app.sphere(5);
-	    //this finds the position of the mouse in model space
-	    Vector mousePos = absolute(mrel, locationAbs, identity);
-
-	    Vector camToMouse=Vector.sub(mousePos, locationAbs);
-
-	    app.stroke(150, 150, 150, 255); //box line colour
-	    line(camToMouse, mousePos);
-	    app.noStroke();
-	    app.pushMatrix();
-		    //translate(mouseX-width/2, mouseY-height/2,0);
-		    translate(camToMouse);
-		    app.fill(255,0,0);
-		    app.sphere(5);
-	    app.popMatrix();
-	    app.pushMatrix();
-		    translate( mousePos );
-		    app.fill(0,255,0);
-		    app.sphere(5);
-	    app.popMatrix();
-	    System.out.println("cam pos: "+locationAbs);
-	    System.out.println("mouse pos: "+mousePos);
-	    System.out.println("cam to mouse: "+camToMouse);
-	    System.out.println("cam to focus: "+Vector.sub(locationAbs, focus));
-	}*/
-
 	// --- Main usage (draw) ---
 
 	/** Put the camera in the processing scene and carry his job (see class doc). */
 	public void place() {
 		Debug.setCurrentWork("camera");
-		final Vector focus = hasParent() ? parent().position : zero;
+		final Vector focus = focused != null ? focused.position : zero;
 
 		// Remove the objects too far away.
 		game.scene.forEachObjects(o -> {
@@ -89,7 +57,7 @@ public class Camera extends Object {
 
 		// Draw all the stuff
 		app.background(200);
-		Vector pos = hasParent() ? position.plus(parent().position) : position;
+		Vector pos = focused != null ? position.plus(focused.position) : position;
 		app.camera(pos.x, pos.y, pos.z, 
 				focus.x, focus.y, focus.z, 
 				orientation.x, orientation.y, orientation.z);
@@ -114,11 +82,18 @@ public class Camera extends Object {
 			app.point(Brabra.width/2, Brabra.height/2);
 		}
 	}
+	
+	public void setFocused(Object o) {
+		focused = o;
+	}
 
 	// --- life cycle (validate + update) ---
 
 	public void validate(Attributes atts) {
 		super.validate(atts);
+		
+		setFocused(atts.parent());
+		
 		final String distString = atts.getValue("dist");
 		if (distString == null)
 			Debug.err("for camera: dist (or pos) should be set. ignoring.");
@@ -133,9 +108,11 @@ public class Camera extends Object {
 		final String displaySkybox = atts.getValue("displaySkybox");
 		if (displaySkybox != null)
 			app.para.setDisplaySkybox(Boolean.parseBoolean(displaySkybox));
+		
 		final String displayCentralPoint = atts.getValue("displayCenterPoint");
 		if (displayCentralPoint != null)
 			app.para.setDisplayCenterPoint(Boolean.parseBoolean(displayCentralPoint));
+		
 		final String displayAxis = atts.getValue("displayAxis");
 		if (displayAxis != null)
 			app.para.setDisplayAxis(Boolean.parseBoolean(displayAxis));

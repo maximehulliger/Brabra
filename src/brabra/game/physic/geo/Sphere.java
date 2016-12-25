@@ -7,12 +7,12 @@ import org.ode4j.ode.DSpace;
 import org.ode4j.ode.DWorld;
 import org.ode4j.ode.OdeHelper;
 
-import brabra.game.physic.Collider;
+import brabra.game.physic.Body;
 import brabra.game.scene.Object;
 import brabra.game.scene.SceneLoader.Attributes;
 
 /** A sphere. */
-public class Sphere extends Collider {
+public class Sphere extends Body {
 	
 	private float radius;
 

@@ -2,7 +2,7 @@ package brabra.game.scene.fun;
 
 import brabra.Debug;
 import brabra.game.Color;
-import brabra.game.physic.Collider;
+import brabra.game.physic.Body;
 import brabra.game.physic.geo.Box;
 import brabra.game.physic.geo.ProTransform;
 import brabra.game.physic.geo.Vector;
@@ -45,7 +45,7 @@ public class Starship extends Box {
 		popLocal();
 	}
 	
-	protected void onCollision(Collider other, Vector pos) {
+	public void onCollision(Body other, Vector pos) {
 		Debug.log(presentation()+" a touché "+other.presentation());
 	}
 }

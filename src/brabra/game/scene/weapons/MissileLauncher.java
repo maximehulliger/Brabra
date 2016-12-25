@@ -1,7 +1,7 @@
 package brabra.game.scene.weapons;
 
-import brabra.game.physic.Collider;
-import brabra.game.physic.geo.Sphere;
+import brabra.game.physic.Body;
+import brabra.game.physic.geo.Box;
 import brabra.game.physic.geo.Vector;
 import brabra.game.scene.Effect;
 import processing.core.PImage;
@@ -54,16 +54,15 @@ public class MissileLauncher extends Weapon {
 	}
 
 	/** A missile that explode on collision and damage (life) the obstacle. */
-	public class Missile extends Sphere {//Cube {
+	public class Missile extends Box {
 		
 		private final int tier;
 		private final int puissance;
 		
 		public Missile() {
-			super(tiersSize[tier0()]);
+			super(vec(tiersSize[tier0()]*2, tiersSize[tier0()]*2, tiersSize[tier0()]*7));
 			position.set(launcher.position);
 			rotation.set(launcher.rotation);
-			//super(location, rotation, vec(sizeRatio*2, sizeRatio*2, sizeRatio*7));
 			this.tier = tier0();
 			this.puissance = puissance();
 			super.addOnUpdate(m -> m.avance( puissance()*3 ));
@@ -82,7 +81,7 @@ public class MissileLauncher extends Weapon {
 			popLocal();
 		}
 
-		public void onCollision(Collider col, Vector impact) {
+		public void onCollision(Body col, Vector impact) {
 			// explodes and disappears
 			game.scene.remove( this );
 			game.scene.add( new Effect.Explosion( impact, tiersSize[tier] ) );

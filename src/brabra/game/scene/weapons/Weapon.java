@@ -116,19 +116,23 @@ public abstract class Weapon extends Object {
 	/** Takes: tier, displayColliders & check for master. */
 	public void validate(Attributes atts) {
 		super.validate(atts);
+		
+		//tier
 		String tier = atts.getValue("tier");
 		setTier(tier==null ? 1 : Integer.parseInt(tier));
+		
 		final String displayColliders = atts.getValue("displayColliders");
 		if (displayColliders != null)
 			this.displayColliders = Boolean.parseBoolean(displayColliders);
+		
 		// validate the master weaponry.
-		Weaponry newMaster = (Weaponry)parentThat(p -> p instanceof Weaponry);
-		if (newMaster != master) {
-			if (master != null)
-				master.removeWeapon(this);
-			master = newMaster;
-			if (newMaster != null)
-				newMaster.addWeapon(this);
+		
+		Weaponry master = atts.parent().as(Weaponry.class);
+		if (master == null) {
+			Debug.err("weapons should be under a weaponry !");
+		} else {
+			this.master = master;
+			master.addWeapon(this);
 		}
 	}
 	

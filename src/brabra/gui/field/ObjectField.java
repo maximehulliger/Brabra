@@ -6,12 +6,10 @@ import java.util.Observer;
 
 import brabra.Brabra;
 import brabra.game.physic.Body;
-import brabra.game.physic.Collider;
 import brabra.game.physic.geo.Box;
 import brabra.game.physic.geo.Sphere;
 import brabra.game.physic.geo.Transform.Change;
 import brabra.game.scene.Object;
-import javafx.scene.control.Tooltip;
 
 /** A field containing an object. */
 public class ObjectField extends Field implements Observer {
@@ -19,7 +17,6 @@ public class ObjectField extends Field implements Observer {
 	public final Object object;
 
 	private final Body asBody;
-	private final Collider asCollider;
 	private final Box asBox;
 	private final Sphere asSphere;
 
@@ -81,14 +78,10 @@ public class ObjectField extends Field implements Observer {
 					() -> asBody.mass()==0)
 					.respondingTo(Change.Mass)
 					.set("Heavy", false, true));
-		}
-
-		// > if Collider
-		if ((asCollider = object.as(Collider.class)) != null) {
 			// display collider
 			fields.add(new BooleanField.Pro(
-					dc -> asCollider.setDisplayCollider(dc), 
-					() -> asCollider.displayCollider())
+					db -> asBody.setDisplayCollider(db), 
+					() -> asBody.displayCollider())
 					.respondingTo(Change.DisplayCollider)
 					.set("Display Collider", false, true));
 		}
@@ -117,7 +110,6 @@ public class ObjectField extends Field implements Observer {
 		nameText.getStyleClass().add("objectField-name");
 		subfields().addAll(fields);
 		set(object.toString(), !closable, closable);
-		setToolTip();
 		
 		//--- Control:
 		object.model.addObserver(this);
@@ -129,14 +121,8 @@ public class ObjectField extends Field implements Observer {
 			Brabra.app.fxApp.runLater(() -> {
 				if (arg == Change.Name)
 					super.setName(object.toString());
-				else if (arg == Change.Parentship)
-					setToolTip();
 			});
 		}
-	}
-	
-	private void setToolTip() {
-		super.nameText.setTooltip(object.hasParent() ? new Tooltip("child of "+object.parent()) : null);
 	}
 
 	/** Return true if this mass will result in a manipulable body. */

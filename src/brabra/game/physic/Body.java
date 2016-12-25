@@ -35,7 +35,11 @@ public abstract class Body extends Object {
 	protected Color color = Color.basic;
 	
 	protected int life = -1, maxLife = -1;
+
+	public final static Color colliderColor = new Color(255, 0, 0, 150, 255, 0, 0);
 	
+	private boolean displayCollider = false;
+
 	/** Executed before updating the body. */
 	private Consumer<Body> onUpdate = null;
 	
@@ -55,6 +59,7 @@ public abstract class Body extends Object {
 			maxLife = ob.maxLife;
 			life = ob.life;
 			color = ob.color;
+			displayCollider = ob.displayCollider;
 		}
 	}
 
@@ -63,6 +68,8 @@ public abstract class Body extends Object {
 
 	public void setBody(DBody body) {
 		this.body = body;
+		
+		body.setData(this);
 		
 		setOdeMass(body);
 		
@@ -75,7 +82,7 @@ public abstract class Body extends Object {
 	}
 	
 	/** to react to a collision */
-	protected void onCollision(Collider col, Vector impact) {}
+	public void onCollision(Body col, Vector impact) {}
 
 	public void validate(Attributes atts) {
 		super.validate(atts);
@@ -88,6 +95,9 @@ public abstract class Body extends Object {
 		final String life = atts.getValue("life");
 		if (life != null)
 			setLife(life);
+		final String displayCollider = atts.getValue("displayCollider");
+		if (displayCollider != null)
+			setDisplayCollider( Boolean.parseBoolean(displayCollider) );
 	}
 	
 	/** applique les forces et update l'etat. return true if this was updated. */
@@ -121,8 +131,12 @@ public abstract class Body extends Object {
 		}
 	}
 	
+	@SuppressWarnings("deprecation")
 	public void onDelete() {
 		Debug.log(6, this+" deleted.");
+		body.getFirstGeom().destroy();
+		body.destroy();
+		
 		super.onDelete();
 	}
 
@@ -168,7 +182,35 @@ public abstract class Body extends Object {
 	public void setColor(Color color) {
 		this.color = color;
 	}
+
+	// --- Collider ---
+
+	public boolean displayCollider() {
+		return displayCollider || app.para.displayAllColliders();
+	}
 	
+	public void setDisplayCollider(boolean displayCollider) {
+		this.displayCollider = displayCollider;
+		model.notifyChange(Change.DisplayCollider);
+	}
+	
+	/** To display the shape of the collider (without color, in relative space). */
+	public abstract void displayShape();
+	
+	/** 
+	 * Display the collider... maybe. 
+	 * In local space (should be call after pushLocal()). 
+	 * Return true if the collider was displayed.
+	 **/
+	protected boolean displayColliderMaybe() {
+		final boolean display = displayCollider();
+		if (display) {
+			colliderColor.fill();
+			displayShape();
+		}
+		return display;
+	}
+
 	// --- life
 	
 	/** to react to the death from damages */
@@ -238,6 +280,7 @@ public abstract class Body extends Object {
 	/** Apply a force on the body at this point (in this object's space). */
 	public void applyForceRel(Vector posRel, Vector forceRel) {
 		assert(!forceRel.equals(zero));
+		interactionsRel.add(new Line(posRel, posRel.plus(forceRel), true));
 		body.addRelForceAtRelPos(forceRel.x, forceRel.y, forceRel.z, posRel.x, posRel.y, posRel.z);
 		
 	}

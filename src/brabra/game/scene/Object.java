@@ -50,9 +50,6 @@ public abstract class Object extends Transform {
 		if (dirString != null)
 			rotation.set(Quaternion.fromDirection(vec(dirString), Vector.up));
 		
-		// set parent first !
-		setParent(atts.parent());
-		
 		// other attributes
 		final String name = atts.getValue("name");
 		if (name != null)
@@ -60,7 +57,7 @@ public abstract class Object extends Transform {
 		final String cameraMode = atts.getValue("camera");
 		if (cameraMode != null) {
 			// set this as camera's parent with the given relation
-			game.camera.setParent(this);
+			game.camera.setFocused(this);
 		}
 		// focus: here because we want to do that with the children set.
 		final String focus = atts.getValue("focus");
@@ -73,9 +70,7 @@ public abstract class Object extends Transform {
 	}
 	
 	/** To react when the object is removed from the scene. should be called. */
-	public void onDelete() {
-		super.onDelete();
-	}
+	public void onDelete() {}
 
 	// --- Simple getters ---
 
@@ -96,7 +91,7 @@ public abstract class Object extends Transform {
 	
 	/** return the presentation of the object with the name in evidence and the parent if exists. */
 	public String presentation() {
-		return "> "+this+" <" + (hasParent() ? " after \""+parent()+"\"" : "");
+		return "> "+this+" <";
 	}
 	
 	// --- Setters ---

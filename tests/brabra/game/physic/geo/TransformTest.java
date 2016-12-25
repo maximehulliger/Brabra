@@ -33,21 +33,6 @@ public class TransformTest extends ProTest {
 	}
 
 	@Test
-	public void testAbsLocal() {
-		for (Transform t : someTransform(5)) {
-			final Vector vec = Vector.randomVec(100);
-			
-			// abs -> loc -> abs
-			final Vector dirFromLoc = t.absoluteDirFromLocal(t.localDir(vec));
-			assertEqualsEps("", vec, dirFromLoc);
-			
-			// loc -> abs -> loc
-			final Vector dirFromAbs = t.localDir(t.absoluteDirFromLocal(vec));
-			assertEqualsEps("", vec, dirFromAbs);
-		}
-	}
-
-	@Test
 	public void testAbsRel() {
 		final float epsilon = 2E-4f;
 		for (Transform t : someTransform(10)) {

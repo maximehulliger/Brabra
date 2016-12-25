@@ -26,6 +26,7 @@ import brabra.Debug;
 import brabra.Parameters;
 import brabra.game.RealGame;
 import brabra.game.physic.Body;
+import brabra.game.physic.geo.Vector;
 
 /** Object representing the active working scene (model). **/
 public class Scene implements Observer {
@@ -69,16 +70,19 @@ public class Scene implements Observer {
 	/** Remove an object from the scene. */
 	public void remove(Object o) {
 		assert (objects.contains(o));
-		Brabra.app.runLater(() -> {
-			objects.remove(o);
-			o.onDelete();
-			model.notifyChange(Model.Change.ObjectRemoved, o);
-		});
+		Brabra.app.runLater(() -> removeNow(o));
+	}
+	
+	private void removeNow(Object o) {
+		objects.remove(o);
+		o.onDelete();
+		model.notifyChange(Model.Change.ObjectRemoved, o);
 	}
 	
 	/** Remove all object from the scene. */
 	public void clear() {
-		objects.forEach(o -> remove(o));
+		while (objects.size() > 0)
+			removeNow(objects.get(0));
 		world.destroy();
 		contactgroup.clear();
 		world = OdeHelper.createWorld();
@@ -99,6 +103,7 @@ public class Scene implements Observer {
 			DContactBuffer contacts = new DContactBuffer(N);
 			int n = OdeHelper.collide (o1,o2,N,contacts.getGeomBuffer());//[0].geom,sizeof(dContact));
 			if (n > 0) {
+				// create contact joint
 				for (int i=0; i<n; i++) {
 					DContact contact = contacts.get(i);
 					contact.surface.mode = dContactSoftERP | dContactSoftCFM | dContactApprox1;
@@ -108,6 +113,13 @@ public class Scene implements Observer {
 					DJoint c = OdeHelper.createContactJoint(world,contactgroup,contact);
 					c.attach (o1.getBody(), o2.getBody());
 				}
+				
+				// collision reaction
+				Body bb1 = (Body) b1.getData();
+				Body bb2 = (Body) b2.getData();
+				Vector impact = new Vector(contacts.get(0).getContactGeom().pos);
+				bb1.onCollision(bb2, impact);
+				bb2.onCollision(bb1, impact);
 			}
 		}
 	};
@@ -119,8 +131,7 @@ public class Scene implements Observer {
 		contactgroup.empty();
 		Debug.setCurrentWork("objects update");
 		for (Object o : objects)
-			if (!o.hasParent())
-				o.update();
+			o.update();
 	}
 
 	/** Display all colliders and effects in the scene. */
@@ -150,7 +161,7 @@ public class Scene implements Observer {
 		protected void notifyChange(Change change, Object o) {
 			synchronized (this) {
 				this.setChanged();
-				this.notifyObservers(new Arg(change, o));
+					this.notifyObservers(new Arg(change, o));
 			}
 		}
 	}

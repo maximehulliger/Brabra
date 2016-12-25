@@ -8,11 +8,11 @@ import org.ode4j.ode.DWorld;
 import org.ode4j.ode.OdeHelper;
 
 import brabra.Debug;
-import brabra.game.physic.Collider;
+import brabra.game.physic.Body;
 import brabra.game.scene.Object;
 import brabra.game.scene.SceneLoader.Attributes;
 
-public class Box extends Collider {
+public class Box extends Body {
 	
 	/** Total size (local). */
 	public final Vector size = new Vector();

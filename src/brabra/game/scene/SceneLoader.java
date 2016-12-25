@@ -102,9 +102,9 @@ public final class SceneLoader extends ProMaster {
 	    	} else {
 	    		// create object & add it to the scene
 	    		final Object newObj = getPrefab(localName);
+	    		game.scene.add(newObj);
 	    		newObj.validate(new Attributes(atts, parentStack.peek()));
-    			game.scene.add(newObj);
-				parentStack.push(newObj);
+    			parentStack.push(newObj);
 	    	}
 	    }
 	    

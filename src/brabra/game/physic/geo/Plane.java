@@ -7,11 +7,11 @@ import org.ode4j.ode.DWorld;
 import org.ode4j.ode.OdeHelper;
 
 import brabra.Debug;
-import brabra.game.physic.Collider;
+import brabra.game.physic.Body;
 import processing.core.PApplet;
 
 /** A plane characterized by a normal++ and 2 direction vectors. Default norm is up (y+). Can be finite or infinite. */
-public class Plane extends Collider {
+public class Plane extends Body {
 	
 	private DPlane geom;
 
