@@ -95,7 +95,6 @@ public class Plane extends Collider {
 			this.finite = size2d != infiniteSize;
 			this.natCo = getNatCo(finite ? size2d : new Vector(1, 0, 1));
 			
-			super.setRadiusEnveloppe(finite ? size2d.mag()/2 : Float.POSITIVE_INFINITY);
 			if (!finite)
 				setMass(-1);
 			

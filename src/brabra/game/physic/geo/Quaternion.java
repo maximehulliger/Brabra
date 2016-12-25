@@ -1,6 +1,7 @@
 package brabra.game.physic.geo;
 
 import org.ode4j.math.DQuaternion;
+import org.ode4j.math.DQuaternionC;
 
 import brabra.Master;
 import brabra.ProMaster;
@@ -43,11 +44,17 @@ public class Quaternion extends ProMaster {
 	public Quaternion(Vector axis, float angle) {
 		set(axis == null ? null : axis.copy(), angle);
 	}
-	
+
 	/** Create a copy of the Quaternion. */
 	public Quaternion(Quaternion q) {
 		set(q);
 	}
+
+	/** Create a copy of the Quaternion from ODE. */
+	public Quaternion(DQuaternionC q) {
+		this((float)q.get0(), (float)q.get1(), (float)q.get2(), (float)q.get3());
+	}
+	
 	
 	/** Create a new Quaternion from WXYZ. */
 	public Quaternion(float w, Vector xyz) {

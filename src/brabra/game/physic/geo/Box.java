@@ -52,9 +52,6 @@ public class Box extends Collider {
 		    this.size.set(size);
 		    this.dim = size.multBy(0.5f);
 		    
-		    super.setRadiusEnveloppe(dim.mag());
-	
-
 		    // notify
 		    model.notifyChange(Change.Size);
 	    }

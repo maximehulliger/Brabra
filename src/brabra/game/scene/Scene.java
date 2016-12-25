@@ -25,15 +25,6 @@ import org.ode4j.ode.DGeom.DNearCallback;
 import brabra.Brabra;
 import brabra.Debug;
 import brabra.game.RealGame;
-import brabra.game.physic.Body;
-import brabra.game.physic.geo.Box;
-import brabra.game.physic.geo.Plane;
-import brabra.game.physic.geo.Sphere;
-import brabra.game.physic.geo.Vector;
-import brabra.game.scene.fun.Starship;
-import brabra.game.scene.weapons.MissileLauncher;
-import brabra.game.scene.weapons.Target;
-import brabra.game.scene.weapons.Weaponry;
 
 /** Object representing the active working scene (model). **/
 public class Scene {
@@ -50,10 +41,7 @@ public class Scene {
 	
 	public final Model model;
 	
-	private final RealGame game;
-	
 	public Scene(RealGame game) {
-		this.game = game;
 		this.model = game.sceneModel;
 	}
 	

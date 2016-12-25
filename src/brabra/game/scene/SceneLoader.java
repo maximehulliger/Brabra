@@ -15,7 +15,6 @@ import org.xml.sax.helpers.DefaultHandler;
 
 import brabra.Debug;
 import brabra.ProMaster;
-import brabra.game.physic.Body;
 import brabra.game.physic.geo.Box;
 import brabra.game.physic.geo.Plane;
 import brabra.game.physic.geo.Sphere;
@@ -148,17 +147,12 @@ public final class SceneLoader extends ProMaster {
 	 */
 	public static Object getPrefab(String name) {
 		final Object obj;
-		final Body body;
 		if (name.equals(Camera.class.getSimpleName())) {
 			return game.camera;
 		} else if (name.equals(Box.class.getSimpleName())) {
-			obj = body = new Box(new Vector(20,20,20));
-			body.setMass(1);
-			body.addOnUpdate(b -> b.pese());
+			obj = new Box(new Vector(20,20,20));
 		} else if (name.equals(Sphere.class.getSimpleName()) || name.equals("Ball")) {
-			obj = body = new Sphere(10);
-			body.setMass(1);
-			body.addOnUpdate(b -> b.pese());
+			obj = new Sphere(10);
 		} else if (name.equals("Floor"))
 			obj = new Plane().withName("Floor");
 		else if (name.equals(Plane.class.getSimpleName()))

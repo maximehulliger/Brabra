@@ -3,6 +3,7 @@ package brabra.game.physic.geo;
 import java.util.regex.Matcher;
 
 import org.ode4j.math.DVector3;
+import org.ode4j.math.DVector3C;
 
 import brabra.Master;
 import brabra.game.physic.Physic;
@@ -37,6 +38,10 @@ public class Vector extends PVector {
 
 	public Vector(PVector v) {
 		super(v.x,v.y,v.z); 
+	}
+
+	public Vector(DVector3C v) {
+		super((float)v.get0(), (float)v.get1(), (float)v.get2()); 
 	}
 
 	/** 

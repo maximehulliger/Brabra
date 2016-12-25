@@ -4,8 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
-import org.ode4j.math.DQuaternionC;
-import org.ode4j.math.DVector3C;
 import org.ode4j.ode.DBody;
 import org.ode4j.ode.DGeom;
 
@@ -44,6 +42,10 @@ public abstract class Body extends Object {
 	/** Executed before updating the body. */
 	private Consumer<Body> onUpdate = null;
 	private List<Line> interactionsRel = new ArrayList<>();
+	
+	public Body() {
+		setMass(-1);
+	}
 	
 	public void copy(Object o) {
 		super.copy(o);
@@ -88,13 +90,11 @@ public abstract class Body extends Object {
 			if (rotation.hasChanged())
 				body.setQuaternion(rotation.toOde());
 			
-			DVector3C odePos = body.getPosition();
-			Vector pos = new Vector((float)odePos.get0(), (float)odePos.get1(), (float)odePos.get2());
+			Vector pos = new Vector(body.getPosition());
 			if (!pos.equals(position))
 				position.set(pos);
 			position.reset();
-			DQuaternionC odeRot = body.getQuaternion();
-			Quaternion rot = new Quaternion((float)odeRot.get0(), (float)odeRot.get1(), (float)odeRot.get2(), (float)odeRot.get3());
+			Quaternion rot = new Quaternion(body.getQuaternion());
 			if (!rot.equals(rotation))
 				rotation.set(rot);
 			rotation.reset();
@@ -238,12 +238,6 @@ public abstract class Body extends Object {
 
 	// --- cooked methods to apply forces
 	
-	/** apply his weight to the object. */
-	public void pese() {
-		if (inverseMass > 0)
-			applyForce( position, app.para.gravity().multBy(mass) );
-	}
-	
 	public void avance(float forceFront) {
 		assert(forceFront != 0);
 		applyForceRel( zero, front(forceFront) );
@@ -253,17 +247,24 @@ public abstract class Body extends Object {
 
 	/** Force the object to lose some velocity and rotational velocity. loss in [0,1]. reset after eps. */
 	public void brake(float loss) {
+		assert loss > 0 && loss <= 1;
 		brakeDepl(loss);
 		brakeRot(loss);
 	}
 
 	/** Force the object to lose some velocity. loss in [0,1]. reset after eps. */
 	public void brakeDepl(float loss) {
-		//TODO
+		assert loss > 0 && loss <= 1;
+		Vector vel = new Vector(body.getLinearVel());
+		vel.mult(1-loss);
+		body.setLinearVel(vel.toOde());
 	}
 
 	/** Force the object to lose some rotational velocity. reset after eps. */
 	public void brakeRot(float loss) {
-		//TODO
+		assert loss > 0 && loss <= 1;
+		Vector vel = new Vector(body.getAngularVel());
+		vel.mult(1-loss);
+		body.setAngularVel(vel.toOde());
 	}
 }

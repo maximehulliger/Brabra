@@ -9,14 +9,7 @@ public abstract class Collider extends Body {
 	
 	public final static Color colliderColor = new Color(255, 0, 0, 150, 255, 0, 0);
 	
-	private float radiusEnveloppe;
 	private boolean displayCollider = false;
-
-	/** Set the radius of the enveloppe sphere used to check if collide fast. */
-	protected final void setRadiusEnveloppe(float radiusEnveloppe) {
-		this.radiusEnveloppe = radiusEnveloppe;
-		assert(radiusEnveloppe > 0);
-	}
 
 	public void copy(Object o) {
 		super.copy(o);
@@ -30,10 +23,6 @@ public abstract class Collider extends Body {
 
 	public boolean displayCollider() {
 		return displayCollider || app.para.displayAllColliders();
-	}
-
-	public float radiusEnveloppe() {
-		return radiusEnveloppe;
 	}
 	
 	// --- Setters ---
