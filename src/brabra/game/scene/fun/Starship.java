@@ -45,7 +45,8 @@ public class Starship extends Box {
 		popLocal();
 	}
 	
-	public void onCollision(Body other, Vector pos) {
+	public boolean onCollision(Body other, Vector pos) {
 		Debug.log(presentation()+" a touché "+other.presentation());
+		return true;
 	}
 }

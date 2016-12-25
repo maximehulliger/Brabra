@@ -81,8 +81,10 @@ public abstract class Body extends Object {
 		body.setQuaternion(rotation.toOde());
 	}
 	
-	/** to react to a collision */
-	public void onCollision(Body col, Vector impact) {}
+	/** to react to a collision. return true if objects should collided. */
+	public boolean onCollision(Body col, Vector impact) {
+		return true;
+	}
 
 	public void validate(Attributes atts) {
 		super.validate(atts);

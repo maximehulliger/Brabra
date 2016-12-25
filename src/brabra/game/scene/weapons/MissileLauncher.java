@@ -61,8 +61,8 @@ public class MissileLauncher extends Weapon {
 		
 		public Missile() {
 			super(vec(tiersSize[tier0()]*2, tiersSize[tier0()]*2, tiersSize[tier0()]*7));
-			position.set(launcher.position);
-			rotation.set(launcher.rotation);
+			position.set(launcher.position.plus(launcher.master().parent().position));
+			rotation.set(launcher.rotation.rotatedBy(launcher.master().parent().rotation));
 			this.tier = tier0();
 			this.puissance = puissance();
 			super.addOnUpdate(m -> m.avance( puissance()*3 ));
@@ -81,20 +81,22 @@ public class MissileLauncher extends Weapon {
 			popLocal();
 		}
 
-		public void onCollision(Body col, Vector impact) {
-			// explodes and disappears
-			game.scene.remove( this );
-			game.scene.add( new Effect.Explosion( impact, tiersSize[tier] ) );
-			// to damage the targets
-			if (col instanceof Target) {
-				((Target)col).damage(puissance);
-			}
+		public boolean onCollision(Body col, Vector impact) {
+			// avoid contact with the shooter's body
+			if (col != master().parent()) {
+				// explodes and disappears
+				game.scene.remove( this );
+				game.scene.add( new Effect.Explosion( impact, tiersSize[tier] ) );
+				// to damage the targets
+				if (col instanceof Target) {
+					((Target)col).damage(puissance);
+				}
+				return true;
+			} else
+				return false;
 		}
 	}
 
 	@Override
-	public void display() {
-		// TODO Auto-generated method stub
-		
-	}
+	public void display() {}
 }

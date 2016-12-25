@@ -103,23 +103,22 @@ public class Scene implements Observer {
 			DContactBuffer contacts = new DContactBuffer(N);
 			int n = OdeHelper.collide (o1,o2,N,contacts.getGeomBuffer());//[0].geom,sizeof(dContact));
 			if (n > 0) {
-				// create contact joint
-				for (int i=0; i<n; i++) {
-					DContact contact = contacts.get(i);
-					contact.surface.mode = dContactSoftERP | dContactSoftCFM | dContactApprox1;
-					contact.surface.mu = 0.5;
-					contact.surface.soft_erp = 0.8;
-					contact.surface.soft_cfm = 0.01;
-					DJoint c = OdeHelper.createContactJoint(world,contactgroup,contact);
-					c.attach (o1.getBody(), o2.getBody());
-				}
-				
 				// collision reaction
 				Body bb1 = (Body) b1.getData();
 				Body bb2 = (Body) b2.getData();
 				Vector impact = new Vector(contacts.get(0).getContactGeom().pos);
-				bb1.onCollision(bb2, impact);
-				bb2.onCollision(bb1, impact);
+				if (bb1.onCollision(bb2, impact) && bb2.onCollision(bb1, impact)) {
+					// create contact joint
+					for (int i=0; i<n; i++) {
+						DContact contact = contacts.get(i);
+						contact.surface.mode = dContactSoftERP | dContactSoftCFM | dContactApprox1;
+						contact.surface.mu = 0.5;
+						contact.surface.soft_erp = 0.8;
+						contact.surface.soft_cfm = 0.01;
+						DJoint c = OdeHelper.createContactJoint(world,contactgroup,contact);
+						c.attach (o1.getBody(), o2.getBody());
+					}
+				}
 			}
 		}
 	};
