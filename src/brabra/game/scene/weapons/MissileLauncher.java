@@ -83,7 +83,7 @@ public class MissileLauncher extends Weapon {
 		public void onCollision(Body col, Vector impact) {
 			// explodes and disappears
 			game.scene.remove( this );
-			game.scene.add( new Effect.Explosion( impact, tiersSize[tier] ) );
+			game.scene.add( new Effect.Explosion( position, tiersSize[tier] ) );
 			// to damage the targets
 			if (col instanceof Target) {
 				((Target)col).damage(puissance);

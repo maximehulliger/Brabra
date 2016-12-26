@@ -91,15 +91,19 @@ public abstract class Body extends Object {
 
 	public void validate(Attributes atts) {
 		super.validate(atts);
+		
 		final String color = atts.getValue("color");
 		if (color != null)
 			setColor( new Color(color, atts.getValue("stroke")) );
+		
 		final String mass = atts.getValue("mass");
 		if (mass != null)
 			setMass(Float.parseFloat(mass));
+		
 		final String life = atts.getValue("life");
 		if (life != null)
 			setLife(life);
+		
 		final String displayCollider = atts.getValue("displayCollider");
 		if (displayCollider != null)
 			setDisplayCollider( Boolean.parseBoolean(displayCollider) );

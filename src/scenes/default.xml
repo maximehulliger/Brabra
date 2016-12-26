@@ -4,10 +4,10 @@
 	
 	<Camera displaySkybox="true" mode="none" dist="(300,300,300)" debug="false"></Camera>
 	
-	<Plane pos="0, 0 -200" color="grass" dir="(0 100 0)"></Plane>
+	<Plane pos="0, 0 00" color="grass" dir="(0 100 0)"></Plane>
 	<Ball pos="(50,100,50)" mass="500" color="red" radius="10"></Ball>
 
-	<Starship pos="(0,200,0)" focus="true" force="72" camera="static" debug="false" displayCollider="false">
+	<Starship pos="(0,200,200)" focus="true" force="72" camera="static" debug="false" displayCollider="false">
 		  <Weaponry puissance="400" prefab="none" displayColliders="false">
 			<missile_launcher pos="(30,-10,0)" tier="2" upgrade="1.2"></missile_launcher>
 			<missile_launcher pos="(0,-15,0)" tier="3" upgrade="1.2"></missile_launcher>

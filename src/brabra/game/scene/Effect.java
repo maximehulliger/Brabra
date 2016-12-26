@@ -67,6 +67,8 @@ public abstract class Effect extends Object {
 			super.update();
 			for (int i=0; i<5; i++)
 				bulbes.add( new Bulbe(randomPos()) );
+			bulbes.forEach(b -> b.update());
+			setName("Explosion ("+bulbes.size()+")");
 		}
 		
 		//affiche l'onde de choc
@@ -81,7 +83,7 @@ public abstract class Effect extends Object {
 			private final int color;
 			
 			public Bulbe(Vector location) {
-				super(location, toFrame(0.2f));
+				super(location, toFrame(1f));
 				this.color = app.color(255, random.nextInt(256), 0);
 				this.radius = random(minRad, maxRad);
 			}
@@ -89,6 +91,7 @@ public abstract class Effect extends Object {
 			public void display() {
 				pushLocal();
 				app.fill(color, 150);
+				app.noStroke();
 				app.sphere(radius*etatCrete());
 				popLocal();
 			}
