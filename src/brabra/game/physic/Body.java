@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.function.Consumer;
 
 import org.ode4j.ode.DBody;
+import org.ode4j.ode.DGeom;
 import org.ode4j.ode.DSpace;
 import org.ode4j.ode.DWorld;
 
@@ -82,7 +83,9 @@ public abstract class Body extends Object {
 	}
 	
 	/** to react to a collision. return true if objects should collided. */
-	public boolean onCollision(Body col, Vector impact) {
+	public void onCollision(Body col, Vector impact) {}
+	
+	public boolean isCollidingWith(Body col) {
 		return true;
 	}
 
@@ -136,7 +139,9 @@ public abstract class Body extends Object {
 	@SuppressWarnings("deprecation")
 	public void onDelete() {
 		Debug.log(6, this+" deleted.");
-		body.getFirstGeom().destroy();
+		DGeom geom = body.getFirstGeom();
+		if (geom != null)
+			geom.destroy();
 		body.destroy();
 		
 		super.onDelete();

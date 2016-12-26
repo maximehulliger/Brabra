@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import brabra.Brabra;
+import brabra.Master;
 import brabra.game.physic.geo.Vector;
 
 public abstract class Effect extends Object {
@@ -57,7 +58,7 @@ public abstract class Effect extends Object {
 		}
 		
 		private Vector randomPos() {
-			Vector pos = new Vector(random.nextFloat(), random.nextFloat(), random.nextFloat());
+			Vector pos = new Vector(Master.randomBi(), Master.randomBi(), Master.randomBi());
 			pos.mult( radius * etatCrete() );
 			return position.plus(pos);
 		}

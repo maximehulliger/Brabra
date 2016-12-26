@@ -74,6 +74,7 @@ public class Scene implements Observer {
 	}
 	
 	private void removeNow(Object o) {
+		assert (objects.contains(o));
 		objects.remove(o);
 		o.onDelete();
 		model.notifyChange(Model.Change.ObjectRemoved, o);
@@ -107,7 +108,10 @@ public class Scene implements Observer {
 				Body bb1 = (Body) b1.getData();
 				Body bb2 = (Body) b2.getData();
 				Vector impact = new Vector(contacts.get(0).getContactGeom().pos);
-				if (bb1.onCollision(bb2, impact) && bb2.onCollision(bb1, impact)) {
+				if (bb1.isCollidingWith(bb2) && bb2.isCollidingWith(bb1)) {
+					bb1.onCollision(bb2, impact);
+					bb2.onCollision(bb1, impact);
+					
 					// create contact joint
 					for (int i=0; i<n; i++) {
 						DContact contact = contacts.get(i);

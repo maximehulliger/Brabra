@@ -109,19 +109,23 @@ public final class PhysicInteraction extends ProMaster {
 			//> from the plate
 			if (app.imgAnalyser.running()) {
 				// rotation selon angle de la plaque
-				Vector plateRot = app.imgAnalyser.rotation().multBy(1/Brabra.inclinaisonMax); //over 1
-				// on adoucit par x -> x ^ 1.75
-				plateRot = new Vector(
-						PApplet.pow(PApplet.abs(plateRot.x), 1.75f) * sgn(plateRot.x), 
-						PApplet.pow(PApplet.abs(plateRot.y), 1.75f) * sgn(plateRot.y),
-						PApplet.pow(PApplet.abs(plateRot.z), 1.75f) * sgn(plateRot.z));
-				forceRot.add( plateRot.multBy(Brabra.inclinaisonMax/4 ) );
+				Vector plateRot = app.imgAnalyser.rotation();
+				if (!plateRot.equals(zero)) {
+					plateRot.mult(1/Brabra.inclinaisonMax); //over 1
+					// on adoucit par x -> x ^ 1.75
+					plateRot = new Vector(
+							PApplet.pow(PApplet.abs(plateRot.x), 1.75f) * sgn(plateRot.x), 
+							PApplet.pow(PApplet.abs(plateRot.y), 1.75f) * sgn(plateRot.y),
+							PApplet.pow(PApplet.abs(plateRot.z), 1.75f) * sgn(plateRot.z));
+					forceRot.add( plateRot.multBy(Brabra.inclinaisonMax*100 ) );
+				}
 			}
 			//> add from input (horizon:ad)
 			forceRot.add( yawAxis(game.input.horizontal*120) );
 			//> add from mouse drag
 			forceRot.add( pitchAxis(game.input.mouseDrag().y * -1f) );
 			forceRot.add( rollAxis(game.input.mouseDrag().x * 1f) );
+			
 			forceRot.mult(this.forceRot);
 			
 			//> apply force rot: up (pitch, roll)

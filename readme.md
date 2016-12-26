@@ -5,12 +5,12 @@ An interaction window was added for the course
 DH2642 "Interaction Programming and the Dynamic Web" given in 2015-2016 at KTH.
 
 ###### Featuring:
-- Processing 3, Java 8, JavaFX and ready for Scala
-- 3D interactive physic simulation
+- Processing 3, Java 8, JavaFX
+- 3D dynamic physic simulation with ODE
 - Dynamic scene initialization from xml file and server
 - Starships shooting missiles
 - A GUI tool window
-- Image analysis for quad detection (bugged for now)
+- Image analysis for quad detection
 
 *For developers, see also the [readmeDev](dev/readmeDev.md), [todo](dev/todo.md) and [todoJavaFX](dev/todoJavaFX.md) files.*
 
@@ -31,16 +31,14 @@ The key interface of the project :D
 
 It display the view of the scene from a camera. The scene contains all the simulated objects. 
 
-- `q`, `r`	=>  restart the game
+- `q` =>  restart the game
 - `<tab>`	   	=>  change the camera mode
 
 <br>
 
 #### Scene
-The existing objects are separated in 6 main category: 
-- Object
-- Movable (Object)
-- Body (Movable)
+The existing objects are separated in 4 main category: 
+- Body (Object)
 - Effect (Object)
 - Weaponry, weapons (Object)
 - Camera (Object)
@@ -51,9 +49,9 @@ The existing objects are separated in 6 main category:
 The camera is an object that carry the camera in the scene.
 It can work in several modes and follow a particular object (focused).
 
-- **fixed**: look at zero.
-- **static**: look at the location of the focused.
 - **relative**: look from the parent perspective (follow his rotation too).
+- **static**: look at the location of the focused.
+- **none**: look at zero.
 
 Each mode has his own distance from the focused (looked) point.
 
@@ -82,15 +80,13 @@ supported parameters: <i>**settings**: gravity, running, verbosity. **camera**: 
 
 supported object names: ***object, movable, plane, ball, box, starship :rocket:, target***.
 
-supported object attributes: ***pos, parency, name, life, [color, (stroke)], [camera, (cameraDist)], [focus, (force)], displayCollider, debug***.
+supported object attributes: ***pos, parency, name, life, [color, (stroke)], [camera, (cameraDist)], displayCollider, debug***.
 
-supported moving attributes: ***velocity, rotationVel***.
+supported body attributes: ***size, mass, name, displayCollider, velocity, rotationVel, [focus, (force)]***.
 
-supported body attributes: ***size, mass, name, impluse, displayCollider***.
+supported object names: ***Floor, Plane, Ball, Box, Starship, Target***.
 
-supported object names: ***floor, ball, box, starship, target***.
-
-supported weaponry attributes: <i>**weaponry**: prefab, displayColliders, puissance. **weapon**: tier, upgradeRatio, puissanceRatio, displayColliders</i>
+supported weaponry attributes: <i>**weaponry**: displayColliders, puissance. **weapon**: tier, upgradeRatio, puissanceRatio, displayColliders</i>
 
 supported weapon names: ***missile_launcher***
 
@@ -98,24 +94,15 @@ file example with all supported attributes:
 	
 	<?xml version="1.0" encoding="UTF-8"?>
 	<Scene>
-		<Settings gravity="0.2" running="true" verbosity="max" displayAllColliders="false"></Settings>
+		<Settings gravity="0.9" running="true" verbosity="max" displayAllColliders="false"></Settings>
 		
-		<Camera displaySkybox="true" mode="not" dist="(300,300,300)" debug="false">
-			<!-- Family works with the camera too ! it's just a regular object. -->
-			<box pos="(0,0,-400)" mass="0" color="yellow"></Box>
-		</Camera>
+		<Camera displaySkybox="true" mode="not" dist="(300,300,300)" debug="false"></Camera>
 		
-		<Floor pos="zero" color="grass"></Floor> 
+		<Floor pos="zero" color="grass"></Floor>
 		
 		<Ball pos="(20,200,-300)" mass="5" color="red"></Ball>
 		
 		<Starship pos="(0,200,0)" focus="true" force="72" camera="static" debug="false" displayCollider="false">
-			<!-- You can stack the children as wished :D -->
-			<Box pos="(40,0,-20)" name="pink box" mass="0" color="pink">
-				<Ball pos="(0,40,0)" name="upper ball" color="blue" mass="0"></Ball>
-			</Box>
-			
-			<!-- The weapons automatically add themselves to the weaponry. -->
 			<Weaponry puissance="400" prefab="none" displayColliders="false">
 				<missile_launcher pos="(30,-10,0)" tier="2" upgrade="1.2"></missile_launcher>
 				<missile_launcher pos="(0,-15,0)" tier="3" upgrade="1.2"></missile_launcher>
@@ -155,11 +142,11 @@ Initial excepted project for the course. Only reacts to the rotation of the dete
 
 <a name="image_analysis"></a>
 
-# 4.	Image Analysis (not working atm)
+# 4.	Image Analysis
 #### Plate
 The augmented reality aspect of this project remains in the possibility to control
 the software with an external object. 
-We want to detect a plate or quad with a particular colour (example: see "plate exemple.jpg"). Once calibrated, the software will compute the rotation of the plate relative of the camera.
+We want to detect a plate or quad with a particular colour (example: see "plate exemple.jpg"). Once calibrated, the software will compute the rotation of the plate relative to the camera.
 In option, it also detects two buttons on each side of the plate.
 
 - `<rotation>`      =>  turn the focused object around

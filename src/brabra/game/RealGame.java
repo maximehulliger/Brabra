@@ -7,6 +7,7 @@ import org.ode4j.ode.OdeHelper;
 import brabra.Debug;
 import brabra.game.scene.Camera;
 import brabra.game.scene.Scene;
+import processing.core.PApplet;
 import processing.event.MouseEvent;
 
 public class RealGame extends Interface {
@@ -70,7 +71,9 @@ public class RealGame extends Interface {
 	
 	public void keyReleased() {
 		input.keyReleased();
-		if (app.key == 'p') {
+		if (app.keyCode == PApplet.TAB)
+			camera.changeMode();
+		else if (app.key == 'p') {
 			setRunning(!running());
 		}
 	}

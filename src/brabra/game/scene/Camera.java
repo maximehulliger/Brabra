@@ -1,12 +1,11 @@
 package brabra.game.scene;
 
-import brabra.ProMaster;
-
 import brabra.Brabra;
 import brabra.Debug;
+import brabra.ProMaster;
 import brabra.game.Color;
-import brabra.game.physic.geo.Vector;
 import brabra.game.physic.geo.ProTransform;
+import brabra.game.physic.geo.Vector;
 import brabra.game.scene.SceneLoader.Attributes;
 import processing.core.PShape;
 
@@ -29,25 +28,111 @@ public class Camera extends Object {
 			zColor = new Color("blue", true),
 	pointCentralColor = new Color("red", true);
 
-	// intern, mode related
-	/** The absolute point that looks the camera. */
-	private final Vector orientation = defaultOrientation.copy();
-	
 	private Object focused = null;
+	private Mode mode = Mode.Relative;
 	
+	private final Vector orientation = defaultOrientation.copy();
+	private final Vector distRelative = add(up(90), behind(135)), 
+			distStatic = Vector.cube(300),
+			distNone = Vector.cube(300);
+	
+	public enum Mode {
+		Relative, Static, None;
+
+		public Mode next() {
+			return values()[(this.ordinal()+1) % values().length];
+		}
+
+		public static Mode fromString(String f) {
+			if (f.equals("static"))
+				return Mode.Static;
+			else if (f.equals("relative"))
+				return Mode.Relative;
+			else if (f.equals("none"))
+				return Mode.None;
+			else {
+				Debug.err("Camera mode unknown: \""+f+"\", taking relative");
+				return Mode.Relative;
+			}
+		}
+	}
+			
 	/** Creates a new camera. */
 	public Camera() {
 		setName("Camera");
 	}
 
 	// --- Setters ---
+	
+	public void setFocused(Object o) {
+		focused = o;
+		if (o == null)
+			setMode(Mode.None);
+	}
+	
+	public void changeMode() {
+		setMode(mode.next());
+	}
+	
+	public void setMode(Mode mode) {
+		this.mode = mode;
+		updatePosition();
+	}
+	
+	private void updatePosition() {
+		switch(mode) {
+		case Static:
+			position.set(distStatic);
+			orientation.set(defaultOrientation);
+			break;
+		case Relative:
+			position.set(distRelative);
+			break;
+		default: // None
+			position.set(distNone);
+			orientation.set(defaultOrientation);
+			break;
+		}
+	}
 
+	/** Set the camera relative dist for this mode. */
+	public void setDist(Mode mode, Vector dist) {
+		switch(mode) {
+		case Static:
+			distStatic.set(dist);
+			break;
+		case Relative:
+			distRelative.set(dist);
+			break;
+		default: // None
+			distNone.set(dist);
+		}
+		updatePosition();
+	}
+	
 	// --- Main usage (draw) ---
 
 	/** Put the camera in the processing scene and carry his job (see class doc). */
 	public void place() {
 		Debug.setCurrentWork("camera");
-		final Vector focus = focused != null ? focused.position : zero;
+		
+		//set focus & pos (& orientation if needed)
+		final Vector focus, pos;
+		if (focused == null || mode == Mode.None) {
+			focus = zero;
+			pos = position;
+		} else {
+			focus = focused.position;
+			switch (mode) {
+			case Relative:
+				pos = focused.absolute(position);
+				orientation.set(focused.localFromRel(y(-1)));
+				break;
+			default: // Static
+				pos = position.plus(focused.position);
+				break;
+			}
+		}
 
 		// Remove the objects too far away.
 		game.scene.forEachObjects(o -> {
@@ -57,21 +142,20 @@ public class Camera extends Object {
 
 		// Draw all the stuff
 		app.background(200);
-		Vector pos = focused != null ? position.plus(focused.position) : position;
+		
 		app.camera(pos.x, pos.y, pos.z, 
 				focus.x, focus.y, focus.z, 
 				orientation.x, orientation.y, orientation.z);
+		
 		if (app.para.displaySkybox()) {
 			app.pushMatrix();
-			ProTransform.translate(position);
+			ProTransform.translate(pos);
 			app.shape(skybox());
 			app.popMatrix();
 		}
 
 		if (app.para.displayAxis())
 			displayAxis();
-
-		//drawMouseray(50);
 	}
 
 	/** Display (maybe) a point at the center of the screen. */
@@ -83,10 +167,6 @@ public class Camera extends Object {
 		}
 	}
 	
-	public void setFocused(Object o) {
-		focused = o;
-	}
-
 	// --- life cycle (validate + update) ---
 
 	public void validate(Attributes atts) {
@@ -104,7 +184,11 @@ public class Camera extends Object {
 			} else
 				position.set(dist);
 		}
-			
+		
+		final String modeString = atts.getValue("mode");
+		if (modeString == null)
+			setMode(Mode.fromString(modeString));
+		
 		final String displaySkybox = atts.getValue("displaySkybox");
 		if (displaySkybox != null)
 			app.para.setDisplaySkybox(Boolean.parseBoolean(displaySkybox));

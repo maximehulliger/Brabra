@@ -4,6 +4,7 @@ import brabra.Master;
 import brabra.game.physic.geo.Quaternion;
 import brabra.game.physic.geo.Transform;
 import brabra.game.physic.geo.Vector;
+import brabra.game.scene.Camera.Mode;
 import brabra.game.scene.SceneLoader.Attributes;
 
 /** 
@@ -42,23 +43,25 @@ public abstract class Object extends Transform {
 	 * Return true when this was valdated (only once). 
 	 **/
 	public void validate(Attributes atts) {
-		// get loc & dir
+		
 		final String locString = atts.getValue("pos");
-		final String dirString = atts.getValue("dir");
 		if (locString != null)
 			position.set(vec(locString));
+			
+		final String dirString = atts.getValue("dir");
 		if (dirString != null)
 			rotation.set(Quaternion.fromDirection(vec(dirString), Vector.up));
 		
-		// other attributes
 		final String name = atts.getValue("name");
 		if (name != null)
 			setName(name);
+		
 		final String cameraMode = atts.getValue("camera");
 		if (cameraMode != null) {
-			// set this as camera's parent with the given relation
 			game.camera.setFocused(this);
+			game.camera.setMode(Mode.fromString(cameraMode));
 		}
+		
 		// focus: here because we want to do that with the children set.
 		final String focus = atts.getValue("focus");
 		if (focus != null && Boolean.parseBoolean(focus)) {
