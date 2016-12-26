@@ -44,7 +44,7 @@ public class Brabra extends PApplet {
 	//--- Intern
 	private final String basePath;
 	private final ConcurrentLinkedQueue<Runnable> toExecuteInPro = new ConcurrentLinkedQueue<>();
-	private boolean imgAnalysisStarted = false, fxAppStarted = false;
+	public boolean imgAnalysisStarted = false, fxAppStarted = false;
 	private Interface currentInterface;
 	public final Interface intMenu, intTrivialGame, intCalibration;
 	public final RealGame game;
@@ -225,7 +225,6 @@ public class Brabra extends PApplet {
 		}
 		if (!hasImgAnalysis && imgAnalyser.running())
 			imgAnalyser.stop();
-		imgAnalysis = hasImgAnalysis;
 	}
 	
 	/** Change the current view of the app. */

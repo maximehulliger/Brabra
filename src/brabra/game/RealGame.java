@@ -42,8 +42,10 @@ public class RealGame extends Interface implements Observer {
 		Scene.loader.loadLocalFiles();
 		Scene.loader.load();
 		
-		if (app.imgAnalysis)
+		if (app.imgAnalysisStarted) {
+			app.setImgAnalysis(true);
 			app.imgAnalyser.play(true, false);
+		}
 	}
 
 	public void onHide() {

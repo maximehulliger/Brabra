@@ -112,8 +112,8 @@ public final class PhysicInteraction extends ProMaster {
 					plateRot.mult(1/Brabra.inclinaisonMax); //over 1
 					// on adoucit par x -> x ^ 1.75
 					plateRot = new Vector(
-							PApplet.pow(PApplet.abs(plateRot.x), 1.75f) * sgn(plateRot.x), 
-							PApplet.pow(PApplet.abs(plateRot.y), 1.75f) * sgn(plateRot.y),
+							-PApplet.pow(PApplet.abs(plateRot.x), 1.75f) * sgn(plateRot.x), 
+							-PApplet.pow(PApplet.abs(plateRot.y), 1.75f) * sgn(plateRot.y),
 							PApplet.pow(PApplet.abs(plateRot.z), 1.75f) * sgn(plateRot.z));
 					forceRot.add( plateRot.multBy(Brabra.inclinaisonMax*100 ) );
 				}
