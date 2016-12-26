@@ -97,7 +97,7 @@ public class Vector extends PVector {
 	}
 	
 	public String formated(float epsilon) {
-		return isZeroEps(false) ? "zero" : "[ " //TODO add epsilon
+		return isZeroEps(false) ? "zero" : "[ "
 				+ Master.formatFloat(x, epsilon) + ", "
 				+ Master.formatFloat(y, epsilon) + ", "
 				+ Master.formatFloat(z, epsilon) + " ]";

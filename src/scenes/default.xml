@@ -4,7 +4,7 @@
 	
 	<Camera displaySkybox="true" mode="none" dist="(300,300,300)" debug="false"></Camera>
 	
-	<Starship pos="(0,200,200)" focus="true" force="72" camera="static" debug="false" displayCollider="false">
+	<Starship pos="(0,200,200)" focus="true" force="72" camera="relative" debug="false" displayCollider="false">
 		  <Weaponry puissance="400" prefab="none" displayColliders="false">
 			<missile_launcher pos="(30,-10,0)" tier="2" upgrade="1.2"></missile_launcher>
 			<missile_launcher pos="(0,-15,0)" tier="3" upgrade="1.2"></missile_launcher>

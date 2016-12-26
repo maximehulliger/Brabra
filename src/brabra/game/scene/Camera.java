@@ -120,13 +120,14 @@ public class Camera extends Object {
 			focus = zero;
 			pos = position;
 		} else {
-			focus = focused.position;
 			switch (mode) {
 			case Relative:
 				pos = focused.absolute(position);
 				orientation.set(focused.localFromRel(y(-1)));
+				focus = focused.absolute(up(50));
 				break;
 			default: // Static
+				focus = focused.position;
 				pos = position.plus(focused.position);
 				break;
 			}

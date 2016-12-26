@@ -93,8 +93,5 @@ public final class MeteorSpawner extends Object {
 	}
 
 	@Override
-	public void display() {
-		// TODO Auto-generated method stub
-		
-	}
+	public void display() {}
 }

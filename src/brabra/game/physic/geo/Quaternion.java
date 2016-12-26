@@ -188,7 +188,6 @@ public class Quaternion extends ProMaster {
 	}
 	
 	public String formated() {
-		//TODO not good epsilon
 		return rotAxis()==null ? "identity" 
 				: Master.formatFloat(angle()*180/pi, Physic.epsilon)+"° around "+rotAxis().formated(Physic.epsilon);
 	}

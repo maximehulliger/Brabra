@@ -15,7 +15,7 @@ public class Weaponry extends Object {
 	protected final static int tAffichageErreur = 15;
 	/** Threshold for the button input (from the plate) to fire a tier of weapon. */
 	private static final float[] etatThreshold = new float[] { 0, 0, 0.8f };
-	private int guiWidthWished = 150/*TODO: 400*/, puissanceWished = 400;
+	private int guiWidthWished = 150, puissanceWished = 400;
 
 	// for the weapons
 	protected float guiRatio = 1;
@@ -151,8 +151,5 @@ public class Weaponry extends Object {
 	}
 
 	@Override
-	public void display() {
-		// TODO Auto-generated method stub
-		
-	}
+	public void display() {}
 }

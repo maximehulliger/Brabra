@@ -21,7 +21,6 @@ import brabra.game.scene.SceneLoader.Attributes;
  * An movable object obeying to the laws of physics. 
  * It has a mass and a moment of inertia (angular mass). 
  * You can apply forces and impulse (interactions) to it to move it.
- * TODO: If has a parent, apply it to the parent.
  **/
 public abstract class Body extends Object {
 	
