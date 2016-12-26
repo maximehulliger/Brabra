@@ -2,10 +2,9 @@ package brabra.game.scene.fun;
 
 import brabra.Debug;
 import brabra.game.Color;
-import brabra.game.physic.Collider;
+import brabra.game.physic.Body;
 import brabra.game.physic.geo.Box;
 import brabra.game.physic.geo.ProTransform;
-import brabra.game.physic.geo.Quaternion;
 import brabra.game.physic.geo.Vector;
 import brabra.game.scene.weapons.Weaponry;
 import processing.core.PShape;
@@ -20,8 +19,8 @@ public class Starship extends Box {
 	private Weaponry armement;
 	private static PShape starship;
 	
-	public Starship(Vector location, Quaternion rotation) {
-		super(location, rotation, size);
+	public Starship() {
+		super(size);
 		if (starship == null) {
 			starship = app.loadShape("starship.obj");
 			starship.scale( sizeFactor );
@@ -29,24 +28,11 @@ public class Starship extends Box {
 		setMass(200);
 		setName("Starship");
 	}
-
-	public Starship() {
-		this(Vector.zero, Quaternion.identity);
-	}
 	
 	public Weaponry armement() {
 		return armement;
 	}
 	
-	public void setMass(float mass) {
-		super.setMass(mass);
-		if (inverseMass > 0) {
-			float fact = mass*(sq(size.x) + sq(size.y) + sq(size.z))/7;
-			super.inertiaMom = Vector.cube(fact);
-			super.inverseInertiaMom = Vector.cube(1/fact);
-		}
-	}
-
 	/** Display the starship and the laser. */
 	public void display() {
 		pushLocal();
@@ -59,7 +45,7 @@ public class Starship extends Box {
 		popLocal();
 	}
 	
-	protected void onCollision(Collider other, Vector pos) {
+	public void onCollision(Body other, Vector pos) {
 		Debug.log(presentation()+" a touché "+other.presentation());
 	}
 }

@@ -1,5 +1,4 @@
 #TODO V 1.0
-- collision sphere vs floor
 
 <br>
 
@@ -12,4 +11,5 @@ simple gui (line, point) not drawn from gui() in Input & Camera.
 - raycast
 - object selection
 	- with stroke
-- cube/box without faces
+- load/save calibration parameters
+- buttons on plate detection

@@ -1,11 +1,12 @@
 package brabra.game.scene.weapons;
 
-import brabra.game.physic.Collider;
-import brabra.game.physic.geo.Quaternion;
-import brabra.game.physic.geo.Sphere;
+import org.ode4j.ode.DSpace;
+import org.ode4j.ode.DWorld;
+
+import brabra.game.physic.Body;
+import brabra.game.physic.geo.Box;
 import brabra.game.physic.geo.Vector;
 import brabra.game.scene.Effect;
-import brabra.game.scene.Movable;
 import processing.core.PImage;
 import processing.core.PShape;
 
@@ -22,8 +23,8 @@ public class MissileLauncher extends Weapon {
 	private final MissileLauncher launcher;
 	private int missileNextId = 1;
 	
-	public MissileLauncher(Vector loc, Quaternion rot) {
-		super(loc, rot, tiersPuissance.length);
+	public MissileLauncher() {
+		super(tiersPuissance.length);
 		this.setTier(1);
 		this.launcher = this;
 		// load resources
@@ -37,10 +38,6 @@ public class MissileLauncher extends Weapon {
 		}
 	}
 
-	public MissileLauncher() {
-		this(Vector.zero, Quaternion.identity);
-	}
-	
 	public PImage img() {
 		return missileImg;
 	}
@@ -60,23 +57,22 @@ public class MissileLauncher extends Weapon {
 	}
 
 	/** A missile that explode on collision and damage (life) the obstacle. */
-	public class Missile extends Sphere {//Cube {
+	public class Missile extends Box {
 		
 		private final int tier;
 		private final int puissance;
 		
 		public Missile() {
-			super(launcher.location(), launcher.rotation(), tiersSize[tier0()]);
-			//super(location, rotation, vec(sizeRatio*2, sizeRatio*2, sizeRatio*7));
+			super(vec(tiersSize[tier0()]*2, tiersSize[tier0()]*2, tiersSize[tier0()]*7));
+			
+			position.set(launcher.master().parent().absolute(launcher.position));
+			rotation.set(launcher.rotation.rotatedBy(launcher.master().parent().rotation));
+			
 			this.tier = tier0();
 			this.puissance = puissance();
 			super.addOnUpdate(m -> m.avance( puissance()*3 ));
 			super.setName("Missile t"+tier()+" p("+puissance+") ["+missileNextId++ +"]");
 			super.setMass(puissance);
-			super.setParent(launcher, ParentRelationship.None);
-			Movable movableParent = launcher.as(Movable.class);
-			if (movableParent != null)
-				super.velocityRel.set(movableParent.velocity());
 			super.setDisplayCollider(displayColliders());
 		}
 
@@ -89,14 +85,29 @@ public class MissileLauncher extends Weapon {
 			popLocal();
 		}
 
-		public void onCollision(Collider col, Vector impact) {
+		public void onCollision(Body col, Vector impact) {
 			// explodes and disappears
 			game.scene.remove( this );
-			game.scene.add( new Effect.Explosion( impact, tiersSize[tier] ) );
+			game.scene.add( new Effect.Explosion( position, tiersSize[tier] ) );
 			// to damage the targets
 			if (col instanceof Target) {
 				((Target)col).damage(puissance);
-			}
+			}	
+		}
+
+		public boolean isCollidingWith(Body col) {
+			// avoid contact with the shooter's body
+			return col != master().parent();
+		}
+		
+		public void addToScene(DWorld world, DSpace space) {
+			super.addToScene(world, space);
+			Body asBody = launcher.master().parent().as(Body.class);
+			if (asBody != null)
+				setVelocity(asBody.velocity());
 		}
 	}
+
+	@Override
+	public void display() {}
 }

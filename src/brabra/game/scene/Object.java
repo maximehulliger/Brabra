@@ -4,6 +4,7 @@ import brabra.Master;
 import brabra.game.physic.geo.Quaternion;
 import brabra.game.physic.geo.Transform;
 import brabra.game.physic.geo.Vector;
+import brabra.game.scene.Camera.Mode;
 import brabra.game.scene.SceneLoader.Attributes;
 
 /** 
@@ -11,31 +12,21 @@ import brabra.game.scene.SceneLoader.Attributes;
  * and family (parent, children)
  * that is updated every frame (the children depends on the parent). 
  **/
-public class Object extends Transform {
+public abstract class Object extends Transform {
 	
 	// > Flags, other
 	private String name;
 
 	/** Create a Body with this location & rotation. rotation can be null. */
-	public Object(Vector location, Quaternion rotation) {
-		super(location, rotation);
+	public Object() {
+		super();
 		setName(getClass().getSimpleName());
 		
 		// to notify model:
-		locationRel.addOnChange(() -> model.notifyChange(Change.Transform));
-		rotationRel.addOnChange(() -> model.notifyChange(Change.Transform));
+		position.addOnChange(() -> model.notifyChange(Change.Transform));
+		rotation.addOnChange(() -> model.notifyChange(Change.Transform));
 	}
 
-	/** Create a Body with this location & no initial rotation. */
-	public Object(Vector location) {
-		this(location, identity);
-	}
-
-	/** Create a Body with this location zero & no initial rotation. */
-	public Object() {
-		this(Vector.zero);
-	}
-	
 	/** Set this to the other object. should be overridden to make the copy complete & called. */
 	public void copy(Object other) {
 		super.copy(other);
@@ -45,39 +36,32 @@ public class Object extends Transform {
 	// --- Methods to override if wanted (of course basically everything is ;) ) ---
 
 	/** Override it to display the object. */
-	public void display() {}
+	public abstract void display();
 	
 	/** 
 	 * Override it to validate the object when added from an xml file (after parent & children set). 
 	 * Return true when this was valdated (only once). 
 	 **/
 	public void validate(Attributes atts) {
-		// get loc & dir
+		
 		final String locString = atts.getValue("pos");
-		final String dirString = atts.getValue("dir");
 		if (locString != null)
-			locationRel.set(vec(locString));
+			position.set(vec(locString));
+			
+		final String dirString = atts.getValue("dir");
 		if (dirString != null)
-			rotationRel.set(Quaternion.fromDirection(vec(dirString), Vector.up));
+			rotation.set(Quaternion.fromDirection(vec(dirString), Vector.up));
 		
-		// set parent first !
-		final String parentRel = atts.getValue("parentRel");
-		setParent(atts.parent(), parentRel != null ? ParentRelationship.fromString(parentRel) : null);
-		
-		// other attributes
 		final String name = atts.getValue("name");
 		if (name != null)
 			setName(name);
+		
 		final String cameraMode = atts.getValue("camera");
 		if (cameraMode != null) {
-			// set this as camera's parent with the given relation
-			ParentRelationship rel = ParentRelationship.fromString(cameraMode);
-			game.camera.setParent(this, rel);
-			// set the distance for this mode
-			String dist = atts.getValue("cameraDist");
-			if (dist != null)
-				game.camera.setDist(rel, vec(dist));
+			game.camera.setFocused(this);
+			game.camera.setMode(Mode.fromString(cameraMode));
 		}
+		
 		// focus: here because we want to do that with the children set.
 		final String focus = atts.getValue("focus");
 		if (focus != null && Boolean.parseBoolean(focus)) {
@@ -89,9 +73,7 @@ public class Object extends Transform {
 	}
 	
 	/** To react when the object is removed from the scene. should be called. */
-	public void onDelete() {
-		super.onDelete();
-	}
+	public void onDelete() {}
 
 	// --- Simple getters ---
 
@@ -112,7 +94,7 @@ public class Object extends Transform {
 	
 	/** return the presentation of the object with the name in evidence and the parent if exists. */
 	public String presentation() {
-		return "> "+this+" <" + (hasParent() ? " "+parentRel()+" after \""+parent()+"\"" : "");
+		return "> "+this+" <";
 	}
 	
 	// --- Setters ---

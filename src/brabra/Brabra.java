@@ -31,7 +31,7 @@ public class Brabra extends PApplet {
 	/** Frame per seconds wished by Brabra. */
 	public static final float frameRate = 30;
 	/** Indicates if this should be activated on start. */
-	public boolean imgAnalysis = true, toolWindow = false, runWithoutFocus = false;
+	public boolean imgAnalysis = true, toolWindow = true, runWithoutFocus = false;
 	
 	//--- Public
 	/** Static reference to the app. valid once initLock is released. */
@@ -44,7 +44,7 @@ public class Brabra extends PApplet {
 	//--- Intern
 	private final String basePath;
 	private final ConcurrentLinkedQueue<Runnable> toExecuteInPro = new ConcurrentLinkedQueue<>();
-	private boolean imgAnalysisStarted = false, fxAppStarted = false;
+	public boolean imgAnalysisStarted = false, fxAppStarted = false;
 	private Interface currentInterface;
 	public final Interface intMenu, intTrivialGame, intCalibration;
 	public final RealGame game;
@@ -134,8 +134,6 @@ public class Brabra extends PApplet {
 			camera();
 			hint(PApplet.DISABLE_DEPTH_TEST);
 			currentInterface.gui();
-			if (imgAnalysis && currentInterface!=intCalibration && currentInterface!=intMenu)
-				imgAnalyser.gui();
 			hint(PApplet.ENABLE_DEPTH_TEST);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -145,7 +143,6 @@ public class Brabra extends PApplet {
 
 	public void dispose() {
 		if (!over) {
-			Debug.setCurrentWork("quiting");
 			over = true;
 			if (fxApp != null && !fxApp.isClosing())
 				Platform.exit();
@@ -228,7 +225,6 @@ public class Brabra extends PApplet {
 		}
 		if (!hasImgAnalysis && imgAnalyser.running())
 			imgAnalyser.stop();
-		imgAnalysis = hasImgAnalysis;
 	}
 	
 	/** Change the current view of the app. */
@@ -272,8 +268,6 @@ public class Brabra extends PApplet {
 			para.setRunning(false);
 		} else if (key == 'Q')
 			imgAnalyser.resetAllParameters(true);
-		else if (key == 'p')
-			imgAnalyser.playOrPause();
 		else if (key=='h')
 			setToolWindow(!toolWindow);
 		

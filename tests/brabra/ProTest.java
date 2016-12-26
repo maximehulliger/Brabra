@@ -110,7 +110,9 @@ public class ProTest extends ProMaster {
 		final ArrayList<Transform> trans = new ArrayList<>(n);
 		for (int i=0; i<n; i++) {
 			final Vector loc = Vector.randomVec(100);
-			final Transform t = new  Transform(loc, Quaternion.randomQuat());
+			final Transform t = new  Transform();
+			t.position.set(loc);
+			t.rotation.set(Quaternion.randomQuat());
 			trans.add(t);
 		}
 		return trans;

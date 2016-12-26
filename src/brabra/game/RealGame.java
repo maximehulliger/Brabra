@@ -1,35 +1,56 @@
 package brabra.game;
 
 import brabra.Interface;
+import brabra.Parameters;
+
+import java.util.Observable;
+import java.util.Observer;
+
+import org.ode4j.ode.OdeHelper;
+
 import brabra.Debug;
-import brabra.game.physic.Physic;
 import brabra.game.scene.Camera;
 import brabra.game.scene.Scene;
 import processing.core.PApplet;
 import processing.event.MouseEvent;
 
-public class RealGame extends Interface {
+public class RealGame extends Interface implements Observer {
 	
 	public final Input input = new Input();
 	public final PhysicInteraction physicInteraction = new PhysicInteraction();
-	public final Scene scene = new Scene(this);
+	public Scene scene = null;
+	public Scene.Model sceneModel = new Scene.Model();
 	
 	public Camera camera = null; //created on show to be independent of processing
 	
 	// --- life cycle ---
 	
+	public RealGame() {
+		app.para.addObserver(this);
+	}
+
 	public void onShow() {
 		clearConsole();
-		Debug.info(0, "loading scene");
+		Debug.info(0, "creating scene");
+		OdeHelper.initODE2(0);
+		scene = new Scene(this);
+		sceneModel.scene = scene;
 		camera = new Camera();
+		
+		
 		physicInteraction.setFocused(null);
-		scene.loader.loadLocalFiles();
-		scene.loader.load();
-		app.imgAnalyser.play(true, false);
+		Scene.loader.loadLocalFiles();
+		Scene.loader.load();
+		
+		if (app.imgAnalysisStarted) {
+			app.setImgAnalysis(true);
+			app.imgAnalyser.play(true, false);
+		}
 	}
 
 	public void onHide() {
 		scene.clear();
+		OdeHelper.closeODE();
 		app.setImgAnalysis(false);
 	}
 	
@@ -41,7 +62,6 @@ public class RealGame extends Interface {
 			input.update();
 			physicInteraction.update();
 			scene.updateAll();
-			Physic.doMagic(scene);
 		}
 		scene.displayAll();	
 	}
@@ -50,6 +70,8 @@ public class RealGame extends Interface {
 		game.physicInteraction.gui();
 		input.gui();
 		camera.gui();
+		if (app.imgAnalysis)
+			app.imgAnalyser.gui();
 	}
 
 	// --- events ---
@@ -61,7 +83,7 @@ public class RealGame extends Interface {
 	public void keyReleased() {
 		input.keyReleased();
 		if (app.keyCode == PApplet.TAB)
-			camera.nextMode();
+			camera.changeMode();
 		else if (app.key == 'p') {
 			setRunning(!running());
 		}
@@ -89,5 +111,17 @@ public class RealGame extends Interface {
 
 	private void setRunning(boolean running) {
 		app.para.setRunning(running);
+	}
+
+	@Override
+	public void update(Observable arg0, Object arg1) {
+		if (arg1 == Parameters.Change.Running) {
+			if (app.imgAnalysis) {
+				if (running())
+					app.imgAnalyser.play(true, false);
+				else
+					app.imgAnalyser.stop();
+			}
+		}
 	}
 }

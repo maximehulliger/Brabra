@@ -1,24 +1,22 @@
 package brabra.game;
 
-import brabra.ProMaster;
-
-import java.util.Observable;
-import java.util.Observer;
+import java.util.ArrayList;
+import java.util.List;
 
 import brabra.Brabra;
 import brabra.Debug;
+import brabra.ProMaster;
 import brabra.game.physic.Body;
 import brabra.game.physic.geo.Vector;
-import brabra.game.physic.geo.Transform.Change;
-import brabra.game.scene.weapons.Weaponry;
 import brabra.game.scene.Object;
+import brabra.game.scene.weapons.Weaponry;
 import processing.core.PApplet;
 
 /**
  * Class to enable interaction with the scene's bodies.
  * Reacts to user input: wasd, space, alt, mouse drag, scroll.
  */
-public final class PhysicInteraction extends ProMaster implements Observer {
+public final class PhysicInteraction extends ProMaster {
 	/** Puissance of the interaction. */
 	private static final float forceMin = 20, forceMax = 150, forceRange = forceMax - forceMin; 
 	
@@ -28,6 +26,12 @@ public final class PhysicInteraction extends ProMaster implements Observer {
 	private Object focused = null;
 	private Body focusedBody = null;
 	private Weaponry weaponry = null;
+	
+	private List<Weaponry> weaponries = new ArrayList<>();
+	
+	public void addWeaponry(Weaponry w) {
+		weaponries.add(w);
+	}
 
 	/** Set the force of interaction. if displayIfChange & changed, displayState. */
 	public void setForce(float force) {
@@ -55,13 +59,19 @@ public final class PhysicInteraction extends ProMaster implements Observer {
 			this.focused = focused;
 			this.focusedBody = focused.as(Body.class);
 			this.weaponry = getWeaponry();
-			focused.model.addObserver(this);
 		}
+	}
+	
+	public Object focused() {
+		return focused;
+	}
+	
+	public void updateWeaponry() {
+		this.weaponry = getWeaponry();
 	}
 	
 	/** Update interaction & apply forces. */
 	public void update() {
-		Debug.setCurrentWork("interaction");
 		
 		// force change
 		if (game.input.scrollDiff != 0)
@@ -86,7 +96,6 @@ public final class PhysicInteraction extends ProMaster implements Observer {
 	}
 	
 	public void gui() {
-		Debug.setCurrentWork("interaction gui");
 		if (weaponry != null)
 			weaponry.displayGui();
 	}
@@ -98,19 +107,23 @@ public final class PhysicInteraction extends ProMaster implements Observer {
 			//> from the plate
 			if (app.imgAnalyser.running()) {
 				// rotation selon angle de la plaque
-				Vector plateRot = app.imgAnalyser.rotation().multBy(1/Brabra.inclinaisonMax); //over 1
-				// on adoucit par x -> x ^ 1.75
-				plateRot = new Vector(
-						PApplet.pow(PApplet.abs(plateRot.x), 1.75f) * sgn(plateRot.x), 
-						PApplet.pow(PApplet.abs(plateRot.y), 1.75f) * sgn(plateRot.y),
-						PApplet.pow(PApplet.abs(plateRot.z), 1.75f) * sgn(plateRot.z));
-				forceRot.add( plateRot.multBy(Brabra.inclinaisonMax/4 ) );
+				Vector plateRot = app.imgAnalyser.rotation();
+				if (!plateRot.equals(zero)) {
+					plateRot.mult(1/Brabra.inclinaisonMax); //over 1
+					// on adoucit par x -> x ^ 1.75
+					plateRot = new Vector(
+							-PApplet.pow(PApplet.abs(plateRot.x), 1.75f) * sgn(plateRot.x), 
+							-PApplet.pow(PApplet.abs(plateRot.y), 1.75f) * sgn(plateRot.y),
+							PApplet.pow(PApplet.abs(plateRot.z), 1.75f) * sgn(plateRot.z));
+					forceRot.add( plateRot.multBy(Brabra.inclinaisonMax*100 ) );
+				}
 			}
 			//> add from input (horizon:ad)
 			forceRot.add( yawAxis(game.input.horizontal*120) );
 			//> add from mouse drag
 			forceRot.add( pitchAxis(game.input.mouseDrag().y * -1f) );
 			forceRot.add( rollAxis(game.input.mouseDrag().x * 1f) );
+			
 			forceRot.mult(this.forceRot);
 			
 			//> apply force rot: up (pitch, roll)
@@ -155,65 +168,13 @@ public final class PhysicInteraction extends ProMaster implements Observer {
 		}
 	}
 	
-	// --- Raycast ---
-/*
-	public static Collider raycast(Vector from, Vector dir) {
-		assert(!dir.equals(zero));
-		Line ray = new Line(from, add(from,dir), true);
-		Vector other = vec(1,1,1);
-		Vector target1 = new Vector();
-		Vector target2 = new Vector();
-		dir.cross(other, target1);
-		if (target1.equals(zero))
-			other = vec(-2,-3,-5);
-		dir.cross(other, target1);
-		dir.cross(target1, target2);
-		assert (!target1.equals(zero) && !!target2.equals(zero));
-		Line p1 = new Line(from, target1, true);
-		Line p2 = new Line(from, target2, true);
-		Projection targetProj = new Line.Projection(0);
-		ArrayList<Collider> candidates = new ArrayList<>();
-		ArrayList<Float> candidatesDist = new ArrayList<>();
-
-		for (Collider c : game.scene.activeColliders()) {
-			if (c.projetteSur(p1).comprend(0)&& c.projetteSur(p2).comprend(0)) {
-				Projection proj = c.projetteSur(ray);
-				if (proj.intersectionne(targetProj)) {
-					candidates.add(c);
-					candidatesDist.add(proj.from);
-				}
-			}
-		}
-
-		if (candidates.size() == 0)
-			return null;
-		else if (candidates.size() == 1)
-			return candidates.get(0);
-		else {
-			Collider best = null;
-			float bestDe = Float.MAX_VALUE;
-			for (int i=0; i<candidates.size(); i++) {
-				float de = candidatesDist.get(i);
-				if (bestDe > de) {
-					bestDe = de;
-					best = candidates.get(i);
-				}
-			}
-			assert(best != null);
-			return best;
-		}
-	}
-*/
 	// --- private ---
 	
 	private Weaponry getWeaponry() {
-		return focused == null ? null : (Weaponry)focused.childThat(c -> c instanceof Weaponry);
-	}
-
-	@Override
-	public void update(Observable o, java.lang.Object arg) {
-		if (arg == Change.Children) {
-			weaponry = getWeaponry();
-		}
+		for (Weaponry w : weaponries) {
+			if (w.parent() == focused)
+				return w;
+		};
+		return null;
 	}
 }

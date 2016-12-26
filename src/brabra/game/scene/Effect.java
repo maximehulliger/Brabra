@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import brabra.Brabra;
+import brabra.Master;
 import brabra.game.physic.geo.Vector;
 
 public abstract class Effect extends Object {
@@ -12,7 +13,7 @@ public abstract class Effect extends Object {
 
 	/** Create an effect at this location. lifetime in frame, -1 -> infinite */
 	public Effect(Vector location, int lifeTime) {
-		super(location);
+		position.set(location);
 		this.timeLeft = lifeTime;
 		this.lifeTime = lifeTime;
 	}
@@ -57,22 +58,24 @@ public abstract class Effect extends Object {
 		}
 		
 		private Vector randomPos() {
-			Vector pos = new Vector(random.nextFloat(), random.nextFloat(), random.nextFloat());
+			Vector pos = new Vector(Master.randomBi(), Master.randomBi(), Master.randomBi());
 			pos.mult( radius * etatCrete() );
-			return location().plus(pos);
+			return position.plus(pos);
 		}
 		
 		public void update() {
 			super.update();
 			for (int i=0; i<5; i++)
 				bulbes.add( new Bulbe(randomPos()) );
+			bulbes.forEach(b -> b.update());
+			setName("Explosion ("+bulbes.size()+")");
 		}
 		
 		//affiche l'onde de choc
 		public void display() {
 			bulbes.forEach(b -> b.display());
 		}
-		
+
 		private class Bulbe extends Effect {
 			private static final float minRad = 5;
 			private static final float maxRad = 10;
@@ -80,7 +83,7 @@ public abstract class Effect extends Object {
 			private final int color;
 			
 			public Bulbe(Vector location) {
-				super(location, toFrame(0.2f));
+				super(location, toFrame(1f));
 				this.color = app.color(255, random.nextInt(256), 0);
 				this.radius = random(minRad, maxRad);
 			}
@@ -88,6 +91,7 @@ public abstract class Effect extends Object {
 			public void display() {
 				pushLocal();
 				app.fill(color, 150);
+				app.noStroke();
 				app.sphere(radius*etatCrete());
 				popLocal();
 			}

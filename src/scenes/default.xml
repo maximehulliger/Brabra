@@ -1,20 +1,30 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
 <Scene>
-	<Settings gravity="0.2" running="true" verbosity="max" displayAllColliders="true"></Settings>
+	<Settings gravity="0" running="true" verbosity="max" displayAllColliders="false"></Settings>
 	
 	<Camera displaySkybox="true" mode="none" dist="(300,300,300)" debug="false"></Camera>
 	
-	<Floor pos="zero" color="grass" dir="(0 100 -100)"></Floor> 
-	<Floor pos="zero" color="grass" dir="(0 100 100)"></Floor> 
-	<Ball pos="(0,200,0)" mass="500" color="red" radius="10"></Ball>
-	
-	<Starship pos="(0,200,0)" focus="true" camera="static">
-		<Weaponry puissance="400" prefab="none" displayColliders="false">
+	<Starship pos="(0,200,200)" focus="true" force="72" camera="relative" debug="false" displayCollider="false">
+		  <Weaponry puissance="400" prefab="none" displayColliders="false">
+			<missile_launcher pos="(30,-10,0)" tier="2" upgrade="1.2"></missile_launcher>
 			<missile_launcher pos="(0,-15,0)" tier="3" upgrade="1.2"></missile_launcher>
+			<missile_launcher pos="(-30,-10,0)" tier="2" upgrade="0.8" displayColliders="false"></missile_launcher>
 		</Weaponry>
 	</Starship>
 	
+	
+	<Target pos="(100,100,-500)" life="200" color="red"></Target>
+	<Target pos="(1000,100,-2000)" life="200" color="red"></Target>
+	<Target pos="(-1000,100,-2000)" life="200" color="red"></Target>
+	<Target pos="(0,2000,100)" life="200" color="red"></Target>
+	<Target pos="(1000,1000,1000)" life="10" color="yellow"></Target>
+	<Target pos="(0, -1000,0)" life="10" color="yellow"></Target>
+	<Target pos="(-1000,-1000,1000)" life="10" color="yellow"></Target>
+	<Target pos="(2000, 2000,-1000)" life="10" color="yellow"></Target>
+	<Target pos="(1000,100,-1000)" life="10" color="yellow"></Target>
+	
 	<!-- 
+	<Plane pos="0, 0 00" color="grass" dir="(0 100 0)"></Plane>
 	
 	<Box pos="(40,0,-20)" name="pink box" mass="0" color="pink">
 			<Ball pos="(0,40,0)" name="upper ball" color="blue" mass="0"></Ball>
@@ -37,14 +47,5 @@
 	<ball pos="(1,20,5)" mass="5" color="red"></ball>
 	<ball pos="(2,5,7)" mass="5" color="blue" impulse="(0,0,-2)"></ball>
 	
-	<target pos="(100,100,-500)" life="200" color="red"></target>
-	<target pos="(1000,100,-2000)" life="200" color="red"></target>
-	<target pos="(-1000,100,-2000)" life="200" color="red"></target>
-	<target pos="(0,2000,100)" life="200" color="red"></target>
-	<target pos="(1000,1000,1000)" life="10" color="yellow"></target>
-	<target pos="(0, -1000,0)" life="10" color="yellow"></target>
-	<target pos="(-1000,-1000,1000)" life="10" color="yellow"></target>
-	<target pos="(2000, 2000,-1000)" life="10" color="yellow"></target>
-	<target pos="(1000,100,-1000)" life="10" color="yellow"></target>
 	-->
 </Scene>

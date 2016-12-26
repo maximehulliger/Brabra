@@ -239,7 +239,8 @@ public class ImageAnalyser extends ProMaster {
 		
 		paused = true;
 		
-		cam.stop();
+		if (cam != null)
+			cam.stop();
 		
 		// resetOutput
 		gameRotation = zero.copy();

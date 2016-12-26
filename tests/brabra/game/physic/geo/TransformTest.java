@@ -2,12 +2,9 @@ package brabra.game.physic.geo;
 
 import static org.junit.Assert.*;
 
-import java.util.ArrayList;
-
 import org.junit.Test;
 
 import brabra.ProTest;
-import brabra.game.physic.geo.Transform.ParentRelationship;
 
 public class TransformTest extends ProTest {
 
@@ -16,21 +13,6 @@ public class TransformTest extends ProTest {
 	}
 	
 	//final static private Quaternion toRight = new Quaternion(up, pi/2);
-	
-	@Test
-	public void simpleParentTest() {
-		final int nTest = 5;
-		final ArrayList<Transform> trans = someTransform(nTest*2);
-		for (int i=0; i<nTest*2; i+=2) {
-			final Transform t0 = trans.get(i);
-			final Transform t1 = trans.get(i+1);
-			//T trans2 = trans.get(2);
-			t1.setParent(t0, ParentRelationship.Static);
-			final Vector loc1 = t1.location();
-			final Vector loc2 = t0.location().plus(t1.locationRel);
-			assertEquals("simple full parent", loc1, loc2);
-		}
-	}
 	
 	@Test
 	public void translationTest() {
@@ -47,21 +29,6 @@ public class TransformTest extends ProTest {
 		for (Transform t : someTransform(5)) {
 			final Transform newT = new Transform().copy(t);
 			assertEquals("t", newT, t);
-		}
-	}
-
-	@Test
-	public void testAbsLocal() {
-		for (Transform t : someTransform(5)) {
-			final Vector vec = Vector.randomVec(100);
-			
-			// abs -> loc -> abs
-			final Vector dirFromLoc = t.absoluteDirFromLocal(t.localDir(vec));
-			assertEqualsEps("", vec, dirFromLoc);
-			
-			// loc -> abs -> loc
-			final Vector dirFromAbs = t.localDir(t.absoluteDirFromLocal(vec));
-			assertEqualsEps("", vec, dirFromAbs);
 		}
 	}
 

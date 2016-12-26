@@ -1,5 +1,8 @@
 package brabra.game.physic.geo;
 
+import org.ode4j.math.DQuaternion;
+import org.ode4j.math.DQuaternionC;
+
 import brabra.Master;
 import brabra.ProMaster;
 import processing.core.PApplet;
@@ -41,11 +44,17 @@ public class Quaternion extends ProMaster {
 	public Quaternion(Vector axis, float angle) {
 		set(axis == null ? null : axis.copy(), angle);
 	}
-	
+
 	/** Create a copy of the Quaternion. */
 	public Quaternion(Quaternion q) {
 		set(q);
 	}
+
+	/** Create a copy of the Quaternion from ODE. */
+	public Quaternion(DQuaternionC q) {
+		this((float)q.get0(), (float)q.get1(), (float)q.get2(), (float)q.get3());
+	}
+	
 	
 	/** Create a new Quaternion from WXYZ. */
 	public Quaternion(float w, Vector xyz) {
@@ -144,6 +153,10 @@ public class Quaternion extends ProMaster {
 					: " with unknown axis");
 	}
 	
+	public DQuaternion toOde() {
+		return new DQuaternion(w, xyz.x, xyz.y, xyz.z);
+	}
+	
 	// --- Setters ---
 	
 	/** Set the quaternion from WXYZ, normalize this, unvalidate rot axis. */
@@ -175,7 +188,6 @@ public class Quaternion extends ProMaster {
 	}
 	
 	public String formated() {
-		//TODO not good epsilon
 		return rotAxis()==null ? "identity" 
 				: Master.formatFloat(angle()*180/pi, Physic.epsilon)+"° around "+rotAxis().formated(Physic.epsilon);
 	}

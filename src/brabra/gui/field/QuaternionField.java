@@ -51,7 +51,6 @@ public class QuaternionField extends ValueField<Quaternion> {
 			lastValidValue.set(rotAxisValue,angleValue);
 		
 		return lastValidValue;
-		
 	}
 	
 	private boolean inputDifferent(Vector rotAxis, float angle) {

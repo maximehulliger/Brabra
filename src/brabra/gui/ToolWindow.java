@@ -115,10 +115,10 @@ public class ToolWindow extends Application {
     	tabsHolder.setTabClosingPolicy(TabClosingPolicy.UNAVAILABLE);
     	
     	// add the Views to the tabs.
-    	tabs[0].setContent(new SceneView(app.game.scene));
+    	tabs[0].setContent(new SceneView(app.game.sceneModel));
     	tabs[1].setContent(new ParametersView(app.para));
     	tabs[2].setContent(new CreationView());
-    	tabs[3].setContent(new MyScenesView(app.game.scene));
+    	tabs[3].setContent(new MyScenesView(app.game.sceneModel));
     	tabs[4].setContent(new StoreView(app.game.scene));
     	   	
         // link everything

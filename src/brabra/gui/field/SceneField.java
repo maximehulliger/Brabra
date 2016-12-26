@@ -56,8 +56,8 @@ public class SceneField extends Field {
 		
 		execButton.setOnAction(e -> {
 			Brabra.app.runLater(() -> {
-				scene.loader.setFile(sceneFile);
-				scene.loader.load();
+				Scene.loader.setFile(sceneFile);
+				Scene.loader.load();
 			});
 		});
 		

@@ -9,7 +9,7 @@ import brabra.game.scene.SceneProviderDistant;
 public class Parameters extends Observable {
 	public enum Change {
 		Running,
-		Gravity, DisplayAllColliders, 
+		Gravity, DisplayAllColliders,
 		DisplaySkybox, DisplayAxis, DisplayCenterPoint,
 		Braking, InteractionForce,
 		ServerAdress
@@ -33,7 +33,7 @@ public class Parameters extends Observable {
 
 	// --- Gravity ---
 	
-	private Vector gravity = ProMaster.down(0.8f);
+	private Vector gravity = ProMaster.down(0.981f);
 
 	public Vector gravity() {
 		return gravity;
