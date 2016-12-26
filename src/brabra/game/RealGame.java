@@ -1,6 +1,10 @@
 package brabra.game;
 
 import brabra.Interface;
+import brabra.Parameters;
+
+import java.util.Observable;
+import java.util.Observer;
 
 import org.ode4j.ode.OdeHelper;
 
@@ -10,7 +14,7 @@ import brabra.game.scene.Scene;
 import processing.core.PApplet;
 import processing.event.MouseEvent;
 
-public class RealGame extends Interface {
+public class RealGame extends Interface implements Observer {
 	
 	public final Input input = new Input();
 	public final PhysicInteraction physicInteraction = new PhysicInteraction();
@@ -20,6 +24,10 @@ public class RealGame extends Interface {
 	public Camera camera = null; //created on show to be independent of processing
 	
 	// --- life cycle ---
+	
+	public RealGame() {
+		app.para.addObserver(this);
+	}
 
 	public void onShow() {
 		clearConsole();
@@ -33,10 +41,9 @@ public class RealGame extends Interface {
 		physicInteraction.setFocused(null);
 		Scene.loader.loadLocalFiles();
 		Scene.loader.load();
-		//app.imgAnalyser.play(true, false);
-				
 		
-		//OdeHelper.createPlane(space,0, 1,0,0);
+		if (app.imgAnalysis)
+			app.imgAnalyser.play(true, false);
 	}
 
 	public void onHide() {
@@ -61,6 +68,8 @@ public class RealGame extends Interface {
 		game.physicInteraction.gui();
 		input.gui();
 		camera.gui();
+		if (app.imgAnalysis)
+			app.imgAnalyser.gui();
 	}
 
 	// --- events ---
@@ -100,5 +109,17 @@ public class RealGame extends Interface {
 
 	private void setRunning(boolean running) {
 		app.para.setRunning(running);
+	}
+
+	@Override
+	public void update(Observable arg0, Object arg1) {
+		if (arg1 == Parameters.Change.Running) {
+			if (app.imgAnalysis) {
+				if (running())
+					app.imgAnalyser.play(true, false);
+				else
+					app.imgAnalyser.stop();
+			}
+		}
 	}
 }

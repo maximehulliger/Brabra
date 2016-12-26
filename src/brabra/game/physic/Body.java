@@ -151,7 +151,7 @@ public abstract class Body extends Object {
 		super.onDelete();
 	}
 
-	// --- some setters
+	// --- some setters && getters
 	
 	void setPosition(Vector pos) {
 		this.position.set(pos);
@@ -220,6 +220,14 @@ public abstract class Body extends Object {
 			displayShape();
 		}
 		return display;
+	}
+	
+	public void setVelocity(Vector vel) {
+		body.setLinearVel(vel.toOde());
+	}
+	
+	public Vector velocity() {
+		return new Vector(body.getLinearVel());
 	}
 
 	// --- life

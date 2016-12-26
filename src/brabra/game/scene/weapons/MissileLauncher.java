@@ -1,5 +1,8 @@
 package brabra.game.scene.weapons;
 
+import org.ode4j.ode.DSpace;
+import org.ode4j.ode.DWorld;
+
 import brabra.game.physic.Body;
 import brabra.game.physic.geo.Box;
 import brabra.game.physic.geo.Vector;
@@ -61,8 +64,10 @@ public class MissileLauncher extends Weapon {
 		
 		public Missile() {
 			super(vec(tiersSize[tier0()]*2, tiersSize[tier0()]*2, tiersSize[tier0()]*7));
+			
 			position.set(launcher.master().parent().absolute(launcher.position));
 			rotation.set(launcher.rotation.rotatedBy(launcher.master().parent().rotation));
+			
 			this.tier = tier0();
 			this.puissance = puissance();
 			super.addOnUpdate(m -> m.avance( puissance()*3 ));
@@ -93,6 +98,13 @@ public class MissileLauncher extends Weapon {
 		public boolean isCollidingWith(Body col) {
 			// avoid contact with the shooter's body
 			return col != master().parent();
+		}
+		
+		public void addToScene(DWorld world, DSpace space) {
+			super.addToScene(world, space);
+			Body asBody = launcher.master().parent().as(Body.class);
+			if (asBody != null)
+				setVelocity(asBody.velocity());
 		}
 	}
 

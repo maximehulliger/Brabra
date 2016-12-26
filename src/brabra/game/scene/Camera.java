@@ -114,8 +114,6 @@ public class Camera extends Object {
 
 	/** Put the camera in the processing scene and carry his job (see class doc). */
 	public void place() {
-		Debug.setCurrentWork("camera");
-		
 		//set focus & pos (& orientation if needed)
 		final Vector focus, pos;
 		if (focused == null || mode == Mode.None) {

@@ -80,47 +80,9 @@ public class TrivialGame extends Interface {
 		app.rotateZ(platRot.z * ratioEtat);
 	}
 	
-	/*
-	float etatTrans = 0;
-	Quaternion rot = new Quaternion();
-	
-	void testSlerp() {
-		PVector v = vec(0, 1, 1);
-		v.normalize();
-		PVector v2 = vec(1, 0, 0);
-		v2.normalize();
-		Quaternion q1 = new Quaternion(PApplet.PI/4, v);
-		Quaternion q2 = new Quaternion();//new Quaternion(PApplet.PI/3, v2);
-
-		//rot.rotate(q1);
-		etatTrans += 2/app.frameRate;
-		if (etatTrans > 1)
-			etatTrans -= 1;
-		
-		app.pushMatrix();
-		rotate( q1 );
-		app.pushMatrix();
-		app.translate(0, -tailleTerrain.y/2, 0);
-		app.box(tailleTerrain.x, tailleTerrain.y, tailleTerrain.z);
-		app.popMatrix();
-		app.popMatrix();
-		
-		app.pushMatrix();
-		rotate( q2 );
-		app.pushMatrix();
-		app.translate(0, -tailleTerrain.y/2, 0);
-		app.box(tailleTerrain.x, tailleTerrain.y, tailleTerrain.z);
-		app.popMatrix();
-		app.popMatrix();
-
-		app.pushMatrix();
-		rotate( Quaternion.slerp(q1, q2, etatTrans) );
-		app.pushMatrix();
-		app.translate(0, -tailleTerrain.y/2, 0);
-		app.box(tailleTerrain.x, tailleTerrain.y, tailleTerrain.z);
-		app.popMatrix();
-		app.popMatrix();
-	}*/
+	public void gui() {
+		app.imgAnalyser.gui();
+	}
 
 	void placeCamEtLum()
 	{ 
@@ -144,11 +106,6 @@ public class TrivialGame extends Interface {
 		float posCamZ = centreRotZ+PApplet.cos(angle)*rayon, posCamY = centreRotY+PApplet.sin(angle)*rayon;
 		app.camera(0, posCamY, posCamZ, 0, 0, 0, 0, -1, 0);
 
-		/* debug
-	  println("pos cam Z,Y: "+posCamZ+", "+posCamY);
-	  println("centreRot Z,Y: "+centreRotZ+", "+centreRotY);
-	  println("angle sur x: "+angle+", rayon: "+rayon);*/
-
 		//lum
 		app.ambientLight(255, 255, 255);
 		app.directionalLight(50, 100, 125, 0, -1, 0);
@@ -159,7 +116,7 @@ public class TrivialGame extends Interface {
 
 
 	public void keyReleased() {
-		//shift: mode contrÃ´le
+		//shift: mode contrôle
 		if (app.keyCode == PApplet.SHIFT || app.keyCode == PApplet.CONTROL) {
 			app.imgAnalyser.play(false, false);
 			
@@ -174,9 +131,6 @@ public class TrivialGame extends Interface {
 	}
 
 	public void keyPressed() {
-		if (app.key != PApplet.CODED)
-			return; 
-
 		//gauche droite: tourne la plaque  
 		if (app.keyCode == PApplet.LEFT) {
 			platRot.y = entrePiEtMoinsPi(platRot.y - pasRotY);
@@ -185,7 +139,7 @@ public class TrivialGame extends Interface {
 			platRot.y = entrePiEtMoinsPi(platRot.y + pasRotY);
 		}
 
-		//shift: mode contrÃ´le
+		//shift: mode contrôle
 		if (app.keyCode == PApplet.SHIFT || app.keyCode == PApplet.CONTROL) {
 			switch (mode) {
 			case Jeu:

@@ -134,8 +134,6 @@ public class Brabra extends PApplet {
 			camera();
 			hint(PApplet.DISABLE_DEPTH_TEST);
 			currentInterface.gui();
-			if (imgAnalysis && currentInterface!=intCalibration && currentInterface!=intMenu)
-				imgAnalyser.gui();
 			hint(PApplet.ENABLE_DEPTH_TEST);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -145,7 +143,6 @@ public class Brabra extends PApplet {
 
 	public void dispose() {
 		if (!over) {
-			Debug.setCurrentWork("quiting");
 			over = true;
 			if (fxApp != null && !fxApp.isClosing())
 				Platform.exit();
@@ -272,8 +269,6 @@ public class Brabra extends PApplet {
 			para.setRunning(false);
 		} else if (key == 'Q')
 			imgAnalyser.resetAllParameters(true);
-		else if (key == 'p')
-			imgAnalyser.playOrPause();
 		else if (key=='h')
 			setToolWindow(!toolWindow);
 		

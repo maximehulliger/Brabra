@@ -72,7 +72,6 @@ public final class PhysicInteraction extends ProMaster {
 	
 	/** Update interaction & apply forces. */
 	public void update() {
-		Debug.setCurrentWork("interaction");
 		
 		// force change
 		if (game.input.scrollDiff != 0)
@@ -97,7 +96,6 @@ public final class PhysicInteraction extends ProMaster {
 	}
 	
 	public void gui() {
-		Debug.setCurrentWork("interaction gui");
 		if (weaponry != null)
 			weaponry.displayGui();
 	}

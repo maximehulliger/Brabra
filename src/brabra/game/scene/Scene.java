@@ -22,7 +22,6 @@ import org.ode4j.ode.DWorld;
 import org.ode4j.ode.OdeHelper;
 
 import brabra.Brabra;
-import brabra.Debug;
 import brabra.Parameters;
 import brabra.game.RealGame;
 import brabra.game.physic.Body;
@@ -132,14 +131,12 @@ public class Scene implements Observer {
 		space.collide(null, nearCallback);
 		world.step (1);
 		contactgroup.empty();
-		Debug.setCurrentWork("objects update");
 		for (Object o : objects)
 			o.update();
 	}
 
 	/** Display all colliders and effects in the scene. */
 	public void displayAll() {
-		Debug.setCurrentWork("display objects");
 		for(Object o : objects)
 			o.display();
 	}
